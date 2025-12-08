@@ -1,0 +1,94 @@
+<div class="configuracao-container">
+  <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
+
+  <div *ngIf="!carregando && perfil" class="configuracao-content">
+    <!-- Header com informações do perfil -->
+    <div class="header">
+      <div class="perfil-info">
+        <h2>{{ perfil.nome }}</h2>
+        <p *ngIf="perfil.descricao">{{ perfil.descricao }}</p>
+        <p-tag [value]="perfil.ativo ? 'Ativo' : 'Inativo'" 
+               [severity]="perfil.ativo ? 'success' : 'danger'"></p-tag>
+      </div>
+      <button pButton 
+              type="button" 
+              label="Voltar" 
+              icon="pi pi-arrow-left" 
+              class="p-button-secondary" 
+              (click)="voltar()"></button>
+    </div>
+
+    <!-- Grid de funcionalidades -->
+    <div class="funcionalidades-section">
+      <h3>Configurar Permissões por Funcionalidade</h3>
+      
+      <div class="funcionalidades-grid">
+        <p-card *ngFor="let func of funcionalidades" class="funcionalidade-card">
+          <ng-template pTemplate="header">
+            <div class="card-header">
+              <div class="header-info">
+                <h4>{{ func.nome }}</h4>
+                <p-tag *ngIf="getNumeroPermissoes(func.codigo) > 0" 
+                       [value]="getNumeroPermissoes(func.codigo) + ' selecionada(s)'"
+                       severity="info"></p-tag>
+              </div>
+              <div class="header-actions">
+                <button pButton 
+                        type="button" 
+                        icon="pi pi-check" 
+                        class="p-button-rounded p-button-text p-button-sm" 
+                        pTooltip="Selecionar todas"
+                        tooltipPosition="top"
+                        (click)="selecionarTodas(func.codigo, func.permissoesDisponiveis)"></button>
+                <button pButton 
+                        type="button" 
+                        icon="pi pi-times" 
+                        class="p-button-rounded p-button-text p-button-sm" 
+                        pTooltip="Limpar seleção"
+                        tooltipPosition="top"
+                        (click)="limparPermissoes(func.codigo)"></button>
+              </div>
+            </div>
+          </ng-template>
+
+          <p class="descricao">{{ func.descricao }}</p>
+
+          <div class="permissoes-grid">
+            <div *ngFor="let permissao of func.permissoesDisponiveis" class="permissao-item">
+              <p-checkbox [binary]="true"
+                          [ngModel]="isPermissaoSelecionada(func.codigo, permissao)"
+                          (ngModelChange)="togglePermissao(func.codigo, permissao)"
+                          [label]="permissao"
+                          [inputId]="func.codigo + '-' + permissao"></p-checkbox>
+            </div>
+          </div>
+
+          <ng-template pTemplate="footer">
+            <div class="card-footer">
+              <button pButton 
+                      type="button" 
+                      label="Salvar" 
+                      icon="pi pi-save" 
+                      class="p-button-success p-button-sm" 
+                      [loading]="salvando"
+                      (click)="salvarPermissoes(func.codigo)"></button>
+              <button pButton 
+                      type="button" 
+                      label="Remover Funcionalidade" 
+                      icon="pi pi-trash" 
+                      class="p-button-danger p-button-sm p-button-outlined" 
+                      *ngIf="getNumeroPermissoes(func.codigo) > 0"
+                      (click)="removerFuncionalidade(func.codigo)"></button>
+            </div>
+          </ng-template>
+        </p-card>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!carregando && !perfil" class="empty-message">
+    <i class="pi pi-exclamation-triangle"></i>
+    <h3>Perfil não encontrado</h3>
+    <button pButton type="button" label="Voltar" icon="pi pi-arrow-left" (click)="voltar()"></button>
+  </div>
+</div>

@@ -1,0 +1,115 @@
+<div class="perfil-novo-container">
+  <h2><i class="pi pi-plus-circle"></i> Criar Novo Perfil</h2>
+
+  <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
+
+  <div class="perfil-form" *ngIf="!carregando">
+    <!-- Dados Básicos -->
+    <p-card header="Dados do Perfil">
+      <div class="p-fluid">
+        <div class="p-field">
+          <label for="nome">Nome do Perfil *</label>
+          <input 
+            id="nome" 
+            type="text" 
+            pInputText 
+            [(ngModel)]="nome"
+            placeholder="Ex: Vendedor Senior"
+            required>
+        </div>
+
+        <div class="p-field">
+          <label for="descricao">Descrição</label>
+          <textarea 
+            id="descricao" 
+            pInputTextarea 
+            [(ngModel)]="descricao"
+            placeholder="Descrição do perfil e suas responsabilidades"
+            rows="3">
+          </textarea>
+        </div>
+
+        <div class="p-field-checkbox">
+          <p-checkbox 
+            [(ngModel)]="ativo" 
+            [binary]="true" 
+            inputId="ativo"
+            label="Perfil Ativo">
+          </p-checkbox>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Permissões por Funcionalidade -->
+    <h3 class="permissoes-titulo">
+      <i class="pi pi-shield"></i>
+      Configurar Permissões
+    </h3>
+
+    <div class="funcionalidades-grid">
+      <p-card *ngFor="let func of funcionalidades">
+        <ng-template pTemplate="header">
+          <div class="card-header-custom">
+            <div class="header-info">
+              <strong>{{ func.nome }}</strong>
+              <p-tag 
+                *ngIf="getNumeroPermissoes(func.codigo) > 0"
+                [value]="getNumeroPermissoes(func.codigo) + ' selecionada(s)'"
+                severity="success">
+              </p-tag>
+            </div>
+            <div class="acoes-rapidas">
+              <button 
+                pButton 
+                icon="pi pi-check" 
+                class="p-button-text p-button-sm p-button-success"
+                pTooltip="Selecionar Todas"
+                (click)="selecionarTodas(func.codigo, func.permissoesDisponiveis)">
+              </button>
+              <button 
+                pButton 
+                icon="pi pi-times" 
+                class="p-button-text p-button-sm p-button-danger"
+                pTooltip="Limpar Seleção"
+                (click)="limparPermissoes(func.codigo)">
+              </button>
+            </div>
+          </div>
+        </ng-template>
+
+        <p class="descricao">{{ func.descricao }}</p>
+
+        <div class="permissoes-grid">
+          <div *ngFor="let perm of func.permissoesDisponiveis" class="permissao-item">
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="isPermissaoSelecionada(func.codigo, perm)"
+              (ngModelChange)="togglePermissao(func.codigo, perm)"
+              [label]="perm">
+            </p-checkbox>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Ações -->
+    <div class="acoes-footer">
+      <button 
+        pButton 
+        label="Cancelar" 
+        icon="pi pi-times"
+        class="p-button-secondary"
+        (click)="cancelar()"
+        [disabled]="salvando">
+      </button>
+      <button 
+        pButton 
+        label="Criar Perfil" 
+        icon="pi pi-save"
+        class="p-button-success"
+        (click)="criarPerfil()"
+        [loading]="salvando">
+      </button>
+    </div>
+  </div>
+</div>

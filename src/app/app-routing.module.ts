@@ -33,6 +33,10 @@ const routes: Routes = [
       {
         path: 'acesso-negado',
         component: AcessoNegadoComponent
+      },
+      {
+        path: 'admin/perfis',
+        loadChildren: () => import('./features/perfis/perfis.module').then(m => m.PerfisModule)
       }
     ]
   },

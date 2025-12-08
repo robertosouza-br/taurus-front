@@ -8,6 +8,10 @@ import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
+
+// PrimeNG Services
+import { MessageService } from 'primeng/api';
 
 // Shared Module
 import { SharedModule } from '../../shared/shared.module';
@@ -41,7 +45,11 @@ import { AcessoNegadoComponent } from './acesso-negado/acesso-negado.component';
     MenuModule,
     TooltipModule,
     BadgeModule,
-    CardModule
+    CardModule,
+    ToastModule
+  ],
+  providers: [
+    MessageService
   ],
   exports: [
     MainLayoutComponent

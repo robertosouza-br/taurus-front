@@ -1,7 +1,7 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { JwtInterceptor, ErrorInterceptor } from './interceptors';
+import { JwtInterceptor, ErrorInterceptor, SecurityInterceptor } from './interceptors';
 
 /**
  * CoreModule
@@ -23,6 +23,11 @@ import { JwtInterceptor, ErrorInterceptor } from './interceptors';
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: SecurityInterceptor,
       multi: true
     }
   ]
