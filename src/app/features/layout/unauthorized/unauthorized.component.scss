@@ -53,18 +53,4 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .error-content {
-    h1 {
-      color: #8b9cff;
-    }
-
-    h2 {
-      color: #fff;
-    }
-
-    p {
-      color: #b0b0b0;
-    }
-  }
-}
+// Tema escuro desabilitado para manter tema claro fixo

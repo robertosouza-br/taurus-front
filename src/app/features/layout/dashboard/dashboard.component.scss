@@ -113,34 +113,4 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .dashboard {
-    .stat-card {
-      background: #1e1e1e;
-
-      .stat-content {
-        h3 {
-          color: #b0b0b0;
-        }
-
-        .stat-value {
-          color: #fff;
-        }
-      }
-    }
-
-    .info-section ::ng-deep .p-card {
-      background: #1e1e1e;
-
-      .p-card-header {
-        color: #fff;
-      }
-
-      .p-card-body {
-        p, ul {
-          color: #b0b0b0;
-        }
-      }
-    }
-  }
-}
+// Tema escuro desabilitado para manter tema claro fixo

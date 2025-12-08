@@ -6,6 +6,38 @@
 @import "primeicons/primeicons.css";
 @import "primeflex/primeflex.css";
 
+/* Fixa variáveis de tema claras para PrimeNG (independente do SO) */
+:root {
+  --surface-ground: #f5f7fa;
+  --surface-section: #ffffff;
+  --surface-card: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-0: #ffffff;
+  --surface-50: #f9fafb;
+  --surface-100: #f3f4f6;
+  --surface-200: #e5e7eb;
+  --surface-300: #d1d5db;
+  --surface-400: #9ca3af;
+  --surface-500: #6b7280;
+  --surface-600: #4b5563;
+  --surface-700: #374151;
+  --surface-800: #1f2937;
+  --surface-900: #111827;
+  --text-color: #333333;
+  --text-color-secondary: #6b7280;
+  --primary-color: #3b82f6;
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  --primary-800: #1e40af;
+  --primary-900: #1e3a8a;
+}
+
 /* Força tema claro mesmo se o SO estiver em modo escuro */
 html {
   color-scheme: light only !important;
@@ -17,16 +49,204 @@ body.light-theme {
   color: #333 !important;
 }
 
-/* Sobrescreve qualquer preferência de modo escuro */
-@media (prefers-color-scheme: dark) {
-  html, body {
-    color-scheme: light only !important;
-    background: #f5f7fa !important;
-    color: #333 !important;
-  }
+/* Força tema claro sempre (inclusive quando o SO estiver em dark mode) */
+:root {
+  color-scheme: light only !important;
+}
 
-  * {
-    color-scheme: light only !important;
+html, body {
+  color-scheme: light only !important;
+  background: #f5f7fa !important;
+  color: #333 !important;
+}
+
+* {
+  color-scheme: light only !important;
+}
+
+/* Bloco global: aplica cores claras a todos os principais componentes PrimeNG */
+.p-component,
+.p-datatable,
+.p-datatable-wrapper,
+.p-datatable-table,
+.p-paginator,
+.p-button,
+.p-inputtext,
+.p-float-label input,
+.p-card,
+.p-dialog,
+.p-dropdown,
+.p-autocomplete,
+.p-calendar,
+.p-tag,
+.p-panel,
+.p-toolbar,
+.p-breadcrumb,
+.p-toast,
+.p-sidebar,
+.p-menu,
+.p-menubar,
+.p-sidebar .p-sidebar-content,
+.p-panel .p-panel-content,
+.p-dialog .p-dialog-content,
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-footer,
+.p-tabview,
+.p-tabview-nav,
+.p-tabview-panels {
+  background: #ffffff !important;
+  color: #333333 !important;
+}
+
+/* Tabelas */
+.p-datatable-thead > tr > th {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #2563eb !important;
+}
+
+.p-datatable-tbody > tr {
+  background: #ffffff !important;
+  color: #333333 !important;
+  
+  &:hover {
+    background: #eff6ff !important;
+  }
+  
+  &:nth-child(even) {
+    background: #f9fafb !important;
+  }
+  
+  > td {
+    color: #333333 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: transparent !important;
+  }
+}
+
+/* Botões */
+.p-button {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+  
+  &:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+  }
+  
+  &.p-button-success {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+  }
+  
+  &.p-button-danger {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+  }
+  
+  &.p-button-warning {
+    background: #f59e0b !important;
+    border-color: #f59e0b !important;
+    color: #333333 !important;
+  }
+  
+  &.p-button-info {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  &.p-button-secondary {
+    background: #6b7280 !important;
+    border-color: #6b7280 !important;
+  }
+}
+
+/* Inputs */
+.p-inputtext {
+  background: #ffffff !important;
+  color: #333333 !important;
+  border-color: #d1d5db !important;
+  
+  &:enabled:focus {
+    border-color: #3b82f6 !important;
+    background: #ffffff !important;
+  }
+  
+  &::placeholder {
+    color: #9ca3af !important;
+  }
+}
+
+.p-float-label label {
+  color: #6b7280 !important;
+  
+  &.p-label-active {
+    color: #3b82f6 !important;
+  }
+}
+
+/* Paginator */
+.p-paginator {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  
+  .p-paginator-current,
+  button {
+    color: #333333 !important;
+    background: transparent !important;
+  }
+  
+  .p-paginator-page.p-highlight {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Tags */
+.p-tag {
+  &.p-tag-success {
+    background: #10b981 !important;
+    color: #ffffff !important;
+  }
+  
+  &.p-tag-danger {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+  }
+  
+  &.p-tag-warning {
+    background: #f59e0b !important;
+    color: #333333 !important;
+  }
+  
+  &.p-tag-info {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Breadcrumb */
+.p-breadcrumb {
+  background: transparent !important;
+  border: none !important;
+  
+  li {
+    color: #6b7280 !important;
+    
+    a {
+      color: #3b82f6 !important;
+    }
+  }
+}
+
+/* Page header */
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+  
+  h1, .subtitle {
+    color: #ffffff !important;
   }
 }
 
@@ -147,26 +367,6 @@ body {
 @media (max-width: 768px) {
   html, body {
     font-size: 13px;
-  }
-}
-
-/* Tema escuro */
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #121212;
-    color: #e0e0e0;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: #2d2d2d;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #666;
-    
-    &:hover {
-      background: #888;
-    }
   }
 }
 

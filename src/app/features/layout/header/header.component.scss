@@ -116,22 +116,4 @@
   }
 }
 
-// Tema escuro
-@media (prefers-color-scheme: dark) {
-  .app-header {
-    background: #1e1e1e;
-    border-bottom-color: #2d2d2d;
-
-    .header-left .logo {
-      color: #8b9cff;
-    }
-
-    .header-right ::ng-deep .p-button.p-button-text {
-      color: #b0b0b0;
-
-      &:hover {
-        color: #8b9cff;
-      }
-    }
-  }
-}
+// Tema escuro desabilitado para manter tema claro fixo

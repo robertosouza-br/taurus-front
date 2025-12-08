@@ -1,3 +1,4 @@
+// Rodapé
 .app-footer {
   position: fixed;
   bottom: 0;
@@ -93,33 +94,5 @@
   }
 }
 
-// Tema escuro
-@media (prefers-color-scheme: dark) {
-  .app-footer {
-    background: #1e1e1e;
-    border-top-color: #2d2d2d;
-  }
-
-  .footer-content {
-    color: #b0b0b0;
-
-    .developer strong {
-      color: #8b9cff;
-    }
-
-    .footer-links {
-      .footer-link {
-        color: #8b9cff;
-
-        &:hover {
-          color: #a5b4ff;
-        }
-      }
-
-      .link-separator {
-        color: #444;
-      }
-    }
-  }
-}
+// Tema escuro desabilitado para manter tema claro fixo
 

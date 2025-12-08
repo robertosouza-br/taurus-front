@@ -235,19 +235,4 @@
   }
 }
 
-// Suporte para temas escuros
-@media (prefers-color-scheme: dark) {
-  .login-card {
-    background: #1e1e1e;
-
-    .login-header {
-      h1 {
-        color: #fff;
-      }
-
-      .subtitle {
-        color: #b0b0b0;
-      }
-    }
-  }
-}
+// Tema escuro desabilitado para manter tema claro fixo

@@ -1,3 +1,4 @@
+// Layout principal
 .main-layout {
   display: flex;
   flex-direction: column;
@@ -16,6 +17,7 @@
   flex: 1;
   margin-left: 0;
   overflow-x: hidden;
+  width: 100%;
 }
 
 .content-wrapper {
@@ -35,9 +37,4 @@
   }
 }
 
-// Tema escuro
-@media (prefers-color-scheme: dark) {
-  .main-layout {
-    background: #121212;
-  }
-}
+// Tema escuro desabilitado para manter tema claro fixo
