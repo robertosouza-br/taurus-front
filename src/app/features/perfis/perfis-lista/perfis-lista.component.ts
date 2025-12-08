@@ -91,8 +91,8 @@ export class PerfisListaComponent implements OnInit {
     // Configuração das colunas
     this.colunas = [
       { field: 'id', header: '#', width: '80px', sortable: true, align: 'center' },
-      { field: 'nome', header: 'Nome', sortable: true, align: 'center' },
-      { field: 'descricao', header: 'Descrição', sortable: true, align: 'center' },
+      { field: 'nome', header: 'Nome', sortable: true, align: 'left' },
+      { field: 'descricao', header: 'Descrição', sortable: true, align: 'left' },
       { 
         field: 'status', 
         header: 'Status', 
