@@ -1,0 +1,284 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 64px;
+  bottom: 0;
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  z-index: 1001;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: translateX(0);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+
+  &.collapsed {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  // Scrollbar personalizada
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  margin-bottom: 0.25rem;
+
+  .menu-link {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1.5rem;
+    color: #4a5568;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+
+    &:hover {
+      background-color: rgba(102, 126, 234, 0.08);
+      color: #667eea;
+    }
+
+    &.active {
+      background-color: rgba(102, 126, 234, 0.12);
+      color: #667eea;
+      border-left-color: #667eea;
+      font-weight: 600;
+
+      .menu-icon {
+        color: #667eea;
+      }
+    }
+
+    .menu-icon {
+      font-size: 1.25rem;
+      margin-right: 1rem;
+      width: 24px;
+      text-align: center;
+      transition: color 0.2s ease;
+    }
+
+    .menu-label {
+      flex: 1;
+      white-space: nowrap;
+    }
+
+    .menu-arrow {
+      font-size: 0.75rem;
+      transition: transform 0.3s ease;
+
+      &.rotated {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .menu-group-toggle {
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+}
+
+.submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.02);
+  animation: slideDown 0.3s ease;
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 500px;
+    }
+  }
+
+  .submenu-item {
+    .submenu-link {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1.5rem 0.75rem 3.5rem;
+      color: #4a5568;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      border-left: 3px solid transparent;
+
+      &:hover {
+        background-color: rgba(102, 126, 234, 0.08);
+        color: #667eea;
+      }
+
+      &.active {
+        background-color: rgba(102, 126, 234, 0.12);
+        color: #667eea;
+        border-left-color: #667eea;
+        font-weight: 600;
+
+        .submenu-icon {
+          color: #667eea;
+        }
+      }
+
+      .submenu-icon {
+        font-size: 1rem;
+        margin-right: 0.75rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .submenu-label {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+// Overlay para mobile
+.sidebar-overlay {
+  display: none;
+}
+
+// Desktop - overlay quando aberto
+@media (min-width: 769px) {
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+    cursor: pointer;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+// Mobile
+@media (max-width: 768px) {
+  .sidebar {
+    z-index: 1001;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+  }
+}
+
+// Tema escuro
+@media (prefers-color-scheme: dark) {
+  .sidebar {
+    background: #1e1e1e;
+    border-right-color: #2d2d2d;
+
+    &::-webkit-scrollbar-track {
+      background: #2d2d2d;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #444;
+
+      &:hover {
+        background: #666;
+      }
+    }
+  }
+
+  .menu-item .menu-link {
+    color: #b0b0b0;
+
+    &:hover {
+      background-color: rgba(139, 156, 255, 0.12);
+      color: #8b9cff;
+    }
+
+    &.active {
+      background-color: rgba(139, 156, 255, 0.18);
+      color: #8b9cff;
+      border-left-color: #8b9cff;
+
+      .menu-icon {
+        color: #8b9cff;
+      }
+    }
+  }
+
+  .submenu {
+    background-color: rgba(255, 255, 255, 0.03);
+
+    .submenu-item .submenu-link {
+      color: #b0b0b0;
+
+      &:hover {
+        background-color: rgba(139, 156, 255, 0.12);
+        color: #8b9cff;
+      }
+
+      &.active {
+        background-color: rgba(139, 156, 255, 0.18);
+        color: #8b9cff;
+        border-left-color: #8b9cff;
+
+        .submenu-icon {
+          color: #8b9cff;
+        }
+      }
+    }
+  }
+}

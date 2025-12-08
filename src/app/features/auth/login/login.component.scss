@@ -1,0 +1,253 @@
+.login-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+}
+
+.login-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 3rem;
+  width: 100%;
+  max-width: 450px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  .logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    color: #333;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .subtitle {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+}
+
+.login-form {
+  .error-message {
+    margin-bottom: 1.5rem;
+    
+    ::ng-deep .p-message {
+      width: 100%;
+    }
+  }
+
+  .form-field {
+    margin-bottom: 1.5rem;
+
+    ::ng-deep {
+      .p-float-label {
+        display: block;
+        width: 100%;
+
+        > input.p-inputtext,
+        > .p-password {
+          width: 100% !important;
+        }
+
+        input.p-inputtext {
+          width: 100%;
+          padding: 1.25rem 1rem 0.5rem 1rem;
+          font-size: 1rem;
+          border: 2px solid #e0e0e0;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+
+          &:enabled:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+          }
+
+          &.ng-invalid.ng-touched {
+            border-color: #ef4444;
+          }
+        }
+
+        .p-password {
+          width: 100%;
+          position: relative;
+          
+          .p-password-input {
+            width: 100%;
+            padding: 1.25rem 3rem 0.5rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+
+            &:enabled:focus {
+              border-color: #667eea;
+              box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            }
+
+            &.ng-invalid.ng-touched {
+              border-color: #ef4444;
+            }
+          }
+
+          button.p-password-toggle {
+            position: absolute !important;
+            top: 0.9rem !important;
+            right: 0.75rem !important;
+            margin: 0 !important;
+          }
+        }
+
+        label {
+          font-weight: 500;
+          color: #666;
+          left: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: white;
+          padding: 0 0.25rem;
+          transition: all 0.2s ease;
+          pointer-events: none;
+        }
+
+        input:focus ~ label,
+        input.p-filled ~ label,
+        input:-webkit-autofill ~ label,
+        .p-password .p-password-input:focus ~ label,
+        .p-password .p-password-input:-webkit-autofill ~ label,
+        .p-inputwrapper-focus ~ label,
+        .p-inputwrapper-filled ~ label,
+        label.p-label-active {
+          top: 0;
+          transform: translateY(-50%);
+          font-size: 0.75rem;
+          color: #667eea;
+        }
+      }
+    }
+
+    small.p-error {
+      display: block;
+      margin-top: 0.5rem;
+      color: #ef4444;
+      font-size: 0.875rem;
+    }
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+
+    ::ng-deep .p-button {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  .form-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+
+    .forgot-password {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #764ba2;
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.login-footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: white;
+  font-size: 0.875rem;
+
+  p {
+    margin: 0;
+    opacity: 0.9;
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .login-container {
+    padding: 1rem;
+  }
+
+  .login-card {
+    padding: 2rem;
+  }
+
+  .login-header {
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// Suporte para temas escuros
+@media (prefers-color-scheme: dark) {
+  .login-card {
+    background: #1e1e1e;
+
+    .login-header {
+      h1 {
+        color: #fff;
+      }
+
+      .subtitle {
+        color: #b0b0b0;
+      }
+    }
+  }
+}

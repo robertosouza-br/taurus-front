@@ -1,0 +1,43 @@
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.layout-body {
+  display: flex;
+  flex: 1;
+  margin-top: 64px;
+  margin-bottom: 40px;
+}
+
+.content-area {
+  flex: 1;
+  margin-left: 0;
+  overflow-x: hidden;
+}
+
+.content-wrapper {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .content-area {
+    margin-left: 0 !important;
+  }
+
+  .content-wrapper {
+    padding: 1rem;
+  }
+}
+
+// Tema escuro
+@media (prefers-color-scheme: dark) {
+  .main-layout {
+    background: #121212;
+  }
+}

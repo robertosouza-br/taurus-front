@@ -1,0 +1,63 @@
+.error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 2rem;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 500px;
+
+  .error-icon {
+    font-size: 5rem;
+    color: #f59e0b;
+    margin-bottom: 1rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  h1 {
+    font-size: 6rem;
+    margin: 0;
+    color: #667eea;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 2rem;
+    margin: 1rem 0;
+    color: #333;
+  }
+
+  p {
+    color: #666;
+    margin: 1rem 0 2rem 0;
+    line-height: 1.6;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .error-content {
+    h1 {
+      color: #8b9cff;
+    }
+
+    h2 {
+      color: #fff;
+    }
+
+    p {
+      color: #b0b0b0;
+    }
+  }
+}

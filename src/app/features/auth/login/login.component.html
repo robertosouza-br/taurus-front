@@ -1,0 +1,84 @@
+<div class="login-container">
+  <div class="login-card">
+    <!-- Logo e Título -->
+    <div class="login-header">
+      <img src="assets/images/logo.png" alt="Logo" class="logo" *ngIf="false">
+      <h1>Taurus Auth</h1>
+      <p class="subtitle">Sistema de Vendas e Reservas de imóveis</p>
+    </div>
+
+    <!-- Formulário de Login -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      
+      <!-- Mensagem de Erro -->
+      <div class="error-message" *ngIf="errorMessage">
+        <p-message severity="error" [text]="errorMessage"></p-message>
+      </div>
+
+      <!-- Campo E-mail -->
+      <div class="form-field">
+        <span class="p-float-label">
+          <input 
+            id="email" 
+            type="email" 
+            pInputText 
+            formControlName="email"
+            [class.ng-invalid]="submitted && f['email'].errors"
+            class="w-full"
+            autocomplete="email"
+          >
+          <label for="email">E-mail</label>
+        </span>
+        <small class="p-error" *ngIf="submitted && f['email'].errors?.['required']">
+          E-mail é obrigatório
+        </small>
+        <small class="p-error" *ngIf="submitted && f['email'].errors?.['email']">
+          E-mail inválido
+        </small>
+      </div>
+
+      <!-- Campo Senha -->
+      <div class="form-field">
+        <span class="p-float-label">
+          <p-password 
+            id="senha"
+            formControlName="senha"
+            [toggleMask]="true"
+            [feedback]="false"
+            [class.ng-invalid]="submitted && f['senha'].errors"
+            inputId="senha"
+            autocomplete="new-password"
+          ></p-password>
+          <label for="senha">Senha</label>
+        </span>
+        <small class="p-error" *ngIf="submitted && f['senha'].errors?.['required']">
+          Senha é obrigatória
+        </small>
+        <small class="p-error" *ngIf="submitted && f['senha'].errors?.['minlength']">
+          Senha deve ter no mínimo 6 caracteres
+        </small>
+      </div>
+
+      <!-- Botão de Login -->
+      <div class="form-actions">
+        <p-button 
+          type="submit"
+          label="Entrar" 
+          icon="pi pi-sign-in"
+          [loading]="loading"
+          styleClass="w-full"
+        ></p-button>
+      </div>
+
+      <!-- Links adicionais -->
+      <div class="form-footer">
+        <a href="#" class="forgot-password">Esqueceu sua senha?</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="login-footer">
+    <p>&copy; 2026 Construtora RJ - Todos os direitos reservados</p>
+  </div>
+</div>

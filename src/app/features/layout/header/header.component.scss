@@ -1,0 +1,137 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .menu-toggle {
+    font-size: 1.5rem;
+    
+    ::ng-deep .p-button-icon {
+      font-size: 1.5rem;
+    }
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #667eea;
+
+    i {
+      font-size: 1.75rem;
+    }
+
+    .logo-text {
+      @media (max-width: 768px) {
+        display: none;
+      }
+    }
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  ::ng-deep {
+    .p-button {
+      &.p-button-text {
+        color: #666;
+        
+        &:hover {
+          background-color: rgba(102, 126, 234, 0.1);
+          color: #667eea;
+        }
+      }
+
+      &.p-button-rounded {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
+
+    .p-badge {
+      min-width: 1.2rem;
+      height: 1.2rem;
+      line-height: 1.2rem;
+    }
+  }
+}
+
+.user-menu {
+  ::ng-deep .p-button {
+    font-weight: 600;
+
+    .p-button-label {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  ::ng-deep .p-tieredmenu {
+    min-width: 200px;
+    
+    @media (max-width: 768px) {
+      position: fixed !important;
+      right: 1rem !important;
+      left: auto !important;
+      top: 60px !important;
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 1rem;
+  }
+
+  .header-right {
+    gap: 0.5rem;
+    
+    .user-menu ::ng-deep .p-button .p-button-label {
+      display: none;
+    }
+  }
+}
+
+// Tema escuro
+@media (prefers-color-scheme: dark) {
+  .app-header {
+    background: #1e1e1e;
+    border-bottom-color: #2d2d2d;
+
+    .header-left .logo {
+      color: #8b9cff;
+    }
+
+    .header-right ::ng-deep .p-button.p-button-text {
+      color: #b0b0b0;
+
+      &:hover {
+        color: #8b9cff;
+      }
+    }
+  }
+}

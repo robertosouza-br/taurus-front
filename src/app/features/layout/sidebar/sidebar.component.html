@@ -1,0 +1,55 @@
+<aside class="sidebar" [class.collapsed]="!isExpanded" (click)="onSidebarClick($event)">
+  <nav class="sidebar-nav">
+    <ul class="menu-list">
+      <li *ngFor="let item of menuItems" class="menu-item">
+        
+        <!-- Item sem subitens -->
+        <a 
+          *ngIf="!item.items" 
+          [routerLink]="item.routerLink"
+          routerLinkActive="active"
+          class="menu-link"
+          [pTooltip]="isExpanded ? '' : item.label"
+          tooltipPosition="right"
+          (click)="onMenuItemClick()"
+        >
+          <i [class]="item.icon" class="menu-icon"></i>
+          <span class="menu-label" *ngIf="isExpanded">{{ item.label }}</span>
+        </a>
+
+        <!-- Item com subitens -->
+        <div *ngIf="item.items" class="menu-group">
+          <button 
+            class="menu-link menu-group-toggle"
+            (click)="toggleGroup(item)"
+            [pTooltip]="isExpanded ? '' : item.label"
+            tooltipPosition="right"
+          >
+            <i [class]="item.icon" class="menu-icon"></i>
+            <span class="menu-label" *ngIf="isExpanded">{{ item.label }}</span>
+            <i 
+              *ngIf="isExpanded" 
+              class="pi pi-chevron-down menu-arrow"
+              [class.rotated]="item.expanded"
+            ></i>
+          </button>
+
+          <ul class="submenu" *ngIf="item.expanded && isExpanded">
+            <li *ngFor="let subItem of item.items" class="submenu-item">
+              <a 
+                [routerLink]="subItem.routerLink"
+                routerLinkActive="active"
+                class="submenu-link"
+                (click)="onMenuItemClick()"
+              >
+                <i [class]="subItem.icon" class="submenu-icon"></i>
+                <span class="submenu-label">{{ subItem.label }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</aside>
+<div class="sidebar-overlay" *ngIf="isExpanded && isMobile()" (click)="closeSidebar()"></div>
