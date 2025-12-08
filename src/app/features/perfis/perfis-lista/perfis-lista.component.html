@@ -1,102 +1,69 @@
 <div class="perfis-lista-container">
-  <div class="header">
-    <h2><i class="pi pi-shield"></i> Perfis de Acesso</h2>
-    <button 
-      *ngIf="podeIncluir"
-      pButton 
-      label="Novo Perfil" 
-      icon="pi pi-plus"
-      (click)="novoPerfil()">
-    </button>
-  </div>
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
-  <p-table 
-    [value]="perfis" 
+  <!-- Page Header -->
+  <app-page-header
+    title="Perfis de Acesso"
+    subtitle="Gerencie os perfis e suas permissões no sistema"
+    icon="pi pi-shield"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Tabela genérica com templates customizados -->
+  <app-data-table
+    [data]="perfis"
+    [columns]="colunas"
+    [actions]="acoes"
     [loading]="carregando"
-    [paginator]="true"
-    [rows]="10"
-    [showCurrentPageReport]="true"
-    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} perfis"
-    [rowsPerPageOptions]="[10, 25, 50]"
-    styleClass="p-datatable-gridlines">
+    [globalFilterFields]="['nome', 'descricao']"
+    [rows]="50"
+    [rowsPerPageOptions]="[]">
     
-    <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 3rem">#</th>
-        <th>Nome</th>
-        <th>Descrição</th>
-        <th style="width: 10rem">Status</th>
-        <th style="width: 12rem">Funcionalidades</th>
-        <th style="width: 12rem">Permissões</th>
-        <th style="width: 12rem">Ações</th>
-      </tr>
+    <!-- Template para Status -->
+    <ng-template appTableTemplate="status" let-perfil="rowData">
+      <p-tag 
+        [value]="perfil.ativo ? 'Ativo' : 'Inativo'" 
+        [severity]="perfil.ativo ? 'success' : 'danger'">
+      </p-tag>
     </ng-template>
 
-    <ng-template pTemplate="body" let-perfil let-i="rowIndex">
-      <tr>
-        <td>{{ i + 1 }}</td>
-        <td><strong>{{ perfil.nome }}</strong></td>
-        <td>{{ perfil.descricao || '-' }}</td>
-        <td>
-          <p-tag 
-            [value]="perfil.ativo ? 'Ativo' : 'Inativo'" 
-            [severity]="perfil.ativo ? 'success' : 'danger'">
-          </p-tag>
-        </td>
-        <td class="text-center">
-          <p-tag 
-            [value]="getTotalFuncionalidades(perfil) + ' funcionalidade(s)'" 
-            severity="info">
-          </p-tag>
-        </td>
-        <td class="text-center">
-          <p-tag 
-            [value]="getTotalPermissoes(perfil) + ' permissão(ões)'" 
-            severity="warning">
-          </p-tag>
-        </td>
-        <td>
-          <div class="acoes">
-            <button 
-              *ngIf="podeAlterar"
-              pButton 
-              icon="pi pi-cog" 
-              class="p-button-text p-button-info"
-              pTooltip="Configurar Permissões"
-              (click)="editarPerfil(perfil)">
-            </button>
-            <button 
-              *ngIf="podeExcluir"
-              pButton 
-              icon="pi pi-trash" 
-              class="p-button-text p-button-danger"
-              pTooltip="Excluir"
-              (click)="excluirPerfil(perfil)">
-            </button>
-          </div>
-        </td>
-      </tr>
+    <!-- Template para Funcionalidades -->
+    <ng-template appTableTemplate="funcionalidades" let-perfil="rowData">
+      <div class="badge-info">
+        <i class="pi pi-list"></i>
+        <span class="badge-count">{{ getTotalFuncionalidades(perfil) }}</span>
+      </div>
     </ng-template>
 
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="7" class="text-center">
-          <div class="empty-message">
-            <i class="pi pi-info-circle"></i>
-            <p>Nenhum perfil cadastrado</p>
-            <button 
-              *ngIf="podeIncluir"
-              pButton 
-              label="Criar Primeiro Perfil" 
-              icon="pi pi-plus"
-              class="p-button-sm"
-              (click)="novoPerfil()">
-            </button>
-          </div>
-        </td>
-      </tr>
+    <!-- Template para Permissões -->
+    <ng-template appTableTemplate="permissoes" let-perfil="rowData">
+      <div class="badge-info">
+        <i class="pi pi-key"></i>
+        <span class="badge-count">{{ getTotalPermissoes(perfil) }}</span>
+      </div>
     </ng-template>
-  </p-table>
+
+    <!-- Template para estado vazio -->
+    <ng-template appTableTemplate="empty">
+      <div class="empty-state">
+        <i class="pi pi-shield empty-icon"></i>
+        <h3>Nenhum perfil cadastrado</h3>
+        <p>Comece criando o primeiro perfil de acesso do sistema</p>
+        <app-custom-button
+          *ngIf="podeIncluir"
+          label="Criar Primeiro Perfil" 
+          icon="pi pi-plus"
+          severity="success"
+          size="large"
+          [raised]="true"
+          (onClick)="novoPerfil()">
+        </app-custom-button>
+      </div>
+    </ng-template>
+  </app-data-table>
 </div>
 
+<!-- Dialog de confirmação -->
 <p-confirmDialog></p-confirmDialog>
+

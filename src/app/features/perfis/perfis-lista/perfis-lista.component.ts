@@ -6,6 +6,9 @@ import { PerfilDTO } from '../../../core/models/funcionalidade.model';
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
+import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
+import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
 
 /**
  * Componente para listar perfis
@@ -24,6 +27,16 @@ export class PerfisListaComponent implements OnInit {
   podeAlterar = false;
   podeExcluir = false;
 
+  // Configuração da tabela
+  colunas: TableColumn[] = [];
+  acoes: TableAction[] = [];
+
+  // Configuração do breadcrumb
+  breadcrumbItems: BreadcrumbItem[] = [];
+
+  // Configuração do header
+  headerActions: HeaderAction[] = [];
+
   constructor(
     private router: Router,
     private funcionalidadeService: FuncionalidadeService,
@@ -34,6 +47,9 @@ export class PerfisListaComponent implements OnInit {
 
   ngOnInit(): void {
     this.verificarPermissoes();
+    this.configurarBreadcrumb();
+    this.configurarHeader();
+    this.configurarTabela();
     this.carregarPerfis();
   }
 
@@ -50,6 +66,73 @@ export class PerfisListaComponent implements OnInit {
       Funcionalidade.PERFIL,
       Permissao.EXCLUIR
     );
+  }
+
+  private configurarBreadcrumb(): void {
+    this.breadcrumbItems = [
+      { label: 'Administração', icon: 'pi pi-cog' },
+      { label: 'Perfis' }
+    ];
+  }
+
+  private configurarHeader(): void {
+    this.headerActions = [
+      {
+        label: 'Novo Perfil',
+        icon: 'pi pi-plus',
+        severity: 'success',
+        visible: this.podeIncluir,
+        action: () => this.novoPerfil()
+      }
+    ];
+  }
+
+  private configurarTabela(): void {
+    // Configuração das colunas
+    this.colunas = [
+      { field: 'id', header: '#', width: '80px', sortable: true, align: 'center' },
+      { field: 'nome', header: 'Nome', sortable: true, align: 'center' },
+      { field: 'descricao', header: 'Descrição', sortable: true, align: 'center' },
+      { 
+        field: 'status', 
+        header: 'Status', 
+        width: '120px', 
+        align: 'center',
+        template: 'status'
+      },
+      { 
+        field: 'funcionalidades', 
+        header: 'Funcionalidades', 
+        width: '150px', 
+        align: 'center',
+        template: 'funcionalidades'
+      },
+      { 
+        field: 'permissoes', 
+        header: 'Permissões', 
+        width: '150px', 
+        align: 'center',
+        template: 'permissoes'
+      }
+    ];
+
+    // Configuração das ações
+    this.acoes = [
+      {
+        icon: 'pi pi-cog',
+        tooltip: 'Configurar Permissões',
+        severity: 'info',
+        visible: () => this.podeAlterar,
+        action: (perfil) => this.editarPerfil(perfil)
+      },
+      {
+        icon: 'pi pi-trash',
+        tooltip: 'Excluir',
+        severity: 'danger',
+        visible: () => this.podeExcluir,
+        action: (perfil) => this.excluirPerfil(perfil)
+      }
+    ];
   }
 
   carregarPerfis(): void {

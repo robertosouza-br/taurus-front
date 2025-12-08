@@ -1,0 +1,32 @@
+<div class="page-header" [class.gradient]="gradient" [class.no-divider]="!showDivider">
+  <ng-container *ngIf="customTemplate; else defaultHeader">
+    <ng-container *ngTemplateOutlet="customTemplate"></ng-container>
+  </ng-container>
+  
+  <ng-template #defaultHeader>
+    <div class="header-content">
+      <div class="title-section">
+        <i *ngIf="icon" [class]="icon + ' header-icon'"></i>
+        <div class="text-content">
+          <h1>{{ title }}</h1>
+          <p *ngIf="subtitle" class="subtitle">{{ subtitle }}</p>
+        </div>
+      </div>
+      
+      <div class="actions-section" *ngIf="actions.length > 0">
+        <app-custom-button
+          *ngFor="let action of actions"
+          [label]="action.label"
+          [icon]="action.icon"
+          [severity]="action.severity || 'primary'"
+          [outlined]="action.outlined || false"
+          [disabled]="action.disabled || false"
+          [raised]="true"
+          size="normal"
+          [style.display]="action.visible === false ? 'none' : 'inline-flex'"
+          (onClick)="action.action()">
+        </app-custom-button>
+      </div>
+    </div>
+  </ng-template>
+</div>

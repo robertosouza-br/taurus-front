@@ -1,0 +1,127 @@
+.page-header {
+  background: var(--surface-0);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  &.gradient {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
+    
+    .title-section {
+      .header-icon {
+        color: white;
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      h1, .subtitle {
+        color: white;
+      }
+      
+      .subtitle {
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+  }
+
+  &.no-divider {
+    margin-bottom: 1rem;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+
+    .title-section {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex: 1;
+
+      .header-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        background: var(--primary-50);
+        padding: 1rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+        min-height: 64px;
+      }
+
+      .text-content {
+        flex: 1;
+
+        h1 {
+          margin: 0;
+          color: var(--text-color);
+          font-size: 2rem;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+          line-height: 1.2;
+        }
+
+        .subtitle {
+          margin: 0.35rem 0 0 0;
+          color: var(--text-color-secondary);
+          font-size: 0.95rem;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    .actions-section {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .page-header .header-content {
+    flex-direction: column;
+    align-items: stretch;
+
+    .title-section {
+      flex-direction: row;
+    }
+
+    .actions-section {
+      width: 100%;
+      
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 1.5rem;
+
+    .header-content .title-section {
+      gap: 1rem;
+
+      .header-icon {
+        font-size: 2rem;
+        padding: 0.75rem;
+        min-width: 56px;
+        min-height: 56px;
+      }
+
+      .text-content h1 {
+        font-size: 1.5rem;
+      }
+
+      .text-content .subtitle {
+        font-size: 0.85rem;
+      }
+    }
+  }
+}

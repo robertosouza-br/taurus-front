@@ -6,6 +6,30 @@
 @import "primeicons/primeicons.css";
 @import "primeflex/primeflex.css";
 
+/* Força tema claro mesmo se o SO estiver em modo escuro */
+html {
+  color-scheme: light only !important;
+}
+
+body.light-theme {
+  color-scheme: light only !important;
+  background: #f5f7fa !important;
+  color: #333 !important;
+}
+
+/* Sobrescreve qualquer preferência de modo escuro */
+@media (prefers-color-scheme: dark) {
+  html, body {
+    color-scheme: light only !important;
+    background: #f5f7fa !important;
+    color: #333 !important;
+  }
+
+  * {
+    color-scheme: light only !important;
+  }
+}
+
 /* Reset e estilos base */
 * {
   margin: 0;

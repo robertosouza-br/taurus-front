@@ -1,0 +1,135 @@
+<div class="data-table-container">
+  <!-- Header personalizado ou padrão -->
+  <div class="table-header" *ngIf="title || headerTemplate">
+    <ng-container *ngIf="headerTemplate; else defaultHeader">
+      <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
+    </ng-container>
+    <ng-template #defaultHeader>
+      <h2>{{ title }}</h2>
+    </ng-template>
+  </div>
+
+  <!-- Busca global -->
+  <div class="table-toolbar" *ngIf="globalFilterFields.length > 0">
+    <div class="search-container">
+      <span class="p-float-label">
+        <input 
+          id="tableSearch"
+          pInputText 
+          type="text" 
+          [(ngModel)]="searchValue"
+          (input)="dt.filterGlobal(searchValue, 'contains')"
+          class="search-input" />
+        <label for="tableSearch">Buscar...</label>
+      </span>
+      <i class="pi pi-times clear-icon" 
+         *ngIf="searchValue" 
+         (click)="clearFilter()"
+         pTooltip="Limpar busca"
+         tooltipPosition="left"></i>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <p-table 
+    [value]="data"
+    [columns]="columns"
+    [loading]="loading"
+    [paginator]="paginator"
+    [rows]="rows"
+    [showCurrentPageReport]="paginator"
+    [currentPageReportTemplate]="'Mostrando {first} a {last} de {totalRecords} registros'"
+    [globalFilterFields]="globalFilterFields"
+    [responsive]="responsive"
+    [styleClass]="getTableClass()"
+    [(selection)]="data"
+    (onRowSelect)="rowSelect.emit($event.data)"
+    (onRowUnselect)="rowUnselect.emit($event.data)"
+    [dataKey]="'id'"
+    #dt>
+
+    <!-- Caption customizado -->
+    <ng-template pTemplate="caption">
+      <ng-container *ngIf="getTemplate('caption') as captionTpl">
+        <ng-container *ngTemplateOutlet="captionTpl"></ng-container>
+      </ng-container>
+    </ng-template>
+
+    <!-- Header -->
+    <ng-template pTemplate="header" let-columns>
+      <tr>
+        <th *ngFor="let col of columns" 
+            [style.width]="col.width"
+            [style.text-align]="col.align || 'left'"
+            [pSortableColumn]="col.sortable ? col.field : null">
+          {{ col.header }}
+          <p-sortIcon *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
+        </th>
+        <th *ngIf="actions.length > 0" style="width: 12rem; text-align: center;">Ações</th>
+      </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+      <ng-container *ngIf="bodyTemplate; else defaultBody">
+        <ng-container *ngTemplateOutlet="bodyTemplate; context: { $implicit: rowData, rowData: rowData }"></ng-container>
+      </ng-container>
+
+      <ng-template #defaultBody>
+        <tr>
+          <td *ngFor="let col of columns" 
+              [style.text-align]="col.align || 'left'">
+            <ng-container *ngIf="resolveColumnTemplate(col) as customTemplate; else defaultCell">
+              <ng-container *ngTemplateOutlet="customTemplate; context: { $implicit: getFieldValue(rowData, col.field), value: getFieldValue(rowData, col.field), rowData: rowData, column: col }"></ng-container>
+            </ng-container>
+            <ng-template #defaultCell>
+              <ng-container [ngSwitch]="col.pipe">
+                <span *ngSwitchCase="'date'">{{ getFieldValue(rowData, col.field) | date: (col.pipeFormat || 'dd/MM/yyyy') }}</span>
+                <span *ngSwitchCase="'currency'">{{ getFieldValue(rowData, col.field) | currency: 'BRL' }}</span>
+                <span *ngSwitchCase="'number'">{{ getFieldValue(rowData, col.field) | number: col.pipeFormat }}</span>
+                <span *ngSwitchCase="'percent'">{{ getFieldValue(rowData, col.field) | percent: col.pipeFormat }}</span>
+                <span *ngSwitchDefault>{{ getFieldValue(rowData, col.field) }}</span>
+              </ng-container>
+            </ng-template>
+          </td>
+          <td *ngIf="actions.length > 0" class="action-column">
+            <div class="action-buttons">
+              <app-custom-button
+                *ngFor="let action of actions"
+                [icon]="action.icon"
+                [label]="action.label || ''"
+                [severity]="action.severity || 'secondary'"
+                [tooltip]="action.tooltip || ''"
+                tooltipPosition="top"
+                [disabled]="isActionDisabled(action, rowData)"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [style.display]="isActionVisible(action, rowData) ? 'inline-flex' : 'none'"
+                (onClick)="executeAction(action, rowData)">
+              </app-custom-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </ng-template>
+
+    <!-- Empty message -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="columns.length + (actions.length > 0 ? 1 : 0)">
+          <ng-container *ngIf="getTemplate('empty') as emptyTpl; else defaultEmpty">
+            <ng-container *ngTemplateOutlet="emptyTpl"></ng-container>
+          </ng-container>
+          <ng-template #defaultEmpty>
+            <div class="empty-message">
+              <i class="pi pi-inbox"></i>
+              <p>{{ emptyMessage }}</p>
+            </div>
+          </ng-template>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+

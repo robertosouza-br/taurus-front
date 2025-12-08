@@ -1,0 +1,32 @@
+:host {
+  display: inline-block;
+
+  ::ng-deep button.p-button {
+    min-height: 3rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .p-button-icon {
+      font-size: 1.1rem;
+    }
+
+    .p-button-label {
+      font-weight: 500;
+    }
+  }
+}
+

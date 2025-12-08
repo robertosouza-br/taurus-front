@@ -7,21 +7,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   
-  <!-- Content Security Policy -->
+  <!-- Content Security Policy - Bloqueia TODOS os recursos externos -->
   <meta http-equiv="Content-Security-Policy" 
         content="default-src 'self'; 
                  script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
                  style-src 'self' 'unsafe-inline'; 
-                 img-src 'self' data: https:; 
+                 img-src 'self' data:; 
                  font-src 'self' data:; 
-                 connect-src 'self' http://localhost:8080;">
+                 connect-src 'self' http://localhost:8080;
+                 object-src 'none';
+                 base-uri 'self';
+                 form-action 'self';
+                 frame-ancestors 'none';
+                 upgrade-insecure-requests;">
   
   <!-- Proteção contra clickjacking -->
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
 </head>
-<body>
+<body class="light-theme">
   <app-root></app-root>
 </body>
 </html>

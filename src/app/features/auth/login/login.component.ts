@@ -79,28 +79,15 @@ export class LoginComponent implements OnInit, AfterViewInit {
     }
 
     this.loading = true;
-    
-    // Captura os valores antes de limpar
-    const credentials = { ...this.loginForm.value };
 
-    // Limpa o campo senha imediatamente por segurança
-    this.loginForm.patchValue({ senha: '' });
-
-    this.authService.login(credentials).subscribe({
+    this.authService.login(this.loginForm.value).subscribe({
       next: () => {
-        // Limpa completamente o formulário
-        this.loginForm.reset();
-        this.submitted = false;
-        
         // Login bem-sucedido, redireciona
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
         // Trata erro de login
         this.loading = false;
-        
-        // Limpa a senha mesmo em caso de erro
-        this.loginForm.patchValue({ senha: '' });
         
         if (error.status === 401) {
           this.errorMessage = 'Usuário ou senha inválidos';

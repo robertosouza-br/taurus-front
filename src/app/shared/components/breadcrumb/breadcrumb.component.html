@@ -1,0 +1,22 @@
+<nav class="breadcrumb-container">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a (click)="navigate(home)" [class.disabled]="!home.url && !home.command">
+        <i *ngIf="home.icon" [class]="home.icon"></i>
+        <span>{{ home.label }}</span>
+      </a>
+    </li>
+    
+    <li *ngFor="let item of items; let last = last" class="breadcrumb-item" [class.active]="last">
+      <i class="pi pi-angle-right separator"></i>
+      <a *ngIf="!last" (click)="navigate(item)" [class.disabled]="!item.url && !item.command">
+        <i *ngIf="item.icon" [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+      <span *ngIf="last" class="current">
+        <i *ngIf="item.icon" [class]="item.icon"></i>
+        {{ item.label }}
+      </span>
+    </li>
+  </ol>
+</nav>
