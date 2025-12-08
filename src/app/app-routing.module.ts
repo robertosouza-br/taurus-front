@@ -5,6 +5,7 @@ import { MainLayoutComponent } from './features/layout/main-layout/main-layout.c
 import { DashboardComponent } from './features/layout/dashboard/dashboard.component';
 import { NotFoundComponent } from './features/layout/not-found/not-found.component';
 import { UnauthorizedComponent } from './features/layout/unauthorized/unauthorized.component';
+import { AcessoNegadoComponent } from './features/layout/acesso-negado/acesso-negado.component';
 
 const routes: Routes = [
   {
@@ -28,6 +29,10 @@ const routes: Routes = [
       {
         path: 'unauthorized',
         component: UnauthorizedComponent
+      },
+      {
+        path: 'acesso-negado',
+        component: AcessoNegadoComponent
       }
     ]
   },

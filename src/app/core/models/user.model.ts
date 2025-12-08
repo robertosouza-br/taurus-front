@@ -1,3 +1,6 @@
+import { Funcionalidade } from '../enums/funcionalidade.enum';
+import { Permissao } from '../enums/permissao.enum';
+
 /**
  * Modelo de usuário do sistema
  * Representa os dados do usuário autenticado
@@ -42,4 +45,26 @@ export interface JwtPayload {
   permissions: string[];
   iat: number;
   exp: number;
+}
+
+/**
+ * Resposta do endpoint de login com permissões granulares
+ */
+export interface LoginResponse {
+  token: string;
+  expiracao: string;
+  usuario: string;
+  nomeUsuario: string;
+  permissoes: Record<Funcionalidade, Permissao[]>;
+}
+
+/**
+ * Usuário logado com permissões estruturadas
+ */
+export interface UsuarioLogado {
+  email: string;
+  nome: string;
+  token: string;
+  expiracao: Date;
+  permissoes: Map<Funcionalidade, Set<Permissao>>;
 }

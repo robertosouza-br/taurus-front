@@ -19,6 +19,7 @@ import { FooterComponent } from './footer/footer.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
+import { AcessoNegadoComponent } from './acesso-negado/acesso-negado.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
     FooterComponent,
     DashboardComponent,
     NotFoundComponent,
-    UnauthorizedComponent
+    UnauthorizedComponent,
+    AcessoNegadoComponent
   ],
   imports: [
     CommonModule,

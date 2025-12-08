@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthorizationService, SidebarService } from '../../../core/services';
+import { AuthorizationService, SidebarService, PermissaoService } from '../../../core/services';
+import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 
 /**
  * Item do menu
@@ -12,6 +13,7 @@ interface MenuItem {
   items?: MenuItem[];
   roles?: string[];
   permissions?: string[];
+  funcionalidade?: Funcionalidade; // Nova propriedade
   visible?: boolean;
   expanded?: boolean;
 }
@@ -32,7 +34,8 @@ export class SidebarComponent implements OnInit {
   constructor(
     private authorizationService: AuthorizationService,
     private router: Router,
-    private sidebarService: SidebarService
+    private sidebarService: SidebarService,
+    private permissaoService: PermissaoService
   ) {}
 
   ngOnInit(): void {
@@ -55,54 +58,57 @@ export class SidebarComponent implements OnInit {
         routerLink: '/dashboard'
       },
       {
-        label: 'Usuários',
+        label: 'Vendas',
+        icon: 'pi pi-shopping-cart',
+        routerLink: '/vendas',
+        funcionalidade: Funcionalidade.VENDA
+      },
+      {
+        label: 'Reservas',
+        icon: 'pi pi-calendar',
+        routerLink: '/reservas',
+        funcionalidade: Funcionalidade.RESERVA
+      },
+      {
+        label: 'Imóveis',
+        icon: 'pi pi-building',
+        routerLink: '/imoveis',
+        funcionalidade: Funcionalidade.IMOVEL
+      },
+      {
+        label: 'Clientes',
         icon: 'pi pi-users',
-        routerLink: '/users',
-        roles: ['ADMIN', 'MANAGER']
+        routerLink: '/clientes',
+        funcionalidade: Funcionalidade.CLIENTE
+      },
+      {
+        label: 'Financeiro',
+        icon: 'pi pi-money-bill',
+        routerLink: '/financeiro',
+        funcionalidade: Funcionalidade.FINANCEIRO
       },
       {
         label: 'Relatórios',
         icon: 'pi pi-chart-bar',
-        items: [
-          {
-            label: 'Vendas',
-            icon: 'pi pi-dollar',
-            routerLink: '/reports/sales',
-            permissions: ['VIEW_SALES_REPORTS']
-          },
-          {
-            label: 'Financeiro',
-            icon: 'pi pi-money-bill',
-            routerLink: '/reports/financial',
-            permissions: ['VIEW_FINANCIAL_REPORTS']
-          },
-          {
-            label: 'Auditoria',
-            icon: 'pi pi-history',
-            routerLink: '/reports/audit',
-            roles: ['ADMIN']
-          }
-        ]
+        routerLink: '/relatorios',
+        funcionalidade: Funcionalidade.RELATORIO
       },
       {
-        label: 'Configurações',
+        label: 'Administração',
         icon: 'pi pi-cog',
+        funcionalidade: Funcionalidade.ADMINISTRACAO,
         items: [
           {
-            label: 'Geral',
-            icon: 'pi pi-sliders-h',
-            routerLink: '/settings/general'
+            label: 'Usuários',
+            icon: 'pi pi-user',
+            routerLink: '/admin/usuarios',
+            funcionalidade: Funcionalidade.USUARIO
           },
           {
-            label: 'Segurança',
+            label: 'Perfis',
             icon: 'pi pi-shield',
-            routerLink: '/settings/security',
-            roles: ['ADMIN']
-          },
-          {
-            label: 'Notificações',
-            icon: 'pi pi-bell',
-            routerLink: '/settings/notifications'
+            routerLink: '/admin/perfis',
+            funcionalidade: Funcionalidade.PERFIL
           }
         ]
       },
@@ -124,14 +130,21 @@ export class SidebarComponent implements OnInit {
     return items
       .map(item => ({ ...item }))
       .filter(item => {
-        // Verifica roles
+        // Verifica funcionalidade (novo sistema de permissões)
+        if (item.funcionalidade) {
+          if (!this.permissaoService.temFuncionalidade(item.funcionalidade)) {
+            return false;
+          }
+        }
+
+        // Verifica roles (sistema legado - mantido para compatibilidade)
         if (item.roles && item.roles.length > 0) {
           if (!this.authorizationService.hasAnyRole(item.roles)) {
             return false;
           }
         }
 
-        // Verifica permissões
+        // Verifica permissões (sistema legado - mantido para compatibilidade)
         if (item.permissions && item.permissions.length > 0) {
           if (!this.authorizationService.hasAnyPermission(item.permissions)) {
             return false;
