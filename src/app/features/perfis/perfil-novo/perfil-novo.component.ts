@@ -209,10 +209,8 @@ export class PerfilNovoComponent implements OnInit {
             detail: `Perfil "${perfil.nome}" criado com sucesso`
           });
           this.salvando = false;
-          // Redirecionar para listagem de perfis
-          setTimeout(() => {
-            this.router.navigate(['/admin/perfis']);
-          }, 1500);
+          // Redirecionar imediatamente para listagem de perfis
+          this.router.navigate(['/admin/perfis']);
         },
         error: (error) => {
           this.messageService.add({

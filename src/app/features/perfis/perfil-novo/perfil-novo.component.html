@@ -67,30 +67,18 @@
               <p-tag 
                 *ngIf="getNumeroPermissoes(func.codigo) > 0"
                 [value]="getNumeroPermissoes(func.codigo) + ' selecionada(s)'"
-                severity="success">
+                severity="secondary">
               </p-tag>
             </div>
             <div class="acoes-rapidas">
-              <app-custom-button
-                icon="pi pi-check"
-                severity="success"
-                size="small"
-                [text]="true"
-                [rounded]="true"
-                tooltip="Selecionar Todas"
-                tooltipPosition="top"
-                (onClick)="selecionarTodas(func.codigo, func.permissoesDisponiveis)">
-              </app-custom-button>
-              <app-custom-button
-                icon="pi pi-times"
-                severity="danger"
-                size="small"
-                [text]="true"
-                [rounded]="true"
-                tooltip="Limpar Seleção"
-                tooltipPosition="top"
-                (onClick)="limparPermissoes(func.codigo)">
-              </app-custom-button>
+              <i class="pi pi-check action-icon success-icon" 
+                 pTooltip="Selecionar Todas" 
+                 tooltipPosition="top"
+                 (click)="selecionarTodas(func.codigo, func.permissoesDisponiveis)"></i>
+              <i class="pi pi-times action-icon danger-icon" 
+                 pTooltip="Limpar Seleção" 
+                 tooltipPosition="top"
+                 (click)="limparPermissoes(func.codigo)"></i>
             </div>
           </div>
         </ng-template>

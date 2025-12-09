@@ -194,12 +194,9 @@ export class PerfilConfiguracaoComponent implements OnInit {
             severity: 'success',
             summary: 'Sucesso!',
             detail: 'Perfil atualizado com sucesso.',
-
           });
-          // Redireciona após tempo suficiente para o toast aparecer
-          setTimeout(() => {
-            this.router.navigate(['/admin/perfis']);
-          }, 2500);
+          // Redireciona imediatamente
+          this.router.navigate(['/admin/perfis']);
         }).catch((error) => {
           this.salvando = false;
           const mensagemErro = error.error?.detail || error.error?.message || 'Não foi possível salvar as alterações. Tente novamente.';
