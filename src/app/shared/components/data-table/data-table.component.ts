@@ -54,6 +54,8 @@ export class DataTableComponent implements OnDestroy {
   @Input() striped = true;
   @Input() hoverable = true;
   @Input() showGridlines = true;
+  @Input() lazy = false; // Paginação lazy (server-side)
+  @Input() totalRecords = 0; // Total de registros (para lazy loading)
   
   // Templates personalizados
   @Input() headerTemplate?: TemplateRef<any>;
@@ -64,6 +66,10 @@ export class DataTableComponent implements OnDestroy {
   // Eventos
   @Output() rowSelect = new EventEmitter<any>();
   @Output() rowUnselect = new EventEmitter<any>();
+  @Output() onLazyLoad = new EventEmitter<any>(); // Evento para paginação lazy
+  @Output() onSearch = new EventEmitter<string>(); // Evento para busca server-side
+
+  private searchTimeout: any;
 
   searchValue = '';
   @ViewChild('dt') table?: Table;
@@ -115,7 +121,23 @@ export class DataTableComponent implements OnDestroy {
    */
   clearFilter(): void {
     this.searchValue = '';
-    this.table?.clear();
+    if (this.lazy) {
+      this.onSearch.emit('');
+    } else {
+      this.table?.clear();
+    }
+  }
+
+  /**
+   * Manipula mudança de busca com debounce (lazy mode)
+   */
+  onSearchChange(event: any): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.searchTimeout = setTimeout(() => {
+      this.onSearch.emit(this.searchValue);
+    }, 500); // 500ms de debounce
   }
 
   /**
@@ -148,6 +170,9 @@ export class DataTableComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.templateChangeSub?.unsubscribe();
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
   }
 
   private registerTemplates(): void {

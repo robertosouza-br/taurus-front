@@ -18,7 +18,7 @@
           pInputText 
           type="text" 
           [(ngModel)]="searchValue"
-          (input)="dt.filterGlobal(searchValue, 'contains')"
+          (input)="lazy ? onSearchChange($event) : dt.filterGlobal(searchValue, 'contains')"
           class="search-input" />
         <label for="tableSearch">Buscar...</label>
       </span>
@@ -37,11 +37,15 @@
     [loading]="loading"
     [paginator]="paginator"
     [rows]="rows"
+    [rowsPerPageOptions]="rowsPerPageOptions"
     [showCurrentPageReport]="paginator"
     [currentPageReportTemplate]="'Mostrando {first} a {last} de {totalRecords} registros'"
     [globalFilterFields]="globalFilterFields"
     [responsive]="responsive"
     [styleClass]="getTableClass()"
+    [lazy]="lazy"
+    [totalRecords]="lazy ? totalRecords : data.length"
+    (onLazyLoad)="lazy ? onLazyLoad.emit($event) : null"
     [(selection)]="data"
     (onRowSelect)="rowSelect.emit($event.data)"
     (onRowUnselect)="rowUnselect.emit($event.data)"

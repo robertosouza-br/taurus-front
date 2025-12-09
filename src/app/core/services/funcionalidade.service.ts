@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { 
@@ -10,6 +10,7 @@ import {
   PerfilDTO,
   PerfilEntradaDTO
 } from '../models/funcionalidade.model';
+import { Page } from '../models/page.model';
 
 /**
  * Serviço para gerenciamento de Funcionalidades e Permissões
@@ -116,11 +117,23 @@ export class FuncionalidadeService {
   }
 
   /**
-   * Lista todos os perfis
+   * Lista todos os perfis com paginação e busca
+   * @param page Número da página (inicia em 0)
+   * @param size Quantidade de registros por página (padrão: 50)
+   * @param search Termo de busca (opcional)
    */
-  listarPerfis(): Observable<PerfilDTO[]> {
-    return this.http.get<PerfilDTO[]>(
-      `${this.API_URL}/perfis`
+  listarPerfis(page: number = 0, size: number = 50, search: string = ''): Observable<Page<PerfilDTO>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    
+    if (search && search.trim().length > 0) {
+      params = params.set('search', search.trim());
+    }
+
+    return this.http.get<Page<PerfilDTO>>(
+      `${this.API_URL}/perfis`,
+      { params }
     );
   }
 

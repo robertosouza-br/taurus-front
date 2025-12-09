@@ -17,8 +17,12 @@
     [actions]="acoes"
     [loading]="carregando"
     [globalFilterFields]="['nome', 'descricao']"
-    [rows]="50"
-    [rowsPerPageOptions]="[]">
+    [rows]="pageSize"
+    [rowsPerPageOptions]="[]"
+    [lazy]="true"
+    [totalRecords]="totalElements"
+    (onLazyLoad)="onPageChange($event)"
+    (onSearch)="onSearch($event)">
     
     <!-- Template para Status -->
     <ng-template appTableTemplate="status" let-perfil="rowData">

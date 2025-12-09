@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FuncionalidadeService } from '../../../core/services/funcionalidade.service';
 import { PerfilDTO } from '../../../core/models/funcionalidade.model';
+import { Page } from '../../../core/models/page.model';
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
@@ -21,6 +22,13 @@ import { HeaderAction } from '../../../shared/components/page-header/page-header
 export class PerfisListaComponent implements OnInit {
   perfis: PerfilDTO[] = [];
   carregando = false;
+  
+  // Controle de paginação
+  totalElements = 0;
+  totalPages = 0;
+  currentPage = 0;
+  pageSize = 50;
+  searchTerm = '';
   
   // Controle de permissões
   podeIncluir = false;
@@ -135,12 +143,16 @@ export class PerfisListaComponent implements OnInit {
     ];
   }
 
-  carregarPerfis(): void {
+  carregarPerfis(page: number = 0, size: number = 50, search: string = ''): void {
     this.carregando = true;
-    this.funcionalidadeService.listarPerfis()
+    this.funcionalidadeService.listarPerfis(page, size, search)
       .subscribe({
-        next: (perfis) => {
-          this.perfis = perfis;
+        next: (response: Page<PerfilDTO>) => {
+          this.perfis = response.content;
+          this.totalElements = response.totalElements;
+          this.totalPages = response.totalPages;
+          this.currentPage = response.number;
+          this.pageSize = response.size;
           this.carregando = false;
         },
         error: () => {
@@ -226,5 +238,14 @@ export class PerfisListaComponent implements OnInit {
   getTotalFuncionalidades(perfil: PerfilDTO): number {
     if (!perfil.permissoes) return 0;
     return Object.keys(perfil.permissoes).length;
+  }
+
+  onPageChange(event: any): void {
+    this.carregarPerfis(event.page, event.rows, this.searchTerm);
+  }
+
+  onSearch(searchTerm: string): void {
+    this.searchTerm = searchTerm;
+    this.carregarPerfis(0, this.pageSize, searchTerm); // Volta para primeira página ao buscar
   }
 }
