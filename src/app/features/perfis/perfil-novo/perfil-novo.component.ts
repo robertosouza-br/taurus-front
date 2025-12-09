@@ -212,7 +212,7 @@ export class PerfilNovoComponent implements OnInit {
           // Redirecionar para listagem de perfis
           setTimeout(() => {
             this.router.navigate(['/admin/perfis']);
-          }, 500);
+          }, 1500);
         },
         error: (error) => {
           this.messageService.add({

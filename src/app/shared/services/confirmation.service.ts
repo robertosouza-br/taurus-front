@@ -6,6 +6,7 @@ import {
   ConfirmationAction, 
   ConfirmationConfig 
 } from '../components/confirmation-dialog/confirmation-dialog.component';
+import { MessageService } from 'primeng/api';
 
 /**
  * Serviço para gerenciar diálogos de confirmação
@@ -14,7 +15,10 @@ import {
   providedIn: 'root'
 })
 export class ConfirmationService {
-  constructor(private dialogService: DialogService) {}
+  constructor(
+    private dialogService: DialogService,
+    private messageService: MessageService
+  ) {}
 
   /**
    * Abre diálogo de confirmação e retorna Observable com resultado
@@ -42,12 +46,24 @@ export class ConfirmationService {
   }
 
   /**
-   * Confirmação para salvar
+   * Confirmação para salvar com toast automático
    */
   confirmSave(customMessage?: string): Observable<boolean> {
-    return this.confirm({
-      action: ConfirmationAction.SALVAR,
-      message: customMessage
+    return new Observable<boolean>(observer => {
+      this.confirm({
+        action: ConfirmationAction.SALVAR,
+        message: customMessage
+      }).subscribe(confirmed => {
+        if (confirmed) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Alteração realizada com sucesso!'
+          });
+        }
+        observer.next(confirmed);
+        observer.complete();
+      });
     });
   }
 

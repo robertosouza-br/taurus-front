@@ -195,10 +195,10 @@ export class PerfilConfiguracaoComponent implements OnInit {
           });
           this.salvando = false;
           
-          // Redireciona após um pequeno delay para garantir que a mensagem seja exibida
+          // Redireciona após um delay para garantir que a mensagem seja exibida
           setTimeout(() => {
             this.router.navigate(['/admin/perfis']);
-          }, 500);
+          }, 1500);
         }).catch((error) => {
           this.messageService.add({
             severity: 'error',
