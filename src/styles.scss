@@ -205,6 +205,10 @@ html, body {
 
 /* Tags */
 .p-tag {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+
   &.p-tag-success {
     background: #10b981 !important;
     color: #ffffff !important;
@@ -312,6 +316,54 @@ body {
   
   .p-card-header {
     border-radius: 12px 12px 0 0;
+  }
+}
+
+/* Tooltip do PrimeNG */
+.p-tooltip {
+  .p-tooltip-text {
+    background: rgba(0, 0, 0, 0.87);
+    color: #ffffff;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .p-tooltip-arrow {
+    border-color: rgba(0, 0, 0, 0.87);
+  }
+
+  &.p-tooltip-top {
+    margin-bottom: 8px;
+    
+    .p-tooltip-arrow {
+      border-top-color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  &.p-tooltip-bottom {
+    margin-top: 8px;
+    
+    .p-tooltip-arrow {
+      border-bottom-color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  &.p-tooltip-left {
+    margin-right: 8px;
+    
+    .p-tooltip-arrow {
+      border-left-color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  &.p-tooltip-right {
+    margin-left: 8px;
+    
+    .p-tooltip-arrow {
+      border-right-color: rgba(0, 0, 0, 0.87);
+    }
   }
 }
 

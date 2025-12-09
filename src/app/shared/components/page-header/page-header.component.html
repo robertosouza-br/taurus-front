@@ -8,7 +8,10 @@
       <div class="title-section">
         <i *ngIf="icon" [class]="icon + ' header-icon'"></i>
         <div class="text-content">
-          <h1>{{ title }}</h1>
+          <div class="title-row">
+            <h1>{{ title }}</h1>
+            <ng-content select="[pageHeaderExtra]"></ng-content>
+          </div>
           <p *ngIf="subtitle" class="subtitle">{{ subtitle }}</p>
         </div>
       </div>

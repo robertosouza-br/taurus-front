@@ -10,6 +10,22 @@
 }
 
 .configuracao-content {
+  .p-field {
+    margin-bottom: 1.5rem;
+  }
+
+  .p-field-checkbox {
+    margin-top: 1rem;
+
+    ::ng-deep .p-checkbox-label {
+      margin-left: 0.5rem;
+    }
+  }
+
+  ::ng-deep p-card .p-card-body {
+    padding: 1.5rem;
+  }
+
   .header {
     display: flex;
     justify-content: space-between;
@@ -33,6 +49,8 @@
 }
 
 .funcionalidades-section {
+  margin-top: 2rem;
+
   h3 {
     margin: 0 0 1.5rem 0;
     color: var(--text-color);
@@ -46,6 +64,10 @@
 }
 
 .funcionalidade-card {
+  ::ng-deep .p-card-body {
+    padding: 1.5rem;
+  }
+
   ::ng-deep .p-card-header {
     padding: 1rem;
     background-color: var(--surface-50);
@@ -54,13 +76,17 @@
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       
       .header-info {
         flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
         
         h4 {
-          margin: 0 0 0.5rem 0;
+          margin: 0;
           color: var(--text-color);
           font-size: 1.1rem;
         }
@@ -69,6 +95,8 @@
       .header-actions {
         display: flex;
         gap: 0.5rem;
+        align-items: center;
+        justify-content: center;
       }
     }
   }
@@ -92,16 +120,21 @@
       }
     }
   }
-  
-  ::ng-deep .p-card-footer {
-    padding: 1rem;
-    background-color: var(--surface-50);
-    border-top: 1px solid var(--surface-border);
-    
-    .card-footer {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
+}
+
+.acoes-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #dee2e6;
+
+  app-custom-button {
+    ::ng-deep button {
+      min-width: 140px;
     }
   }
 }
@@ -145,6 +178,20 @@
       flex-direction: column;
       
       button {
+        width: 100%;
+      }
+    }
+  }
+
+  .acoes-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+
+    app-custom-button {
+      width: 100%;
+
+      ::ng-deep button {
         width: 100%;
       }
     }

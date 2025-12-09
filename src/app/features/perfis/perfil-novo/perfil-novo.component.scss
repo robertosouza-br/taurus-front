@@ -15,19 +15,26 @@
   }
 
   .perfil-form {
+    ::ng-deep p-card .p-card-body {
+      padding: 1.5rem;
+    }
+
     .p-field {
       margin-bottom: 1.5rem;
-
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #444;
-      }
     }
 
     .p-field-checkbox {
       margin-top: 1rem;
+
+      ::ng-deep .p-checkbox {
+        .p-checkbox-box {
+          margin-right: 0.5rem;
+        }
+
+        .p-checkbox-label {
+          margin-left: 0.5rem;
+        }
+      }
     }
   }
 
@@ -97,8 +104,8 @@
           padding: 0.25rem;
 
           ::ng-deep .p-checkbox-label {
-            font-size: 0.95rem;
-            color: #555;
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
           }
         }
       }

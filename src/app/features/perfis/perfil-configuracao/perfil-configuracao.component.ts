@@ -6,6 +6,8 @@ import { FuncionalidadeDTO, PerfilDTO, ConfiguracaoPermissaoDTO } from '../../..
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
+import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
 
 /**
  * Componente para configurar permissões de um perfil
@@ -20,8 +22,13 @@ export class PerfilConfiguracaoComponent implements OnInit {
   perfil: PerfilDTO | null = null;
   funcionalidades: FuncionalidadeDTO[] = [];
   permissoesConfiguradas: Record<string, string[]> = {};
+  private perfilInicial: PerfilDTO | null = null;
+  private permissoesIniciais: Record<string, string[]> = {};
   carregando = false;
   salvando = false;
+
+  breadcrumbItems: BreadcrumbItem[] = [];
+  headerActions: HeaderAction[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -44,6 +51,8 @@ export class PerfilConfiguracaoComponent implements OnInit {
       this.router.navigate(['/admin/perfis']);
       return;
     }
+    this.configurarBreadcrumb();
+    this.configurarHeader();
     this.carregarDados();
   }
 
@@ -58,6 +67,10 @@ export class PerfilConfiguracaoComponent implements OnInit {
       this.funcionalidades = funcionalidades || [];
       this.perfil = perfil || null;
       this.permissoesConfiguradas = permissoes || {};
+      this.perfilInicial = this.perfil ? JSON.parse(JSON.stringify(this.perfil)) : null;
+      this.permissoesIniciais = this.clonarPermissoes(this.permissoesConfiguradas);
+      this.configurarBreadcrumb();
+      this.configurarHeader();
       this.carregando = false;
     }).catch(() => {
       this.messageService.add({
@@ -67,6 +80,21 @@ export class PerfilConfiguracaoComponent implements OnInit {
       });
       this.carregando = false;
     });
+  }
+
+  private configurarBreadcrumb(): void {
+    this.breadcrumbItems = [
+      { label: 'Administração', icon: 'pi pi-cog' },
+      { label: 'Perfis', url: '/admin/perfis' },
+      { label: this.perfil?.nome || 'Configuração' }
+    ];
+  }
+
+  private configurarHeader(): void {
+    const title = this.perfil?.nome || 'Configuração de Perfil';
+    const subtitle = this.perfil?.descricao || 'Defina permissões para cada funcionalidade';
+
+    this.headerActions = [];
   }
 
   isPermissaoSelecionada(funcionalidade: string, permissao: string): boolean {
@@ -86,58 +114,57 @@ export class PerfilConfiguracaoComponent implements OnInit {
     }
   }
 
-  salvarPermissoes(funcionalidade: string): void {
-    const config: ConfiguracaoPermissaoDTO = {
+  voltar(): void {
+    this.router.navigate(['/admin/perfis']);
+  }
+
+  cancelar(): void {
+    this.router.navigate(['/admin/perfis']);
+  }
+
+  salvarPerfil(): void {
+    if (!this.perfil) return;
+
+    this.salvando = true;
+
+    // Atualiza dados básicos do perfil
+    const perfilAtualizado = {
+      id: this.perfil.id,
+      nome: this.perfil.nome,
+      descricao: this.perfil.descricao,
+      ativo: this.perfil.ativo
+    };
+
+    // Prepara todas as configurações de permissões
+    const configuracoesPermissoes = Object.keys(this.permissoesConfiguradas).map(funcionalidade => ({
       perfilId: this.perfilId,
       funcionalidade: funcionalidade,
       permissoes: this.permissoesConfiguradas[funcionalidade] || []
-    };
+    }));
 
-    this.salvando = true;
-    this.funcionalidadeService.configurarPermissoes(this.perfilId, config)
-      .subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Permissões atualizadas com sucesso'
-          });
-          this.salvando = false;
-        },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: 'Erro ao atualizar permissões'
-          });
-          this.salvando = false;
-        }
+    // Executa atualização do perfil e todas as permissões
+    Promise.all([
+      this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
+      ...configuracoesPermissoes.map(config => 
+        this.funcionalidadeService.configurarPermissoes(this.perfilId, config).toPromise()
+      )
+    ]).then(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: 'Perfil e permissões atualizados com sucesso'
       });
-  }
-
-  removerFuncionalidade(funcionalidade: string): void {
-    this.funcionalidadeService.removerFuncionalidade(this.perfilId, funcionalidade)
-      .subscribe({
-        next: () => {
-          delete this.permissoesConfiguradas[funcionalidade];
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Funcionalidade removida do perfil'
-          });
-        },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: 'Erro ao remover funcionalidade'
-          });
-        }
+        this.perfilInicial = this.perfil ? JSON.parse(JSON.stringify(this.perfil)) : null;
+        this.permissoesIniciais = this.clonarPermissoes(this.permissoesConfiguradas);
+      this.salvando = false;
+    }).catch(() => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Erro ao atualizar perfil e permissões'
       });
-  }
-
-  voltar(): void {
-    this.router.navigate(['/admin/perfis']);
+      this.salvando = false;
+    });
   }
 
   limparPermissoes(funcionalidade: string): void {
@@ -146,6 +173,20 @@ export class PerfilConfiguracaoComponent implements OnInit {
 
   selecionarTodas(funcionalidade: string, permissoes: string[]): void {
     this.permissoesConfiguradas[funcionalidade] = [...permissoes];
+  }
+
+  limparTela(): void {
+    if (!this.perfilInicial) return;
+    this.perfil = JSON.parse(JSON.stringify(this.perfilInicial));
+    this.permissoesConfiguradas = this.clonarPermissoes(this.permissoesIniciais);
+  }
+
+  private clonarPermissoes(permissoes: Record<string, string[]>): Record<string, string[]> {
+    const clone: Record<string, string[]> = {};
+    Object.keys(permissoes || {}).forEach(key => {
+      clone[key] = [...(permissoes[key] || [])];
+    });
+    return clone;
   }
 
   getNumeroPermissoes(funcionalidade: string): number {

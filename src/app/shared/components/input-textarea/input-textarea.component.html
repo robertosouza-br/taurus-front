@@ -1,0 +1,19 @@
+<div class="input-textarea-container" [ngClass]="styleClass">
+  <span class="p-float-label" [ngClass]="{'p-input-filled': value && value.length > 0}">
+    <textarea 
+      [id]="inputId"
+      pInputTextarea
+      [value]="value"
+      (input)="onInputChange($event)"
+      (blur)="onBlur()"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [readonly]="readonly"
+      [rows]="rows"
+      [attr.maxlength]="maxlength"
+      [autoResize]="autoResize"
+      [required]="required">
+    </textarea>
+    <label [for]="inputId" [ngClass]="{'p-label-active': value && value.length > 0}">{{ displayLabel }}</label>
+  </span>
+</div>

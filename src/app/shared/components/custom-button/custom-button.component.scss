@@ -4,9 +4,9 @@
 
   ::ng-deep button.p-button {
     color-scheme: light only !important;
-    min-height: 30px !important;
-    height: 30px !important;
-    padding: 0 1.5rem !important;
+    min-height: 38px !important;
+    height: auto !important;
+    padding: 0.4rem 1.5rem !important;
     font-size: 1rem !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -45,8 +45,9 @@
 
     // Tamanhos
     &.btn-small {
-      padding: 0 1rem !important;
-      font-size: 0.875rem !important;
+      min-height: 34px !important;
+      padding: 0.3rem 1rem !important;
+      font-size: 0.9rem !important;
       
       .p-button-icon {
         font-size: 1rem !important;
@@ -54,7 +55,8 @@
     }
     
     &.btn-large {
-      padding: 0 2rem !important;
+      min-height: 44px !important;
+      padding: 0.55rem 2rem !important;
       font-size: 1.125rem !important;
       
       .p-button-icon {

@@ -1,5 +1,13 @@
 <div class="perfil-novo-container">
-  <h2><i class="pi pi-plus-circle"></i> Criar Novo Perfil</h2>
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Novo Perfil"
+    subtitle="Cadastre um perfil e defina suas permissões"
+    icon="pi pi-plus-circle">
+  </app-page-header>
 
   <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
 
@@ -7,26 +15,23 @@
     <!-- Dados Básicos -->
     <p-card header="Dados do Perfil">
       <div class="p-fluid">
+        <br>
         <div class="p-field">
-          <label for="nome">Nome do Perfil *</label>
-          <input 
-            id="nome" 
-            type="text" 
-            pInputText 
+          <app-input-text
+            id="nome"
+            label="Nome do Perfil"
             [(ngModel)]="nome"
-            placeholder="Ex: Vendedor Senior"
-            required>
+            [required]="true">
+          </app-input-text>
         </div>
 
         <div class="p-field">
-          <label for="descricao">Descrição</label>
-          <textarea 
-            id="descricao" 
-            pInputTextarea 
+          <app-input-textarea
+            id="descricao"
+            label="Descrição"
             [(ngModel)]="descricao"
-            placeholder="Descrição do perfil e suas responsabilidades"
-            rows="3">
-          </textarea>
+            [rows]="3">
+          </app-input-textarea>
         </div>
 
         <div class="p-field-checkbox">
@@ -37,6 +42,7 @@
             label="Perfil Ativo">
           </p-checkbox>
         </div>
+        <br>
       </div>
     </p-card>
 
@@ -59,20 +65,26 @@
               </p-tag>
             </div>
             <div class="acoes-rapidas">
-              <button 
-                pButton 
-                icon="pi pi-check" 
-                class="p-button-text p-button-sm p-button-success"
-                pTooltip="Selecionar Todas"
-                (click)="selecionarTodas(func.codigo, func.permissoesDisponiveis)">
-              </button>
-              <button 
-                pButton 
-                icon="pi pi-times" 
-                class="p-button-text p-button-sm p-button-danger"
-                pTooltip="Limpar Seleção"
-                (click)="limparPermissoes(func.codigo)">
-              </button>
+              <app-custom-button
+                icon="pi pi-check"
+                severity="success"
+                size="small"
+                [text]="true"
+                [rounded]="true"
+                tooltip="Selecionar Todas"
+                tooltipPosition="top"
+                (onClick)="selecionarTodas(func.codigo, func.permissoesDisponiveis)">
+              </app-custom-button>
+              <app-custom-button
+                icon="pi pi-times"
+                severity="danger"
+                size="small"
+                [text]="true"
+                [rounded]="true"
+                tooltip="Limpar Seleção"
+                tooltipPosition="top"
+                (onClick)="limparPermissoes(func.codigo)">
+              </app-custom-button>
             </div>
           </div>
         </ng-template>
@@ -94,22 +106,20 @@
 
     <!-- Ações -->
     <div class="acoes-footer">
-      <button 
-        pButton 
+      <app-custom-button 
         label="Cancelar" 
         icon="pi pi-times"
-        class="p-button-secondary"
-        (click)="cancelar()"
+        severity="secondary"
+        (onClick)="cancelar()"
         [disabled]="salvando">
-      </button>
-      <button 
-        pButton 
+      </app-custom-button>
+      <app-custom-button 
         label="Criar Perfil" 
         icon="pi pi-save"
-        class="p-button-success"
-        (click)="criarPerfil()"
+        severity="success"
+        (onClick)="criarPerfil()"
         [loading]="salvando">
-      </button>
+      </app-custom-button>
     </div>
   </div>
 </div>

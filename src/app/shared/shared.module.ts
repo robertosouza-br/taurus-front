@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
@@ -15,6 +16,8 @@ import { PageHeaderComponent } from './components/page-header/page-header.compon
 import { BreadcrumbComponent } from './components/breadcrumb/breadcrumb.component';
 import { ActionButtonComponent } from './components/action-button/action-button.component';
 import { CustomButtonComponent } from './components/custom-button/custom-button.component';
+import { InputTextComponent } from './components/input-text/input-text.component';
+import { InputTextareaComponent } from './components/input-textarea/input-textarea.component';
 
 /**
  * SharedModule
@@ -31,7 +34,9 @@ import { CustomButtonComponent } from './components/custom-button/custom-button.
     BreadcrumbComponent,
     ActionButtonComponent,
     DataTableTemplateDirective,
-    CustomButtonComponent
+    CustomButtonComponent,
+    InputTextComponent,
+    InputTextareaComponent
   ],
   imports: [
     CommonModule,
@@ -39,6 +44,7 @@ import { CustomButtonComponent } from './components/custom-button/custom-button.
     TableModule,
     ButtonModule,
     InputTextModule,
+    InputTextareaModule,
     TooltipModule
   ],
   exports: [
@@ -51,7 +57,9 @@ import { CustomButtonComponent } from './components/custom-button/custom-button.
     BreadcrumbComponent,
     ActionButtonComponent,
     DataTableTemplateDirective,
-    CustomButtonComponent
+    CustomButtonComponent,
+    InputTextComponent,
+    InputTextareaComponent
   ]
 })
 export class SharedModule { }

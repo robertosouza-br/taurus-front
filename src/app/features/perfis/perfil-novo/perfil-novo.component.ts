@@ -6,6 +6,8 @@ import { FuncionalidadeDTO, PerfilEntradaDTO } from '../../../core/models/funcio
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
+import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
 
 /**
  * Componente para criar novo perfil
@@ -28,6 +30,9 @@ export class PerfilNovoComponent implements OnInit {
   carregando = false;
   salvando = false;
 
+  breadcrumbItems: BreadcrumbItem[] = [];
+  headerActions: HeaderAction[] = [];
+
   constructor(
     private router: Router,
     private funcionalidadeService: FuncionalidadeService,
@@ -46,7 +51,36 @@ export class PerfilNovoComponent implements OnInit {
       this.router.navigate(['/admin/perfis']);
       return;
     }
+    this.configurarBreadcrumb();
+    this.configurarHeader();
     this.carregarFuncionalidades();
+  }
+
+  private configurarBreadcrumb(): void {
+    this.breadcrumbItems = [
+      { label: 'Administração', icon: 'pi pi-cog' },
+      { label: 'Perfis', url: '/admin/perfis' },
+      { label: 'Novo Perfil' }
+    ];
+  }
+
+  private configurarHeader(): void {
+    this.headerActions = [
+      {
+        label: 'Voltar',
+        icon: 'pi pi-arrow-left',
+        severity: 'secondary',
+        action: () => this.cancelar(),
+        visible: true
+      },
+      {
+        label: 'Criar Perfil',
+        icon: 'pi pi-save',
+        severity: 'success',
+        action: () => this.criarPerfil(),
+        visible: true
+      }
+    ];
   }
 
   carregarFuncionalidades(): void {
