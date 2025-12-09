@@ -1,0 +1,33 @@
+<div class="confirmation-dialog" [ngClass]="'severity-' + severity">
+  <div class="accent-bar"></div>
+
+  <div class="hero">
+    <div class="icon-circle">
+      <i [class]="icon"></i>
+    </div>
+    <div class="hero-text">
+      <span class="hero-eyebrow">Confirmação necessária</span>
+      <h3>{{ title }}</h3>
+    </div>
+  </div>
+
+  <div class="message-panel">
+    <p [innerHTML]="message"></p>
+  </div>
+
+  <div class="confirmation-footer">
+    <app-custom-button
+      *ngIf="showCancel"
+      [label]="cancelLabel"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancel()">
+    </app-custom-button>
+    
+    <app-custom-button
+      [label]="confirmLabel"
+      [severity]="severity"
+      (onClick)="confirm()">
+    </app-custom-button>
+  </div>
+</div>

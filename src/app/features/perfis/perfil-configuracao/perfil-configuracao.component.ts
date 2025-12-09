@@ -8,6 +8,7 @@ import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
 
 /**
  * Componente para configurar permissões de um perfil
@@ -26,6 +27,7 @@ export class PerfilConfiguracaoComponent implements OnInit {
   private permissoesIniciais: Record<string, string[]> = {};
   carregando = false;
   salvando = false;
+  tentouSalvar = false;
 
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
@@ -35,7 +37,8 @@ export class PerfilConfiguracaoComponent implements OnInit {
     private router: Router,
     private funcionalidadeService: FuncionalidadeService,
     private messageService: MessageService,
-    private permissaoService: PermissaoService
+    private permissaoService: PermissaoService,
+    private confirmationService: ConfirmationService
   ) {
     this.perfilId = +this.route.snapshot.params['id'];
   }
@@ -125,40 +128,86 @@ export class PerfilConfiguracaoComponent implements OnInit {
   salvarPerfil(): void {
     if (!this.perfil) return;
 
-    this.salvando = true;
+    // Marcar que tentou salvar
+    this.tentouSalvar = true;
 
-    // Atualiza dados básicos do perfil e permissões em lote
-    const perfilAtualizado = {
-      nome: this.perfil.nome,
-      descricao: this.perfil.descricao,
-      ativo: this.perfil.ativo,
-      permissoes: this.permissoesConfiguradas
-    };
+    // Validações
+    const erros: string[] = [];
+    let primeiroCampoInvalido: string | null = null;
 
-    // Executa atualização do perfil (com permissões incluídas) e depois substitui permissões em lote
-    Promise.all([
-      this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
-      this.funcionalidadeService.substituirPermissoesLote(this.perfilId, this.permissoesConfiguradas).toPromise()
-    ]).then(([perfil, _]) => {
+    if (!this.perfil.nome || this.perfil.nome.trim().length === 0) {
+      erros.push('Nome do perfil é obrigatório');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'nome';
+    }
+
+    if (!this.perfil.descricao || this.perfil.descricao.trim().length === 0) {
+      erros.push('Descrição é obrigatória');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'descricao';
+    }
+
+    // Se houver erros, mostrar e focar no primeiro campo
+    if (erros.length > 0) {
       this.messageService.add({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Perfil e permissões atualizados com sucesso'
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: erros.join('. ')
       });
-      this.salvando = false;
       
-      // Redireciona após um pequeno delay para garantir que a mensagem seja exibida
-      setTimeout(() => {
-        this.router.navigate(['/admin/perfis']);
-      }, 500);
-    }).catch((error) => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: error.error?.detail || error.error?.message || 'Erro ao atualizar perfil e permissões'
+      // Focar no primeiro campo inválido
+      if (primeiroCampoInvalido) {
+        setTimeout(() => {
+          const elemento = document.getElementById(primeiroCampoInvalido!);
+          if (elemento) {
+            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Se for um input, dar foco
+            if (elemento instanceof HTMLInputElement || elemento instanceof HTMLTextAreaElement) {
+              elemento.focus();
+            }
+          }
+        }, 100);
+      }
+      return;
+    }
+
+    this.confirmationService.confirmSave('Deseja salvar as alterações realizadas no perfil e suas permissões?')
+      .subscribe(confirmed => {
+        if (!confirmed) return;
+
+        this.salvando = true;
+
+        // Atualiza dados básicos do perfil e permissões em lote
+        const perfilAtualizado = {
+          nome: this.perfil!.nome,
+          descricao: this.perfil!.descricao,
+          ativo: this.perfil!.ativo,
+          permissoes: this.permissoesConfiguradas
+        };
+
+        // Executa atualização do perfil (com permissões incluídas) e depois substitui permissões em lote
+        Promise.all([
+          this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
+          this.funcionalidadeService.substituirPermissoesLote(this.perfilId, this.permissoesConfiguradas).toPromise()
+        ]).then(([perfil, _]) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Perfil e permissões atualizados com sucesso'
+          });
+          this.salvando = false;
+          
+          // Redireciona após um pequeno delay para garantir que a mensagem seja exibida
+          setTimeout(() => {
+            this.router.navigate(['/admin/perfis']);
+          }, 500);
+        }).catch((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: error.error?.detail || error.error?.message || 'Erro ao atualizar perfil e permissões'
+          });
+          this.salvando = false;
+        });
       });
-      this.salvando = false;
-    });
   }
 
   limparPermissoes(funcionalidade: string): void {

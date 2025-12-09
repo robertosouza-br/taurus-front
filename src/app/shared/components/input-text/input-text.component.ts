@@ -23,8 +23,11 @@ export class InputTextComponent implements ControlValueAccessor {
   @Input() readonly: boolean = false;
   @Input() maxlength: number | null = null;
   @Input() styleClass: string = '';
+  @Input() showValidation: boolean = false; // Controla se deve mostrar validação
+  @Input() errorMessage: string = ''; // Mensagem de erro customizada
 
   value: string = '';
+  touched: boolean = false;
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -51,6 +54,7 @@ export class InputTextComponent implements ControlValueAccessor {
   }
 
   onBlur(): void {
+    this.touched = true;
     this.onTouched();
   }
 
@@ -60,5 +64,13 @@ export class InputTextComponent implements ControlValueAccessor {
 
   get displayLabel(): string {
     return this.required ? `${this.label} *` : this.label;
+  }
+
+  get isInvalid(): boolean {
+    return this.showValidation && this.required && (!this.value || this.value.trim().length === 0);
+  }
+
+  get displayErrorMessage(): string {
+    return this.errorMessage || `${this.label} é obrigatório`;
   }
 }

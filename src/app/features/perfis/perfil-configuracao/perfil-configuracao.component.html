@@ -36,7 +36,9 @@
             id="descricao"
             label="Descrição"
             [(ngModel)]="perfil.descricao"
-            [rows]="3">
+            [rows]="3"
+            [required]="true"
+            [showValidation]="tentouSalvar">
           </app-input-textarea>
         </div>
 

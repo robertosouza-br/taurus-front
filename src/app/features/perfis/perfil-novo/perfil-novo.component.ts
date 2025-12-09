@@ -8,6 +8,7 @@ import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
 
 /**
  * Componente para criar novo perfil
@@ -23,6 +24,9 @@ export class PerfilNovoComponent implements OnInit {
   descricao: string = '';
   ativo: boolean = true;
 
+  // Controle de validação
+  tentouSalvar: boolean = false;
+
   // Funcionalidades e permissões
   funcionalidades: FuncionalidadeDTO[] = [];
   permissoesSelecionadas: Record<string, Set<string>> = {};
@@ -37,7 +41,8 @@ export class PerfilNovoComponent implements OnInit {
     private router: Router,
     private funcionalidadeService: FuncionalidadeService,
     private messageService: MessageService,
-    private permissaoService: PermissaoService
+    private permissaoService: PermissaoService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -120,14 +125,21 @@ export class PerfilNovoComponent implements OnInit {
   }
 
   criarPerfil(): void {
+    // Marcar que tentou salvar
+    this.tentouSalvar = true;
+
     // Validações
+    const erros: string[] = [];
+    let primeiroCampoInvalido: string | null = null;
+
     if (!this.nome || this.nome.trim().length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Nome do perfil é obrigatório'
-      });
-      return;
+      erros.push('Nome do perfil é obrigatório');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'nome';
+    }
+
+    if (!this.descricao || this.descricao.trim().length === 0) {
+      erros.push('Descrição é obrigatória');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'descricao';
     }
 
     // Converter Sets para Arrays
@@ -141,14 +153,44 @@ export class PerfilNovoComponent implements OnInit {
 
     // Validar se há pelo menos uma permissão
     if (Object.keys(permissoes).length === 0) {
+      erros.push('Selecione pelo menos uma permissão');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'permissoes-section';
+    }
+
+    // Se houver erros, mostrar e focar no primeiro campo
+    if (erros.length > 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Selecione pelo menos uma permissão'
+        detail: erros.join('. ')
       });
+      
+      // Focar no primeiro campo inválido
+      if (primeiroCampoInvalido) {
+        setTimeout(() => {
+          const elemento = document.getElementById(primeiroCampoInvalido!) || 
+                          document.querySelector('.permissoes-titulo');
+          if (elemento) {
+            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Se for um input, dar foco
+            if (elemento instanceof HTMLInputElement || elemento instanceof HTMLTextAreaElement) {
+              elemento.focus();
+            }
+          }
+        }, 100);
+      }
       return;
     }
 
+    // Mostrar confirmação antes de criar
+    this.confirmationService.confirmSave().subscribe((confirmed) => {
+      if (confirmed) {
+        this.executarCriacao(permissoes);
+      }
+    });
+  }
+
+  private executarCriacao(permissoes: Record<string, string[]>): void {
     // Criar perfil
     const novoPerfil: PerfilEntradaDTO = {
       nome: this.nome.trim(),
@@ -168,7 +210,9 @@ export class PerfilNovoComponent implements OnInit {
           });
           this.salvando = false;
           // Redirecionar para listagem de perfis
-          this.router.navigate(['/admin/perfis']);
+          setTimeout(() => {
+            this.router.navigate(['/admin/perfis']);
+          }, 500);
         },
         error: (error) => {
           this.messageService.add({
@@ -197,5 +241,9 @@ export class PerfilNovoComponent implements OnInit {
 
   getNumeroPermissoes(funcionalidade: string): number {
     return this.permissoesSelecionadas[funcionalidade]?.size || 0;
+  }
+
+  get temPermissoesSelecionadas(): boolean {
+    return Object.values(this.permissoesSelecionadas).some(set => set.size > 0);
   }
 }

@@ -23,6 +23,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 
 // PrimeNG Services
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
   ],
   providers: [
     MessageService,
-    ConfirmationService
+    ConfirmationService,
+    DialogService
   ]
 })
 export class PerfisModule { }

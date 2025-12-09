@@ -21,7 +21,8 @@
             id="nome"
             label="Nome do Perfil"
             [(ngModel)]="nome"
-            [required]="true">
+            [required]="true"
+            [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
 
@@ -30,7 +31,9 @@
             id="descricao"
             label="Descrição"
             [(ngModel)]="descricao"
-            [rows]="3">
+            [rows]="3"
+            [required]="true"
+            [showValidation]="tentouSalvar">
           </app-input-textarea>
         </div>
 
@@ -47,10 +50,13 @@
     </p-card>
 
     <!-- Permissões por Funcionalidade -->
-    <h3 class="permissoes-titulo">
+    <h3 class="permissoes-titulo" id="permissoes-section">
       <i class="pi pi-shield"></i>
       Configurar Permissões
     </h3>
+    <small class="p-error" *ngIf="tentouSalvar && !temPermissoesSelecionadas" style="display: block; margin-bottom: 1rem;">
+      Selecione pelo menos uma permissão
+    </small>
 
     <div class="funcionalidades-grid">
       <p-card *ngFor="let func of funcionalidades">

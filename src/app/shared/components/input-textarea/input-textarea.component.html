@@ -12,8 +12,13 @@
       [rows]="rows"
       [attr.maxlength]="maxlength"
       [autoResize]="autoResize"
-      [required]="required">
+      [required]="required"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-dirty]="isInvalid">
     </textarea>
     <label [for]="inputId" [ngClass]="{'p-label-active': value && value.length > 0}">{{ displayLabel }}</label>
   </span>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
 </div>

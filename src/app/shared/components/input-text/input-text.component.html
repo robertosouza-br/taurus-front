@@ -11,7 +11,12 @@
       [disabled]="disabled"
       [readonly]="readonly"
       [attr.maxlength]="maxlength"
-      [required]="required">
+      [required]="required"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-dirty]="isInvalid">
     <label [for]="inputId">{{ displayLabel }}</label>
   </span>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
 </div>
