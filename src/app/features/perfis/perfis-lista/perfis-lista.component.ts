@@ -89,7 +89,7 @@ export class PerfisListaComponent implements OnInit {
       {
         label: 'Novo Perfil',
         icon: 'pi pi-plus',
-        severity: 'success',
+        severity: 'primary',
         visible: this.podeIncluir,
         action: () => this.novoPerfil()
       }

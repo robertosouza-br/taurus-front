@@ -324,6 +324,8 @@ body {
 
 /* Tooltip do PrimeNG */
 .p-tooltip {
+  z-index: 99999 !important;
+  
   .p-tooltip-text {
     background: rgba(0, 0, 0, 0.87);
     color: #ffffff;
@@ -335,10 +337,11 @@ body {
 
   .p-tooltip-arrow {
     border-color: rgba(0, 0, 0, 0.87);
+    z-index: 1;
   }
 
   &.p-tooltip-top {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     
     .p-tooltip-arrow {
       border-top-color: rgba(0, 0, 0, 0.87);
@@ -346,7 +349,7 @@ body {
   }
 
   &.p-tooltip-bottom {
-    margin-top: 8px;
+    margin-top: 10px;
     
     .p-tooltip-arrow {
       border-bottom-color: rgba(0, 0, 0, 0.87);
@@ -354,7 +357,7 @@ body {
   }
 
   &.p-tooltip-left {
-    margin-right: 8px;
+    margin-right: 10px;
     
     .p-tooltip-arrow {
       border-left-color: rgba(0, 0, 0, 0.87);
@@ -362,7 +365,7 @@ body {
   }
 
   &.p-tooltip-right {
-    margin-left: 8px;
+    margin-left: 10px;
     
     .p-tooltip-arrow {
       border-right-color: rgba(0, 0, 0, 0.87);
