@@ -45,7 +45,7 @@
     [styleClass]="getTableClass()"
     [lazy]="lazy"
     [totalRecords]="lazy ? totalRecords : data.length"
-    (onLazyLoad)="lazy ? onLazyLoad.emit($event) : null"
+    (onLazyLoad)="onLazyLoad.emit($event)"
     [(selection)]="data"
     (onRowSelect)="rowSelect.emit($event.data)"
     (onRowUnselect)="rowUnselect.emit($event.data)"

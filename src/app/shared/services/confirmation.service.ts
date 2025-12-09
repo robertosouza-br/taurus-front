@@ -46,24 +46,13 @@ export class ConfirmationService {
   }
 
   /**
-   * Confirmação para salvar com toast automático
+   * Confirmação para salvar (apenas confirma, não exibe toast)
+   * O toast deve ser exibido pelo componente após a operação ter sucesso
    */
   confirmSave(customMessage?: string): Observable<boolean> {
-    return new Observable<boolean>(observer => {
-      this.confirm({
-        action: ConfirmationAction.SALVAR,
-        message: customMessage
-      }).subscribe(confirmed => {
-        if (confirmed) {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Alteração realizada com sucesso!'
-          });
-        }
-        observer.next(confirmed);
-        observer.complete();
-      });
+    return this.confirm({
+      action: ConfirmationAction.SALVAR,
+      message: customMessage
     });
   }
 

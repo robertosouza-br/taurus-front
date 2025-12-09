@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { FuncionalidadeService } from '../../../core/services/funcionalidade.service';
 import { PerfilDTO } from '../../../core/models/funcionalidade.model';
 import { Page } from '../../../core/models/page.model';
@@ -10,6 +10,7 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
 
 /**
  * Componente para listar perfis
@@ -29,6 +30,10 @@ export class PerfisListaComponent implements OnInit {
   currentPage = 0;
   pageSize = 50;
   searchTerm = '';
+  
+  // Controle de ordenação
+  sortField?: string;
+  sortOrder?: number;
   
   // Controle de permissões
   podeIncluir = false;
@@ -143,9 +148,15 @@ export class PerfisListaComponent implements OnInit {
     ];
   }
 
-  carregarPerfis(page: number = 0, size: number = 50, search: string = ''): void {
+  carregarPerfis(
+    page: number = 0, 
+    size: number = 50, 
+    search: string = '',
+    sortField?: string,
+    sortOrder?: number
+  ): void {
     this.carregando = true;
-    this.funcionalidadeService.listarPerfis(page, size, search)
+    this.funcionalidadeService.listarPerfis(page, size, search, sortField, sortOrder)
       .subscribe({
         next: (response: Page<PerfilDTO>) => {
           this.perfis = response.content;
@@ -159,7 +170,8 @@ export class PerfisListaComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Erro',
-            detail: 'Erro ao carregar perfis'
+            detail: 'Erro ao carregar perfis',
+            life: 300000
           });
           this.carregando = false;
         }
@@ -195,33 +207,33 @@ export class PerfisListaComponent implements OnInit {
       this.messageService.add({
         severity: 'warn',
         summary: 'Acesso Negado',
-        detail: 'Você não tem permissão para excluir perfis'
+        detail: 'Você não tem permissão para excluir perfis',
+        life: 300000
       });
       return;
     }
     
-    this.confirmationService.confirm({
-      message: `Deseja realmente excluir o perfil "${perfil.nome}"?`,
-      header: 'Confirmar Exclusão',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sim',
-      rejectLabel: 'Não',
-      accept: () => {
+    this.confirmationService.confirmDelete(perfil.nome).subscribe(confirmed => {
+      if (confirmed) {
         this.funcionalidadeService.excluirPerfil(perfil.id)
           .subscribe({
             next: () => {
+              this.messageService.clear();
               this.messageService.add({
                 severity: 'success',
                 summary: 'Sucesso',
-                detail: 'Perfil excluído com sucesso'
+                detail: 'Perfil excluído com sucesso',
+                life: 300000
               });
               this.carregarPerfis();
             },
             error: () => {
+              this.messageService.clear();
               this.messageService.add({
                 severity: 'error',
                 summary: 'Erro',
-                detail: 'Erro ao excluir perfil'
+                detail: 'Erro ao excluir perfil',
+                life: 300000
               });
             }
           });
@@ -241,11 +253,33 @@ export class PerfisListaComponent implements OnInit {
   }
 
   onPageChange(event: any): void {
-    this.carregarPerfis(event.page, event.rows, this.searchTerm);
+    const rows = typeof event.rows === 'number' && event.rows > 0 ? event.rows : this.pageSize;
+    const first = typeof event.first === 'number' && event.first >= 0
+      ? event.first
+      : this.currentPage * rows;
+    const pageIndex = typeof event.page === 'number' && event.page >= 0
+      ? event.page
+      : Math.floor(first / rows);
+
+    const sortField = event.sortField ?? this.sortField;
+    const sortOrder = typeof event.sortOrder === 'number' ? event.sortOrder : this.sortOrder;
+
+    this.sortField = sortField;
+    this.sortOrder = sortOrder;
+    this.pageSize = rows;
+
+    this.carregarPerfis(
+      pageIndex,
+      rows,
+      this.searchTerm,
+      sortField,
+      sortOrder
+    );
   }
 
   onSearch(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    this.carregarPerfis(0, this.pageSize, searchTerm); // Volta para primeira página ao buscar
+    // Mantém ordenação ao buscar
+    this.carregarPerfis(0, this.pageSize, searchTerm, this.sortField, this.sortOrder);
   }
 }

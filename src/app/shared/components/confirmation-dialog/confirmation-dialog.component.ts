@@ -69,7 +69,7 @@ export class ConfirmationDialogComponent {
     const defaults: Record<ConfirmationAction, ConfirmationConfig> = {
       [ConfirmationAction.SALVAR]: {
         action: ConfirmationAction.SALVAR,
-        title: 'Confirmar Alterações',
+        title: 'Confirmar alterações!',
         message: 'Deseja salvar as alterações realizadas?',
         confirmLabel: 'Salvar',
         cancelLabel: 'Cancelar',
@@ -79,7 +79,7 @@ export class ConfirmationDialogComponent {
       },
       [ConfirmationAction.EXCLUIR]: {
         action: ConfirmationAction.EXCLUIR,
-        title: 'Confirmar Exclusão',
+        title: 'Confirmar exclusão!',
         message: 'Esta ação não poderá ser desfeita. Deseja realmente excluir?',
         confirmLabel: 'Excluir',
         cancelLabel: 'Cancelar',
@@ -89,7 +89,7 @@ export class ConfirmationDialogComponent {
       },
       [ConfirmationAction.INCLUIR]: {
         action: ConfirmationAction.INCLUIR,
-        title: 'Confirmar Inclusão',
+        title: 'Confirmar inclusão!',
         message: 'Deseja incluir este novo registro?',
         confirmLabel: 'Incluir',
         cancelLabel: 'Cancelar',
@@ -99,7 +99,7 @@ export class ConfirmationDialogComponent {
       },
       [ConfirmationAction.CANCELAR]: {
         action: ConfirmationAction.CANCELAR,
-        title: 'Cancelar Operação',
+        title: 'Cancelar operação!',
         message: 'Existem alterações não salvas. Deseja realmente cancelar?',
         confirmLabel: 'Sim, cancelar',
         cancelLabel: 'Não',
@@ -109,7 +109,7 @@ export class ConfirmationDialogComponent {
       },
       [ConfirmationAction.DESCARTAR]: {
         action: ConfirmationAction.DESCARTAR,
-        title: 'Descartar Alterações',
+        title: 'Descartar alterações!',
         message: 'As alterações realizadas serão perdidas. Deseja continuar?',
         confirmLabel: 'Descartar',
         cancelLabel: 'Manter',

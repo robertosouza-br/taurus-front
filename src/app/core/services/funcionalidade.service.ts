@@ -121,14 +121,29 @@ export class FuncionalidadeService {
    * @param page Número da página (inicia em 0)
    * @param size Quantidade de registros por página (padrão: 50)
    * @param search Termo de busca (opcional)
+   * @param sortField Campo para ordenação (opcional)
+   * @param sortOrder Direção da ordenação: 1 (ASC) ou -1 (DESC) (opcional)
    */
-  listarPerfis(page: number = 0, size: number = 50, search: string = ''): Observable<Page<PerfilDTO>> {
+  listarPerfis(
+    page: number = 0, 
+    size: number = 50, 
+    search: string = '',
+    sortField?: string,
+    sortOrder?: number
+  ): Observable<Page<PerfilDTO>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
     
     if (search && search.trim().length > 0) {
       params = params.set('search', search.trim());
+    }
+
+    if (sortField && sortOrder) {
+      const direction = sortOrder === -1 ? 'DESC' : 'ASC';
+      params = params.set('sort', `${sortField},${direction}`);
+      params = params.set('sortField', sortField);
+      params = params.set('sortDirection', direction);
     }
 
     return this.http.get<Page<PerfilDTO>>(

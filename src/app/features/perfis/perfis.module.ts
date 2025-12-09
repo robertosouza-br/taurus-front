@@ -45,11 +45,6 @@ import { DialogService } from 'primeng/dynamicdialog';
     TooltipModule,
     InputTextModule,
     InputTextareaModule
-  ],
-  providers: [
-    MessageService,
-    ConfirmationService,
-    DialogService
   ]
 })
 export class PerfisModule { }

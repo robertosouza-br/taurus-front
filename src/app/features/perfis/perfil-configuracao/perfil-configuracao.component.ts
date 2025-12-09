@@ -188,24 +188,28 @@ export class PerfilConfiguracaoComponent implements OnInit {
           this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
           this.funcionalidadeService.substituirPermissoesLote(this.perfilId, this.permissoesConfiguradas).toPromise()
         ]).then(([perfil, _]) => {
+          this.salvando = false;
+          // Exibe toast de sucesso
           this.messageService.add({
             severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Perfil e permissões atualizados com sucesso'
+            summary: 'Sucesso!',
+            detail: 'Perfil atualizado com sucesso.',
+
           });
-          this.salvando = false;
-          
-          // Redireciona após um delay para garantir que a mensagem seja exibida
+          // Redireciona após tempo suficiente para o toast aparecer
           setTimeout(() => {
             this.router.navigate(['/admin/perfis']);
-          }, 1500);
+          }, 2500);
         }).catch((error) => {
+          this.salvando = false;
+          const mensagemErro = error.error?.detail || error.error?.message || 'Não foi possível salvar as alterações. Tente novamente.';
+          
+          // Exibe toast de erro
           this.messageService.add({
             severity: 'error',
-            summary: 'Erro',
-            detail: error.error?.detail || error.error?.message || 'Erro ao atualizar perfil e permissões'
+            summary: 'Erro ao salvar',
+            detail: mensagemErro,
           });
-          this.salvando = false;
         });
       });
   }

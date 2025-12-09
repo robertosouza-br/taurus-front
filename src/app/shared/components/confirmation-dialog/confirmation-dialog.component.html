@@ -1,35 +1,31 @@
-
-<div class="confirmation-dialog animate-in" [ngClass]="'severity-' + severity">
-  <div class="accent-bar"></div>
-
-  <div class="hero">
-    <div class="icon-circle animated">
+<div class="confirmation-dialog" [ngClass]="'severity-' + severity">
+  <div class="dialog-header">
+    <div class="icon-wrapper" [ngClass]="'icon-' + severity">
       <i [class]="icon"></i>
     </div>
-    <div class="hero-text">
-      <span class="hero-eyebrow">Confirmação</span>
+    <div class="header-content">
       <h2 class="dialog-title">{{ title }}</h2>
     </div>
   </div>
 
-  <div class="message-panel">
-    <p [innerHTML]="message"></p>
+  <div class="dialog-body">
+    <p class="dialog-message" [innerHTML]="message"></p>
   </div>
 
-  <div class="confirmation-footer">
-    <app-custom-button
+  <div class="dialog-footer">
+    <button 
       *ngIf="showCancel"
-      [label]="cancelLabel"
-      severity="secondary"
-      [outlined]="true"
-      (onClick)="cancel()"
-      style="min-width: 120px;">
-    </app-custom-button>
-    <app-custom-button
-      [label]="confirmLabel"
-      [severity]="severity"
-      (onClick)="confirm()"
-      style="min-width: 140px; font-weight: bold;">
-    </app-custom-button>
+      class="btn btn-cancel"
+      (click)="cancel()"
+      type="button">
+      {{ cancelLabel }}
+    </button>
+    <button 
+      class="btn btn-confirm"
+      [ngClass]="'btn-' + severity"
+      (click)="confirm()"
+      type="button">
+      {{ confirmLabel }}
+    </button>
   </div>
 </div>

@@ -2,6 +2,8 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { JwtInterceptor, ErrorInterceptor, SecurityInterceptor } from './interceptors';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 
 /**
  * CoreModule
@@ -15,6 +17,9 @@ import { JwtInterceptor, ErrorInterceptor, SecurityInterceptor } from './interce
     HttpClientModule
   ],
   providers: [
+    MessageService,
+    ConfirmationService,
+    DialogService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: JwtInterceptor,
