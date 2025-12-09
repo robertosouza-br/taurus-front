@@ -90,6 +90,20 @@ export class FuncionalidadeService {
   }
 
   /**
+   * Substitui todas as permissões de um perfil de uma vez (lote)
+   * Limpa o mapa atual e aplica exatamente o que foi enviado
+   */
+  substituirPermissoesLote(
+    perfilId: number,
+    permissoes: Record<string, string[]>
+  ): Observable<PerfilSaidaDTO> {
+    return this.http.put<PerfilSaidaDTO>(
+      `${this.API_URL}/perfis/${perfilId}/permissoes-lote`,
+      { permissoes }
+    );
+  }
+
+  /**
    * Remove uma funcionalidade completa de um perfil
    */
   removerFuncionalidade(

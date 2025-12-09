@@ -167,8 +167,8 @@ export class PerfilNovoComponent implements OnInit {
             detail: `Perfil "${perfil.nome}" criado com sucesso`
           });
           this.salvando = false;
-          // Redirecionar para configuração do perfil
-          this.router.navigate(['/admin/perfis', perfil.id, 'configuracao']);
+          // Redirecionar para listagem de perfis
+          this.router.navigate(['/admin/perfis']);
         },
         error: (error) => {
           this.messageService.add({

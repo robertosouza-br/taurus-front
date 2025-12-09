@@ -127,41 +127,35 @@ export class PerfilConfiguracaoComponent implements OnInit {
 
     this.salvando = true;
 
-    // Atualiza dados básicos do perfil
+    // Atualiza dados básicos do perfil e permissões em lote
     const perfilAtualizado = {
-      id: this.perfil.id,
       nome: this.perfil.nome,
       descricao: this.perfil.descricao,
-      ativo: this.perfil.ativo
+      ativo: this.perfil.ativo,
+      permissoes: this.permissoesConfiguradas
     };
 
-    // Prepara todas as configurações de permissões
-    const configuracoesPermissoes = Object.keys(this.permissoesConfiguradas).map(funcionalidade => ({
-      perfilId: this.perfilId,
-      funcionalidade: funcionalidade,
-      permissoes: this.permissoesConfiguradas[funcionalidade] || []
-    }));
-
-    // Executa atualização do perfil e todas as permissões
+    // Executa atualização do perfil (com permissões incluídas) e depois substitui permissões em lote
     Promise.all([
       this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
-      ...configuracoesPermissoes.map(config => 
-        this.funcionalidadeService.configurarPermissoes(this.perfilId, config).toPromise()
-      )
-    ]).then(() => {
+      this.funcionalidadeService.substituirPermissoesLote(this.perfilId, this.permissoesConfiguradas).toPromise()
+    ]).then(([perfil, _]) => {
       this.messageService.add({
         severity: 'success',
         summary: 'Sucesso',
         detail: 'Perfil e permissões atualizados com sucesso'
       });
-        this.perfilInicial = this.perfil ? JSON.parse(JSON.stringify(this.perfil)) : null;
-        this.permissoesIniciais = this.clonarPermissoes(this.permissoesConfiguradas);
       this.salvando = false;
-    }).catch(() => {
+      
+      // Redireciona após um pequeno delay para garantir que a mensagem seja exibida
+      setTimeout(() => {
+        this.router.navigate(['/admin/perfis']);
+      }, 500);
+    }).catch((error) => {
       this.messageService.add({
         severity: 'error',
         summary: 'Erro',
-        detail: 'Erro ao atualizar perfil e permissões'
+        detail: error.error?.detail || error.error?.message || 'Erro ao atualizar perfil e permissões'
       });
       this.salvando = false;
     });
