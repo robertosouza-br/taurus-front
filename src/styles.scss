@@ -36,6 +36,9 @@
   --primary-700: #1d4ed8;
   --primary-800: #1e40af;
   --primary-900: #1e3a8a;
+  
+  --toast-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --toast-shadow: 0 8px 32px 0 rgba(102,126,234,0.18), 0 2px 8px 0 rgba(118,75,162,0.10);
 }
 
 /* Força tema claro mesmo se o SO estiver em modo escuro */
@@ -413,6 +416,89 @@ body {
 
 .slide-in {
   animation: slideIn 0.4s ease-out;
+}
+
+/* Toast customizado para chamar atenção */
+.p-toast {
+  z-index: 9999 !important;
+}
+
+.p-toast .p-toast-message {
+  min-width: 340px;
+  max-width: 480px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  border-radius: 1.1rem;
+  box-shadow: var(--toast-shadow) !important;
+  background: var(--toast-bg) !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 1.25rem 1.5rem !important;
+  margin-bottom: 1.1rem !important;
+  animation: popToast 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+.p-toast .p-toast-message .p-toast-message-content {
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.p-toast .p-toast-message .p-toast-message-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.p-toast .p-toast-message .p-toast-message-summary {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0;
+  letter-spacing: 0;
+  color: #fff !important;
+  text-shadow: none;
+}
+
+.p-toast .p-toast-message .p-toast-message-icon {
+  font-size: 2rem !important;
+  margin-right: 0.7rem;
+  color: #fff !important;
+  filter: drop-shadow(0 2px 8px #764ba2aa);
+}
+
+.p-toast .p-toast-message .p-toast-message-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(102,126,234,0.10);
+}
+
+@keyframes popToast {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Toast customizado por tipo */
+.p-toast .p-toast-message-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 32px 0 rgba(34,197,94,0.18), 0 2px 8px 0 rgba(22,163,74,0.10) !important;
+}
+.p-toast .p-toast-message-error {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 32px 0 rgba(239,68,68,0.18), 0 2px 8px 0 rgba(185,28,28,0.10) !important;
+}
+.p-toast .p-toast-message-warn {
+  background: linear-gradient(135deg, #facc15 0%, #f59e42 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 32px 0 rgba(250,204,21,0.18), 0 2px 8px 0 rgba(245,158,66,0.10) !important;
+}
+.p-toast .p-toast-message-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 32px 0 rgba(102,126,234,0.18), 0 2px 8px 0 rgba(118,75,162,0.10) !important;
 }
 
 /* Responsividade */
