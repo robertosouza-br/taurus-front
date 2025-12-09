@@ -16,12 +16,11 @@
     [columns]="colunas"
     [actions]="acoes"
     [loading]="carregando"
-    [globalFilterFields]="['nome', 'descricao']"
+    [globalFilterFields]="[]"
     [rows]="pageSize"
     [rowsPerPageOptions]="[]"
-    [lazy]="true"
+    [lazy]="false"
     [totalRecords]="totalElements"
-    (onLazyLoad)="onPageChange($event)"
     (onSearch)="onSearch($event)">
     
     <!-- Template para Status -->

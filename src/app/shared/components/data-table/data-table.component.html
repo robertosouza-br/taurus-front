@@ -10,7 +10,7 @@
   </div>
 
   <!-- Busca global -->
-  <div class="table-toolbar" *ngIf="globalFilterFields.length > 0">
+  <div class="table-toolbar" *ngIf="globalFilterFields.length > 0 || onSearch.observed">
     <div class="search-container">
       <span class="p-float-label">
         <input 
@@ -18,7 +18,7 @@
           pInputText 
           type="text" 
           [(ngModel)]="searchValue"
-          (input)="lazy ? onSearchChange($event) : dt.filterGlobal(searchValue, 'contains')"
+          (input)="onSearch.observed ? onSearchChange($event) : dt.filterGlobal(searchValue, 'contains')"
           class="search-input" />
         <label for="tableSearch">Buscar...</label>
       </span>
@@ -101,7 +101,6 @@
               <app-custom-button
                 *ngFor="let action of actions"
                 [icon]="action.icon"
-                [label]="action.label || ''"
                 [severity]="action.severity || 'secondary'"
                 [tooltip]="action.tooltip || ''"
                 tooltipPosition="top"

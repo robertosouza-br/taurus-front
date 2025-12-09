@@ -2,12 +2,13 @@
   pButton
   [type]="type"
   [class]="getButtonClass()"
-  [label]="label"
+  [label]="label || ''"
   [icon]="icon"
   [iconPos]="iconPos"
   [disabled]="disabled"
   [loading]="loading"
   [pTooltip]="tooltip"
   [tooltipPosition]="tooltipPosition"
+  [attr.aria-label]="tooltip || label"
   (click)="handleClick($event)">
 </button>

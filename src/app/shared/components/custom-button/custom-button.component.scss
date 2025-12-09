@@ -17,6 +17,13 @@
     transition: all 0.2s ease;
     white-space: nowrap;
 
+    &.p-button-icon-only {
+      padding: 0.5rem !important;
+      width: auto !important;
+      min-width: 2.5rem !important;
+      gap: 0 !important;
+    }
+
     .p-button-icon {
       font-size: 1.125rem !important;
       line-height: 1 !important;
@@ -25,6 +32,10 @@
     .p-button-label {
       line-height: 1 !important;
       font-weight: 600 !important;
+      
+      &:empty {
+        display: none !important;
+      }
     }
 
     // Efeitos de hover

@@ -31,10 +31,6 @@ export class PerfisListaComponent implements OnInit {
   pageSize = 50;
   searchTerm = '';
   
-  // Controle de ordenação
-  sortField?: string;
-  sortOrder?: number;
-  
   // Controle de permissões
   podeIncluir = false;
   podeAlterar = false;
@@ -148,22 +144,16 @@ export class PerfisListaComponent implements OnInit {
     ];
   }
 
-  carregarPerfis(
-    page: number = 0, 
-    size: number = 50, 
-    search: string = '',
-    sortField?: string,
-    sortOrder?: number
-  ): void {
+  carregarPerfis(search: string = ''): void {
     this.carregando = true;
-    this.funcionalidadeService.listarPerfis(page, size, search, sortField, sortOrder)
+    // Carrega TODOS os perfis de uma vez para ordenação client-side
+    this.funcionalidadeService.listarPerfis(0, 1000, search)
       .subscribe({
         next: (response: Page<PerfilDTO>) => {
           this.perfis = response.content;
           this.totalElements = response.totalElements;
           this.totalPages = response.totalPages;
           this.currentPage = response.number;
-          this.pageSize = response.size;
           this.carregando = false;
         },
         error: () => {
@@ -252,34 +242,8 @@ export class PerfisListaComponent implements OnInit {
     return Object.keys(perfil.permissoes).length;
   }
 
-  onPageChange(event: any): void {
-    const rows = typeof event.rows === 'number' && event.rows > 0 ? event.rows : this.pageSize;
-    const first = typeof event.first === 'number' && event.first >= 0
-      ? event.first
-      : this.currentPage * rows;
-    const pageIndex = typeof event.page === 'number' && event.page >= 0
-      ? event.page
-      : Math.floor(first / rows);
-
-    const sortField = event.sortField ?? this.sortField;
-    const sortOrder = typeof event.sortOrder === 'number' ? event.sortOrder : this.sortOrder;
-
-    this.sortField = sortField;
-    this.sortOrder = sortOrder;
-    this.pageSize = rows;
-
-    this.carregarPerfis(
-      pageIndex,
-      rows,
-      this.searchTerm,
-      sortField,
-      sortOrder
-    );
-  }
-
   onSearch(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    // Mantém ordenação ao buscar
-    this.carregarPerfis(0, this.pageSize, searchTerm, this.sortField, this.sortOrder);
+    this.carregarPerfis(searchTerm);
   }
 }

@@ -121,7 +121,7 @@ export class DataTableComponent implements OnDestroy {
    */
   clearFilter(): void {
     this.searchValue = '';
-    if (this.lazy) {
+    if (this.onSearch.observed) {
       this.onSearch.emit('');
     } else {
       this.table?.clear();
@@ -129,7 +129,7 @@ export class DataTableComponent implements OnDestroy {
   }
 
   /**
-   * Manipula mudança de busca com debounce (lazy mode)
+   * Manipula mudança de busca com debounce
    */
   onSearchChange(event: any): void {
     if (this.searchTimeout) {
