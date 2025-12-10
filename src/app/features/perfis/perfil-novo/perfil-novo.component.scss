@@ -154,6 +154,26 @@
   .perfil-novo-container {
     padding: 1rem;
 
+    .funcionalidades-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .acoes-footer {
+      flex-direction: column;
+      gap: 0.75rem;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
+
+
+@media (max-width: 768px) {
+  .perfil-novo-container {
+    padding: 1rem;
+
     h2 {
       font-size: 1.5rem;
     }

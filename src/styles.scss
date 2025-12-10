@@ -320,6 +320,10 @@ body {
   .p-card-header {
     border-radius: 12px 12px 0 0;
   }
+
+  .p-card-body {
+    padding: 1.5rem;
+  }
 }
 
 /* Tooltip do PrimeNG */
@@ -607,6 +611,414 @@ body {
 @media (max-width: 768px) {
   html, body {
     font-size: 13px;
+  }
+}
+
+/* ========================================
+   ESTILOS GLOBAIS DE FORMULÁRIOS
+   ======================================== */
+
+/* Labels padrão para campos de formulário */
+.p-field label,
+.autocomplete-field label,
+.input-text-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Mensagens de erro padrão */
+.p-error,
+small.p-error {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #ef4444;
+}
+
+/* Container de campo com margem padrão */
+.p-field,
+.autocomplete-field,
+.input-text-container {
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos globais para p-autoComplete */
+.p-autocomplete {
+  width: 100%;
+
+  .p-autocomplete-input {
+    width: 100% !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    height: auto !important;
+
+    &:enabled:focus {
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+
+    &.ng-invalid.ng-dirty {
+      border-color: #ef4444 !important;
+    }
+  }
+}
+
+/* Estilos do painel dropdown do autocomplete */
+.p-autocomplete-panel {
+  .p-autocomplete-items {
+    .p-autocomplete-item {
+      padding: 0.75rem 1rem !important;
+      margin: 0 !important;
+      border-bottom: 1px solid #f0f0f0 !important;
+
+      &:last-child {
+        border-bottom: none !important;
+      }
+
+      &:hover {
+        background-color: #f8f9fa !important;
+      }
+
+      /* Estilos para itens com múltiplas linhas (título + descrição) */
+      div {
+        div {
+          margin-bottom: 0.25rem;
+        }
+
+        small {
+          color: #6c757d;
+          font-size: 0.875rem;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    .p-autocomplete-empty-message {
+      padding: 0.75rem 1rem !important;
+      color: #6c757d;
+      text-align: center;
+    }
+  }
+}
+
+/* Ícone de chevron para abrir dropdown (usado em autocomplete customizado) */
+.autocomplete-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+  z-index: 10;
+
+  &:hover {
+    color: var(--primary-color);
+  }
+}
+
+/* Container wrapper para autocomplete com ícone */
+.autocomplete-wrapper {
+  position: relative;
+  
+  .p-autocomplete {
+    width: 100%;
+  }
+  
+  /* Ajusta padding do input quando há ícone */
+  .p-autocomplete-input {
+    padding-right: 3rem !important;
+  }
+}
+
+/* Estilos para checkboxes em formulários */
+.p-field-checkbox {
+  margin-top: 1rem;
+
+  .p-checkbox {
+    .p-checkbox-box {
+      margin-right: 0.5rem;
+    }
+
+    .p-checkbox-label {
+      margin-left: 0.5rem;
+    }
+  }
+}
+
+/* Container padrão de formulário */
+.form-container {
+  padding: 2rem;
+
+  .p-card .p-card-body {
+    padding: 1.5rem;
+  }
+}
+
+/* Footer de ações de formulário */
+.acoes-footer,
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #dee2e6;
+
+  app-custom-button,
+  .p-button {
+    min-width: 140px;
+  }
+}
+
+/* Responsividade para formulários */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  .acoes-footer,
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+
+    app-custom-button,
+    .p-button {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+}
+
+/* ========================================
+   ESTILOS GLOBAIS DE LISTAGENS E GRIDS
+   ======================================== */
+
+/* Container padrão de listagem */
+.lista-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Badge informativo */
+.badge-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-color);
+  font-weight: 600;
+  background: var(--surface-100);
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  border: 1px solid var(--surface-200);
+
+  i {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+  }
+
+  .badge-count {
+    font-size: 1rem;
+    min-width: 20px;
+    text-align: center;
+  }
+}
+
+/* Estado vazio (sem dados) */
+.empty-state,
+.empty-message {
+  text-align: center;
+  padding: 4rem 2rem;
+
+  i,
+  .empty-icon {
+    font-size: 4rem;
+    color: var(--text-color-secondary);
+    opacity: 0.2;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 2rem 0;
+    color: var(--text-color-secondary);
+    font-size: 1rem;
+  }
+}
+
+/* Grid de funcionalidades/cards */
+.funcionalidades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Card de funcionalidade com header customizado */
+.funcionalidade-card {
+  .p-card-header {
+    background-color: var(--surface-50);
+    border-bottom: 1px solid var(--surface-border);
+  }
+
+  .card-header-custom,
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem;
+
+    .header-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+
+      strong,
+      h4 {
+        font-size: 1.1rem;
+        color: #333;
+        margin: 0;
+      }
+    }
+
+    .header-actions,
+    .acoes-rapidas {
+      display: flex;
+      gap: 0.25rem;
+
+      .action-icon {
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 0.4rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+
+        &.success-icon {
+          color: var(--green-600);
+
+          &:hover {
+            background-color: var(--green-50);
+            transform: scale(1.1);
+          }
+        }
+
+        &.danger-icon {
+          color: var(--red-600);
+
+          &:hover {
+            background-color: var(--red-50);
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+  }
+
+  .descricao {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
+    line-height: 1.4;
+  }
+
+  .permissoes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .permissao-item {
+      padding: 0.25rem;
+
+      .p-checkbox-label {
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+/* Títulos de seção */
+.secao-titulo,
+.permissoes-titulo {
+  margin: 2rem 0 1rem 0;
+  color: #444;
+  font-size: 1.25rem;
+
+  i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+  }
+}
+
+/* Header de página customizado (usado em configurações) */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  
+  .perfil-info {
+    h2 {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-color);
+    }
+    
+    p {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-color-secondary);
+    }
+  }
+}
+
+/* Responsividade para listagens e grids */
+@media (max-width: 1024px) {
+  .lista-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .lista-container {
+    padding: 1rem;
+  }
+
+  .funcionalidades-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    
+    button {
+      width: 100%;
+    }
+  }
+
+  .funcionalidade-card {
+    .permissoes-grid {
+      grid-template-columns: 1fr;
+    }
   }
 }
 

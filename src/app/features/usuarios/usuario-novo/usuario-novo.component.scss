@@ -1,45 +1,5 @@
-.usuario-novo-container {
-  padding: 2rem;
-
-  .usuario-form {
-    ::ng-deep p-card .p-card-body {
-      padding: 1.5rem;
-    }
-
-    .p-field {
-      margin-bottom: 1.5rem;
-    }
-
-    .p-field-checkbox {
-      margin-top: 1rem;
-
-      ::ng-deep .p-checkbox {
-        .p-checkbox-box {
-          margin-right: 0.5rem;
-        }
-
-        .p-checkbox-label {
-          margin-left: 0.5rem;
-        }
-      }
-    }
-  }
-
-  .acoes-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 2px solid #dee2e6;
-
-    app-custom-button {
-      ::ng-deep button {
-        min-width: 140px;
-      }
-    }
-  }
-}
+// Estilos específicos do componente usuario-novo
+// Estilos comuns de formulário estão em src/styles.scss
 
 .senha-gerada-container {
   .senha-display {
