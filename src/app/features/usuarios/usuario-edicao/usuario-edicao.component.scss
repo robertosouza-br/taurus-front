@@ -1,6 +1,86 @@
 // Estilos específicos do componente usuario-edicao
 // Estilos comuns de formulário estão em src/styles.scss
 
+.senha-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+
+  .senha-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    ::ng-deep .p-checkbox-label {
+      font-weight: 500;
+      color: #1f2937;
+    }
+  }
+
+  .senha-info-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    i {
+      font-size: 1.5rem;
+      color: #2196f3;
+      margin-top: 0.1rem;
+    }
+
+    .senha-info-text {
+      flex: 1;
+
+      strong {
+        display: block;
+        color: #1976d2;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+      }
+
+      p {
+        margin: 0;
+        color: #555;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  .senha-info-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    ::ng-deep .p-checkbox {
+      .p-checkbox-box {
+        width: 20px !important;
+        height: 20px !important;
+        border: 2px solid #d1d5db !important;
+        box-sizing: border-box !important;
+      }
+
+      .p-checkbox-box.p-highlight {
+        border: 2px solid #2196F3 !important;
+        box-sizing: border-box !important;
+      }
+
+      .p-checkbox-box .p-checkbox-icon {
+        font-size: 14px !important;
+      }
+    }
+
+    ::ng-deep .p-checkbox-label {
+      font-weight: 600 !important;
+      color: #1f2937 !important;
+      margin-left: 0.5rem !important;
+    }
+  }
+}
+
 .empty-message {
   text-align: center;
   padding: 4rem 2rem;

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { UsuarioService, Page } from '../../../core/services/usuario.service';
 import { UsuarioSaidaDTO } from '../../../core/models/usuario.model';
-import { PermissaoService } from '../../../core/services';
+import { PermissaoService, AuthService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -31,7 +31,8 @@ export class UsuariosListaComponent implements OnInit {
     private router: Router,
     private messageService: MessageService,
     private permissaoService: PermissaoService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -96,7 +97,7 @@ export class UsuariosListaComponent implements OnInit {
 
   carregarUsuarios(search: string = ''): void {
     this.carregando = true;
-    this.usuarioService.listarUsuarios(0, 1000, search).subscribe({
+    this.usuarioService.listarUsuarios(0, 50, search).subscribe({
       next: (page: Page<UsuarioSaidaDTO>) => {
         this.usuarios = page.content.map(usuario => ({
           ...usuario,
@@ -125,6 +126,17 @@ export class UsuariosListaComponent implements OnInit {
   }
 
   excluirUsuario(usuario: UsuarioSaidaDTO): void {
+    // Verificar se está tentando excluir o próprio usuário
+    const usuarioLogado = this.authService.getUsuarioLogado();
+    if (usuarioLogado?.email === usuario.email) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Ação não permitida',
+        detail: 'Você não pode excluir sua própria conta.'
+      });
+      return;
+    }
+
     this.confirmationService.confirmDelete(usuario.nome)
       .subscribe(confirmed => {
         if (!confirmed) return;

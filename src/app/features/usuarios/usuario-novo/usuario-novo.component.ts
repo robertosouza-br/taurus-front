@@ -96,7 +96,11 @@ export class UsuarioNovoComponent implements OnInit {
     );
   }
 
-  criarUsuario(): void {
+  mostrarTodosPerfis(): void {
+    this.perfisFiltrados = this.perfis;
+  }
+
+  salvarUsuario(): void {
     // Marcar que tentou salvar
     this.tentouSalvar = true;
 
@@ -157,7 +161,7 @@ export class UsuarioNovoComponent implements OnInit {
       nome: this.nome.trim(),
       email: this.email.trim(),
       ativo: this.ativo,
-      perfilIds: [this.perfilSelecionado!.id] // Front garante envio de apenas 1 perfil
+      perfisIds: [this.perfilSelecionado!.id]
     };
 
     this.salvando = true;

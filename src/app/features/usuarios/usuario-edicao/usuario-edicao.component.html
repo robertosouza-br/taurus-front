@@ -32,8 +32,12 @@
             [(ngModel)]="email"
             [required]="true"
             [showValidation]="tentouSalvar"
+            [disabled]="editandoProprioUsuario"
             type="email">
           </app-input-text>
+          <small *ngIf="editandoProprioUsuario" class="p-text-secondary" style="color: var(--yellow-700);">
+            <i class="pi pi-info-circle"></i> Você não pode alterar seu próprio e-mail
+          </small>
         </div>
 
         <app-autocomplete
@@ -42,13 +46,18 @@
           [(ngModel)]="perfilSelecionado"
           [suggestions]="perfisFiltrados"
           (completeMethod)="filtrarPerfis($event)"
+          (onDropdownClick)="mostrarTodosPerfis()"
           field="nome"
           [required]="true"
           [showValidation]="tentouSalvar"
+          [disabled]="editandoProprioUsuario"
           emptyMessage="Nenhum resultado encontrado"
           placeholder="Digite para buscar um perfil"
           [itemTemplate]="perfilTemplate">
         </app-autocomplete>
+        <small *ngIf="editandoProprioUsuario" class="p-text-secondary" style="color: var(--yellow-700);">
+          <i class="pi pi-info-circle"></i> Você não pode alterar seu próprio perfil
+        </small>
 
         <ng-template #perfilTemplate let-perfil>
           <div>
@@ -61,9 +70,33 @@
           <p-checkbox
             [(ngModel)]="ativo"
             [binary]="true"
+            [disabled]="editandoProprioUsuario"
             inputId="ativo"
             label="Usuário Ativo">
           </p-checkbox>
+          <small *ngIf="editandoProprioUsuario" class="p-text-secondary" style="display: block; margin-top: 0.5rem; color: var(--yellow-700);">
+            <i class="pi pi-info-circle"></i> Você não pode desativar sua própria conta
+          </small>
+        </div>
+
+        <div class="p-field-checkbox" style="margin-top: 1rem;">
+          <div class="senha-info-box" style="margin-top: 0.25rem;">
+            <div class="senha-info-body">
+              <i class="pi pi-lock"></i>
+              <div class="senha-info-text">
+                <strong>Senha gerada automaticamente</strong>
+                <p>Ao marcar, uma nova senha será gerada e enviada para o e-mail do usuário.</p>
+              </div>
+            </div>
+            <div class="senha-info-footer">
+              <p-checkbox
+                [(ngModel)]="resetarSenha"
+                [binary]="true"
+                inputId="resetarSenha"
+                label="Resetar senha">
+              </p-checkbox>
+            </div>
+          </div>
         </div>
         <br>
       </div>

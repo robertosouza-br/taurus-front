@@ -58,42 +58,6 @@ export class SidebarComponent implements OnInit {
         routerLink: '/dashboard'
       },
       {
-        label: 'Vendas',
-        icon: 'pi pi-shopping-cart',
-        routerLink: '/vendas',
-        funcionalidade: Funcionalidade.VENDA
-      },
-      {
-        label: 'Reservas',
-        icon: 'pi pi-calendar',
-        routerLink: '/reservas',
-        funcionalidade: Funcionalidade.RESERVA
-      },
-      {
-        label: 'Imóveis',
-        icon: 'pi pi-building',
-        routerLink: '/imoveis',
-        funcionalidade: Funcionalidade.IMOVEL
-      },
-      {
-        label: 'Clientes',
-        icon: 'pi pi-users',
-        routerLink: '/clientes',
-        funcionalidade: Funcionalidade.CLIENTE
-      },
-      {
-        label: 'Financeiro',
-        icon: 'pi pi-money-bill',
-        routerLink: '/financeiro',
-        funcionalidade: Funcionalidade.FINANCEIRO
-      },
-      {
-        label: 'Relatórios',
-        icon: 'pi pi-chart-bar',
-        routerLink: '/relatorios',
-        funcionalidade: Funcionalidade.RELATORIO
-      },
-      {
         label: 'Administração',
         icon: 'pi pi-cog',
         funcionalidade: Funcionalidade.ADMINISTRACAO,

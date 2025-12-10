@@ -5,7 +5,7 @@ import { UsuarioService } from '../../../core/services/usuario.service';
 import { FuncionalidadeService } from '../../../core/services/funcionalidade.service';
 import { UsuarioSaidaDTO, UsuarioAtualizacaoDTO } from '../../../core/models/usuario.model';
 import { PerfilDTO } from '../../../core/models/funcionalidade.model';
-import { PermissaoService } from '../../../core/services';
+import { PermissaoService, AuthService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -29,6 +29,8 @@ export class UsuarioEdicaoComponent implements OnInit {
   carregando = false;
   salvando = false;
   tentouSalvar = false;
+  editandoProprioUsuario = false;
+  resetarSenha: boolean = false;
 
   breadcrumbItems: BreadcrumbItem[] = [];
 
@@ -39,7 +41,8 @@ export class UsuarioEdicaoComponent implements OnInit {
     private funcionalidadeService: FuncionalidadeService,
     private messageService: MessageService,
     private permissaoService: PermissaoService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private authService: AuthService
   ) {
     this.usuarioId = +this.route.snapshot.params['id'];
   }
@@ -69,6 +72,9 @@ export class UsuarioEdicaoComponent implements OnInit {
   carregarDados(): void {
     this.carregando = true;
 
+    // Verificar se está editando o próprio usuário
+    const usuarioLogado = this.authService.getUsuarioLogado();
+
     Promise.all([
       this.usuarioService.obterUsuario(this.usuarioId).toPromise(),
       this.funcionalidadeService.listarPerfis(0, 200).toPromise()
@@ -83,6 +89,9 @@ export class UsuarioEdicaoComponent implements OnInit {
         this.perfilSelecionado = this.usuario.perfis && this.usuario.perfis.length > 0
           ? this.usuario.perfis[0]
           : null;
+        
+        // Verificar se o e-mail do usuário logado é o mesmo do usuário sendo editado
+        this.editandoProprioUsuario = usuarioLogado?.email === this.usuario.email;
       }
 
       this.carregando = false;
@@ -102,6 +111,10 @@ export class UsuarioEdicaoComponent implements OnInit {
       perfil.nome.toLowerCase().includes(query) || 
       (perfil.descricao && perfil.descricao.toLowerCase().includes(query))
     );
+  }
+
+  mostrarTodosPerfis(): void {
+    this.perfisFiltrados = this.perfis;
   }
 
   salvarUsuario(): void {
@@ -146,31 +159,33 @@ export class UsuarioEdicaoComponent implements OnInit {
     const dadosAtualizados: UsuarioAtualizacaoDTO = {
       nome: this.nome.trim(),
       email: this.email.trim(),
-      ativo: this.ativo
+      ativo: this.ativo,
+      perfisIds: [this.perfilSelecionado!.id],
+      resetarSenha: this.resetarSenha
     };
 
     this.salvando = true;
 
-    // Atualizar dados gerais e perfil
-    Promise.all([
-      this.usuarioService.atualizarUsuario(this.usuarioId, dadosAtualizados).toPromise(),
-      this.usuarioService.vincularPerfis(this.usuarioId, { perfilIds: [this.perfilSelecionado!.id] }).toPromise()
-    ]).then(() => {
-      this.salvando = false;
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Sucesso!',
-        detail: 'Usuário atualizado com sucesso.'
+    this.usuarioService.atualizarUsuario(this.usuarioId, dadosAtualizados)
+      .subscribe({
+        next: () => {
+          this.salvando = false;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso!',
+            detail: 'Usuário atualizado com sucesso.'
+          });
+          this.router.navigate(['/admin/usuarios']);
+        },
+        error: (error) => {
+          this.salvando = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao salvar',
+            detail: error.error?.message || 'Não foi possível salvar as alterações.'
+          });
+        }
       });
-      this.router.navigate(['/admin/usuarios']);
-    }).catch((error) => {
-      this.salvando = false;
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro ao salvar',
-        detail: error.error?.message || 'Não foi possível salvar as alterações.'
-      });
-    });
   }
 
   cancelar(): void {

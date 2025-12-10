@@ -31,6 +31,7 @@ export class AutocompleteComponent implements ControlValueAccessor {
   
   @Output() completeMethod = new EventEmitter<any>(); // Evento de filtro
   @Output() onSelect = new EventEmitter<any>(); // Evento de seleção
+  @Output() onDropdownClick = new EventEmitter<void>(); // Evento ao clicar para expandir
 
   value: any = null;
   touched: boolean = false;
@@ -69,9 +70,19 @@ export class AutocompleteComponent implements ControlValueAccessor {
   }
 
   mostrarTodasOpcoes(): void {
-    if (this.autoComplete) {
-      this.autoComplete.show();
+    if (this.disabled) {
+      return;
     }
+
+    // Permite que o pai carregue todas as opções antes de abrir o dropdown
+    this.onDropdownClick.emit();
+
+    // Aguarda o ciclo de mudança para aplicar sugestões e abrir
+    setTimeout(() => {
+      if (this.autoComplete) {
+        this.autoComplete.show();
+      }
+    }, 50);
   }
 
   get inputId(): string {

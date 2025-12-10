@@ -43,6 +43,7 @@
           [(ngModel)]="perfilSelecionado"
           [suggestions]="perfisFiltrados"
           (completeMethod)="filtrarPerfis($event)"
+          (onDropdownClick)="mostrarTodosPerfis()"
           field="nome"
           [required]="true"
           [showValidation]="tentouSalvar"
@@ -67,7 +68,13 @@
           </p-checkbox>
         </div>
 
-        <p-message severity="info" text="A senha será gerada automaticamente pelo sistema"></p-message>
+        <div class="senha-info-box">
+          <i class="pi pi-lock"></i>
+          <div class="senha-info-text">
+            <strong>Senha gerada automaticamente</strong>
+            <p>A senha será enviada para o e-mail de cadastro</p>
+          </div>
+        </div>
         <br>
       </div>
     </p-card>
@@ -93,7 +100,7 @@
         label="Criar Usuário"
         icon="pi pi-save"
         severity="success"
-        (onClick)="criarUsuario()"
+        (onClick)="salvarUsuario()"
         [loading]="salvando">
       </app-custom-button>
     </div>

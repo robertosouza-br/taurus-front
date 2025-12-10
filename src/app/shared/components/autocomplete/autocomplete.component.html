@@ -24,8 +24,10 @@
           <div>{{ item[field] }}</div>
         </ng-template>
       </ng-template>
-    </p-autoComplete>
-    <i class="pi pi-chevron-down autocomplete-icon" (click)="mostrarTodasOpcoes()"></i>
+     </p-autoComplete>
+     <i class="pi pi-chevron-down autocomplete-icon"
+       [class.disabled]="disabled"
+       (click)="!disabled && mostrarTodasOpcoes()"></i>
   </div>
   <small class="p-error" *ngIf="isInvalid">
     {{ displayErrorMessage }}

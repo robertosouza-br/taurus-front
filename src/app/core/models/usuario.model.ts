@@ -8,7 +8,7 @@ export interface UsuarioEntradaDTO {
   nome: string;
   email: string;
   ativo: boolean;
-  perfilIds: number[]; // Front garante envio de apenas 1 elemento
+  perfisIds: number[]; // Array com IDs dos perfis
 }
 
 /**
@@ -18,6 +18,8 @@ export interface UsuarioAtualizacaoDTO {
   nome: string;
   email: string;
   ativo: boolean;
+  perfisIds: number[]; // Array com IDs dos perfis
+  resetarSenha?: boolean; // Opcional: gerar nova senha
 }
 
 /**

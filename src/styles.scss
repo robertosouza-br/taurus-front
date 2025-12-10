@@ -753,6 +753,22 @@ small.p-error {
   }
 }
 
+/* Normalização global de checkbox - força consistência visual */
+.p-checkbox .p-checkbox-box {
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid #d1d5db !important;
+  box-sizing: border-box !important;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight {
+  border: 2px solid #2196F3 !important;
+}
+
+.p-checkbox .p-checkbox-box .p-checkbox-icon {
+  font-size: 14px !important;
+}
+
 /* Container padrão de formulário */
 .form-container {
   padding: 2rem;

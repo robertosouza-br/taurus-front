@@ -1,6 +1,39 @@
 // Estilos específicos do componente usuario-novo
 // Estilos comuns de formulário estão em src/styles.scss
 
+.senha-info-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  margin-top: 1rem;
+
+  i {
+    font-size: 1.5rem;
+    color: #2196f3;
+  }
+
+  .senha-info-text {
+    flex: 1;
+
+    strong {
+      display: block;
+      color: #1976d2;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      margin: 0;
+      color: #555;
+      font-size: 0.85rem;
+    }
+  }
+}
+
 .senha-gerada-container {
   .senha-display {
     display: flex;
