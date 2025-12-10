@@ -1,0 +1,104 @@
+<div class="usuario-edicao-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    [title]="usuario?.nome || 'Editar Usuário'"
+    subtitle="Altere os dados do usuário"
+    icon="pi pi-user-edit">
+  </app-page-header>
+
+  <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
+
+  <div *ngIf="!carregando && usuario" class="usuario-form">
+    <p-card header="Dados do Usuário">
+      <div class="p-fluid">
+        <br>
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome Completo"
+            [(ngModel)]="nome"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="email"
+            label="E-mail"
+            [(ngModel)]="email"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            type="email">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <label for="perfil">Perfil *</label>
+          <p-autoComplete
+            id="perfil"
+            [(ngModel)]="perfilSelecionado"
+            [suggestions]="perfisFiltrados"
+            (completeMethod)="filtrarPerfis($event)"
+            field="nome"
+            [dropdown]="true"
+            [forceSelection]="true"
+            [class.ng-invalid]="tentouSalvar && !perfilSelecionado"
+            [class.ng-dirty]="tentouSalvar">
+            <ng-template let-perfil pTemplate="item">
+              <div>
+                <div><strong>{{perfil.nome}}</strong></div>
+                <small>{{perfil.descricao}}</small>
+              </div>
+            </ng-template>
+          </p-autoComplete>
+          <small class="p-error" *ngIf="tentouSalvar && !perfilSelecionado">
+            Perfil é obrigatório
+          </small>
+        </div>
+
+        <div class="p-field-checkbox">
+          <p-checkbox
+            [(ngModel)]="ativo"
+            [binary]="true"
+            inputId="ativo"
+            label="Usuário Ativo">
+          </p-checkbox>
+        </div>
+        <br>
+      </div>
+    </p-card>
+
+    <!-- Ações -->
+    <div class="acoes-footer">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        (onClick)="cancelar()">
+      </app-custom-button>
+      <app-custom-button
+        label="Limpar"
+        icon="pi pi-refresh"
+        severity="info"
+        [outlined]="true"
+        (onClick)="limparTela()">
+      </app-custom-button>
+      <app-custom-button
+        label="Salvar"
+        icon="pi pi-save"
+        severity="success"
+        [loading]="salvando"
+        (onClick)="salvarUsuario()">
+      </app-custom-button>
+    </div>
+  </div>
+
+  <div *ngIf="!carregando && !usuario" class="empty-message">
+    <i class="pi pi-exclamation-triangle"></i>
+    <h3>Usuário não encontrado</h3>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="usuarios-lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Usuários"
+    subtitle="Gerencie os usuários do sistema"
+    icon="pi pi-users"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Tabela de Usuários -->
+  <app-data-table
+    [data]="usuarios"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRecords"
+    [loading]="carregando"
+    (onSearch)="onBuscar($event)">
+    
+    <!-- Template para Status -->
+    <ng-template appTableTemplate="status" let-usuario="rowData">
+      <p-tag 
+        [value]="usuario.ativo ? 'Ativo' : 'Inativo'" 
+        [severity]="usuario.ativo ? 'success' : 'danger'">
+      </p-tag>
+    </ng-template>
+  </app-data-table>
+</div>

@@ -15,6 +15,7 @@ export interface TableColumn {
   pipeFormat?: string;
   align?: 'left' | 'center' | 'right';
   template?: string;
+  type?: 'text' | 'boolean' | 'date' | 'currency';
 }
 
 /**
@@ -27,7 +28,8 @@ export interface TableAction {
   severity?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'danger';
   visible?: (row: any) => boolean;
   disabled?: (row: any) => boolean;
-  action: (row: any) => void;
+  action?: (row: any) => void;
+  command?: (row: any) => void;
 }
 
 /**
@@ -112,7 +114,10 @@ export class DataTableComponent implements OnDestroy {
    */
   executeAction(action: TableAction, row: any): void {
     if (!this.isActionDisabled(action, row)) {
-      action.action(row);
+      const handler = action.command || action.action;
+      if (handler) {
+        handler(row);
+      }
     }
   }
 

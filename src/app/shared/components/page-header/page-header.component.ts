@@ -7,7 +7,8 @@ export interface HeaderAction {
   outlined?: boolean;
   visible?: boolean;
   disabled?: boolean;
-  action: () => void;
+  action?: () => void;
+  command?: () => void;
 }
 
 @Component({
@@ -23,4 +24,11 @@ export class PageHeaderComponent {
   @Input() customTemplate?: TemplateRef<any>;
   @Input() showDivider = true;
   @Input() gradient = true;
+
+  executeAction(action: HeaderAction): void {
+    const handler = action.command || action.action;
+    if (handler) {
+      handler();
+    }
+  }
 }

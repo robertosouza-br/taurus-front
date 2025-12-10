@@ -1,0 +1,138 @@
+<div class="usuario-novo-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Novo Usuário"
+    subtitle="Cadastre um novo usuário no sistema"
+    icon="pi pi-user-plus">
+  </app-page-header>
+
+  <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
+
+  <div class="usuario-form" *ngIf="!carregando">
+    <!-- Dados Básicos -->
+    <p-card header="Dados do Usuário">
+      <div class="p-fluid">
+        <br>
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome Completo"
+            [(ngModel)]="nome"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="email"
+            label="E-mail"
+            [(ngModel)]="email"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            type="email">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <label for="perfil">Perfil *</label>
+          <p-autoComplete
+            id="perfil"
+            [(ngModel)]="perfilSelecionado"
+            [suggestions]="perfisFiltrados"
+            (completeMethod)="filtrarPerfis($event)"
+            field="nome"
+            [dropdown]="true"
+            [forceSelection]="true"
+            [class.ng-invalid]="tentouSalvar && !perfilSelecionado"
+            [class.ng-dirty]="tentouSalvar">
+            <ng-template let-perfil pTemplate="item">
+              <div>
+                <div><strong>{{perfil.nome}}</strong></div>
+                <small>{{perfil.descricao}}</small>
+              </div>
+            </ng-template>
+          </p-autoComplete>
+          <small class="p-error" *ngIf="tentouSalvar && !perfilSelecionado">
+            Perfil é obrigatório
+          </small>
+        </div>
+
+        <div class="p-field-checkbox">
+          <p-checkbox
+            [(ngModel)]="ativo"
+            [binary]="true"
+            inputId="ativo"
+            label="Usuário Ativo">
+          </p-checkbox>
+        </div>
+
+        <p-message severity="info" text="A senha será gerada automaticamente pelo sistema"></p-message>
+        <br>
+      </div>
+    </p-card>
+
+    <!-- Ações -->
+    <div class="acoes-footer">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        (onClick)="cancelar()"
+        [disabled]="salvando">
+      </app-custom-button>
+      <app-custom-button
+        label="Limpar"
+        icon="pi pi-refresh"
+        severity="info"
+        [outlined]="true"
+        (onClick)="limparTela()"
+        [disabled]="salvando">
+      </app-custom-button>
+      <app-custom-button
+        label="Criar Usuário"
+        icon="pi pi-save"
+        severity="success"
+        (onClick)="criarUsuario()"
+        [loading]="salvando">
+      </app-custom-button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para exibir senha gerada -->
+<p-dialog
+  header="Usuário Criado com Sucesso"
+  [(visible)]="mostrarModalSenha"
+  [modal]="true"
+  [closable]="false"
+  [style]="{width: '450px'}">
+  <div class="senha-gerada-container">
+    <p-message severity="success" text="O usuário foi criado com sucesso!"></p-message>
+    <br>
+    <p><strong>Senha gerada:</strong></p>
+    <div class="senha-display">
+      <code>{{ senhaGerada }}</code>
+      <app-custom-button
+        icon="pi pi-copy"
+        severity="info"
+        [text]="true"
+        tooltip="Copiar senha"
+        (onClick)="copiarSenha()">
+      </app-custom-button>
+    </div>
+    <br>
+    <p-message severity="warn" text="Importante: Anote esta senha. Por segurança, ela não será exibida novamente."></p-message>
+  </div>
+  <ng-template pTemplate="footer">
+    <app-custom-button
+      label="Fechar"
+      icon="pi pi-check"
+      severity="success"
+      (onClick)="fecharModalSenha()">
+    </app-custom-button>
+  </ng-template>
+</p-dialog>

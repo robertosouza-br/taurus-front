@@ -37,6 +37,10 @@ const routes: Routes = [
       {
         path: 'admin/perfis',
         loadChildren: () => import('./features/perfis/perfis.module').then(m => m.PerfisModule)
+      },
+      {
+        path: 'admin/usuarios',
+        loadChildren: () => import('./features/usuarios/usuarios.module').then(m => m.UsuariosModule)
       }
     ]
   },

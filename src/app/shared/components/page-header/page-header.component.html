@@ -27,7 +27,7 @@
           [raised]="true"
           size="normal"
           [style.display]="action.visible === false ? 'none' : 'inline-flex'"
-          (onClick)="action.action()">
+          (onClick)="executeAction(action)">
         </app-custom-button>
       </div>
     </div>
