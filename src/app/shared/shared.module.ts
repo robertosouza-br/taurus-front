@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
 import { DataTableComponent } from './components/data-table/data-table.component';
@@ -21,6 +22,7 @@ import { InputTextComponent } from './components/input-text/input-text.component
 import { InputTextareaComponent } from './components/input-textarea/input-textarea.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { DialogService } from 'primeng/dynamicdialog';
+import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
 
 /**
  * SharedModule
@@ -40,7 +42,8 @@ import { DialogService } from 'primeng/dynamicdialog';
     CustomButtonComponent,
     InputTextComponent,
     InputTextareaComponent,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    AutocompleteComponent
   ],
   imports: [
     CommonModule,
@@ -50,7 +53,8 @@ import { DialogService } from 'primeng/dynamicdialog';
     InputTextModule,
     InputTextareaModule,
     TooltipModule,
-    DynamicDialogModule
+    DynamicDialogModule,
+    AutoCompleteModule
   ],
   exports: [
     CommonModule,
@@ -64,7 +68,8 @@ import { DialogService } from 'primeng/dynamicdialog';
     DataTableTemplateDirective,
     CustomButtonComponent,
     InputTextComponent,
-    InputTextareaComponent
+    InputTextareaComponent,
+    AutocompleteComponent
   ],
   providers: [DialogService]
 })

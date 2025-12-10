@@ -37,29 +37,26 @@
           </app-input-text>
         </div>
 
-        <div class="p-field">
-          <label for="perfil">Perfil *</label>
-          <p-autoComplete
-            id="perfil"
-            [(ngModel)]="perfilSelecionado"
-            [suggestions]="perfisFiltrados"
-            (completeMethod)="filtrarPerfis($event)"
-            field="nome"
-            [dropdown]="true"
-            [forceSelection]="true"
-            [class.ng-invalid]="tentouSalvar && !perfilSelecionado"
-            [class.ng-dirty]="tentouSalvar">
-            <ng-template let-perfil pTemplate="item">
-              <div>
-                <div><strong>{{perfil.nome}}</strong></div>
-                <small>{{perfil.descricao}}</small>
-              </div>
-            </ng-template>
-          </p-autoComplete>
-          <small class="p-error" *ngIf="tentouSalvar && !perfilSelecionado">
-            Perfil é obrigatório
-          </small>
-        </div>
+        <app-autocomplete
+          id="perfil"
+          label="Perfil"
+          [(ngModel)]="perfilSelecionado"
+          [suggestions]="perfisFiltrados"
+          (completeMethod)="filtrarPerfis($event)"
+          field="nome"
+          [required]="true"
+          [showValidation]="tentouSalvar"
+          emptyMessage="Nenhum resultado encontrado"
+          placeholder="Digite para buscar um perfil"
+          [itemTemplate]="perfilTemplate">
+        </app-autocomplete>
+
+        <ng-template #perfilTemplate let-perfil>
+          <div>
+            <div><strong>{{perfil.nome}}</strong></div>
+            <small>{{perfil.descricao}}</small>
+          </div>
+        </ng-template>
 
         <div class="p-field-checkbox">
           <p-checkbox

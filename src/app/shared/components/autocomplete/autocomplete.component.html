@@ -1,0 +1,34 @@
+<div class="p-field autocomplete-field">
+  <label *ngIf="label" [for]="inputId">{{ displayLabel }}</label>
+  <div class="autocomplete-wrapper">
+    <p-autoComplete
+      #autoComplete
+      [id]="inputId"
+      [(ngModel)]="value"
+      [suggestions]="suggestions"
+      (completeMethod)="onFilter($event)"
+      (ngModelChange)="onValueChange($event)"
+      (onBlur)="onBlur()"
+      [field]="field"
+      [forceSelection]="true"
+      [disabled]="disabled"
+      [emptyMessage]="emptyMessage"
+      [placeholder]="placeholder"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-dirty]="showValidation">
+      <ng-template let-item pTemplate="item">
+        <ng-container *ngIf="itemTemplate; else defaultTemplate">
+          <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
+        </ng-container>
+        <ng-template #defaultTemplate>
+          <div>{{ item[field] }}</div>
+        </ng-template>
+      </ng-template>
+    </p-autoComplete>
+    <i class="pi pi-chevron-down autocomplete-icon" (click)="mostrarTodasOpcoes()"></i>
+  </div>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
+</div>
+

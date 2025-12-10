@@ -14,7 +14,6 @@ import { UsuarioEdicaoComponent } from './usuario-edicao/usuario-edicao.componen
 import { CardModule } from 'primeng/card';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { CheckboxModule } from 'primeng/checkbox';
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
@@ -34,7 +33,6 @@ import { TagModule } from 'primeng/tag';
     CardModule,
     ProgressSpinnerModule,
     CheckboxModule,
-    AutoCompleteModule,
     MessageModule,
     DialogModule,
     TagModule
