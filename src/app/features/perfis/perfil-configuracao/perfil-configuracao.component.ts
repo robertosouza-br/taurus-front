@@ -145,6 +145,12 @@ export class PerfilConfiguracaoComponent implements OnInit {
       if (!primeiroCampoInvalido) primeiroCampoInvalido = 'descricao';
     }
 
+    // Validar se há pelo menos uma permissão selecionada
+    if (!this.temPermissoesSelecionadas) {
+      erros.push('Selecione pelo menos uma permissão');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'permissoes-section';
+    }
+
     // Se houver erros, mostrar e focar no primeiro campo
     if (erros.length > 0) {
       this.messageService.add({
@@ -156,7 +162,8 @@ export class PerfilConfiguracaoComponent implements OnInit {
       // Focar no primeiro campo inválido
       if (primeiroCampoInvalido) {
         setTimeout(() => {
-          const elemento = document.getElementById(primeiroCampoInvalido!);
+          const elemento = document.getElementById(primeiroCampoInvalido!) ||
+                          document.querySelector('.funcionalidades-section h3');
           if (elemento) {
             elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
             // Se for um input, dar foco
@@ -235,5 +242,9 @@ export class PerfilConfiguracaoComponent implements OnInit {
 
   getNumeroPermissoes(funcionalidade: string): number {
     return this.permissoesConfiguradas[funcionalidade]?.length || 0;
+  }
+
+  get temPermissoesSelecionadas(): boolean {
+    return Object.values(this.permissoesConfiguradas).some(perms => perms && perms.length > 0);
   }
 }

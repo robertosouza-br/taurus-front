@@ -55,7 +55,10 @@
 
     <!-- Grid de funcionalidades -->
     <div class="funcionalidades-section">
-      <h3>Configurar Permissões por Funcionalidade</h3>
+      <h3 id="permissoes-section">Configurar Permissões por Funcionalidade</h3>
+      <small class="p-error" *ngIf="tentouSalvar && !temPermissoesSelecionadas" style="display: block; margin-bottom: 1rem;">
+        Selecione pelo menos uma permissão
+      </small>
       
       <div class="funcionalidades-grid">
         <p-card *ngFor="let func of funcionalidades" class="funcionalidade-card">
