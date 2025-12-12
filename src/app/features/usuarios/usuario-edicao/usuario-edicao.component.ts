@@ -168,10 +168,12 @@ export class UsuarioEdicaoComponent implements OnInit {
   }
 
   private executarAtualizacao(): void {
+    const cpfImutavel = (this.usuario?.cpf || this.cpf || '').replace(/\D/g, '');
+
     const dadosAtualizados: UsuarioAtualizacaoDTO = {
       nome: this.nome.trim(),
       email: this.email.trim(),
-      cpf: this.cpf.replace(/\D/g, ''),
+      cpf: cpfImutavel,
       dataExpiracao: this.dataExpiracao ? this.formatarDataParaAPI(this.dataExpiracao) : null,
       ativo: this.ativo,
       perfisIds: [this.perfilSelecionado!.id],

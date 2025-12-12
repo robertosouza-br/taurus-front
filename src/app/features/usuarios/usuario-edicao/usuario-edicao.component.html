@@ -46,8 +46,12 @@
             label="CPF"
             [(ngModel)]="cpf"
             [required]="true"
-            [showValidation]="tentouSalvar">
+            [showValidation]="tentouSalvar"
+            [disabled]="true">
           </app-input-cpf>
+          <small class="p-text-secondary" style="color: var(--yellow-700);">
+            <i class="pi pi-info-circle"></i> CPF cadastrado não pode ser alterado
+          </small>
         </div>
 
         <div class="p-field">
