@@ -77,7 +77,9 @@ import { CalendarModule } from 'primeng/calendar';
     InputTextareaComponent,
     InputCpfComponent,
     InputDateComponent,
-    AutocompleteComponent
+    AutocompleteComponent,
+    // PrimeNG modules necessários pelos componentes
+    CalendarModule
   ],
   providers: [DialogService]
 })

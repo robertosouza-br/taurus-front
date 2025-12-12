@@ -56,10 +56,50 @@
 .login-form {
   .error-message {
     margin-bottom: 1.5rem;
+    animation: shake 0.5s ease-in-out;
     
-    ::ng-deep .p-message {
-      width: 100%;
+    .error-alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border: 2px solid #ef4444;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+      
+      i {
+        font-size: 1.5rem;
+        color: #dc2626;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+      }
+      
+      .error-content {
+        flex: 1;
+        
+        strong {
+          display: block;
+          color: #991b1b;
+          font-size: 0.95rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+        
+        p {
+          margin: 0;
+          color: #dc2626;
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+      }
     }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
   }
 
   .form-field {

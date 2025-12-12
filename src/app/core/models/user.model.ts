@@ -19,7 +19,7 @@ export interface User {
  * Credenciais de login
  */
 export interface LoginCredentials {
-  email: string;
+  cpf: string;
   senha: string;
 }
 
