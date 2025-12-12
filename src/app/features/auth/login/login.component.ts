@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services';
 import { UserActivityService } from '../../../core/services/user-activity.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 
 /**
  * Componente de Login
@@ -25,6 +26,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private userActivityService: UserActivityService,
+    private sidebarService: SidebarService,
     private router: Router,
     private route: ActivatedRoute,
     private elementRef: ElementRef
@@ -109,8 +111,9 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
     this.authService.login(credentials).subscribe({
       next: () => {
-        // Login bem-sucedido, inicia monitoramento de atividade
+        // Login bem-sucedido, inicia monitoramento de atividade e fecha sidebar
         this.userActivityService.iniciarMonitoramento();
+        this.sidebarService.setExpanded(false);
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {

@@ -51,5 +51,17 @@
       </li>
     </ul>
   </nav>
+
+  <div class="sidebar-footer">
+    <button 
+      class="logout-button"
+      (click)="logout()"
+      [pTooltip]="isExpanded ? '' : 'Sair'"
+      tooltipPosition="right"
+    >
+      <i class="pi pi-sign-out"></i>
+      <span *ngIf="isExpanded">Sair</span>
+    </button>
+  </div>
 </aside>
 <div class="sidebar-overlay" *ngIf="isExpanded && isMobile()" (click)="closeSidebar()"></div>

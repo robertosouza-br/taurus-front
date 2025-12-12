@@ -1,6 +1,6 @@
 import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthorizationService, SidebarService, PermissaoService } from '../../../core/services';
+import { AuthorizationService, SidebarService, PermissaoService, AuthService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 
 /**
@@ -36,7 +36,8 @@ export class SidebarComponent implements OnInit {
     private router: Router,
     private sidebarService: SidebarService,
     private permissaoService: PermissaoService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -202,5 +203,12 @@ export class SidebarComponent implements OnInit {
    */
   onSidebarClick(event: Event): void {
     event.stopPropagation();
+  }
+
+  /**
+   * Realiza logout do sistema
+   */
+  logout(): void {
+    this.authService.logout();
   }
 }
