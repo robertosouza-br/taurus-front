@@ -37,6 +37,29 @@
           </app-input-text>
         </div>
 
+        <div class="p-field">
+          <app-input-cpf
+            id="cpf"
+            label="CPF"
+            [(ngModel)]="cpf"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-cpf>
+        </div>
+
+        <div class="p-field">
+          <app-input-date
+            id="dataExpiracao"
+            label="Data de Expiração"
+            [(ngModel)]="dataExpiracao"
+            [required]="false"
+            [showValidation]="tentouSalvar">
+          </app-input-date>
+          <small class="p-text-secondary" style="display: block; margin-top: 0.5rem;">
+            <i class="pi pi-info-circle"></i> Deixe vazio para acesso ilimitado
+          </small>
+        </div>
+
         <app-autocomplete
           id="perfil"
           label="Perfil"

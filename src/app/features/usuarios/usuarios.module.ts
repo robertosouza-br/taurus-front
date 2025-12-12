@@ -17,6 +17,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { CalendarModule } from 'primeng/calendar';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { TagModule } from 'primeng/tag';
     CheckboxModule,
     MessageModule,
     DialogModule,
-    TagModule
+    TagModule,
+    CalendarModule
   ]
 })
 export class UsuariosModule { }

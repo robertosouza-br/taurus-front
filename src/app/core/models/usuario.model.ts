@@ -7,6 +7,8 @@ import { PerfilDTO } from './funcionalidade.model';
 export interface UsuarioEntradaDTO {
   nome: string;
   email: string;
+  cpf: string; // Obrigatório
+  dataExpiracao?: string | null; // Opcional: formato YYYY-MM-DD, null = acesso integral
   ativo: boolean;
   perfisIds: number[]; // Array com IDs dos perfis
 }
@@ -17,6 +19,8 @@ export interface UsuarioEntradaDTO {
 export interface UsuarioAtualizacaoDTO {
   nome: string;
   email: string;
+  cpf: string; // Obrigatório
+  dataExpiracao?: string | null; // Opcional: formato YYYY-MM-DD, null = acesso integral
   ativo: boolean;
   perfisIds: number[]; // Array com IDs dos perfis
   resetarSenha?: boolean; // Opcional: gerar nova senha
@@ -44,6 +48,8 @@ export interface UsuarioSaidaDTO {
   id: number;
   nome: string;
   email: string;
+  cpf: string;
+  dataExpiracao?: string | null; // YYYY-MM-DD ou null para acesso integral
   ativo: boolean;
   perfis: PerfilDTO[];
   senhaGerada?: string; // Opcional: senha gerada pelo backend em ambiente de teste
@@ -56,6 +62,8 @@ export interface UsuarioListaDTO {
   id: number;
   nome: string;
   email: string;
+  cpf: string;
+  dataExpiracao?: string | null;
   ativo: boolean;
   perfil?: string; // Nome do perfil principal para exibição
 }

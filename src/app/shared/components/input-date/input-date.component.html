@@ -1,0 +1,21 @@
+<div class="input-date-container" [ngClass]="styleClass">
+  <span class="p-float-label" [class.p-input-filled]="shouldShowLabel">
+    <p-calendar
+      [inputId]="inputId"
+      [(ngModel)]="value"
+      (ngModelChange)="onDateChange($event)"
+      (onFocus)="onFocus()"
+      (onBlur)="onBlur()"
+      [dateFormat]="dateFormat"
+      [showButtonBar]="showButtonBar"
+      [disabled]="disabled"
+      [readonlyInput]="readonly"
+      [required]="required"
+      [appendTo]="appendTo">
+    </p-calendar>
+    <label [for]="inputId">{{ displayLabel }}</label>
+  </span>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
+</div>

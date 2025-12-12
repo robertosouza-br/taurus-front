@@ -19,6 +19,21 @@
     [loading]="carregando"
     (onSearch)="onBuscar($event)">
     
+    <!-- Template para CPF -->
+    <ng-template appTableTemplate="cpf" let-usuario="rowData">
+      {{ formatarCPF(usuario.cpf) }}
+    </ng-template>
+    
+    <!-- Template para Data de Expiração -->
+    <ng-template appTableTemplate="expiracao" let-usuario="rowData">
+      <span *ngIf="usuario.dataExpiracao; else ilimitado">
+        {{ formatarData(usuario.dataExpiracao) }}
+      </span>
+      <ng-template #ilimitado>
+        <p-tag value="Ilimitado" severity="info"></p-tag>
+      </ng-template>
+    </ng-template>
+    
     <!-- Template para Status -->
     <ng-template appTableTemplate="status" let-usuario="rowData">
       <p-tag 

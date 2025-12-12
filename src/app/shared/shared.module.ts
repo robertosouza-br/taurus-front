@@ -20,9 +20,12 @@ import { ActionButtonComponent } from './components/action-button/action-button.
 import { CustomButtonComponent } from './components/custom-button/custom-button.component';
 import { InputTextComponent } from './components/input-text/input-text.component';
 import { InputTextareaComponent } from './components/input-textarea/input-textarea.component';
+import { InputCpfComponent } from './components/input-cpf/input-cpf.component';
+import { InputDateComponent } from './components/input-date/input-date.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { DialogService } from 'primeng/dynamicdialog';
 import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
+import { CalendarModule } from 'primeng/calendar';
 
 /**
  * SharedModule
@@ -42,6 +45,8 @@ import { AutocompleteComponent } from './components/autocomplete/autocomplete.co
     CustomButtonComponent,
     InputTextComponent,
     InputTextareaComponent,
+    InputCpfComponent,
+    InputDateComponent,
     ConfirmationDialogComponent,
     AutocompleteComponent
   ],
@@ -54,7 +59,8 @@ import { AutocompleteComponent } from './components/autocomplete/autocomplete.co
     InputTextareaModule,
     TooltipModule,
     DynamicDialogModule,
-    AutoCompleteModule
+    AutoCompleteModule,
+    CalendarModule
   ],
   exports: [
     CommonModule,
@@ -69,6 +75,8 @@ import { AutocompleteComponent } from './components/autocomplete/autocomplete.co
     CustomButtonComponent,
     InputTextComponent,
     InputTextareaComponent,
+    InputCpfComponent,
+    InputDateComponent,
     AutocompleteComponent
   ],
   providers: [DialogService]

@@ -66,6 +66,8 @@ export class UsuariosListaComponent implements OnInit {
     this.colunas = [
       { field: 'nome', header: 'Nome', sortable: true },
       { field: 'email', header: 'E-mail', sortable: true },
+      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf' },
+      { field: 'dataExpiracao', header: 'Expiração', sortable: true, template: 'expiracao' },
       { field: 'perfil', header: 'Perfil', sortable: true },
       { field: 'ativo', header: 'Status', sortable: true, template: 'status' }
     ];
@@ -159,5 +161,22 @@ export class UsuariosListaComponent implements OnInit {
           }
         });
       });
+  }
+
+  /**
+   * Formata CPF para exibição (000.000.000-00)
+   */
+  formatarCPF(cpf: string): string {
+    if (!cpf || cpf.length !== 11) return cpf;
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  /**
+   * Formata data para exibição (DD/MM/YYYY)
+   */
+  formatarData(data: string): string {
+    if (!data) return '';
+    const [ano, mes, dia] = data.split('-');
+    return `${dia}/${mes}/${ano}`;
   }
 }

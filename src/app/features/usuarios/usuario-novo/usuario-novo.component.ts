@@ -20,6 +20,8 @@ export class UsuarioNovoComponent implements OnInit {
   // Dados do formulário
   nome: string = '';
   email: string = '';
+  cpf: string = '';
+  dataExpiracao: Date | null = null;
   ativo: boolean = true;
   perfilSelecionado: PerfilDTO | null = null;
 
@@ -121,6 +123,14 @@ export class UsuarioNovoComponent implements OnInit {
       if (!primeiroCampoInvalido) primeiroCampoInvalido = 'email';
     }
 
+    if (!this.cpf || this.cpf.trim().length === 0) {
+      erros.push('CPF é obrigatório');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'cpf';
+    } else if (!this.validarCPF(this.cpf)) {
+      erros.push('CPF inválido');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'cpf';
+    }
+
     if (!this.perfilSelecionado) {
       erros.push('Selecione um perfil');
       if (!primeiroCampoInvalido) primeiroCampoInvalido = 'perfil';
@@ -160,6 +170,8 @@ export class UsuarioNovoComponent implements OnInit {
     const novoUsuario: UsuarioEntradaDTO = {
       nome: this.nome.trim(),
       email: this.email.trim(),
+      cpf: this.cpf.replace(/\D/g, ''), // Remove formatação
+      dataExpiracao: this.dataExpiracao ? this.formatarDataParaAPI(this.dataExpiracao) : null,
       ativo: this.ativo,
       perfisIds: [this.perfilSelecionado!.id]
     };
@@ -220,6 +232,8 @@ export class UsuarioNovoComponent implements OnInit {
   limparTela(): void {
     this.nome = '';
     this.email = '';
+    this.cpf = '';
+    this.dataExpiracao = null;
     this.ativo = true;
     this.perfilSelecionado = null;
     this.tentouSalvar = false;
@@ -228,5 +242,64 @@ export class UsuarioNovoComponent implements OnInit {
   private validarEmail(email: string): boolean {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
+  }
+
+  private validarCPF(cpf: string): boolean {
+    // Remove caracteres não numéricos
+    cpf = cpf.replace(/\D/g, '');
+    
+    // Verifica se tem 11 dígitos
+    if (cpf.length !== 11) return false;
+    
+    // Verifica se todos os dígitos são iguais
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+    
+    // Validação dos dígitos verificadores
+    let soma = 0;
+    let resto;
+    
+    for (let i = 1; i <= 9; i++) {
+      soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+    }
+    
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    
+    soma = 0;
+    for (let i = 1; i <= 10; i++) {
+      soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+    }
+    
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+    
+    return true;
+  }
+
+  private formatarDataParaAPI(data: Date): string {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  }
+
+  formatarCPF(event: any): void {
+    let valor = event.target.value.replace(/\D/g, '');
+    
+    if (valor.length > 11) {
+      valor = valor.substring(0, 11);
+    }
+    
+    if (valor.length > 9) {
+      valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+    } else if (valor.length > 6) {
+      valor = valor.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    } else if (valor.length > 3) {
+      valor = valor.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+    }
+    
+    this.cpf = valor;
   }
 }
