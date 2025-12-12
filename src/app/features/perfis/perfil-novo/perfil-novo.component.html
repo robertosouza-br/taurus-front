@@ -9,7 +9,7 @@
     icon="pi pi-plus-circle">
   </app-page-header>
 
-  <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
+  <app-loading-spinner *ngIf="carregando" message="Carregando informações..."></app-loading-spinner>
 
   <div class="perfil-form" *ngIf="!carregando">
     <!-- Dados Básicos -->

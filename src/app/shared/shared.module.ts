@@ -25,6 +25,7 @@ import { InputDateComponent } from './components/input-date/input-date.component
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { DialogService } from 'primeng/dynamicdialog';
 import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -48,7 +49,8 @@ import { CalendarModule } from 'primeng/calendar';
     InputCpfComponent,
     InputDateComponent,
     ConfirmationDialogComponent,
-    AutocompleteComponent
+    AutocompleteComponent,
+    LoadingSpinnerComponent
   ],
   imports: [
     CommonModule,
@@ -78,6 +80,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputCpfComponent,
     InputDateComponent,
     AutocompleteComponent,
+    LoadingSpinnerComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule
   ],

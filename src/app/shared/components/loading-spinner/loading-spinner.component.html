@@ -1,0 +1,13 @@
+<div class="loading-spinner-wrapper" [class.overlay]="overlay">
+  <div class="loading-spinner-content" [ngClass]="'size-' + size">
+    <div class="spinner-logo-container">
+      <img 
+        src="assets/images/logo_sm.png" 
+        alt="Carregando..." 
+        class="spinner-logo"
+      >
+      <div class="spinner-ring"></div>
+    </div>
+    <p *ngIf="message" class="loading-message">{{ message }}</p>
+  </div>
+</div>

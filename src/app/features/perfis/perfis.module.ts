@@ -15,7 +15,6 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
@@ -40,7 +39,6 @@ import { DialogService } from 'primeng/dynamicdialog';
     CardModule,
     CheckboxModule,
     TagModule,
-    ProgressSpinnerModule,
     ConfirmDialogModule,
     TooltipModule,
     InputTextModule,

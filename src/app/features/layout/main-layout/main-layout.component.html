@@ -14,5 +14,13 @@
   <app-footer></app-footer>
 </div>
 
+<!-- Loading Global -->
+<app-loading-spinner 
+  *ngIf="isLoading" 
+  [overlay]="true"
+  [message]="loadingMessage"
+  size="large">
+</app-loading-spinner>
+
 <!-- Toast para notificações globais -->
 <p-toast position="top-right"></p-toast>

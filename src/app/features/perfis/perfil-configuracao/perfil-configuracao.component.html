@@ -13,7 +13,7 @@
     </ng-container>
   </app-page-header>
 
-  <p-progressSpinner *ngIf="carregando"></p-progressSpinner>
+  <app-loading-spinner *ngIf="carregando" message="Carregando configurações..."></app-loading-spinner>
 
   <div *ngIf="!carregando && perfil" class="configuracao-content">
     <!-- Dados do Perfil -->
