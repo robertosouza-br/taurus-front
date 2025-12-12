@@ -197,12 +197,50 @@ export class UsuarioNovoComponent implements OnInit {
           }
         },
         error: (error) => {
+          this.salvando = false;
+          
+          // Tratamento específico para CPF duplicado
+          if (error.status === 500 && error.error?.message === 'CPF ja cadastrado') {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'CPF Duplicado',
+              detail: 'Este CPF já está cadastrado no sistema.'
+            });
+            // Focar no campo CPF
+            setTimeout(() => {
+              const cpfElement = document.getElementById('cpf');
+              if (cpfElement) {
+                cpfElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                cpfElement.focus();
+              }
+            }, 100);
+            return;
+          }
+          
+          // Tratamento específico para Email duplicado
+          if (error.status === 500 && error.error?.message === 'Email ja cadastrado') {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Email Duplicado',
+              detail: 'Este email já está cadastrado no sistema.'
+            });
+            // Focar no campo email
+            setTimeout(() => {
+              const emailElement = document.getElementById('email');
+              if (emailElement) {
+                emailElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                emailElement.focus();
+              }
+            }, 100);
+            return;
+          }
+          
+          // Erro genérico
           this.messageService.add({
             severity: 'error',
             summary: 'Erro',
             detail: error.error?.message || 'Erro ao criar usuário'
           });
-          this.salvando = false;
         }
       });
   }
