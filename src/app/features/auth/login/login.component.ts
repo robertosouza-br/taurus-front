@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services';
+import { UserActivityService } from '../../../core/services/user-activity.service';
 
 /**
  * Componente de Login
@@ -23,6 +24,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private userActivityService: UserActivityService,
     private router: Router,
     private route: ActivatedRoute,
     private elementRef: ElementRef
@@ -42,6 +44,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
     // Obtém a URL de retorno dos parâmetros da query
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    
+    // Verifica se há mensagem de logout (ex: inatividade)
+    const mensagem = this.route.snapshot.queryParams['mensagem'];
+    if (mensagem) {
+      this.errorMessage = mensagem;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -101,7 +109,8 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
     this.authService.login(credentials).subscribe({
       next: () => {
-        // Login bem-sucedido, redireciona
+        // Login bem-sucedido, inicia monitoramento de atividade
+        this.userActivityService.iniciarMonitoramento();
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {

@@ -54,33 +54,33 @@
 }
 
 .login-form {
-  .error-message {
+  .warning-message {
     margin-bottom: 1.5rem;
     animation: shake 0.5s ease-in-out;
     
-    .error-alert {
+    .warning-alert {
       display: flex;
       align-items: flex-start;
       gap: 1rem;
       padding: 1rem 1.25rem;
-      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-      border: 2px solid #ef4444;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #f59e0b;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
       
       i {
         font-size: 1.5rem;
-        color: #dc2626;
+        color: #d97706;
         flex-shrink: 0;
         margin-top: 0.1rem;
       }
       
-      .error-content {
+      .warning-content {
         flex: 1;
         
         strong {
           display: block;
-          color: #991b1b;
+          color: #92400e;
           font-size: 0.95rem;
           font-weight: 600;
           margin-bottom: 0.25rem;
@@ -88,7 +88,7 @@
         
         p {
           margin: 0;
-          color: #dc2626;
+          color: #b45309;
           font-size: 0.9rem;
           line-height: 1.4;
         }

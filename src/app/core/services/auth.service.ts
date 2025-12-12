@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { User, LoginCredentials, AuthResponse, JwtPayload, LoginResponse, UsuarioLogado } from '../models';
+import { User, LoginCredentials, AuthResponse, JwtPayload, LoginResponse, UsuarioLogado, RefreshTokenRequest } from '../models';
 import { Funcionalidade } from '../enums/funcionalidade.enum';
 import { Permissao } from '../enums/permissao.enum';
 import { environment } from '../../../environments/environment';
@@ -55,6 +55,13 @@ export class AuthService {
   }
 
   /**
+   * Obtém o valor atual do usuário logado (novo sistema)
+   */
+  public get usuarioLogadoValue(): UsuarioLogado | null {
+    return this.usuarioLogadoSubject.value;
+  }
+
+  /**
    * Verifica se o usuário está autenticado
    */
   public get isAuthenticated(): boolean {
@@ -89,6 +96,8 @@ export class AuthService {
       nome: response.nomeUsuario,
       token: response.token,
       expiracao: new Date(response.expiracao),
+      refreshToken: response.refreshToken,
+      refreshExpiracao: new Date(response.refreshExpiracao),
       permissoes: permissoesMap
     };
 
@@ -110,6 +119,31 @@ export class AuthService {
   }
 
   /**
+   * Renova o token de acesso usando o refresh token
+   */
+  renovarToken(): Observable<LoginResponse> {
+    const usuarioLogado = this.usuarioLogadoValue;
+    
+    if (!usuarioLogado?.refreshToken) {
+      return throwError(() => new Error('Refresh token não encontrado'));
+    }
+
+    const request: RefreshTokenRequest = {
+      refreshToken: usuarioLogado.refreshToken
+    };
+
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/refresh`, request)
+      .pipe(
+        tap(response => this.processarLogin(response)),
+        catchError(error => {
+          console.error('Erro ao renovar token:', error);
+          this.logout();
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
    * Converte permissões do formato Record para Map<Set>
    */
   private converterPermissoes(
@@ -127,7 +161,7 @@ export class AuthService {
   /**
    * Realiza o logout do usuário
    */
-  logout(): void {
+  logout(motivo?: string): void {
     // Remove dados do localStorage
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
@@ -138,8 +172,12 @@ export class AuthService {
     this.currentUserSubject.next(null);
     this.usuarioLogadoSubject.next(null);
     
-    // Redireciona para login
-    this.router.navigate(['/login']);
+    // Redireciona para login com mensagem se houver
+    if (motivo) {
+      this.router.navigate(['/auth/login'], { queryParams: { mensagem: motivo } });
+    } else {
+      this.router.navigate(['/auth/login']);
+    }
   }
 
   /**

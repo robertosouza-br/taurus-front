@@ -53,9 +53,18 @@ export interface JwtPayload {
 export interface LoginResponse {
   token: string;
   expiracao: string;
+  refreshToken: string;
+  refreshExpiracao: string;
   usuario: string;
   nomeUsuario: string;
   permissoes: Record<Funcionalidade, Permissao[]>;
+}
+
+/**
+ * Request para renovar token
+ */
+export interface RefreshTokenRequest {
+  refreshToken: string;
 }
 
 /**
@@ -66,5 +75,7 @@ export interface UsuarioLogado {
   nome: string;
   token: string;
   expiracao: Date;
+  refreshToken: string;
+  refreshExpiracao: Date;
   permissoes: Map<Funcionalidade, Set<Permissao>>;
 }
