@@ -1,0 +1,291 @@
+<!-- Modal de Termos de Uso -->
+<p-dialog 
+  [(visible)]="displayTerms" 
+  [modal]="true" 
+  [style]="{width: '50vw'}" 
+  [breakpoints]="{'960px': '75vw', '640px': '90vw'}"
+  [draggable]="false"
+  styleClass="terms-dialog"
+>
+  <ng-template pTemplate="header">
+    <div class="modal-header-content">
+      <img src="assets/images/logo_sm.png" alt="Taurus" class="modal-logo">
+      <h3>Termos de Uso</h3>
+    </div>
+  </ng-template>
+  <div class="terms-content">
+    <h4>1. Aceitação dos Termos</h4>
+    <p>Ao acessar e utilizar o Sistema Taurus, você concorda com os seguintes termos e condições de uso. Este sistema é destinado exclusivamente ao gerenciamento de vendas e reservas de imóveis.</p>
+    
+    <h4>2. Uso Autorizado</h4>
+    <p>O sistema deve ser utilizado apenas para:</p>
+    <ul>
+      <li>Gestão de clientes e prospects</li>
+      <li>Administração de imóveis e empreendimentos</li>
+      <li>Controle de reservas e vendas</li>
+      <li>Geração de relatórios gerenciais</li>
+      <li>Emissão de contratos e documentos relacionados</li>
+    </ul>
+    
+    <h4>3. Responsabilidades do Usuário</h4>
+    <p>Ao utilizar o sistema, você se compromete a:</p>
+    <ul>
+      <li>Manter suas credenciais de acesso em sigilo</li>
+      <li>Não compartilhar seu login e senha com terceiros</li>
+      <li>Utilizar o sistema apenas para fins profissionais relacionados à Construtora RJ</li>
+      <li>Não tentar acessar áreas restritas ou dados de outros usuários</li>
+      <li>Reportar imediatamente qualquer uso indevido ou falha de segurança</li>
+      <li>Manter seus dados cadastrais atualizados</li>
+    </ul>
+    
+    <h4>4. Proteção de Dados e LGPD</h4>
+    <p>A Construtora RJ está comprometida com a proteção de dados pessoais em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018). O sistema coleta, armazena e processa dados pessoais de clientes e usuários exclusivamente para as finalidades de gestão imobiliária.</p>
+    <p>Todos os dados são tratados com confidencialidade e protegidos por medidas de segurança técnicas e organizacionais adequadas.</p>
+    
+    <h4>5. Confidencialidade</h4>
+    <p>As informações acessadas através do sistema são confidenciais e propriedade da Construtora RJ. É estritamente proibido:</p>
+    <ul>
+      <li>Divulgar informações de clientes a terceiros não autorizados</li>
+      <li>Utilizar dados do sistema para fins pessoais ou comerciais externos</li>
+      <li>Copiar, reproduzir ou distribuir informações sem autorização</li>
+      <li>Fazer download massivo de dados sem justificativa de trabalho</li>
+    </ul>
+    
+    <h4>6. Propriedade Intelectual</h4>
+    <p>O Sistema Taurus, incluindo seu código-fonte, design, funcionalidades e documentação, são propriedade exclusiva da Construtora RJ e estão protegidos por direitos autorais. Qualquer reprodução, modificação ou distribuição não autorizada é proibida.</p>
+    
+    <h4>7. Limitações de Responsabilidade</h4>
+    <p>A Construtora RJ não se responsabiliza por:</p>
+    <ul>
+      <li>Perda de dados causada por uso inadequado do sistema</li>
+      <li>Decisões comerciais tomadas com base em informações do sistema</li>
+      <li>Interrupções temporárias para manutenção ou atualizações</li>
+      <li>Problemas de conectividade de internet do usuário</li>
+    </ul>
+    
+    <h4>8. Modificações nos Termos</h4>
+    <p>A Construtora RJ reserva-se o direito de modificar estes termos a qualquer momento. Alterações significativas serão comunicadas aos usuários por email ou notificação no sistema. O uso continuado após modificações constitui aceitação dos novos termos.</p>
+    
+    <h4>9. Término de Acesso</h4>
+    <p>O acesso ao sistema pode ser suspenso ou encerrado em caso de:</p>
+    <ul>
+      <li>Violação destes termos de uso</li>
+      <li>Uso indevido de informações confidenciais</li>
+      <li>Desligamento do usuário da empresa</li>
+      <li>Solicitação do próprio usuário</li>
+    </ul>
+    
+    <h4>10. Contato</h4>
+    <p>Para dúvidas sobre estes termos, entre em contato através do suporte técnico ou com o departamento de TI da Construtora RJ.</p>
+    
+    <p class="update-date"><strong>Última atualização:</strong> Dezembro de 2025</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="modal-footer-content">
+      <div class="footer-info">
+        <span class="company-name">Construtora RJ</span>
+        <span class="separator">|</span>
+        <span class="year">© 2025</span>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal de Política de Privacidade -->
+<p-dialog 
+  [(visible)]="displayPrivacy" 
+  [modal]="true" 
+  [style]="{width: '50vw'}" 
+  [breakpoints]="{'960px': '75vw', '640px': '90vw'}"
+  [draggable]="false"
+  styleClass="terms-dialog"
+>
+  <ng-template pTemplate="header">
+    <div class="modal-header-content">
+      <img src="assets/images/logo_sm.png" alt="Taurus" class="modal-logo">
+      <h3>Política de Privacidade</h3>
+    </div>
+  </ng-template>
+  <div class="terms-content">
+    <h4>1. Introdução</h4>
+    <p>A Construtora RJ está comprometida com a proteção da privacidade e dos dados pessoais de seus usuários e clientes, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018).</p>
+    
+    <h4>2. Dados Coletados</h4>
+    <p>O Sistema Taurus coleta e processa os seguintes tipos de dados:</p>
+    <ul>
+      <li><strong>Dados de Usuários:</strong> CPF, nome completo, email, telefone, cargo e permissões de acesso</li>
+      <li><strong>Dados de Clientes:</strong> Nome, CPF, RG, endereço, telefone, email, dados financeiros</li>
+      <li><strong>Dados de Imóveis:</strong> Informações sobre unidades, valores, características</li>
+      <li><strong>Dados de Transações:</strong> Reservas, contratos, pagamentos, histórico de negociações</li>
+      <li><strong>Dados de Uso:</strong> Logs de acesso, ações realizadas no sistema, timestamps</li>
+    </ul>
+    
+    <h4>3. Finalidade do Tratamento</h4>
+    <p>Os dados pessoais são processados para as seguintes finalidades:</p>
+    <ul>
+      <li>Gerenciamento de vendas e reservas de imóveis</li>
+      <li>Controle de acesso e autenticação de usuários</li>
+      <li>Comunicação com clientes e prospects</li>
+      <li>Geração de relatórios gerenciais e comerciais</li>
+      <li>Cumprimento de obrigações legais e contratuais</li>
+      <li>Melhoria da qualidade dos serviços prestados</li>
+      <li>Auditoria e segurança da informação</li>
+    </ul>
+    
+    <h4>4. Base Legal</h4>
+    <p>O tratamento de dados pessoais é realizado com base nas seguintes hipóteses legais da LGPD:</p>
+    <ul>
+      <li><strong>Execução de contrato:</strong> Dados necessários para cumprimento de contratos de compra e venda</li>
+      <li><strong>Obrigação legal:</strong> Cumprimento de obrigações fiscais, trabalhistas e regulatórias</li>
+      <li><strong>Legítimo interesse:</strong> Gestão interna, segurança e melhoria de serviços</li>
+      <li><strong>Consentimento:</strong> Quando aplicável, para finalidades específicas informadas</li>
+    </ul>
+    
+    <h4>5. Compartilhamento de Dados</h4>
+    <p>Os dados pessoais podem ser compartilhados com:</p>
+    <ul>
+      <li><strong>Parceiros comerciais:</strong> Bancos, financeiras e instituições de crédito para análise de financiamento</li>
+      <li><strong>Prestadores de serviço:</strong> Empresas de TI, auditoria e consultoria, sob contratos de confidencialidade</li>
+      <li><strong>Autoridades:</strong> Quando exigido por lei ou ordem judicial</li>
+      <li><strong>Grupo Empresarial:</strong> Empresas do mesmo grupo econômico para fins administrativos</li>
+    </ul>
+    <p>O compartilhamento é sempre limitado ao necessário e realizado com garantias adequadas de proteção.</p>
+    
+    <h4>6. Segurança dos Dados</h4>
+    <p>A Construtora RJ implementa medidas técnicas e organizacionais para proteger os dados pessoais:</p>
+    <ul>
+      <li>Criptografia de dados sensíveis em trânsito e em repouso</li>
+      <li>Controle de acesso baseado em perfis e permissões</li>
+      <li>Autenticação forte com tokens e sessões controladas</li>
+      <li>Backups regulares e planos de recuperação de desastres</li>
+      <li>Monitoramento de segurança e logs de auditoria</li>
+      <li>Treinamento regular da equipe sobre proteção de dados</li>
+      <li>Testes periódicos de segurança e vulnerabilidades</li>
+    </ul>
+    
+    <h4>7. Retenção de Dados</h4>
+    <p>Os dados pessoais são retidos pelo tempo necessário para:</p>
+    <ul>
+      <li>Cumprimento das finalidades para as quais foram coletados</li>
+      <li>Atendimento a obrigações legais (prazo de 5 anos para dados fiscais e contratuais)</li>
+      <li>Exercício regular de direitos em processos judiciais, administrativos ou arbitrais</li>
+    </ul>
+    <p>Após o término do período de retenção, os dados são eliminados ou anonimizados de forma segura.</p>
+    
+    <h4>8. Direitos dos Titulares (LGPD)</h4>
+    <p>Em conformidade com a LGPD, você tem os seguintes direitos sobre seus dados pessoais:</p>
+    <ul>
+      <li>Confirmar a existência de tratamento de dados</li>
+      <li>Acessar seus dados pessoais</li>
+      <li>Corrigir dados incompletos, inexatos ou desatualizados</li>
+      <li>Anonimizar, bloquear ou eliminar dados desnecessários ou excessivos</li>
+      <li>Solicitar portabilidade dos dados</li>
+      <li>Eliminar dados tratados com seu consentimento</li>
+      <li>Revogar consentimento</li>
+      <li>Opor-se ao tratamento de dados</li>
+    </ul>
+    
+    <h4>9. Exercício dos Direitos</h4>
+    <p>Para exercer seus direitos, entre em contato:</p>
+    <ul>
+      <li><strong>Email:</strong> lgpd&#64;construtorarj.com.br</li>
+      <li><strong>Telefone:</strong> (21) 3333-4444</li>
+      <li><strong>Encarregado de Dados (DPO):</strong> dpo&#64;construtorarj.com.br</li>
+    </ul>
+    
+    <h4>10. Cookies e Tecnologias Similares</h4>
+    <p>O sistema utiliza tokens de autenticação armazenados localmente no navegador para manter sua sessão ativa. Estes dados são utilizados apenas para fins de autenticação e não rastreiam sua navegação.</p>
+    
+    <h4>11. Alterações na Política</h4>
+    <p>Esta política pode ser atualizada periodicamente. Recomendamos a revisão regular. Alterações significativas serão comunicadas por email ou notificação no sistema.</p>
+    
+    <p class="update-date"><strong>Última atualização:</strong> Dezembro de 2025</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="modal-footer-content">
+      <div class="footer-info">
+        <span class="company-name">Construtora RJ</span>
+        <span class="separator">|</span>
+        <span class="year">© 2025</span>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal de Suporte -->
+<p-dialog 
+  [(visible)]="displaySupport" 
+  [modal]="true" 
+  [style]="{width: '40vw'}" 
+  [breakpoints]="{'960px': '75vw', '640px': '90vw'}"
+  [draggable]="false"
+  styleClass="terms-dialog"
+>
+  <ng-template pTemplate="header">
+    <div class="modal-header-content">
+      <img src="assets/images/logo_sm.png" alt="Taurus" class="modal-logo">
+      <h3>Suporte Técnico</h3>
+    </div>
+  </ng-template>
+  <div class="terms-content">
+    <h4>Canais de Atendimento</h4>
+    
+    <div class="support-item">
+      <i class="pi pi-envelope"></i>
+      <div>
+        <strong>Email:</strong>
+        <p>rm.planningdev&#64;gmail.com</p>
+      </div>
+    </div>
+    
+    <div class="support-item">
+      <i class="pi pi-phone"></i>
+      <div>
+        <strong>Telefone:</strong>
+        <p>(61) 99929-2240</p>
+      </div>
+    </div>
+    
+    <div class="support-item">
+      <i class="pi pi-whatsapp"></i>
+      <div>
+        <strong>WhatsApp:</strong>
+        <p>(61) 99929-2240</p>
+        <p class="note">Atendimento de segunda a sexta, 8h às 18h</p>
+      </div>
+    </div>
+    
+    <h4>Horário de Atendimento</h4>
+    <ul>
+      <li><strong>Segunda a Sexta:</strong> 8h às 18h</li>
+    </ul>
+    
+    <h4>Desenvolvedor</h4>
+    <div class="support-item">
+      <i class="pi pi-building"></i>
+      <div>
+        <strong>RM TI Solutions</strong>
+        <p>Email: rm.planningdev&#64;gmail.com</p>
+        <p>Telefone: (61) 99929-2240</p>
+      </div>
+    </div>
+    
+    <h4>Tipos de Suporte</h4>
+    <ul>
+      <li><strong>Dúvidas sobre o sistema:</strong> Como usar funcionalidades e recursos</li>
+      <li><strong>Problemas técnicos:</strong> Erros, lentidão, bugs</li>
+      <li><strong>Solicitações:</strong> Novas funcionalidades, melhorias</li>
+    </ul>
+    
+    
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="modal-footer-content">
+      <div class="footer-info">
+        <span class="company-name">Construtora RJ</span>
+        <span class="separator">|</span>
+        <span class="year">© 2025</span>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

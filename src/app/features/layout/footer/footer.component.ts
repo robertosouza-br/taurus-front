@@ -12,4 +12,20 @@ import { Component } from '@angular/core';
 export class FooterComponent {
   currentYear = new Date().getFullYear();
   version = '1.0.0';
+  
+  displayTerms = false;
+  displayPrivacy = false;
+  displaySupport = false;
+
+  showTermsDialog(): void {
+    this.displayTerms = true;
+  }
+
+  showPrivacyDialog(): void {
+    this.displayPrivacy = true;
+  }
+
+  showSupportDialog(): void {
+    this.displaySupport = true;
+  }
 }

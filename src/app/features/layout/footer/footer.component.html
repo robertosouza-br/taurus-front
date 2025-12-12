@@ -9,11 +9,17 @@
     </span>
     <span class="separator desktop-only">|</span>
     <div class="footer-links desktop-only">
-      <a href="#" class="footer-link">Termos de Uso</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="showTermsDialog()">Termos de Uso</a>
       <span class="link-separator">|</span>
-      <a href="#" class="footer-link">Política de Privacidade</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="showPrivacyDialog()">Política de Privacidade</a>
       <span class="link-separator">|</span>
-      <a href="#" class="footer-link">Suporte</a>
+      <a href="javascript:void(0)" class="footer-link" (click)="showSupportDialog()">Suporte</a>
     </div>
   </div>
 </footer>
+
+<app-terms-modals 
+  [(displayTerms)]="displayTerms"
+  [(displayPrivacy)]="displayPrivacy"
+  [(displaySupport)]="displaySupport"
+></app-terms-modals>

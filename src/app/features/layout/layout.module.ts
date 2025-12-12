@@ -9,6 +9,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
 
 // PrimeNG Services
 import { MessageService } from 'primeng/api';
@@ -20,6 +21,7 @@ import { MainLayoutComponent } from './main-layout/main-layout.component';
 import { HeaderComponent } from './header/header.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { FooterComponent } from './footer/footer.component';
+import { TermsModalsComponent } from './footer/terms-modals.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
@@ -31,6 +33,7 @@ import { AcessoNegadoComponent } from './acesso-negado/acesso-negado.component';
     HeaderComponent,
     SidebarComponent,
     FooterComponent,
+    TermsModalsComponent,
     DashboardComponent,
     NotFoundComponent,
     UnauthorizedComponent,
@@ -46,7 +49,8 @@ import { AcessoNegadoComponent } from './acesso-negado/acesso-negado.component';
     TooltipModule,
     BadgeModule,
     CardModule,
-    ToastModule
+    ToastModule,
+    DialogModule
   ],
   providers: [
     MessageService
