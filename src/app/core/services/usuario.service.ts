@@ -9,33 +9,7 @@ import {
   UsuarioPerfisDTO,
   AlteracaoSenhaDTO
 } from '../models/usuario.model';
-
-/**
- * Interface para resposta paginada do Spring
- */
-export interface Page<T> {
-  content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    sort: {
-      sorted: boolean;
-      unsorted: boolean;
-      empty: boolean;
-    };
-    offset: number;
-    paged: boolean;
-    unpaged: boolean;
-  };
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  numberOfElements: number;
-  first: boolean;
-  last: boolean;
-  empty: boolean;
-}
+import { Page } from '../models/page.model';
 
 /**
  * Serviço para gerenciamento de usuários

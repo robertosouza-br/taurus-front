@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { UsuarioService, Page } from '../../../core/services/usuario.service';
+import { UsuarioService } from '../../../core/services/usuario.service';
 import { UsuarioSaidaDTO } from '../../../core/models/usuario.model';
+import { Page } from '../../../core/models/page.model';
 import { PermissaoService, AuthService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
@@ -65,11 +66,11 @@ export class UsuariosListaComponent implements OnInit {
   private configurarTabela(): void {
     this.colunas = [
       { field: 'nome', header: 'Nome', sortable: true },
-      { field: 'email', header: 'E-mail', sortable: true },
-      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf' },
-      { field: 'dataExpiracao', header: 'Expiração', sortable: true, template: 'expiracao' },
-      { field: 'perfil', header: 'Perfil', sortable: true },
-      { field: 'ativo', header: 'Status', sortable: true, template: 'status' }
+      { field: 'email', header: 'E-mail', sortable: true, align: 'center' },
+      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf', align: 'center' },
+      { field: 'dataExpiracao', header: 'Expiração', sortable: true, template: 'expiracao', align: 'center' },
+      { field: 'perfil', header: 'Perfil', sortable: true, align: 'center' },
+      { field: 'ativo', header: 'Status', sortable: true, template: 'status', align: 'center' }
     ];
 
     this.acoes = [];
@@ -101,7 +102,7 @@ export class UsuariosListaComponent implements OnInit {
     this.carregando = true;
     this.usuarioService.listarUsuarios(0, 50, search).subscribe({
       next: (page: Page<UsuarioSaidaDTO>) => {
-        this.usuarios = page.content.map(usuario => ({
+        this.usuarios = page.content.map((usuario: UsuarioSaidaDTO) => ({
           ...usuario,
           perfil: usuario.perfis && usuario.perfis.length > 0 ? usuario.perfis[0].nome : 'Sem perfil'
         }));
