@@ -35,6 +35,7 @@ export class AutocompleteComponent implements ControlValueAccessor {
 
   value: any = null;
   touched: boolean = false;
+  isFocused: boolean = false;
   private onChange: (value: any) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -64,7 +65,12 @@ export class AutocompleteComponent implements ControlValueAccessor {
     this.completeMethod.emit(event);
   }
 
+  onFocus(): void {
+    this.isFocused = true;
+  }
+
   onBlur(): void {
+    this.isFocused = false;
     this.touched = true;
     this.onTouched();
   }
@@ -95,6 +101,10 @@ export class AutocompleteComponent implements ControlValueAccessor {
 
   get isInvalid(): boolean {
     return this.showValidation && this.required && !this.value;
+  }
+
+  get shouldShowLabel(): boolean {
+    return this.isFocused || !!this.value;
   }
 
   get displayErrorMessage(): string {

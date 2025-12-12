@@ -1,6 +1,87 @@
-// Os estilos principais do autocomplete estão em src/styles.scss (seção "ESTILOS GLOBAIS DE FORMULÁRIOS")
-// Aqui ficam apenas estilos específicos deste componente, se necessário
+.autocomplete-field {
+  display: block;
+  width: 100%;
 
-// Nota: Como este componente usa classes globais (.autocomplete-field, .autocomplete-wrapper, .autocomplete-icon),
-// todos os estilos estão centralizados no styles.scss para reutilização em todo o sistema.
+  ::ng-deep {
+    .p-float-label {
+      position: relative;
+      display: block;
+      width: 100%;
+
+      .autocomplete-wrapper {
+        position: relative;
+        width: 100%;
+
+        .p-autocomplete {
+          width: 100%;
+
+          .p-autocomplete-input {
+            width: 100%;
+            padding: 1.25rem 2.5rem 0.5rem 1rem !important;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+
+            &:enabled:focus {
+              border-color: var(--primary-color);
+              box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+            }
+
+            &:disabled {
+              background-color: #f5f5f5;
+              cursor: not-allowed;
+            }
+          }
+        }
+
+        .autocomplete-icon {
+          position: absolute;
+          right: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #666;
+          cursor: pointer;
+          z-index: 1;
+
+          &:hover:not(.disabled) {
+            color: var(--primary-color);
+          }
+
+          &.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+          }
+        }
+      }
+
+      > label {
+        position: absolute;
+        font-weight: 500;
+        color: #666;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        padding: 0 0.25rem;
+        transition: all 0.2s ease;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      &.p-input-filled > label {
+        top: 0;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  small.p-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+  }
+}
 
