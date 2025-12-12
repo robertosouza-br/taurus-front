@@ -43,6 +43,10 @@
         <small class="p-error" *ngIf="submitted && f['cpf'].errors?.['minlength']">
           CPF deve ter 11 dígitos
         </small>
+        <div class="field-helper" *ngIf="!submitted || (!f['cpf'].errors?.['required'] && !f['cpf'].errors?.['minlength'])" style="visibility: hidden;">
+          <i class="pi pi-info-circle"></i>
+          <span>&nbsp;</span>
+        </div>
       </div>
 
       <!-- Campo Senha -->

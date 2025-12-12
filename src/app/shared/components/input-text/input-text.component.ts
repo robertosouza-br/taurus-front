@@ -28,6 +28,7 @@ export class InputTextComponent implements ControlValueAccessor {
 
   value: string = '';
   touched: boolean = false;
+  emailInvalido: boolean = false;
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -51,11 +52,28 @@ export class InputTextComponent implements ControlValueAccessor {
     const input = event.target as HTMLInputElement;
     this.value = input.value;
     this.onChange(this.value);
+    
+    // Limpa o erro de email enquanto digita
+    if (this.type === 'email' && this.emailInvalido) {
+      this.emailInvalido = false;
+    }
   }
 
   onBlur(): void {
     this.touched = true;
     this.onTouched();
+    
+    // Valida email se o tipo for email
+    if (this.type === 'email' && this.value && this.value.trim().length > 0) {
+      this.emailInvalido = !this.validarEmail(this.value);
+    } else {
+      this.emailInvalido = false;
+    }
+  }
+
+  private validarEmail(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
   }
 
   get inputId(): string {
@@ -67,10 +85,30 @@ export class InputTextComponent implements ControlValueAccessor {
   }
 
   get isInvalid(): boolean {
-    return this.showValidation && this.required && (!this.value || this.value.trim().length === 0);
+    // Valida campo obrigatório vazio (só mostra se showValidation ou se touched)
+    if (this.required && (!this.value || this.value.trim().length === 0)) {
+      return this.showValidation;
+    }
+    
+    // Valida formato de email se o tipo for email (mostra imediatamente após touched)
+    if (this.type === 'email' && this.value && this.value.trim().length > 0) {
+      return this.touched && this.emailInvalido;
+    }
+    
+    return false;
   }
 
   get displayErrorMessage(): string {
-    return this.errorMessage || `${this.label} é obrigatório`;
+    if (this.errorMessage) return this.errorMessage;
+    
+    if (this.required && (!this.value || this.value.trim().length === 0)) {
+      return `${this.label} é obrigatório`;
+    }
+    
+    if (this.type === 'email' && this.value && !this.validarEmail(this.value)) {
+      return 'E-mail inválido';
+    }
+    
+    return '';
   }
 }

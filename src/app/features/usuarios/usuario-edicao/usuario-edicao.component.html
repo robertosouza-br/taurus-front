@@ -32,12 +32,8 @@
             [(ngModel)]="email"
             [required]="true"
             [showValidation]="tentouSalvar"
-            [disabled]="editandoProprioUsuario"
             type="email">
           </app-input-text>
-          <small *ngIf="editandoProprioUsuario" class="p-text-secondary" style="color: var(--yellow-700);">
-            <i class="pi pi-info-circle"></i> Você não pode alterar seu próprio e-mail
-          </small>
         </div>
 
         <div class="p-field">
@@ -49,9 +45,10 @@
             [showValidation]="tentouSalvar"
             [disabled]="true">
           </app-input-cpf>
-          <small class="p-text-secondary" style="color: var(--yellow-700);">
-            <i class="pi pi-info-circle"></i> CPF cadastrado não pode ser alterado
-          </small>
+          <div class="field-helper">
+            <i class="pi pi-info-circle"></i>
+            <span>CPF cadastrado não pode ser alterado</span>
+          </div>
         </div>
 
         <div class="p-field">
@@ -62,9 +59,10 @@
             [required]="false"
             [showValidation]="tentouSalvar">
           </app-input-date>
-          <small class="p-text-secondary" style="color: var(--yellow-700);">
-            <i class="pi pi-info-circle"></i> Deixe a data de expiração vazia para acesso ilimitado
-          </small>
+          <div class="field-helper">
+            <i class="pi pi-info-circle"></i>
+            <span>Deixe a data de expiração vazia para acesso ilimitado</span>
+          </div>
         </div>
 
         <app-autocomplete
@@ -82,9 +80,12 @@
           placeholder="Digite para buscar um perfil"
           [itemTemplate]="perfilTemplate">
         </app-autocomplete>
-        <small *ngIf="editandoProprioUsuario" class="p-text-secondary" style="color: var(--yellow-700);">
-          <i class="pi pi-info-circle"></i> Você não pode alterar seu próprio perfil
-        </small>
+        <div class="field-helper">
+          <i class="pi pi-info-circle" [style.visibility]="editandoProprioUsuario ? 'visible' : 'hidden'"></i>
+          <span [style.visibility]="editandoProprioUsuario ? 'visible' : 'hidden'">
+            Você não pode alterar seu próprio perfil
+          </span>
+        </div>
 
         <ng-template #perfilTemplate let-perfil>
           <div>
@@ -101,9 +102,12 @@
             inputId="ativo"
             label="Usuário Ativo">
           </p-checkbox>
-          <small *ngIf="editandoProprioUsuario" class="p-text-secondary" style="display: block; margin-top: 0.5rem; color: var(--yellow-700);">
-            <i class="pi pi-info-circle"></i> Você não pode desativar sua própria conta
-          </small>
+          <div class="field-helper">
+            <i class="pi pi-info-circle" [style.visibility]="editandoProprioUsuario ? 'visible' : 'hidden'"></i>
+            <span [style.visibility]="editandoProprioUsuario ? 'visible' : 'hidden'">
+              Você não pode desativar sua própria conta
+            </span>
+          </div>
         </div>
 
         <div class="p-field-checkbox" style="margin-top: 1rem;">

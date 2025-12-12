@@ -21,7 +21,7 @@
         }
 
         &:disabled {
-          background-color: #f5f5f5;
+          background-color: #ebebeb !important;
           cursor: not-allowed;
         }
 
@@ -55,8 +55,6 @@
   }
 
   small.p-error {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
+    min-height: 1.25rem; // Garante altura mínima mesmo quando não visível
   }
 }

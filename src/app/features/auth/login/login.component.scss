@@ -105,6 +105,19 @@
   .form-field {
     margin-bottom: 1.5rem;
 
+    ::ng-deep .field-helper {
+      margin-top: 0.5rem;
+      min-height: 1.25rem;
+    }
+
+    ::ng-deep app-input-text,
+    ::ng-deep app-input-cpf,
+    ::ng-deep app-input-date,
+    ::ng-deep app-autocomplete {
+      display: block;
+      width: 100%;
+    }
+
     ::ng-deep {
       .p-float-label {
         display: block;

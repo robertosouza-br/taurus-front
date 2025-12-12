@@ -97,3 +97,20 @@
   }
 }
 
+/* Força todos os campos customizados a ocuparem a largura completa e alinhar os helpers */
+:host ::ng-deep .p-field > app-input-text,
+:host ::ng-deep .p-field > app-input-cpf,
+:host ::ng-deep .p-field > app-input-date,
+:host ::ng-deep .p-field > app-autocomplete,
+:host ::ng-deep .p-field > app-input-textarea,
+:host ::ng-deep .p-field > app-input-text input,
+:host ::ng-deep .p-field > app-input-cpf input {
+  display: block;
+  width: 100%;
+}
+
+:host ::ng-deep .p-field .field-helper {
+  margin-top: 0.5rem;
+  min-height: 1.25rem;
+}
+

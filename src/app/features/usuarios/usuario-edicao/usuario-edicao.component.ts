@@ -135,6 +135,9 @@ export class UsuarioEdicaoComponent implements OnInit {
     if (!this.email || this.email.trim().length === 0) {
       erros.push('E-mail é obrigatório');
       if (!primeiroCampoInvalido) primeiroCampoInvalido = 'email';
+    } else if (!this.validarEmail(this.email)) {
+      erros.push('E-mail inválido');
+      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'email';
     }
 
     if (!this.cpf || this.cpf.trim().length === 0) {
@@ -248,6 +251,11 @@ export class UsuarioEdicaoComponent implements OnInit {
     if (resto !== parseInt(cpf.substring(10, 11))) return false;
     
     return true;
+  }
+
+  private validarEmail(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim());
   }
 
   private formatarDataParaAPI(data: Date): string {

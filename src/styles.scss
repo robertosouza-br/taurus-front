@@ -633,9 +633,42 @@ body {
 .p-error,
 small.p-error {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #ef4444;
+}
+
+/* Mensagens informativas padrão */
+.info-message,
+small.info-message,
+.p-text-secondary {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--yellow-700);
+  line-height: 1.4;
+  
+  i {
+    margin-right: 0.5rem;
+    color: var(--yellow-600);
+  }
+}
+
+/* Espaço padrão para mensagens auxiliares abaixo de campos */
+.field-helper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-height: 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--yellow-700);
+  line-height: 1.4;
+
+  i {
+    margin-top: 0.1rem;
+    color: var(--yellow-600);
+  }
 }
 
 /* Container de campo com margem padrão */

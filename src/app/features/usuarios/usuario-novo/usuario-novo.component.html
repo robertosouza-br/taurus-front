@@ -55,9 +55,10 @@
             [required]="false"
             [showValidation]="tentouSalvar">
           </app-input-date>
-          <small class="p-text-secondary" style="display: block; margin-top: 0.5rem;">
-            <i class="pi pi-info-circle"></i> Deixe vazio para acesso ilimitado
-          </small>
+          <div class="field-helper">
+            <i class="pi pi-info-circle"></i>
+            <span>Deixe vazio para acesso ilimitado</span>
+          </div>
         </div>
 
         <app-autocomplete
