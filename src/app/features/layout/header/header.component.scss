@@ -31,12 +31,14 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #667eea;
 
-    i {
-      font-size: 1.75rem;
+    .logo-img {
+      height: 32px;
+      width: auto;
+      
+      @media (max-width: 768px) {
+        height: 28px;
+      }
     }
 
     .logo-text {
