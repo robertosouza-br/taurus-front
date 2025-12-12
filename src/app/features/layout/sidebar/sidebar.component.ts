@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthorizationService, SidebarService, PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -35,7 +35,8 @@ export class SidebarComponent implements OnInit {
     private authorizationService: AuthorizationService,
     private router: Router,
     private sidebarService: SidebarService,
-    private permissaoService: PermissaoService
+    private permissaoService: PermissaoService,
+    private elementRef: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +46,22 @@ export class SidebarComponent implements OnInit {
     this.sidebarService.isExpanded$.subscribe(
       isExpanded => this.isExpanded = isExpanded
     );
+  }
+
+  /**
+   * Fecha sidebar ao clicar fora dela
+   */
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    if (!this.isExpanded) return;
+
+    const clickedInside = this.elementRef.nativeElement.contains(event.target);
+    const clickedToggleButton = (event.target as HTMLElement)?.closest('.menu-toggle');
+
+    // Permite que o botão de toggle abra a sidebar sem fechá-la imediatamente
+    if (!clickedInside && !clickedToggleButton) {
+      this.sidebarService.setExpanded(false);
+    }
   }
 
   /**
