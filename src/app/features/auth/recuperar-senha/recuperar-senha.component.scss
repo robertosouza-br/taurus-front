@@ -1,0 +1,315 @@
+.recuperar-senha-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1rem;
+
+  .recuperar-senha-card {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 3rem 2.5rem;
+    animation: slideUp 0.5s ease-out;
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+
+  .recuperar-senha-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+
+    .logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 1.5rem;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .recuperar-form {
+    .form-field {
+      margin-bottom: 1.5rem;
+
+      ::ng-deep .p-float-label {
+        display: block;
+        width: 100%;
+
+        > input.p-inputtext,
+        > .p-password {
+          width: 100% !important;
+        }
+
+        input.p-inputtext {
+          width: 100%;
+          padding: 1.25rem 1rem 0.5rem 1rem;
+          font-size: 1rem;
+          border: 2px solid #e0e0e0;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+
+          &:enabled:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+          }
+
+          &.ng-invalid.ng-touched {
+            border-color: #ef4444;
+          }
+        }
+
+        .p-password {
+          width: 100%;
+          position: relative;
+          
+          .p-password-input {
+            width: 100%;
+            padding: 1.25rem 3rem 0.5rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+
+            &:enabled:focus {
+              border-color: #667eea;
+              box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            }
+
+            &.ng-invalid.ng-touched {
+              border-color: #ef4444;
+            }
+          }
+
+          button.p-password-toggle {
+            position: absolute !important;
+            top: 0.9rem !important;
+            right: 0.75rem !important;
+            margin: 0 !important;
+          }
+        }
+
+        .codigo-input {
+          text-align: center;
+          font-size: 1.5rem;
+          letter-spacing: 0.5rem;
+          font-weight: 600;
+        }
+
+        label {
+          position: absolute;
+          font-weight: 500;
+          color: #666;
+          left: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: white;
+          padding: 0 0.25rem;
+          transition: all 0.2s ease;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        input:focus ~ label,
+        input.p-filled ~ label,
+        input:-webkit-autofill ~ label,
+        .p-password .p-password-input:focus ~ label,
+        .p-password .p-password-input:-webkit-autofill ~ label,
+        .p-inputwrapper-focus ~ label,
+        .p-inputwrapper-filled ~ label,
+        label.p-label-active {
+          top: 0;
+          transform: translateY(-50%);
+          font-size: 0.75rem;
+          color: #667eea;
+        }
+      }
+
+      ::ng-deep app-input-password {
+        display: block;
+        width: 100%;
+      }
+
+      .form-hint {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        color: #888;
+        font-size: 0.85rem;
+
+        i {
+          color: #667eea;
+        }
+      }
+    }
+
+    .info-message,
+    .success-message {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+
+      i {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+    }
+
+    .info-message {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+
+      i {
+        color: #0284c7;
+      }
+    }
+
+    .success-message {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+
+      i {
+        color: #16a34a;
+      }
+    }
+
+    .form-actions {
+      margin-bottom: 1.5rem;
+
+      ::ng-deep .p-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+
+        .p-button-icon {
+          margin-right: 0.5rem;
+        }
+
+        &:hover:enabled {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        &:active:enabled {
+          transform: translateY(0);
+        }
+      }
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+
+      a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #667eea;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover:not(.disabled) {
+          color: #764ba2;
+          transform: translateX(-3px);
+        }
+
+        &.disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        &.resend-link {
+          color: #10b981;
+
+          &:hover:not(.disabled) {
+            color: #059669;
+            transform: scale(1.05);
+          }
+        }
+
+        i {
+          font-size: 0.875rem;
+        }
+      }
+    }
+  }
+
+  .recuperar-senha-footer {
+    margin-top: 2rem;
+    text-align: center;
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.875rem;
+      margin: 0;
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .recuperar-senha-container {
+    padding: 1rem;
+
+    .recuperar-senha-card {
+      padding: 2rem 1.5rem;
+    }
+
+    .recuperar-senha-header {
+      .logo {
+        width: 100px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+  }
+}

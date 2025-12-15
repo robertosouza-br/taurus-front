@@ -76,6 +76,17 @@ export class SidebarComponent implements OnInit {
         routerLink: '/dashboard'
       },
       {
+        label: 'Meu Perfil',
+        icon: 'pi pi-user',
+        items: [
+          {
+            label: 'Meus Dados',
+            icon: 'pi pi-id-card',
+            routerLink: '/meu-perfil'
+          }
+        ]
+      },
+      {
         label: 'Administração',
         icon: 'pi pi-cog',
         funcionalidade: Funcionalidade.ADMINISTRACAO,

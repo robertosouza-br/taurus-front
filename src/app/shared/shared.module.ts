@@ -72,6 +72,7 @@ import { CalendarModule } from 'primeng/calendar';
   ],
   exports: [
     CommonModule,
+    FormsModule,
     HasRoleDirective,
     HasPermissionDirective,
     TemPermissaoDirective,

@@ -1,0 +1,158 @@
+<p-toast></p-toast>
+
+<div class="recuperar-senha-container">
+  <div class="recuperar-senha-card">
+    <!-- Logo e Título -->
+    <div class="recuperar-senha-header">
+      <img src="assets/images/logo_sm.png" alt="Taurus" class="logo">
+      <h2>Recuperar Senha</h2>
+      <p class="subtitle">{{ getSubtitulo() }}</p>
+    </div>
+
+    <!-- Etapa 1: Solicitar Código -->
+    <form *ngIf="etapaAtual === 'solicitar'" [formGroup]="solicitarForm" (ngSubmit)="solicitarCodigo()" class="recuperar-form">
+      <div class="form-field">
+        <span class="p-float-label">
+          <input 
+            id="cpf" 
+            type="text" 
+            pInputText 
+            formControlName="cpf"
+            class="w-full"
+            maxlength="14"
+            (input)="onCpfInput($event)"
+            autocomplete="username"
+          >
+          <label for="cpf">CPF</label>
+        </span>
+        <small class="form-hint">
+          <i class="pi pi-info-circle"></i>
+          Digite seu CPF cadastrado para receber o código de recuperação
+        </small>
+      </div>
+
+      <div class="form-actions">
+        <p-button 
+          type="submit"
+          label="Enviar Código" 
+          icon="pi pi-send"
+          [loading]="loading"
+          styleClass="w-full"
+        ></p-button>
+      </div>
+
+      <div class="form-footer">
+        <a (click)="voltarLogin()" class="back-link">
+          <i class="pi pi-arrow-left"></i> Voltar para Login
+        </a>
+      </div>
+    </form>
+
+    <!-- Etapa 2: Validar Código -->
+    <form *ngIf="etapaAtual === 'validar'" [formGroup]="validarForm" (ngSubmit)="validarCodigo()" class="recuperar-form">
+      <div class="info-message">
+        <i class="pi pi-envelope"></i>
+        <p>Um código de 6 dígitos foi enviado para seu e-mail cadastrado.</p>
+      </div>
+
+      <div class="form-field">
+        <span class="p-float-label">
+          <input 
+            id="codigo" 
+            type="text" 
+            pInputText 
+            formControlName="codigo"
+            class="w-full codigo-input"
+            maxlength="6"
+            (input)="onCodigoInput($event)"
+            autocomplete="off"
+          >
+          <label for="codigo">Código de Verificação</label>
+        </span>
+        <small class="form-hint">
+          <i class="pi pi-info-circle"></i>
+          Digite o código de 6 dígitos recebido por e-mail
+        </small>
+      </div>
+
+      <div class="form-actions">
+        <p-button 
+          type="submit"
+          label="Validar Código" 
+          icon="pi pi-check"
+          [loading]="loading"
+          styleClass="w-full"
+        ></p-button>
+      </div>
+
+      <div class="form-footer">
+        <a (click)="reenviarCodigo()" class="resend-link" [class.disabled]="loading">
+          <i class="pi pi-refresh"></i> Reenviar código
+        </a>
+        <a (click)="voltarEtapa()" class="back-link">
+          <i class="pi pi-arrow-left"></i> Voltar
+        </a>
+      </div>
+    </form>
+
+    <!-- Etapa 3: Redefinir Senha -->
+    <form *ngIf="etapaAtual === 'redefinir'" (ngSubmit)="redefinirSenha()" class="recuperar-form">
+      <div class="success-message">
+        <i class="pi pi-check-circle"></i>
+        <p>Código validado! Agora defina sua nova senha.</p>
+      </div>
+
+      <div class="form-field">
+        <app-input-password
+          id="novaSenha"
+          name="novaSenha"
+          label="Nova Senha"
+          [(ngModel)]="novaSenha"
+          [disabled]="loading"
+          [feedback]="true"
+          [toggleMask]="true"
+          [required]="true"
+          autocomplete="new-password">
+        </app-input-password>
+        <small class="form-hint">
+          Mínimo 8 caracteres: maiúscula, minúscula, número e caractere especial
+        </small>
+      </div>
+
+      <div class="form-field">
+        <app-input-password
+          id="confirmacaoNovaSenha"
+          name="confirmacaoNovaSenha"
+          label="Confirmar Nova Senha"
+          [(ngModel)]="confirmacaoNovaSenha"
+          [disabled]="loading"
+          [feedback]="false"
+          [toggleMask]="true"
+          [required]="true"
+          autocomplete="new-password">
+        </app-input-password>
+      </div>
+
+      <div class="form-actions">
+        <p-button 
+          type="submit"
+          label="Redefinir Senha" 
+          icon="pi pi-key"
+          [loading]="loading"
+          styleClass="w-full"
+        ></p-button>
+      </div>
+
+      <div class="form-footer">
+        <a (click)="voltarEtapa()" class="back-link">
+          <i class="pi pi-arrow-left"></i> Voltar
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="recuperar-senha-footer">
+    <p>&copy; 2026 Construtora RJ - Todos os direitos reservados</p>
+  </div>
+</div>
