@@ -3,6 +3,20 @@ import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpErrorResponse
 import { Observable, throwError, BehaviorSubject, filter, take, switchMap, catchError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services';
+import { MessageService } from 'primeng/api';
+
+/**
+ * Interface para resposta de erro de exclusão não permitida
+ */
+export interface ExclusaoNaoPermitidaResponse {
+  timestamp: string;
+  status: number;
+  error: string;
+  message: string;
+  entidade: string;
+  motivo: string;
+  quantidadeVinculos: number;
+}
 
 /**
  * Interceptor de erro
@@ -16,7 +30,8 @@ export class ErrorInterceptor implements HttpInterceptor {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private messageService: MessageService
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -33,6 +48,26 @@ export class ErrorInterceptor implements HttpInterceptor {
           // 401 - Não autenticado: tenta renovar token
           if (error.status === 401 && !request.url.includes('/auth/login') && !request.url.includes('/auth/refresh')) {
             return this.handle401Error(request, next);
+          }
+          
+          // 409 - Exclusão não permitida: mostra mensagem com detalhes dos vínculos
+          if (error.status === 409 && error.error?.error === 'Exclusao nao permitida') {
+            const exclusaoError = error.error as ExclusaoNaoPermitidaResponse;
+            
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Exclusão Não Permitida',
+              detail: exclusaoError.message,
+              life: 8000
+            });
+            
+            console.warn('Tentativa de exclusão bloqueada:', {
+              entidade: exclusaoError.entidade,
+              motivo: exclusaoError.motivo,
+              vinculos: exclusaoError.quantidadeVinculos
+            });
+            
+            return throwError(() => exclusaoError);
           }
           
           // 403 - Sem permissão: redireciona para página de acesso negado

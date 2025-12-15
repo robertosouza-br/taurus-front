@@ -149,15 +149,22 @@ export class UsuariosListaComponent implements OnInit {
             this.messageService.add({
               severity: 'success',
               summary: 'Sucesso!',
-              detail: `Usuário "${usuario.nome}" excluído com sucesso.`
+              detail: `Usuário "${usuario.nome}" excluído com sucesso.`,
+              life: 3000
             });
             this.carregarUsuarios();
           },
           error: (error) => {
+            // Erro 409 já tratado pelo interceptor
+            if (error.status === 409) {
+              return;
+            }
+            
             this.messageService.add({
               severity: 'error',
               summary: 'Erro ao excluir',
-              detail: error.error?.message || 'Não foi possível excluir o usuário.'
+              detail: error.error?.message || 'Não foi possível excluir o usuário.',
+              life: 5000
             });
           }
         });

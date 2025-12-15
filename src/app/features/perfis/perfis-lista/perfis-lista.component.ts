@@ -213,17 +213,22 @@ export class PerfisListaComponent implements OnInit {
                 severity: 'success',
                 summary: 'Sucesso',
                 detail: 'Perfil excluído com sucesso',
-                life: 300000
+                life: 3000
               });
               this.carregarPerfis();
             },
-            error: () => {
+            error: (error) => {
+              // Erro 409 já tratado pelo interceptor
+              if (error.status === 409) {
+                return;
+              }
+              
               this.messageService.clear();
               this.messageService.add({
                 severity: 'error',
                 summary: 'Erro',
-                detail: 'Erro ao excluir perfil',
-                life: 300000
+                detail: error.error?.message || 'Erro ao excluir perfil',
+                life: 5000
               });
             }
           });
