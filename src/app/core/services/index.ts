@@ -7,3 +7,4 @@ export * from './permissao.service';
 export * from './sidebar.service';
 export * from './funcionalidade.service';
 export * from './usuario.service';
+export * from './meus-dados.service';

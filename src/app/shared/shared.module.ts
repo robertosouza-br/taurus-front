@@ -10,6 +10,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { PasswordModule } from 'primeng/password';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
 import { DataTableComponent } from './components/data-table/data-table.component';
@@ -21,6 +22,8 @@ import { CustomButtonComponent } from './components/custom-button/custom-button.
 import { InputTextComponent } from './components/input-text/input-text.component';
 import { InputTextareaComponent } from './components/input-textarea/input-textarea.component';
 import { InputCpfComponent } from './components/input-cpf/input-cpf.component';
+import { InputTelefoneComponent } from './components/input-telefone/input-telefone.component';
+import { InputPasswordComponent } from './components/input-password/input-password.component';
 import { InputDateComponent } from './components/input-date/input-date.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { DialogService } from 'primeng/dynamicdialog';
@@ -47,6 +50,8 @@ import { CalendarModule } from 'primeng/calendar';
     InputTextComponent,
     InputTextareaComponent,
     InputCpfComponent,
+    InputTelefoneComponent,
+    InputPasswordComponent,
     InputDateComponent,
     ConfirmationDialogComponent,
     AutocompleteComponent,
@@ -62,7 +67,8 @@ import { CalendarModule } from 'primeng/calendar';
     TooltipModule,
     DynamicDialogModule,
     AutoCompleteModule,
-    CalendarModule
+    CalendarModule,
+    PasswordModule
   ],
   exports: [
     CommonModule,
@@ -78,6 +84,8 @@ import { CalendarModule } from 'primeng/calendar';
     InputTextComponent,
     InputTextareaComponent,
     InputCpfComponent,
+    InputTelefoneComponent,
+    InputPasswordComponent,
     InputDateComponent,
     AutocompleteComponent,
     LoadingSpinnerComponent,

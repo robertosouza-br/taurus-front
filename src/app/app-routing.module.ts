@@ -41,6 +41,10 @@ const routes: Routes = [
       {
         path: 'admin/usuarios',
         loadChildren: () => import('./features/usuarios/usuarios.module').then(m => m.UsuariosModule)
+      },
+      {
+        path: 'meu-perfil',
+        loadChildren: () => import('./features/meu-perfil/meu-perfil.module').then(m => m.MeuPerfilModule)
       }
     ]
   },

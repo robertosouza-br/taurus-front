@@ -31,13 +31,9 @@ export class HeaderComponent implements OnInit {
 
     this.userMenuItems = [
       {
-        label: 'Perfil',
+        label: 'Meus Dados',
         icon: 'pi pi-user',
         command: () => this.navigateToProfile()
-      },
-      {
-        label: 'Configurações',
-        icon: 'pi pi-cog'
       },
       {
         separator: true
@@ -69,6 +65,6 @@ export class HeaderComponent implements OnInit {
    * Navega para o perfil do usuário
    */
   navigateToProfile(): void {
-    this.router.navigate(['/users/profile']);
+    this.router.navigate(['/meu-perfil']);
   }
 }

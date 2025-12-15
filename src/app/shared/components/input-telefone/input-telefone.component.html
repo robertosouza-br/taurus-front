@@ -1,0 +1,22 @@
+<div class="input-telefone-container" [ngClass]="styleClass">
+  <span class="p-float-label">
+    <input 
+      [id]="inputId"
+      type="tel"
+      pInputText
+      [value]="value"
+      (input)="onInputChange($event)"
+      (blur)="onBlur()"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [readonly]="readonly"
+      maxlength="15"
+      [required]="required"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-dirty]="isInvalid">
+    <label [for]="inputId">{{ displayLabel }}</label>
+  </span>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
+</div>

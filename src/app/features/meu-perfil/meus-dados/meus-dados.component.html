@@ -1,0 +1,261 @@
+<div class="meus-dados-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Meus Dados"
+    subtitle="Visualize e atualize suas informações pessoais"
+    icon="pi pi-user">
+  </app-page-header>
+
+  <app-loading-spinner *ngIf="carregando" message="Carregando seus dados..."></app-loading-spinner>
+
+  <div *ngIf="!carregando && meusDados" class="dados-content">
+    <div class="grid">
+      <!-- Dados Pessoais -->
+      <div class="col-12 lg:col-8">
+        <p-card header="Dados Pessoais">
+          <div class="p-fluid">
+            <div class="p-field">
+              <app-input-text
+                id="nome"
+                label="Nome Completo"
+                [(ngModel)]="dadosForm.nome"
+                [disabled]="salvando"
+                [maxlength]="120"
+                [required]="true"
+                [showValidation]="tentouSalvar">
+              </app-input-text>
+            </div>
+
+            <div class="p-field">
+              <app-input-text
+                id="apelido"
+                label="Apelido"
+                [(ngModel)]="dadosForm.apelido"
+                [disabled]="salvando"
+                [maxlength]="50"
+                placeholder="Como prefere ser chamado(a)?">
+              </app-input-text>
+            </div>
+
+            <div class="p-field">
+              <app-input-text
+                id="email"
+                label="Email"
+                type="email"
+                [(ngModel)]="dadosForm.email"
+                [disabled]="salvando"
+                [maxlength]="120"
+                [required]="true"
+                [showValidation]="tentouSalvar">
+              </app-input-text>
+            </div>
+
+            <div class="p-field">
+              <app-input-telefone
+                id="telefone"
+                label="Telefone"
+                [(ngModel)]="dadosForm.telefone"
+                [disabled]="salvando"
+                [showValidation]="tentouSalvar">
+              </app-input-telefone>
+            </div>
+
+            <div class="p-field">
+              <app-input-cpf
+                id="cpf"
+                label="CPF"
+                [ngModel]="meusDados.cpf"
+                [disabled]="true"
+                [readonly]="true">
+              </app-input-cpf>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <app-custom-button
+              label="Cancelar"
+              icon="pi pi-times"
+              severity="warning"
+              [disabled]="salvando"
+              (onClick)="cancelar()">
+            </app-custom-button>
+            <app-custom-button
+              label="Salvar"
+              icon="pi pi-check"
+              severity="success"
+              [loading]="salvando"
+              (onClick)="salvarDados()">
+            </app-custom-button>
+          </div>
+        </p-card>
+
+        <!-- Segurança -->
+        <p-card header="Segurança" styleClass="mt-3">
+          <div class="security-section">
+            <div class="security-info">
+              <i class="pi pi-shield security-icon"></i>
+              <div>
+                <h4>Senha de Acesso</h4>
+                <p>Mantenha sua senha segura e atualizada regularmente</p>
+              </div>
+            </div>
+            <app-custom-button
+              label="Trocar Senha"
+              icon="pi pi-key"
+              [outlined]="true"
+              severity="info"
+              (onClick)="abrirModalSenha()">
+            </app-custom-button>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Informações do Perfil -->
+      <div class="col-12 lg:col-4">
+        <p-card header="Informações da Conta" styleClass="info-card">
+          <div class="profile-info">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <i class="pi pi-user"></i>
+              </div>
+              <div class="profile-name">
+                <h3>{{ meusDados.nome }}</h3>
+                <span class="profile-email">{{ meusDados.email }}</span>
+              </div>
+            </div>
+            
+            <p-divider></p-divider>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <label><i class="pi pi-check-circle"></i> Status</label>
+                <p-tag 
+                  [value]="meusDados.ativo ? 'Ativo' : 'Inativo'" 
+                  [severity]="meusDados.ativo ? 'success' : 'danger'"
+                  [rounded]="true">
+                </p-tag>
+              </div>
+
+              <div class="info-item">
+                <label><i class="pi pi-id-card"></i> CPF</label>
+                <span class="info-value">{{ formatarCPF(meusDados.cpf) }}</span>
+              </div>
+
+              <div class="info-item">
+                <label><i class="pi pi-phone"></i> Telefone</label>
+                <span class="info-value">{{ formatarTelefone(meusDados.telefone) }}</span>
+              </div>
+
+              <div class="info-item">
+                <label><i class="pi pi-calendar"></i> Validade do Acesso</label>
+                <span class="info-value">{{ formatarData(meusDados.dataExpiracao) }}</span>
+              </div>
+            </div>
+
+            <p-divider></p-divider>
+
+            <div class="info-item">
+              <label><i class="pi pi-shield"></i> Perfis Associados</label>
+              <div class="perfis-list">
+                <div *ngFor="let perfil of meusDados.perfis" class="perfil-item">
+                  <i class="pi pi-shield"></i>
+                  <div class="perfil-info">
+                    <strong>{{ perfil.nome }}</strong>
+                    <small>{{ perfil.descricao }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Trocar Senha -->
+<p-dialog 
+  [(visible)]="exibirModalSenha" 
+  [modal]="true"
+  [style]="{width: '450px'}"
+  [draggable]="false"
+  [closable]="!trocandoSenha"
+  styleClass="senha-dialog">
+  
+  <ng-template pTemplate="header">
+    <div class="modal-header-content">
+      <i class="pi pi-key modal-icon"></i>
+      <h3>Trocar Senha</h3>
+    </div>
+  </ng-template>
+
+  <div class="senha-form">
+    <div class="p-fluid">
+      <div class="p-field">
+        <app-input-password
+          id="senhaAtual"
+          label="Senha Atual"
+          [(ngModel)]="senhaForm.senhaAtual"
+          [disabled]="trocandoSenha"
+          [feedback]="false"
+          [toggleMask]="true"
+          [required]="true"
+          autocomplete="current-password">
+        </app-input-password>
+      </div>
+
+      <div class="p-field">
+        <app-input-password
+          id="novaSenha"
+          label="Nova Senha"
+          [(ngModel)]="senhaForm.novaSenha"
+          [disabled]="trocandoSenha"
+          [feedback]="true"
+          [toggleMask]="true"
+          [required]="true"
+          autocomplete="new-password"
+          promptLabel="Digite uma senha"
+          weakLabel="Fraca"
+          mediumLabel="Média"
+          strongLabel="Forte">
+        </app-input-password>
+        <small class="form-hint">Mínimo de 8 caracteres</small>
+      </div>
+
+      <div class="p-field">
+        <app-input-password
+          id="confirmarSenha"
+          label="Confirmar Nova Senha"
+          [(ngModel)]="senhaForm.confirmacaoNovaSenha"
+          [disabled]="trocandoSenha"
+          [feedback]="false"
+          [toggleMask]="true"
+          [required]="true"
+          autocomplete="new-password">
+        </app-input-password>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="modal-footer-actions">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        [disabled]="trocandoSenha"
+        (onClick)="fecharModalSenha()">
+      </app-custom-button>
+      <app-custom-button
+        label="Alterar Senha"
+        icon="pi pi-check"
+        severity="success"
+        [loading]="trocandoSenha"
+        (onClick)="trocarSenha()">
+      </app-custom-button>
+    </div>
+  </ng-template>
+</p-dialog>
