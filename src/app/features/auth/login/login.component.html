@@ -9,12 +9,24 @@
     <!-- Formulário de Login -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
       
-      <!-- Mensagem de Aviso -->
-      <div class="warning-message" *ngIf="errorMessage">
-        <div class="warning-alert">
-          <i class="pi pi-exclamation-triangle"></i>
-          <div class="warning-content">
-            <strong>Atenção!</strong>
+      <!-- Mensagem de Erro -->
+      <div class="error-message" *ngIf="errorMessage">
+        <div class="error-alert" [ngClass]="{
+          'alert-warning': tipoErro === 'credenciais',
+          'alert-danger': tipoErro === 'bloqueado',
+          'alert-info': tipoErro === 'generico'
+        }">
+          <i class="pi" [ngClass]="{
+            'pi-exclamation-triangle': tipoErro === 'credenciais',
+            'pi-lock': tipoErro === 'bloqueado',
+            'pi-info-circle': tipoErro === 'generico'
+          }"></i>
+          <div class="error-content">
+            <strong>
+              <span *ngIf="tipoErro === 'credenciais'">Atenção!</span>
+              <span *ngIf="tipoErro === 'bloqueado'">Acesso Bloqueado</span>
+              <span *ngIf="tipoErro === 'generico'">Erro</span>
+            </strong>
             <p>{{ errorMessage }}</p>
           </div>
         </div>
@@ -77,13 +89,28 @@
           label="Entrar" 
           icon="pi pi-sign-in"
           [loading]="loading"
+          [disabled]="loading || loginForm.disabled"
           styleClass="w-full"
+        ></p-button>
+      </div>
+
+      <!-- Botão Suporte (aparece quando bloqueado) -->
+      <div class="form-actions" *ngIf="mostrarBotaoSuporte">
+        <p-button 
+          type="button"
+          label="Falar com Suporte" 
+          icon="pi pi-phone"
+          severity="secondary"
+          [outlined]="true"
+          styleClass="w-full"
+          (onClick)="falarComSuporte()"
         ></p-button>
       </div>
 
       <!-- Links adicionais -->
       <div class="form-footer">
         <a routerLink="/auth/recuperar-senha" class="forgot-password">Esqueceu sua senha?</a>
+        <a *ngIf="loginForm.disabled" (click)="limparErros()" class="try-again">Tentar novamente</a>
       </div>
     </form>
   </div>

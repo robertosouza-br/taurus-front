@@ -30,7 +30,8 @@ export class JwtInterceptor implements HttpInterceptor {
 
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
+        // Não trata erro 401 de endpoints de autenticação (deixa passar para o componente)
+        if (error.status === 401 && !this.isAuthEndpoint(request.url)) {
           return this.handle401Error(request, next);
         }
         return throwError(() => error);

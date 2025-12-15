@@ -19,6 +19,8 @@ export class LoginComponent implements OnInit, AfterViewInit {
   loading = false;
   submitted = false;
   errorMessage = '';
+  tipoErro: 'credenciais' | 'bloqueado' | 'generico' | null = null;
+  mostrarBotaoSuporte = false;
   returnUrl = '/';
   hidePassword = true;
 
@@ -82,6 +84,11 @@ export class LoginComponent implements OnInit, AfterViewInit {
   onSubmit(): void {
     this.submitted = true;
     this.errorMessage = '';
+    
+    // Limpa erros customizados antes de validar novamente
+    this.loginForm.get('cpf')?.setErrors(null);
+    this.loginForm.get('senha')?.setErrors(null);
+    this.loginForm.updateValueAndValidity();
 
     // Para se o formulário for inválido
     if (this.loginForm.invalid) {
@@ -117,16 +124,9 @@ export class LoginComponent implements OnInit, AfterViewInit {
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
-        // Trata erro de login
         this.loading = false;
-        
-        if (error.status === 401) {
-          this.errorMessage = 'Usuário ou senha inválidos';
-        } else if (error.status === 0) {
-          this.errorMessage = 'Erro ao conectar com o servidor. Verifique sua conexão.';
-        } else {
-          this.errorMessage = error.error?.message || 'Erro ao realizar login. Tente novamente.';
-        }
+        debugger
+        this.tratarErro(error);
       }
     });
   }
@@ -161,5 +161,82 @@ export class LoginComponent implements OnInit, AfterViewInit {
    */
   togglePasswordVisibility(): void {
     this.hidePassword = !this.hidePassword;
+  }
+
+  /**
+   * Trata os erros de autenticação
+   */
+  private tratarErro(error: any): void {
+    console.log('Erro completo:', error);
+    console.log('Status:', error.status);
+    console.log('Error.error:', error.error);
+    
+    this.errorMessage = '';
+    this.tipoErro = null;
+    this.mostrarBotaoSuporte = false;
+
+    // HttpErrorResponse do Angular encapsula assim:
+    // error.status = código HTTP
+    // error.error = corpo da resposta do backend
+    const status = error?.status;
+    const backendError = error?.error;
+    const mensagem = backendError?.message || error?.message || '';
+
+    if (status === 401) {
+      // CPF ou senha incorretos
+      this.tipoErro = 'credenciais';
+      // Usa a mensagem do backend
+      this.errorMessage = mensagem;
+      this.loginForm.get('cpf')?.setErrors({ invalido: true });
+      this.loginForm.get('senha')?.setErrors({ invalido: true });
+
+    } else if (status === 403) {
+      // Acesso bloqueado
+      this.tipoErro = 'bloqueado';
+      this.mostrarBotaoSuporte = true;
+
+      if (mensagem.includes('Usuario inativo')) {
+        this.errorMessage = mensagem;
+      } else if (mensagem.includes('Perfil de acesso inativo')) {
+        this.errorMessage = mensagem;
+      } else if (mensagem.includes('sem perfis ativos')) {
+        this.errorMessage = mensagem;
+      } else {
+        this.errorMessage = mensagem || 'Acesso negado. Entre em contato com o administrador.';
+      }
+
+      // Desabilitar formulário
+      this.loginForm.disable();
+
+    } else if (status === 0) {
+      // Erro de conexão (status 0 significa que não conseguiu conectar)
+      this.tipoErro = 'generico';
+      this.errorMessage = 'Erro ao conectar com o servidor. Verifique sua conexão.';
+
+    } else {
+      // Erro genérico (500, timeout, etc)
+      this.tipoErro = 'generico';
+      this.errorMessage = mensagem || 'Erro ao realizar login. Tente novamente mais tarde.';
+    }
+  }
+
+  /**
+   * Abre contato com suporte
+   */
+  falarComSuporte(): void {
+    // Implementar lógica para contato com suporte
+    window.location.href = 'mailto:suporte@taurus.com.br?subject=Problema de Acesso - Sistema Taurus';
+  }
+
+  /**
+   * Limpa erros e reabilita formulário
+   */
+  limparErros(): void {
+    this.errorMessage = '';
+    this.tipoErro = null;
+    this.mostrarBotaoSuporte = false;
+    this.loginForm.enable();
+    this.loginForm.get('cpf')?.setErrors(null);
+    this.loginForm.get('senha')?.setErrors(null);
   }
 }

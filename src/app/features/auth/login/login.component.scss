@@ -62,33 +62,89 @@
 }
 
 .login-form {
-  .warning-message {
+  .error-message {
     margin-bottom: 1.5rem;
     animation: shake 0.5s ease-in-out;
     
-    .warning-alert {
+    .error-alert {
       display: flex;
       align-items: flex-start;
       gap: 1rem;
       padding: 1rem 1.25rem;
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border: 2px solid #f59e0b;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+      border: 2px solid;
+      
+      &.alert-warning {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-color: #f59e0b;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+        
+        i {
+          color: #d97706;
+        }
+        
+        .error-content {
+          strong {
+            color: #92400e;
+          }
+          
+          p {
+            color: #b45309;
+          }
+        }
+      }
+      
+      &.alert-danger {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-color: #ef4444;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+        
+        i {
+          color: #dc2626;
+        }
+        
+        .error-content {
+          strong {
+            color: #991b1b;
+          }
+          
+          p {
+            color: #dc2626;
+          }
+        }
+      }
+      
+      &.alert-info {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border-color: #3b82f6;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        
+        i {
+          color: #2563eb;
+        }
+        
+        .error-content {
+          strong {
+            color: #1e40af;
+          }
+          
+          p {
+            color: #2563eb;
+          }
+        }
+      }
       
       i {
         font-size: 1.5rem;
-        color: #d97706;
         flex-shrink: 0;
         margin-top: 0.1rem;
       }
       
-      .warning-content {
+      .error-content {
         flex: 1;
         
         strong {
           display: block;
-          color: #92400e;
           font-size: 0.95rem;
           font-weight: 600;
           margin-bottom: 0.25rem;
@@ -96,7 +152,6 @@
         
         p {
           margin: 0;
-          color: #b45309;
           font-size: 0.9rem;
           line-height: 1.4;
         }
@@ -247,17 +302,33 @@
   .form-footer {
     margin-top: 1.5rem;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
 
-    .forgot-password {
+    .forgot-password,
+    .try-again {
       color: #667eea;
       text-decoration: none;
       font-size: 0.9rem;
       font-weight: 500;
       transition: color 0.3s ease;
+      cursor: pointer;
 
       &:hover {
         color: #764ba2;
         text-decoration: underline;
+      }
+    }
+
+    .try-again {
+      color: #10b981;
+      font-weight: 600;
+
+      &:hover {
+        color: #059669;
       }
     }
   }

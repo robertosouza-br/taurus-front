@@ -57,7 +57,7 @@ export class UsuariosListaComponent implements OnInit {
       this.headerActions.push({
         label: 'Novo Usuário',
         icon: 'pi pi-plus',
-        severity: 'success',
+        severity: 'primary',
         command: () => this.novoUsuario()
       });
     }
