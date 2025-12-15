@@ -22,6 +22,8 @@ export class UsuarioEdicaoComponent implements OnInit {
   nome: string = '';
   email: string = '';
   cpf: string = '';
+  telefone: string = '';
+  apelido: string = '';
   dataExpiracao: Date | null = null;
   ativo: boolean = true;
   perfilSelecionado: PerfilDTO | null = null;
@@ -88,6 +90,8 @@ export class UsuarioEdicaoComponent implements OnInit {
         this.nome = this.usuario.nome;
         this.email = this.usuario.email;
         this.cpf = this.usuario.cpf;
+        this.telefone = this.usuario.telefone || '';
+        this.apelido = this.usuario.apelido || '';
         this.dataExpiracao = this.usuario.dataExpiracao ? this.parseDataAPI(this.usuario.dataExpiracao) : null;
         this.ativo = this.usuario.ativo;
         this.perfilSelecionado = this.usuario.perfis && this.usuario.perfis.length > 0
@@ -177,6 +181,8 @@ export class UsuarioEdicaoComponent implements OnInit {
       nome: this.nome.trim(),
       email: this.email.trim(),
       cpf: cpfImutavel,
+      telefone: this.telefone.trim() || null,
+      apelido: this.apelido.trim() || null,
       dataExpiracao: this.dataExpiracao ? this.formatarDataParaAPI(this.dataExpiracao) : null,
       ativo: this.ativo,
       perfisIds: [this.perfilSelecionado!.id],
@@ -254,6 +260,8 @@ export class UsuarioEdicaoComponent implements OnInit {
     this.nome = this.usuario.nome;
     this.email = this.usuario.email;
     this.cpf = this.usuario.cpf;
+    this.telefone = this.usuario.telefone || '';
+    this.apelido = this.usuario.apelido || '';
     this.dataExpiracao = this.usuario.dataExpiracao ? this.parseDataAPI(this.usuario.dataExpiracao) : null;
     this.ativo = this.usuario.ativo;
     this.perfilSelecionado = this.usuario.perfis && this.usuario.perfis.length > 0

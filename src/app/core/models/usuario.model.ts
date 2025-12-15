@@ -8,6 +8,8 @@ export interface UsuarioEntradaDTO {
   nome: string;
   email: string;
   cpf: string; // Obrigatório
+  telefone?: string | null; // Opcional
+  apelido?: string | null; // Opcional
   dataExpiracao?: string | null; // Opcional: formato YYYY-MM-DD, null = acesso integral
   ativo: boolean;
   perfisIds: number[]; // Array com IDs dos perfis
@@ -20,6 +22,8 @@ export interface UsuarioAtualizacaoDTO {
   nome: string;
   email: string;
   cpf: string; // Obrigatório
+  telefone?: string | null; // Opcional
+  apelido?: string | null; // Opcional
   dataExpiracao?: string | null; // Opcional: formato YYYY-MM-DD, null = acesso integral
   ativo: boolean;
   perfisIds: number[]; // Array com IDs dos perfis
@@ -49,6 +53,8 @@ export interface UsuarioSaidaDTO {
   nome: string;
   email: string;
   cpf: string;
+  telefone?: string | null; // Opcional
+  apelido?: string | null; // Opcional
   dataExpiracao?: string | null; // YYYY-MM-DD ou null para acesso integral
   ativo: boolean;
   perfis: PerfilDTO[];

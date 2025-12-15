@@ -29,6 +29,11 @@ export class AuthService {
   public usuarioLogado$: Observable<UsuarioLogado | null>;
   
   private jwtHelper: JwtHelperService;
+  private tokenCheckInterval: any = null;
+  private isRenewing: boolean = false; // Flag para evitar renovações duplicadas
+  private lastActivityTime: Date = new Date(); // Rastreia última atividade do usuário
+  private readonly MAX_INACTIVITY_MS = 10 * 60 * 1000; // 10 minutos sem atividade = não renova
+  private inactivityWarningShown: boolean = false; // Flag para mostrar aviso apenas uma vez
 
   constructor(
     private http: HttpClient,
@@ -45,6 +50,17 @@ export class AuthService {
     const usuarioLogado = this.carregarUsuarioStorage();
     this.usuarioLogadoSubject = new BehaviorSubject<UsuarioLogado | null>(usuarioLogado);
     this.usuarioLogado$ = this.usuarioLogadoSubject.asObservable();
+
+    // Inicia verificação automática de token
+    this.iniciarVerificacaoAutomatica();
+
+    // Log inicial do estado do token
+    if (usuarioLogado && usuarioLogado.expiracao) {
+      const agora = new Date();
+      const expiracao = new Date(usuarioLogado.expiracao);
+      const tempoRestante = Math.round((expiracao.getTime() - agora.getTime()) / 1000);
+      console.log(`[AUTH] 🔐 Sessão iniciada - Token expira em ${tempoRestante}s (${Math.floor(tempoRestante / 60)}min)`);
+    }
   }
 
   /**
@@ -104,6 +120,18 @@ export class AuthService {
     this.setToken(response.token);
     this.salvarUsuarioStorage(usuario);
     this.usuarioLogadoSubject.next(usuario);
+
+    // Reinicia verificação automática de token
+    this.iniciarVerificacaoAutomatica();
+
+    // Registra atividade (login conta como atividade)
+    this.registrarAtividade();
+
+    // Log de sucesso
+    const agora = new Date();
+    const expiracao = new Date(usuario.expiracao);
+    const tempoRestante = Math.round((expiracao.getTime() - agora.getTime()) / 1000);
+    console.log(`[AUTH] 🎉 Login processado - Token válido por ${Math.floor(tempoRestante / 60)} minutos`);
 
     // Mantém compatibilidade com sistema antigo
     const userCompat: User = {
@@ -176,9 +204,112 @@ export class AuthService {
   }
 
   /**
+   * Registra atividade do usuário (chamado por UserActivityService)
+   */
+  public registrarAtividade(): void {
+    this.lastActivityTime = new Date();
+    this.inactivityWarningShown = false; // Reset do aviso quando há atividade
+  }
+
+  /**
+   * Verifica se houve atividade recente (últimos 10 minutos)
+   */
+  private temAtividadeRecente(): boolean {
+    const agora = new Date();
+    const tempoInativo = agora.getTime() - this.lastActivityTime.getTime();
+    return tempoInativo < this.MAX_INACTIVITY_MS;
+  }
+
+  /**
+   * Inicia verificação automática de expiração do token
+   * Verifica a cada 30 segundos se o token está próximo de expirar
+   */
+  private iniciarVerificacaoAutomatica(): void {
+    // Para qualquer verificação anterior
+    if (this.tokenCheckInterval) {
+      clearInterval(this.tokenCheckInterval);
+    }
+
+    // Verifica a cada 30 segundos
+    this.tokenCheckInterval = setInterval(() => {
+      const usuarioLogado = this.getUsuarioLogado();
+      
+      if (!usuarioLogado || !usuarioLogado.expiracao) {
+        return;
+      }
+
+      // Se já está renovando, aguarda
+      if (this.isRenewing) {
+        console.log('[AUTH] ⏳ Renovação já em andamento, aguardando...');
+        return;
+      }
+
+      const agora = new Date();
+      const expiracao = new Date(usuarioLogado.expiracao);
+      const tempoRestante = (expiracao.getTime() - agora.getTime()) / 1000; // em segundos
+
+      // Aviso 2 minutos antes de expirar se estiver inativo
+      if (tempoRestante > 60 && tempoRestante < 120 && !this.temAtividadeRecente()) {
+        if (!this.inactivityWarningShown) {
+          const tempoInativo = Math.round((agora.getTime() - this.lastActivityTime.getTime()) / 1000 / 60);
+          console.warn(`[AUTH] ⚠️ Usuário inativo há ${tempoInativo} minutos`);
+          console.warn(`[AUTH] ⏱️ Sessão expirará em ${Math.round(tempoRestante / 60)} minuto(s) sem atividade`);
+          this.inactivityWarningShown = true;
+        }
+      }
+
+      // Se faltar menos de 60 segundos (1 minuto) para expirar, verifica atividade
+      if (tempoRestante > 0 && tempoRestante < 60) {
+        // Só renova se houver atividade recente
+        if (!this.temAtividadeRecente()) {
+          const tempoInativo = Math.round((agora.getTime() - this.lastActivityTime.getTime()) / 1000 / 60);
+          console.log(`[AUTH] 💤 Usuário inativo há ${tempoInativo} minutos - Token vai expirar`);
+          console.log('[AUTH] ⏱️ Sistema fará logout por inatividade ao expirar o token');
+          return;
+        }
+
+        console.log(`[AUTH] ⏰ Token expira em ${Math.round(tempoRestante)}s - Renovando (usuário ativo)...`);
+        this.isRenewing = true;
+        this.inactivityWarningShown = false; // Reset para próximo ciclo
+        
+        this.renovarToken().subscribe({
+          next: () => {
+            console.log('[AUTH] ✅ Token renovado automaticamente com sucesso');
+            this.isRenewing = false;
+          },
+          error: (error) => {
+            console.error('[AUTH] ❌ Erro na renovação automática:', error);
+            this.isRenewing = false;
+          }
+        });
+      } else if (tempoRestante <= 0) {
+        // Token já expirou
+        console.log('[AUTH] ⌛ Token expirado - Fazendo logout...');
+        this.inactivityWarningShown = false;
+        this.logout('Sua sessão expirou por inatividade');
+      }
+    }, 30000); // 30 segundos
+  }
+
+  /**
+   * Para a verificação automática de token
+   */
+  private pararVerificacaoAutomatica(): void {
+    if (this.tokenCheckInterval) {
+      clearInterval(this.tokenCheckInterval);
+      this.tokenCheckInterval = null;
+    }
+    this.isRenewing = false;
+    this.inactivityWarningShown = false;
+  }
+
+  /**
    * Realiza o logout do usuário
    */
   logout(motivo?: string): void {
+    // Para verificação automática
+    this.pararVerificacaoAutomatica();
+
     // Remove dados do localStorage
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);

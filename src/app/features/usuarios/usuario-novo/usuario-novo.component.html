@@ -48,6 +48,28 @@
         </div>
 
         <div class="p-field">
+          <app-input-telefone
+            id="telefone"
+            label="Telefone"
+            [(ngModel)]="telefone"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            placeholder="(00) 00000-0000">
+          </app-input-telefone>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="apelido"
+            label="Apelido"
+            [(ngModel)]="apelido"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            placeholder="Informe um apelido para o usuário">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
           <app-input-date
             id="dataExpiracao"
             label="Data de Expiração"

@@ -21,6 +21,8 @@ export class UsuarioNovoComponent implements OnInit {
   nome: string = '';
   email: string = '';
   cpf: string = '';
+  telefone: string = '';
+  apelido: string = '';
   dataExpiracao: Date | null = null;
   ativo: boolean = true;
   perfilSelecionado: PerfilDTO | null = null;
@@ -171,6 +173,8 @@ export class UsuarioNovoComponent implements OnInit {
       nome: this.nome.trim(),
       email: this.email.trim(),
       cpf: this.cpf.replace(/\D/g, ''), // Remove formatação
+      telefone: this.telefone.trim() || null,
+      apelido: this.apelido.trim() || null,
       dataExpiracao: this.dataExpiracao ? this.formatarDataParaAPI(this.dataExpiracao) : null,
       ativo: this.ativo,
       perfisIds: [this.perfilSelecionado!.id]
@@ -271,6 +275,8 @@ export class UsuarioNovoComponent implements OnInit {
     this.nome = '';
     this.email = '';
     this.cpf = '';
+    this.telefone = '';
+    this.apelido = '';
     this.dataExpiracao = null;
     this.ativo = true;
     this.perfilSelecionado = null;

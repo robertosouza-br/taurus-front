@@ -86,6 +86,8 @@ export class UserActivityService implements OnDestroy {
     if (this.authService.isAuthenticated) {
       this.activitySubject.next();
       this.resetarTimerInatividade();
+      // Registra atividade no AuthService para controle de renovação de token
+      this.authService.registrarAtividade();
     }
   };
 
