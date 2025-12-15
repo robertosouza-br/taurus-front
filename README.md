@@ -395,7 +395,7 @@ server {
 
 ## 📝 Licença
 
-Copyright © 2024 Construtora RJ - Todos os direitos reservados
+Copyright © 2026 CALTER Construtora - Todos os direitos reservados
 
 ## 🤝 Contribuindo
 
