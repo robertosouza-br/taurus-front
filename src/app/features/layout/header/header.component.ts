@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
+import { Menu } from 'primeng/menu';
 import { AuthService, SidebarService } from '../../../core/services';
 import { User } from '../../../core/models';
 
@@ -14,9 +15,19 @@ import { User } from '../../../core/models';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
+  @ViewChild('userMenu') userMenu!: Menu;
+  
   currentUser: User | null = null;
   isSidebarVisible = true;
   userMenuItems: MenuItem[] = [];
+  menuWidth = 220;
+
+  get firstName(): string {
+    const name = this.currentUser?.name?.trim();
+    if (!name) return 'Usuário';
+    const parts = name.split(/\s+/);
+    return parts[0] || 'Usuário';
+  }
 
   constructor(
     private authService: AuthService,
@@ -46,6 +57,7 @@ export class HeaderComponent implements OnInit {
     ];
   }
 
+
   /**
    * Realiza logout
    */
@@ -66,5 +78,14 @@ export class HeaderComponent implements OnInit {
    */
   navigateToProfile(): void {
     this.router.navigate(['/meu-perfil']);
+  }
+
+  /**
+   * Abre/fecha o menu do usuário
+   */
+  toggleUserMenu(event: Event): void {
+    if (this.userMenu) {
+      this.userMenu.toggle(event);
+    }
   }
 }

@@ -31,13 +31,24 @@
       <button 
         pButton 
         type="button" 
-        [label]="currentUser?.name || 'Usuário'"
+        #userButton
+        [label]="firstName"
+        [title]="firstName"
         icon="pi pi-user"
-        class="p-button-text"
-        (click)="userMenu.toggle($event)"
+        iconPos="left"
+        class="p-button-text user-button"
+        (click)="toggleUserMenu($event)"
       ></button>
       
-      <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
+      <p-menu 
+        #userMenu 
+        [model]="userMenuItems" 
+        [popup]="true"
+        appendTo="body"
+        [baseZIndex]="11000"
+        styleClass="user-menu-overlay"
+        [style]="{ 'margin-top': '0.5rem', width: menuWidth + 'px' }">
+      </p-menu>
     </div>
   </div>
 </header>
