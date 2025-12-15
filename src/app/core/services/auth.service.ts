@@ -153,7 +153,6 @@ export class AuthService {
     const usuarioLogado = this.usuarioLogadoValue;
     
     console.log('[AUTH] Tentando renovar token...');
-    console.log('[AUTH] Usuário logado:', usuarioLogado);
     
     if (!usuarioLogado?.refreshToken) {
       console.error('[AUTH] Refresh token não encontrado');
@@ -486,9 +485,9 @@ export class AuthService {
     const usuario = this.usuarioLogadoValue;
     
     console.log('=== TESTE DE REFRESH TOKEN ===');
-    console.log('Usuário atual:', usuario);
-    console.log('Token atual:', this.getToken()?.substring(0, 50) + '...');
-    console.log('Refresh Token:', usuario?.refreshToken?.substring(0, 50) + '...');
+    console.log('Usuário:', usuario?.email || 'Não logado');
+    console.log('Token presente:', !!this.getToken());
+    console.log('Refresh token presente:', !!usuario?.refreshToken);
     console.log('Expiração do token:', usuario?.expiracao);
     console.log('Expiração do refresh:', usuario?.refreshExpiracao);
     console.log('Tempo até expirar (segundos):', usuario?.expiracao ? Math.floor((usuario.expiracao.getTime() - Date.now()) / 1000) : 'N/A');
@@ -507,13 +506,13 @@ export class AuthService {
     console.log('🔄 Tentando renovar token...');
     
     this.renovarToken().subscribe({
-      next: (response) => {
+      next: () => {
+        const novoUsuario = this.usuarioLogadoValue;
         console.log('✅ Token renovado com sucesso!');
-        console.log('Novo token:', response.token.substring(0, 50) + '...');
-        console.log('Nova expiração:', new Date(response.expiracao));
+        console.log('Nova expiração:', novoUsuario?.expiracao);
       },
       error: (error) => {
-        console.error('❌ Erro ao renovar token:', error);
+        console.error('❌ Erro ao renovar token:', error.message || 'Erro desconhecido');
       }
     });
   }
