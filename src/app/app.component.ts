@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PrimeNGConfig } from 'primeng/api';
+import { AuthService } from './core/services';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,13 @@ import { PrimeNGConfig } from 'primeng/api';
 export class AppComponent implements OnInit {
   title = 'taurus-auth';
 
-  constructor(private config: PrimeNGConfig) {}
+  constructor(
+    private config: PrimeNGConfig,
+    private authService: AuthService
+  ) {
+    // Expõe AuthService no console para testes
+    (window as any)['authService'] = authService;
+  }
 
   ngOnInit() {
     this.config.setTranslation({

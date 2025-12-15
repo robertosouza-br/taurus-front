@@ -71,6 +71,11 @@ export class SidebarComponent implements OnInit {
   private initializeMenu(): void {
     const allMenuItems: MenuItem[] = [
       {
+        label: 'Dashboard',
+        icon: 'pi pi-home',
+        routerLink: '/dashboard'
+      },
+      {
         label: 'Administração',
         icon: 'pi pi-cog',
         funcionalidade: Funcionalidade.ADMINISTRACAO,
@@ -88,16 +93,6 @@ export class SidebarComponent implements OnInit {
             funcionalidade: Funcionalidade.USUARIO
           }
         ]
-      },
-      {
-        label: 'Ajuda',
-        icon: 'pi pi-question-circle',
-        routerLink: '/help'
-      },
-      {
-        label: 'Dashboard',
-        icon: 'pi pi-home',
-        routerLink: '/dashboard'
       },
       {
         label: 'Meu Perfil',

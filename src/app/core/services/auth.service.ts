@@ -124,20 +124,37 @@ export class AuthService {
   renovarToken(): Observable<LoginResponse> {
     const usuarioLogado = this.usuarioLogadoValue;
     
+    console.log('[AUTH] Tentando renovar token...');
+    console.log('[AUTH] Usuário logado:', usuarioLogado);
+    
     if (!usuarioLogado?.refreshToken) {
+      console.error('[AUTH] Refresh token não encontrado');
       return throwError(() => new Error('Refresh token não encontrado'));
+    }
+
+    // Verifica se o refresh token expirou
+    const agora = new Date();
+    if (usuarioLogado.refreshExpiracao && usuarioLogado.refreshExpiracao <= agora) {
+      console.error('[AUTH] Refresh token expirado');
+      this.logout('Sua sessão expirou. Por favor, faça login novamente.');
+      return throwError(() => new Error('Refresh token expirado'));
     }
 
     const request: RefreshTokenRequest = {
       refreshToken: usuarioLogado.refreshToken
     };
 
+    console.log('[AUTH] Enviando requisição de refresh...');
+
     return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/refresh`, request)
       .pipe(
-        tap(response => this.processarLogin(response)),
+        tap(response => {
+          console.log('[AUTH] Token renovado com sucesso');
+          this.processarLogin(response);
+        }),
         catchError(error => {
-          console.error('Erro ao renovar token:', error);
-          this.logout();
+          console.error('[AUTH] Erro ao renovar token:', error);
+          this.logout('Sua sessão expirou. Por favor, faça login novamente.');
           return throwError(() => error);
         })
       );
@@ -280,26 +297,13 @@ export class AuthService {
   }
 
   /**
-   * Renova o token usando o refresh token
+   * Método antigo - mantido para compatibilidade com interceptor
+   * Redireciona para renovarToken()
    */
   refreshToken(): Observable<string> {
-    const refreshToken = this.getRefreshToken();
-    
-    if (!refreshToken) {
-      return throwError(() => new Error('Refresh token não encontrado'));
-    }
-
-    return this.http.post<{ token: string }>(`${environment.apiUrl}/auth/refresh`, { refreshToken })
-      .pipe(
-        tap(response => {
-          this.setToken(response.token);
-        }),
-        map(response => response.token),
-        catchError(error => {
-          this.logout();
-          return throwError(() => error);
-        })
-      );
+    return this.renovarToken().pipe(
+      map(response => response.token)
+    );
   }
 
   /**
@@ -335,10 +339,51 @@ export class AuthService {
       return {
         ...parsed,
         expiracao: new Date(parsed.expiracao),
+        refreshExpiracao: parsed.refreshExpiracao ? new Date(parsed.refreshExpiracao) : undefined,
         permissoes: permissoesMap
       };
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Método de teste: Forçar renovação do token
+   * Execute no console: window['authService'].testarRefreshToken()
+   */
+  testarRefreshToken(): void {
+    const usuario = this.usuarioLogadoValue;
+    
+    console.log('=== TESTE DE REFRESH TOKEN ===');
+    console.log('Usuário atual:', usuario);
+    console.log('Token atual:', this.getToken()?.substring(0, 50) + '...');
+    console.log('Refresh Token:', usuario?.refreshToken?.substring(0, 50) + '...');
+    console.log('Expiração do token:', usuario?.expiracao);
+    console.log('Expiração do refresh:', usuario?.refreshExpiracao);
+    console.log('Tempo até expirar (segundos):', usuario?.expiracao ? Math.floor((usuario.expiracao.getTime() - Date.now()) / 1000) : 'N/A');
+    
+    if (!usuario?.refreshToken) {
+      console.error('❌ Refresh token não encontrado!');
+      return;
+    }
+
+    const agora = new Date();
+    if (usuario.refreshExpiracao && usuario.refreshExpiracao <= agora) {
+      console.error('❌ Refresh token já expirou!');
+      return;
+    }
+
+    console.log('🔄 Tentando renovar token...');
+    
+    this.renovarToken().subscribe({
+      next: (response) => {
+        console.log('✅ Token renovado com sucesso!');
+        console.log('Novo token:', response.token.substring(0, 50) + '...');
+        console.log('Nova expiração:', new Date(response.expiracao));
+      },
+      error: (error) => {
+        console.error('❌ Erro ao renovar token:', error);
+      }
+    });
   }
 }
