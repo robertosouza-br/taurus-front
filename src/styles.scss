@@ -1047,6 +1047,11 @@ small.info-message,
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+
+  .text-muted {
+    color: #6c757d;
+    font-style: italic;
+  }
 }
 
 /* Badge informativo */
