@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { 
   FuncionalidadeDTO, 
@@ -187,6 +188,55 @@ export class FuncionalidadeService {
   excluirPerfil(id: number): Observable<void> {
     return this.http.delete<void>(
       `${this.API_URL}/perfis/${id}`
+    ).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 403) {
+          // Tentativa de excluir perfil de sistema
+          return throwError(() => ({
+            status: 403,
+            error: {
+              message: error.error?.message || 'Perfis de sistema não podem ser excluídos'
+            }
+          }));
+        }
+        
+        if (error.status === 409) {
+          // Perfil com usuários vinculados
+          return throwError(() => ({
+            status: 409,
+            error: {
+              message: error.error?.message || 'Perfil possui usuários vinculados',
+              quantidadeVinculos: error.error?.quantidadeVinculos || 0
+            }
+          }));
+        }
+        
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Atualiza perfil com tratamento de erro para perfis de sistema
+   */
+  atualizarPerfilComValidacao(id: number, perfil: PerfilEntradaDTO): Observable<PerfilDTO> {
+    return this.http.put<PerfilDTO>(
+      `${this.API_URL}/perfis/${id}`,
+      perfil
+    ).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 403) {
+          // Tentativa de alterar campos restritos de perfil de sistema
+          return throwError(() => ({
+            status: 403,
+            error: {
+              message: error.error?.message || 'Operação não permitida em perfil de sistema'
+            }
+          }));
+        }
+        
+        return throwError(() => error);
+      })
     );
   }
 }

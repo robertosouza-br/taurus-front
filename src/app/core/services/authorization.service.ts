@@ -18,11 +18,11 @@ export class AuthorizationService {
    */
   private isAdministrador(): boolean {
     const usuario = this.authService.getUsuarioLogado();
-    if (!usuario) return false;
+    if (!usuario || !usuario.perfis) return false;
     
-    return usuario.perfis?.some(perfil => 
+    return usuario.perfis.some((perfil: any) => 
       perfil.nome === 'ADMINISTRADOR' || perfil.nome === 'Administrador'
-    ) || false;
+    );
   }
 
   /**

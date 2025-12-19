@@ -3,6 +3,42 @@
   max-width: 1400px;
   margin: 0 auto;
 
+  .nome-perfil-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .nome-perfil {
+      font-weight: 500;
+    }
+
+    .badge-sistema {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+
+      i {
+        font-size: 0.65rem;
+      }
+
+      &.badge-danger {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      &.badge-warning {
+        background-color: #ff9800;
+        color: white;
+      }
+    }
+  }
+
   .badge-info {
     display: inline-flex;
     align-items: center;

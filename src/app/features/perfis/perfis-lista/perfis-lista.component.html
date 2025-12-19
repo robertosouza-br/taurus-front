@@ -23,6 +23,19 @@
     [totalRecords]="totalElements"
     (onSearch)="onSearch($event)">
     
+    <!-- Template para Nome com Badge de Sistema -->
+    <ng-template appTableTemplate="nome" let-perfil="rowData">
+      <div class="nome-perfil-container">
+        <span class="nome-perfil">{{ perfil.nome }}</span>
+        <span *ngIf="isAdministrador(perfil)" class="badge badge-sistema badge-danger">
+          <i class="pi pi-lock"></i> Sistema
+        </span>
+        <span *ngIf="isCorretor(perfil)" class="badge badge-sistema badge-warning">
+          <i class="pi pi-shield"></i> Sistema
+        </span>
+      </div>
+    </ng-template>
+
     <!-- Template para Status -->
     <ng-template appTableTemplate="status" let-perfil="rowData">
       <p-tag 

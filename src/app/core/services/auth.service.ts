@@ -114,7 +114,8 @@ export class AuthService {
       expiracao: new Date(response.expiracao),
       refreshToken: response.refreshToken,
       refreshExpiracao: new Date(response.refreshExpiracao),
-      permissoes: permissoesMap
+      permissoes: permissoesMap,
+      perfis: response.perfis || []
     };
 
     this.setToken(response.token);

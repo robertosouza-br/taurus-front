@@ -16,6 +16,20 @@
   <app-loading-spinner *ngIf="carregando" message="Carregando configurações..."></app-loading-spinner>
 
   <div *ngIf="!carregando && perfil" class="configuracao-content">
+    <!-- Aviso para Perfis de Sistema -->
+    <div *ngIf="isPerfilSistema" class="alert alert-sistema mb-3">
+      <i class="pi pi-shield alert-icon"></i>
+      <div class="alert-content">
+        <strong>Perfil de Sistema</strong>
+        <p *ngIf="isAdministrador">
+          Este perfil possui acesso total ao sistema. Apenas a descrição pode ser alterada.
+        </p>
+        <p *ngIf="isCorretor">
+          As permissões podem ser configuradas pelo administrador. O nome e status não podem ser alterados.
+        </p>
+      </div>
+    </div>
+
     <!-- Dados do Perfil -->
     <p-card header="Dados do Perfil">
     <br>
@@ -29,6 +43,10 @@
             [readonly]="true"
             styleClass="readonly-field">
           </app-input-text>
+          <small *ngIf="isPerfilSistema" class="field-info">
+            <i class="pi pi-info-circle"></i>
+            Perfis de sistema não podem ter o nome alterado
+          </small>
         </div>
 
         <div class="p-field">
@@ -47,8 +65,13 @@
             [(ngModel)]="perfil.ativo" 
             [binary]="true" 
             inputId="ativo"
+            [disabled]="!podeAlterarStatus"
             label="Perfil Ativo">
           </p-checkbox>
+          <small *ngIf="isPerfilSistema" class="field-info" style="margin-left: 2rem;">
+            <i class="pi pi-info-circle"></i>
+            Perfis de sistema não podem ser desativados
+          </small>
         </div>
       </div>
     </p-card>
@@ -59,8 +82,19 @@
       <small class="p-error" *ngIf="tentouSalvar && !temPermissoesSelecionadas" style="display: block; margin-bottom: 1rem;">
         Selecione pelo menos uma permissão
       </small>
+
+      <!-- Aviso para ADMINISTRADOR -->
+      <div *ngIf="!podeAlterarPermissoes" class="alert alert-info mb-3">
+        <i class="pi pi-info-circle alert-icon"></i>
+        <div class="alert-content">
+          <strong>Acesso Total</strong>
+          <p>
+            O perfil ADMINISTRADOR possui acesso total ao sistema e suas permissões não podem ser alteradas.
+          </p>
+        </div>
+      </div>
       
-      <div class="funcionalidades-grid">
+      <div class="funcionalidades-grid" *ngIf="podeAlterarPermissoes">
         <p-card *ngFor="let func of funcionalidades" class="funcionalidade-card">
           <ng-template pTemplate="header">
             <div class="card-header">

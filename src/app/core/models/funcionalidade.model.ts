@@ -38,6 +38,7 @@ export interface PerfilDTO {
   nome: string;
   descricao?: string;
   ativo: boolean;
+  perfilSistema: boolean;
   permissoes?: Record<string, string[]>;
 }
 
@@ -49,6 +50,7 @@ export interface PerfilSaidaDTO {
   nome: string;
   descricao?: string;
   ativo: boolean;
+  perfilSistema: boolean;
   permissoes: Record<string, string[]>;
 }
 

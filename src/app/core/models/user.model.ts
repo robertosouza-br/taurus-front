@@ -58,6 +58,7 @@ export interface LoginResponse {
   usuario: string;
   nomeUsuario: string;
   permissoes: Record<Funcionalidade, Permissao[]>;
+  perfis: Perfil[];
 }
 
 /**
@@ -65,6 +66,14 @@ export interface LoginResponse {
  */
 export interface RefreshTokenRequest {
   refreshToken: string;
+}
+
+/**
+ * Perfil do usuário
+ */
+export interface Perfil {
+  id: number;
+  nome: string;
 }
 
 /**
@@ -78,4 +87,5 @@ export interface UsuarioLogado {
   refreshToken: string;
   refreshExpiracao: Date;
   permissoes: Map<Funcionalidade, Set<Permissao>>;
+  perfis: Perfil[];
 }

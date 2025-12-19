@@ -100,7 +100,7 @@ export class PerfisListaComponent implements OnInit {
     // Configuração das colunas
     this.colunas = [
       { field: 'id', header: '#', width: '80px', sortable: true, align: 'center' },
-      { field: 'nome', header: 'Nome', sortable: true, align: 'left' },
+      { field: 'nome', header: 'Nome', sortable: true, align: 'left', template: 'nome' },
       { field: 'descricao', header: 'Descrição', sortable: true, align: 'left' },
       { 
         field: 'status', 
@@ -138,7 +138,7 @@ export class PerfisListaComponent implements OnInit {
         icon: 'pi pi-trash',
         tooltip: 'Excluir',
         severity: 'danger',
-        visible: () => this.podeExcluir,
+        visible: (perfil) => this.podeExcluirPerfil(perfil),
         action: (perfil) => this.excluirPerfil(perfil)
       }
     ];
@@ -218,12 +218,32 @@ export class PerfisListaComponent implements OnInit {
               this.carregarPerfis();
             },
             error: (error) => {
-              // Erro 409 já tratado pelo interceptor
-              if (error.status === 409) {
+              this.messageService.clear();
+              
+              // Erro 403 - Tentativa de excluir perfil de sistema
+              if (error.status === 403) {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Operação Não Permitida',
+                  detail: error.error?.message || 'Perfis de sistema não podem ser excluídos',
+                  life: 5000
+                });
                 return;
               }
               
-              this.messageService.clear();
+              // Erro 409 - Perfil com usuários vinculados
+              if (error.status === 409) {
+                const quantidadeVinculos = error.error?.quantidadeVinculos || 0;
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Não é Possível Excluir',
+                  detail: `Este perfil possui ${quantidadeVinculos} usuário(s) vinculado(s). Remova os vínculos antes de excluir.`,
+                  life: 6000
+                });
+                return;
+              }
+              
+              // Outros erros
               this.messageService.add({
                 severity: 'error',
                 summary: 'Erro',
@@ -250,5 +270,33 @@ export class PerfisListaComponent implements OnInit {
   onSearch(searchTerm: string): void {
     this.searchTerm = searchTerm;
     this.carregarPerfis(searchTerm);
+  }
+
+  /**
+   * Verifica se o perfil é um perfil de sistema
+   */
+  isPerfilSistema(perfil: PerfilDTO): boolean {
+    return perfil.perfilSistema === true;
+  }
+
+  /**
+   * Verifica se o perfil é o ADMINISTRADOR
+   */
+  isAdministrador(perfil: PerfilDTO): boolean {
+    return perfil.nome === 'ADMINISTRADOR';
+  }
+
+  /**
+   * Verifica se o perfil é o CORRETOR
+   */
+  isCorretor(perfil: PerfilDTO): boolean {
+    return perfil.nome === 'CORRETOR';
+  }
+
+  /**
+   * Verifica se o perfil pode ser excluído
+   */
+  podeExcluirPerfil(perfil: PerfilDTO): boolean {
+    return !this.isPerfilSistema(perfil) && this.podeExcluir;
   }
 }

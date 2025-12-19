@@ -151,6 +151,27 @@ export class PerfilConfiguracaoComponent implements OnInit {
       if (!primeiroCampoInvalido) primeiroCampoInvalido = 'permissoes-section';
     }
 
+    // Validações específicas para perfis de sistema
+    if (this.isAdministrador && this.hasChangesOtherThanDescription()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Operação Não Permitida',
+        detail: 'Apenas a descrição pode ser alterada no perfil ADMINISTRADOR',
+        life: 5000
+      });
+      return;
+    }
+
+    if (this.isCorretor && (this.nomeAlterado() || this.statusAlterado())) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Operação Não Permitida',
+        detail: 'O perfil CORRETOR não pode ter o nome ou status alterados',
+        life: 5000
+      });
+      return;
+    }
+
     // Se houver erros, mostrar e focar no primeiro campo
     if (erros.length > 0) {
       this.messageService.add({
@@ -206,13 +227,25 @@ export class PerfilConfiguracaoComponent implements OnInit {
           this.router.navigate(['/admin/perfis']);
         }).catch((error) => {
           this.salvando = false;
-          const mensagemErro = error.error?.detail || error.error?.message || 'Não foi possível salvar as alterações. Tente novamente.';
           
-          // Exibe toast de erro
+          // Tratamento específico para erro 403 (perfil de sistema)
+          if (error.status === 403) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Operação Não Permitida',
+              detail: error.error?.message || 'Não é possível realizar esta operação em perfis de sistema',
+              life: 5000
+            });
+            return;
+          }
+          
+          // Outros erros
+          const mensagemErro = error.error?.detail || error.error?.message || 'Não foi possível salvar as alterações. Tente novamente.';
           this.messageService.add({
             severity: 'error',
             summary: 'Erro ao salvar',
             detail: mensagemErro,
+            life: 5000
           });
         });
       });
@@ -246,5 +279,79 @@ export class PerfilConfiguracaoComponent implements OnInit {
 
   get temPermissoesSelecionadas(): boolean {
     return Object.values(this.permissoesConfiguradas).some(perms => perms && perms.length > 0);
+  }
+
+  /**
+   * Verifica se o perfil é ADMINISTRADOR
+   */
+  get isAdministrador(): boolean {
+    return this.perfil?.nome === 'ADMINISTRADOR';
+  }
+
+  /**
+   * Verifica se o perfil é CORRETOR
+   */
+  get isCorretor(): boolean {
+    return this.perfil?.nome === 'CORRETOR';
+  }
+
+  /**
+   * Verifica se é um perfil de sistema
+   */
+  get isPerfilSistema(): boolean {
+    return this.perfil?.perfilSistema === true;
+  }
+
+  /**
+   * Verifica se pode excluir o perfil
+   */
+  get podeExcluir(): boolean {
+    return !this.isPerfilSistema && this.permissaoService.temPermissao(Funcionalidade.PERFIL, Permissao.EXCLUIR);
+  }
+
+  /**
+   * Verifica se pode alterar o nome do perfil
+   */
+  get podeAlterarNome(): boolean {
+    return !this.isPerfilSistema;
+  }
+
+  /**
+   * Verifica se pode alterar o status do perfil
+   */
+  get podeAlterarStatus(): boolean {
+    return !this.isPerfilSistema;
+  }
+
+  /**
+   * Verifica se pode alterar as permissões
+   */
+  get podeAlterarPermissoes(): boolean {
+    return !this.isAdministrador;
+  }
+
+  /**
+   * Verifica se houve mudanças além da descrição
+   */
+  private hasChangesOtherThanDescription(): boolean {
+    if (!this.perfilInicial || !this.perfil) return false;
+    
+    return this.perfil.nome !== this.perfilInicial.nome ||
+           this.perfil.ativo !== this.perfilInicial.ativo ||
+           JSON.stringify(this.permissoesConfiguradas) !== JSON.stringify(this.permissoesIniciais);
+  }
+
+  /**
+   * Verifica se o nome foi alterado
+   */
+  private nomeAlterado(): boolean {
+    return this.perfil?.nome !== this.perfilInicial?.nome;
+  }
+
+  /**
+   * Verifica se o status foi alterado
+   */
+  private statusAlterado(): boolean {
+    return this.perfil?.ativo !== this.perfilInicial?.ativo;
   }
 }
