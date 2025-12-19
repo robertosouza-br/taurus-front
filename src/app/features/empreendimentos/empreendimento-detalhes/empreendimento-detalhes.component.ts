@@ -30,6 +30,12 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
   statusSelecionado: string | null = null;
   tipoSelecionado: string | null = null;
   
+  // Autocomplete
+  unidadeSelecionada: Unidade | null = null;
+  unidadesFiltradasAutocomplete: Unidade[] = [];
+  statusFiltrados: { label: string; value: string }[] = [];
+  tiposFiltrados: { label: string; value: string }[] = [];
+  
   // Opções
   visualizacaoOptions: VisualizacaoOption[] = [
     { label: 'Planta 3D', value: 'planta', icon: 'pi pi-th-large' },
@@ -99,6 +105,7 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (unidades) => {
+          debugger
           this.unidades = unidades;
           
           // Extrair dados do empreendimento das unidades
@@ -150,14 +157,89 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
     let resultado = [...this.unidades];
 
     if (this.statusSelecionado) {
-      resultado = resultado.filter(u => u.statusUnidade === this.statusSelecionado);
+      const statusValor = typeof this.statusSelecionado === 'string' 
+        ? this.statusSelecionado 
+        : (this.statusSelecionado as any).value;
+      resultado = resultado.filter(u => u.statusUnidade === statusValor);
     }
 
     if (this.tipoSelecionado) {
-      resultado = resultado.filter(u => u.tipo === this.tipoSelecionado);
+      const tipoValor = typeof this.tipoSelecionado === 'string' 
+        ? this.tipoSelecionado 
+        : (this.tipoSelecionado as any).value;
+      resultado = resultado.filter(u => u.tipo === tipoValor);
     }
 
     this.unidadesFiltradas = resultado;
+  }
+
+  /**
+   * Busca unidades para autocomplete
+   */
+  buscarUnidades(event: any): void {
+    const query = event.query.toLowerCase();
+    
+    this.unidadesFiltradasAutocomplete = this.unidades.filter(unidade => {
+      const codigo = unidade.unidade.toLowerCase();
+      const tipologia = unidade.tipologia.toLowerCase();
+      const bloco = unidade.bloco.toLowerCase();
+      const sigla = unidade.sigla.toLowerCase();
+      
+      return codigo.includes(query) || 
+             tipologia.includes(query) || 
+             bloco.includes(query) ||
+             sigla.includes(query);
+    });
+  }
+
+  /**
+   * Ao selecionar unidade no autocomplete
+   */
+  aoSelecionarUnidade(event: any): void {
+    const unidade = event.value || event;
+    if (unidade) {
+      // Rolar até a unidade selecionada
+      this.selecionarUnidade(unidade);
+      
+      // Se estiver em modo planta, destacar a unidade
+      if (this.visualizacao === 'planta') {
+        // Lógica para destacar visualmente
+      }
+    }
+  }
+
+  /**
+   * Limpar seleção de autocomplete
+   */
+  limparSelecaoUnidade(): void {
+    this.unidadeSelecionada = null;
+  }
+
+  /**
+   * Template para exibição no autocomplete
+   */
+  getUnidadeLabel(unidade: Unidade): string {
+    return `${unidade.unidade} - ${unidade.tipologia} (Bloco ${unidade.bloco})`;
+  }
+
+  /**
+   * Busca status para autocomplete
+   */
+  buscarStatus(event: any): void {
+    const query = event.query.toLowerCase();
+    this.statusFiltrados = this.statusOptions.filter(status => 
+      status.label.toLowerCase().includes(query)
+    );
+  }
+
+  /**
+   * Busca tipos para autocomplete
+   */
+  buscarTipos(event: any): void {
+    const query = event.query.toLowerCase();
+    this.tiposFiltrados = this.tiposOptions.filter(tipo => 
+      tipo.label.toLowerCase().includes(query)
+    );
   }
 
   limparFiltros(): void {

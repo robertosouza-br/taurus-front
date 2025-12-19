@@ -19,6 +19,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { DropdownModule } from 'primeng/dropdown';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 // Shared
 import { SharedModule } from '../../shared/shared.module';
@@ -56,7 +57,8 @@ import { EmpreendimentoDetalhesComponent } from './empreendimento-detalhes/empre
     SelectButtonModule,
     DropdownModule,
     ProgressSpinnerModule,
-    ToastModule
+    ToastModule,
+    AutoCompleteModule
   ]
 })
 export class EmpreendimentosModule { }

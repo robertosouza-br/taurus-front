@@ -102,6 +102,7 @@ export const TIPO_ICONS: Record<TipoUnidade, string> = {
 
 /**
  * Interface da Unidade (UnidadeEmpreendimentoDTO do backend)
+ * Atualizado: 19/12/2025 - Alinhado com contrato real da API
  */
 export interface Unidade {
   empreendimento: string;      // Nome do empreendimento

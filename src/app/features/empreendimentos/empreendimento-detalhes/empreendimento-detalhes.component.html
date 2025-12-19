@@ -122,32 +122,75 @@
           </div>
         </div>
 
+        <!-- Busca por Unidade -->
+        <div class="busca-unidade-container">
+          <div class="busca-unidade">
+            <label><i class="pi pi-search"></i> Buscar Unidade</label>
+            <p-autoComplete
+              [(ngModel)]="unidadeSelecionada"
+              [suggestions]="unidadesFiltradasAutocomplete"
+              (completeMethod)="buscarUnidades($event)"
+              (onSelect)="aoSelecionarUnidade($event)"
+              (onClear)="limparSelecaoUnidade()"
+              field="unidade"
+              [dropdown]="true"
+              [forceSelection]="true"
+              [showClear]="true"
+              placeholder="Digite o código, tipo ou bloco da unidade"
+              [minLength]="1"
+              emptyMessage="Nenhuma unidade encontrada">
+              <ng-template let-unidade pTemplate="item">
+                <div class="autocomplete-item">
+                  <div class="item-header">
+                    <span class="codigo">{{ unidade.unidade }}</span>
+                    <span class="sigla">{{ unidade.sigla }}</span>
+                  </div>
+                  <div class="item-body">
+                    <span class="tipologia">{{ unidade.tipologia }}</span>
+                    <span class="bloco">Bloco {{ unidade.bloco }}</span>
+                  </div>
+                  <div class="item-footer">
+                    <span class="status">{{ unidade.statusUnidade }}</span>
+                    <span class="preco">{{ formatarValor(unidade.preco) }}</span>
+                  </div>
+                </div>
+              </ng-template>
+            </p-autoComplete>
+          </div>
+        </div>
+
         <!-- Filtros -->
         <div class="filtros-container">
           <div class="filtro-item">
             <label>Status</label>
-            <p-dropdown 
+            <p-autoComplete
               [(ngModel)]="statusSelecionado"
-              [options]="statusOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Todos os status"
+              [suggestions]="statusFiltrados"
+              (completeMethod)="buscarStatus($event)"
+              field="label"
+              [dropdown]="true"
+              [forceSelection]="false"
               [showClear]="true"
-              (onChange)="aplicarFiltros()">
-            </p-dropdown>
+              placeholder="Selecione o status"
+              (onSelect)="aplicarFiltros()"
+              (onClear)="aplicarFiltros()">
+            </p-autoComplete>
           </div>
 
           <div class="filtro-item">
             <label>Tipo</label>
-            <p-dropdown 
+            <p-autoComplete
               [(ngModel)]="tipoSelecionado"
-              [options]="tiposOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Todos os tipos"
+              [suggestions]="tiposFiltrados"
+              (completeMethod)="buscarTipos($event)"
+              field="label"
+              [dropdown]="true"
+              [forceSelection]="false"
               [showClear]="true"
-              (onChange)="aplicarFiltros()">
-            </p-dropdown>
+              placeholder="Selecione o tipo"
+              (onSelect)="aplicarFiltros()"
+              (onClear)="aplicarFiltros()">
+            </p-autoComplete>
           </div>
 
           <button pButton type="button" 
