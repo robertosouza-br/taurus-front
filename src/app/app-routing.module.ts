@@ -43,7 +43,7 @@ const routes: Routes = [
         loadChildren: () => import('./features/usuarios/usuarios.module').then(m => m.UsuariosModule)
       },
       {
-        path: 'corretores',
+        path: 'cadastros/corretores',
         loadChildren: () => import('./features/corretores/corretores.module').then(m => m.CorretoresModule)
       },
       {

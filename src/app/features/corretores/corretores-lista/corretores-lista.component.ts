@@ -137,11 +137,11 @@ export class CorretoresListaComponent implements OnInit {
   }
 
   novoCorretor(): void {
-    this.router.navigate(['/admin/corretores/novo']);
+    this.router.navigate(['/cadastros/corretores/novo']);
   }
 
   editarCorretor(id: string): void {
-    this.router.navigate(['/admin/corretores/editar', id]);
+    this.router.navigate(['/cadastros/corretores/editar', id]);
   }
 
   excluirCorretor(corretor: CorretorSaidaDTO): void {

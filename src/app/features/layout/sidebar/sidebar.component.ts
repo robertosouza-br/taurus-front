@@ -101,7 +101,7 @@ export class SidebarComponent implements OnInit {
           {
             label: 'Corretores',
             icon: 'pi pi-briefcase',
-            routerLink: '/corretores',
+            routerLink: '/cadastros/corretores',
             funcionalidade: Funcionalidade.CORRETOR
           }
         ]

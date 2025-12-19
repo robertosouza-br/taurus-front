@@ -42,7 +42,7 @@ export class CorretorEdicaoComponent implements OnInit {
         summary: 'Acesso Negado',
         detail: 'Você não tem permissão para alterar corretores'
       });
-      this.router.navigate(['/corretores']);
+      this.router.navigate(['/cadastros/corretores']);
       return;
     }
 
@@ -57,7 +57,7 @@ export class CorretorEdicaoComponent implements OnInit {
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Cadastros', icon: 'pi pi-database' },
-      { label: 'Corretores', url: '/corretores' },
+      { label: 'Corretores', url: '/cadastros/corretores' },
       { label: 'Editar Corretor' }
     ];
   }
@@ -129,7 +129,7 @@ export class CorretorEdicaoComponent implements OnInit {
           summary: 'Erro',
           detail: 'Erro ao carregar dados do corretor'
         });
-        this.router.navigate(['/corretores']);
+        this.router.navigate(['/cadastros/corretores']);
       }
     });
   }
@@ -231,7 +231,7 @@ export class CorretorEdicaoComponent implements OnInit {
           summary: 'Sucesso',
           detail: 'Corretor atualizado com sucesso!'
         });
-        this.router.navigate(['/corretores']);
+        this.router.navigate(['/cadastros/corretores']);
       },
       error: (error) => {
         this.salvando = false;
@@ -251,7 +251,7 @@ export class CorretorEdicaoComponent implements OnInit {
   }
 
   cancelar(): void {
-    this.router.navigate(['/corretores']);
+    this.router.navigate(['/cadastros/corretores']);
   }
 
   get f() {

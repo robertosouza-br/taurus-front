@@ -37,7 +37,7 @@ export class CorretorNovoComponent implements OnInit {
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Cadastros', icon: 'pi pi-database' },
-      { label: 'Corretores', url: '/corretores' },
+      { label: 'Corretores', url: '/cadastros/corretores' },
       { label: 'Novo Corretor' }
     ];
   }
@@ -192,7 +192,7 @@ export class CorretorNovoComponent implements OnInit {
           summary: 'Sucesso',
           detail: 'Corretor cadastrado com sucesso!'
         });
-        this.router.navigate(['/corretores']);
+        this.router.navigate(['/cadastros/corretores']);
       },
       error: (error) => {
         this.carregando = false;
@@ -212,7 +212,7 @@ export class CorretorNovoComponent implements OnInit {
   }
 
   cancelar(): void {
-    this.router.navigate(['/corretores']);
+    this.router.navigate(['/cadastros/corretores']);
   }
 
   get f() {
