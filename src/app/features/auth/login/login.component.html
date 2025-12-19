@@ -113,6 +113,17 @@
         <a *ngIf="loginForm.disabled" (click)="limparErros()" class="try-again">Tentar novamente</a>
       </div>
     </form>
+
+    <!-- Link para cadastro de corretor -->
+    <div class="cadastro-corretor-link">
+      <div class="divider">
+        <span>ou</span>
+      </div>
+      <a routerLink="/auth/cadastro-corretor" class="btn-cadastro-corretor">
+        <i class="pi pi-briefcase"></i>
+        <span>Você é corretor? Faça parte da nossa equipe!</span>
+      </a>
+    </div>
   </div>
 
   <!-- Footer -->

@@ -1,0 +1,53 @@
+<div class="corretores-lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Corretores"
+    subtitle="Gerencie os corretores do sistema"
+    icon="pi pi-briefcase"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Tabela de Corretores -->
+  <app-data-table
+    [data]="corretores"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRecords"
+    [loading]="carregando"
+    (onSearch)="onBuscar($event)">
+    
+    <!-- Template para CPF -->
+    <ng-template appTableTemplate="cpf" let-corretor="rowData">
+      {{ formatarCPF(corretor.cpf) }}
+    </ng-template>
+    
+    <!-- Template para Telefone -->
+    <ng-template appTableTemplate="telefone" let-corretor="rowData">
+      <span *ngIf="corretor.telefone; else semTelefone">
+        {{ formatarTelefone(corretor.telefone) }}
+      </span>
+      <ng-template #semTelefone>
+        <span class="text-muted">-</span>
+      </ng-template>
+    </ng-template>
+    
+    <!-- Template para Cargo -->
+    <ng-template appTableTemplate="cargo" let-corretor="rowData">
+      <p-tag 
+        [value]="corretor.cargoLabel" 
+        severity="info">
+      </p-tag>
+    </ng-template>
+    
+    <!-- Template para Status -->
+    <ng-template appTableTemplate="status" let-corretor="rowData">
+      <p-tag 
+        [value]="corretor.ativo ? 'Ativo' : 'Inativo'" 
+        [severity]="corretor.ativo ? 'success' : 'danger'">
+      </p-tag>
+    </ng-template>
+  </app-data-table>
+</div>

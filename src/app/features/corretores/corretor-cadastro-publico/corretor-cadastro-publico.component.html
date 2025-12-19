@@ -1,0 +1,237 @@
+<div class="cadastro-publico-container">
+  <div class="cadastro-card">
+    <!-- Header -->
+    <div class="cadastro-header">
+      <img src="assets/images/logo_sm.png" alt="Taurus" class="logo">
+      <h2>Cadastro de Corretor</h2>
+      <p class="subtitle">Faça parte da nossa equipe de corretores</p>
+    </div>
+
+    <!-- Formulário -->
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()" class="cadastro-form">
+      
+      <!-- Dados Pessoais -->
+      <p-card>
+        <ng-template pTemplate="header">
+          <div class="card-header">
+            <i class="pi pi-user"></i>
+            <span>Dados Pessoais</span>
+          </div>
+        </ng-template>
+        
+        <!-- Nome -->
+        <app-input-text
+          id="nome"
+          label="Nome Completo"
+          [required]="true"
+          formControlName="nome"
+          [showValidation]="submitted"
+          errorMessage="Nome é obrigatório (mínimo 3 caracteres)">
+        </app-input-text>
+
+        <!-- CPF -->
+        <app-input-cpf
+          id="cpf"
+          label="CPF"
+          [required]="true"
+          formControlName="cpf"
+          [showValidation]="submitted"
+          errorMessage="CPF é obrigatório (11 dígitos)">
+        </app-input-cpf>
+
+        <!-- Email -->
+        <app-input-text
+          id="email"
+          label="E-mail"
+          type="email"
+          [required]="true"
+          formControlName="email"
+          [showValidation]="submitted"
+          errorMessage="E-mail inválido">
+        </app-input-text>
+
+        <!-- Nome de Guerra -->
+        <app-input-text
+          id="nomeGuerra"
+          label="Nome de Guerra"
+          [required]="false"
+          formControlName="nomeGuerra"
+          [showValidation]="submitted">
+        </app-input-text>
+
+        <!-- Telefone -->
+        <app-input-text
+          id="telefone"
+          label="Telefone"
+          [required]="false"
+          formControlName="telefone"
+          [maxlength]="15"
+          [showValidation]="submitted">
+        </app-input-text>
+
+        <!-- Número do CRECI -->
+        <app-input-text
+          id="numeroCreci"
+          label="Número do CRECI"
+          [required]="false"
+          formControlName="numeroCreci"
+          [showValidation]="submitted">
+        </app-input-text>
+
+        <!-- Cargo -->
+        <app-autocomplete
+          id="cargo"
+          label="Cargo"
+          [required]="true"
+          formControlName="cargo"
+          [suggestions]="cargosOptions"
+          field="label"
+          [showValidation]="submitted"
+          errorMessage="Cargo é obrigatório"
+          (completeMethod)="filtrarCargos($event)">
+        </app-autocomplete>
+      </p-card>
+
+      <!-- Dados Bancários -->
+      <p-panel 
+        [toggleable]="true" 
+        [collapsed]="true"
+        collapseIcon="pi pi-chevron-up"
+        expandIcon="pi pi-chevron-down">
+        <ng-template pTemplate="header">
+          <div class="panel-header">
+            <i class="pi pi-building"></i>
+            <span>Dados Bancários</span>
+            <span class="optional-badge">(Opcional)</span>
+          </div>
+        </ng-template>
+        
+        <!-- Banco -->
+        <app-autocomplete
+          id="banco"
+          label="Banco"
+          [required]="false"
+          formControlName="banco"
+          [suggestions]="bancosFiltrados"
+          field="nome"
+          [showValidation]="submitted"
+          (completeMethod)="filtrarBancos($event)"
+          (onDropdownClick)="carregarTodosBancos()">
+          <ng-template let-banco pTemplate="item">
+            <div class="flex align-items-center gap-2">
+              <span class="font-bold">{{ banco.codigo }}</span>
+              <span>{{ banco.nome }}</span>
+            </div>
+          </ng-template>
+        </app-autocomplete>
+
+        <div class="form-row">
+          <!-- Agência -->
+          <div class="form-field flex-1">
+            <app-input-text
+              id="agencia"
+              label="Agência"
+              [required]="false"
+              formControlName="agencia"
+              [showValidation]="submitted">
+            </app-input-text>
+          </div>
+
+          <!-- Conta -->
+          <div class="form-field flex-2">
+            <app-input-text
+              id="conta"
+              label="Conta"
+              [required]="false"
+              formControlName="conta"
+              [showValidation]="submitted">
+            </app-input-text>
+          </div>
+
+          <!-- Dígito -->
+          <div class="form-field flex-1">
+            <app-input-text
+              id="digitoConta"
+              label="Dígito"
+              [required]="false"
+              [maxlength]="2"
+              formControlName="digitoConta"
+              [showValidation]="submitted">
+            </app-input-text>
+          </div>
+        </div>
+      </p-panel>
+
+      <!-- Dados PIX -->
+      <p-panel 
+        [toggleable]="true" 
+        [collapsed]="true"
+        collapseIcon="pi pi-chevron-up"
+        expandIcon="pi pi-chevron-down">
+        <ng-template pTemplate="header">
+          <div class="panel-header">
+            <i class="pi pi-qrcode"></i>
+            <span>Dados PIX</span>
+            <span class="optional-badge">(Opcional)</span>
+          </div>
+        </ng-template>
+        
+        <!-- Tipo de Chave PIX -->
+        <app-autocomplete
+          id="tipoChavePix"
+          label="Tipo de Chave PIX"
+          [required]="false"
+          formControlName="tipoChavePix"
+          [suggestions]="tiposChavePixFiltrados"
+          field="label"
+          [showValidation]="submitted"
+          (completeMethod)="filtrarTiposChavePix($event)">
+        </app-autocomplete>
+
+        <!-- Chave PIX -->
+        <app-input-text
+          id="chavePix"
+          label="Chave PIX"
+          [required]="false"
+          formControlName="chavePix"
+          [showValidation]="submitted">
+        </app-input-text>
+      </p-panel>
+
+      <!-- Informativo -->
+      <div class="info-message">
+        <i class="pi pi-info-circle"></i>
+        <div class="info-content">
+          <p><strong>Atenção:</strong> Após o cadastro, você receberá um e-mail com suas credenciais de acesso ao sistema.</p>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="form-actions">
+        <app-custom-button
+          type="button"
+          label="Voltar para Login"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="carregando"
+          (onClick)="voltarLogin()">
+        </app-custom-button>
+        
+        <app-custom-button
+          type="submit"
+          label="Cadastrar"
+          icon="pi pi-check"
+          severity="primary"
+          [loading]="carregando"
+          [disabled]="carregando">
+        </app-custom-button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="cadastro-footer">
+    <p>&copy; 2026 CALTER Construtora - Todos os direitos reservados</p>
+  </div>
+</div>

@@ -1,0 +1,283 @@
+<div class="corretor-edicao-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Editar Corretor"
+    [subtitle]="corretor ? corretor.nome : 'Carregando...'"
+    icon="pi pi-briefcase">
+  </app-page-header>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="loading-container">
+    <p-progressSpinner></p-progressSpinner>
+  </div>
+
+  <!-- Formulário -->
+  <div *ngIf="!carregando && corretor" class="card">
+    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+      
+      <!-- Dados Pessoais -->
+      <div class="form-section">
+        <h3><i class="pi pi-user"></i> Dados Pessoais</h3>
+        
+        <div class="p-fluid p-formgrid p-grid">
+          <!-- Nome -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <input 
+                id="nome" 
+                type="text" 
+                pInputText 
+                formControlName="nome"
+                [class.ng-invalid]="submitted && f['nome'].errors"
+              >
+              <label for="nome">Nome Completo *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['nome'].errors?.['required']">
+              Nome é obrigatório
+            </small>
+          </div>
+
+          <!-- CPF (Desabilitado) -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <input 
+                id="cpf" 
+                type="text" 
+                pInputText 
+                formControlName="cpf"
+                [value]="formatarCpfDisplay(f['cpf'].value)"
+                [disabled]="true"
+              >
+              <label for="cpf">CPF *</label>
+            </span>
+            <small class="field-help">CPF não pode ser alterado</small>
+          </div>
+
+          <!-- Email -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <input 
+                id="email" 
+                type="email" 
+                pInputText 
+                formControlName="email"
+                [class.ng-invalid]="submitted && f['email'].errors"
+              >
+              <label for="email">E-mail *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['email'].errors?.['required']">
+              E-mail é obrigatório
+            </small>
+            <small class="p-error" *ngIf="submitted && f['email'].errors?.['email']">
+              E-mail inválido
+            </small>
+          </div>
+
+          <!-- Telefone -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <input 
+                id="telefone" 
+                type="text" 
+                pInputText 
+                formControlName="telefone"
+                [class.ng-invalid]="submitted && f['telefone'].errors"
+                maxlength="11"
+                (input)="onTelefoneInput($event)"
+                [value]="formatarTelefoneDisplay(f['telefone'].value)"
+              >
+              <label for="telefone">Telefone *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['telefone'].errors?.['required']">
+              Telefone é obrigatório
+            </small>
+          </div>
+
+          <!-- Cargo -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <p-dropdown 
+                id="cargo"
+                formControlName="cargo"
+                [options]="cargosOptions"
+                optionLabel="label"
+                optionValue="value"
+                [class.ng-invalid]="submitted && f['cargo'].errors"
+              ></p-dropdown>
+              <label for="cargo">Cargo *</label>
+            </span>
+          </div>
+
+          <!-- Ativo -->
+          <div class="p-field p-col-12 p-md-6">
+            <div class="p-field-checkbox">
+              <p-checkbox 
+                inputId="ativo" 
+                formControlName="ativo" 
+                [binary]="true"
+              ></p-checkbox>
+              <label for="ativo">Corretor Ativo</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dados Bancários -->
+      <div class="form-section">
+        <h3><i class="pi pi-building"></i> Dados Bancários</h3>
+        
+        <div class="p-fluid p-formgrid p-grid">
+          <!-- Banco -->
+          <div class="p-field p-col-12">
+            <span class="p-float-label">
+              <p-dropdown 
+                id="banco"
+                formControlName="banco"
+                [options]="bancos"
+                optionLabel="nome"
+                [class.ng-invalid]="submitted && f['banco'].errors"
+                [filter]="true"
+                filterBy="nome,codigo"
+                placeholder="Selecione o banco"
+              >
+                <ng-template let-banco pTemplate="item">
+                  <div class="flex align-items-center gap-2">
+                    <span class="font-bold">{{ banco.codigo }}</span>
+                    <span>{{ banco.nome }}</span>
+                  </div>
+                </ng-template>
+              </p-dropdown>
+              <label for="banco">Banco *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['banco'].errors?.['required']">
+              Banco é obrigatório
+            </small>
+          </div>
+
+          <!-- Agência -->
+          <div class="p-field p-col-12 p-md-4">
+            <span class="p-float-label">
+              <input 
+                id="agencia" 
+                type="text" 
+                pInputText 
+                formControlName="agencia"
+                [class.ng-invalid]="submitted && f['agencia'].errors"
+              >
+              <label for="agencia">Agência *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['agencia'].errors?.['required']">
+              Agência é obrigatória
+            </small>
+          </div>
+
+          <!-- Conta -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <input 
+                id="conta" 
+                type="text" 
+                pInputText 
+                formControlName="conta"
+                [class.ng-invalid]="submitted && f['conta'].errors"
+              >
+              <label for="conta">Conta *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['conta'].errors?.['required']">
+              Conta é obrigatória
+            </small>
+          </div>
+
+          <!-- Dígito -->
+          <div class="p-field p-col-12 p-md-2">
+            <span class="p-float-label">
+              <input 
+                id="digitoConta" 
+                type="text" 
+                pInputText 
+                formControlName="digitoConta"
+                [class.ng-invalid]="submitted && f['digitoConta'].errors"
+                maxlength="2"
+              >
+              <label for="digitoConta">Dígito *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['digitoConta'].errors?.['required']">
+              Dígito é obrigatório
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dados PIX -->
+      <div class="form-section">
+        <h3><i class="pi pi-qrcode"></i> Dados PIX</h3>
+        
+        <div class="p-fluid p-formgrid p-grid">
+          <!-- Tipo de Chave PIX -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <p-dropdown 
+                id="tipoChavePix"
+                formControlName="tipoChavePix"
+                [options]="tiposChavePixOptions"
+                optionLabel="label"
+                optionValue="value"
+                [class.ng-invalid]="submitted && f['tipoChavePix'].errors"
+              ></p-dropdown>
+              <label for="tipoChavePix">Tipo de Chave PIX *</label>
+            </span>
+          </div>
+
+          <!-- Chave PIX -->
+          <div class="p-field p-col-12 p-md-6">
+            <span class="p-float-label">
+              <input 
+                id="chavePix" 
+                type="text" 
+                pInputText 
+                formControlName="chavePix"
+                [class.ng-invalid]="submitted && f['chavePix'].errors"
+              >
+              <label for="chavePix">Chave PIX *</label>
+            </span>
+            <small class="p-error" *ngIf="submitted && f['chavePix'].errors?.['required']">
+              Chave PIX é obrigatória
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informações do Sistema -->
+      <div class="info-section" *ngIf="corretor.idSistemaExterno">
+        <i class="pi pi-info-circle"></i>
+        <div class="info-content">
+          <strong>ID Sistema Externo:</strong> {{ corretor.idSistemaExterno }}
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="form-actions">
+        <p-button 
+          type="button"
+          label="Cancelar" 
+          icon="pi pi-times"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="salvando"
+          (onClick)="cancelar()"
+        ></p-button>
+        
+        <p-button 
+          type="submit"
+          label="Salvar Alterações" 
+          icon="pi pi-check"
+          [loading]="salvando"
+          [disabled]="salvando"
+        ></p-button>
+      </div>
+    </form>
+  </div>
+</div>

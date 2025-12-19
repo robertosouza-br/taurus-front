@@ -9,10 +9,16 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
+import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
+import { CardModule } from 'primeng/card';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { PanelModule } from 'primeng/panel';
 
 import { LoginComponent } from './login/login.component';
 import { RecuperarSenhaComponent } from './recuperar-senha/recuperar-senha.component';
 import { SharedModule } from '../../shared/shared.module';
+import { CorretorCadastroPublicoComponent } from '../corretores/corretor-cadastro-publico/corretor-cadastro-publico.component';
 
 const routes: Routes = [
   {
@@ -27,13 +33,18 @@ const routes: Routes = [
   {
     path: 'recuperar-senha',
     component: RecuperarSenhaComponent
+  },
+  {
+    path: 'cadastro-corretor',
+    component: CorretorCadastroPublicoComponent
   }
 ];
 
 @NgModule({
   declarations: [
     LoginComponent,
-    RecuperarSenhaComponent
+    RecuperarSenhaComponent,
+    CorretorCadastroPublicoComponent
   ],
   imports: [
     CommonModule,
@@ -46,7 +57,12 @@ const routes: Routes = [
     PasswordModule,
     ButtonModule,
     MessageModule,
-    ToastModule
+    ToastModule,
+    DropdownModule,
+    CheckboxModule,
+    CardModule,
+    AutoCompleteModule,
+    PanelModule
   ]
 })
 export class AuthModule { }

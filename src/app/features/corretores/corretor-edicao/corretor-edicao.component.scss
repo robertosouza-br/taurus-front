@@ -1,0 +1,131 @@
+.corretor-edicao-container {
+  padding: 1.5rem;
+
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+
+    .form-section {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid #e0e0e0;
+
+      &:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        i {
+          font-size: 1.2rem;
+          color: #667eea;
+        }
+      }
+
+      ::ng-deep .p-field {
+        margin-bottom: 1.5rem;
+
+        .p-float-label {
+          label {
+            font-weight: 500;
+          }
+        }
+
+        small.p-error {
+          display: block;
+          margin-top: 0.25rem;
+          color: #ef4444;
+        }
+
+        small.field-help {
+          display: block;
+          margin-top: 0.25rem;
+          color: #999;
+          font-size: 0.875rem;
+        }
+      }
+
+      ::ng-deep .p-field-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+
+        label {
+          font-weight: 500;
+          margin: 0;
+        }
+      }
+    }
+
+    .info-section {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      border-radius: 4px;
+      margin-bottom: 2rem;
+
+      i {
+        color: #2196f3;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      .info-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        strong {
+          color: #1976d2;
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e0e0e0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    .card {
+      padding: 1.5rem;
+    }
+
+    .form-actions {
+      flex-direction: column-reverse;
+
+      ::ng-deep .p-button {
+        width: 100%;
+      }
+    }
+  }
+}

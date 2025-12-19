@@ -1,0 +1,285 @@
+.cadastro-publico-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1rem;
+
+  .cadastro-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 900px;
+    width: 100%;
+    padding: 2.5rem;
+    animation: slideIn 0.5s ease-out;
+  }
+
+  .cadastro-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    .logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #333;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .cadastro-form {
+    ::ng-deep {
+      .p-card {
+        margin-bottom: 1.25rem;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+
+        &:hover {
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .p-card-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 0;
+          border-bottom: none;
+
+          .card-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+
+            i {
+              font-size: 1.25rem;
+            }
+
+            span {
+              font-size: 1.1rem;
+              font-weight: 600;
+            }
+          }
+        }
+
+        .p-card-body {
+          padding: 1.5rem;
+        }
+
+        .p-card-content {
+          padding: 0;
+        }
+      }
+
+      .p-panel {
+        margin-bottom: 1.25rem;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+
+        &:hover {
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .p-panel-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border: none;
+          border-radius: 0;
+          padding: 0;
+
+          .panel-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            flex: 1;
+
+            i {
+              font-size: 1.25rem;
+            }
+
+            > span:first-of-type {
+              font-size: 1.1rem;
+              font-weight: 600;
+            }
+
+            .optional-badge {
+              margin-left: auto;
+              font-size: 0.875rem;
+              font-weight: 500;
+              background: rgba(255, 255, 255, 0.2);
+              padding: 0.25rem 0.75rem;
+              border-radius: 20px;
+            }
+          }
+
+          .p-panel-header-icon {
+            color: white !important;
+            
+            &:hover {
+              background: rgba(255, 255, 255, 0.1) !important;
+            }
+          }
+        }
+
+        .p-panel-content {
+          padding: 1.5rem;
+          border: none;
+        }
+
+        &.p-panel-collapsed {
+          .p-panel-header {
+            border-radius: 12px;
+          }
+        }
+      }
+    }
+
+    // Espaçamento para componentes customizados
+    app-input-text,
+    app-input-cpf,
+    app-autocomplete {
+      display: block;
+      margin-bottom: 1rem !important;
+
+      &:last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    .form-field {
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      small.p-error {
+        display: block;
+        margin-top: 0.25rem;
+      }
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .form-field {
+        flex: 1;
+        margin-bottom: 0;
+
+        &.flex-1 {
+          flex: 1;
+        }
+
+        &.flex-2 {
+          flex: 2;
+        }
+      }
+    }
+
+    .info-message {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      border-radius: 4px;
+      margin-bottom: 2rem;
+
+      i {
+        color: #2196f3;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+
+      .info-content {
+        flex: 1;
+
+        p {
+          margin: 0;
+          color: #1976d2;
+          line-height: 1.5;
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      margin-top: 2rem;
+
+      ::ng-deep .p-button {
+        flex: 1;
+      }
+    }
+  }
+
+  .cadastro-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: white;
+    font-size: 0.875rem;
+    opacity: 0.9;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    .cadastro-card {
+      padding: 1.5rem;
+    }
+
+    .cadastro-form {
+      .form-section {
+        .form-row {
+          flex-direction: column;
+        }
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  }
+}

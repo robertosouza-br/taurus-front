@@ -95,6 +95,18 @@ export class SidebarComponent implements OnInit {
         ]
       },
       {
+        label: 'Cadastros',
+        icon: 'pi pi-database',
+        items: [
+          {
+            label: 'Corretores',
+            icon: 'pi pi-briefcase',
+            routerLink: '/corretores',
+            funcionalidade: Funcionalidade.CORRETOR
+          }
+        ]
+      },
+      {
         label: 'Meu Perfil',
         icon: 'pi pi-user',
         items: [
