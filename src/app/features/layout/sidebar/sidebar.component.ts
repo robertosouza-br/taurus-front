@@ -107,6 +107,19 @@ export class SidebarComponent implements OnInit {
         ]
       },
       {
+        label: 'Imóveis',
+        icon: 'pi pi-building',
+        funcionalidade: Funcionalidade.IMOVEL,
+        items: [
+          {
+            label: 'Empreendimentos',
+            icon: 'pi pi-building-columns',
+            routerLink: '/imoveis/empreendimentos',
+            funcionalidade: Funcionalidade.IMOVEL
+          }
+        ]
+      },
+      {
         label: 'Meu Perfil',
         icon: 'pi pi-user',
         items: [

@@ -49,6 +49,10 @@ const routes: Routes = [
       {
         path: 'meu-perfil',
         loadChildren: () => import('./features/meu-perfil/meu-perfil.module').then(m => m.MeuPerfilModule)
+      },
+      {
+        path: 'imoveis/empreendimentos',
+        loadChildren: () => import('./features/empreendimentos/empreendimentos.module').then(m => m.EmpreendimentosModule)
       }
     ]
   },

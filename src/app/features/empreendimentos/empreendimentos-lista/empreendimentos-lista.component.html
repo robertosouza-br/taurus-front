@@ -1,0 +1,191 @@
+<div class="lista-container empreendimentos-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <i class="pi pi-building header-icon"></i>
+        <div>
+          <h1 class="page-title">Empreendimentos</h1>
+          <p class="page-subtitle">Explore nossos empreendimentos e unidades disponíveis</p>
+        </div>
+      </div>
+      
+      <button
+        pButton
+        label="Atualizar"
+        icon="pi pi-refresh"
+        class="p-button-outlined"
+        [loading]="carregando"
+        (click)="carregarEmpreendimentos()">
+      </button>
+    </div>
+  </div>
+
+  <!-- Busca -->
+  <div class="busca-section">
+    <span class="p-input-icon-left w-full">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="buscar()"
+        placeholder="Buscar por nome, cidade ou endereço..."
+        class="w-full busca-input" />
+    </span>
+    <button
+      pButton
+      label="Buscar"
+      icon="pi pi-search"
+      (click)="buscar()"
+      [loading]="carregando">
+    </button>
+    <button
+      *ngIf="searchTerm"
+      pButton
+      label="Limpar"
+      icon="pi pi-times"
+      class="p-button-outlined p-button-secondary"
+      (click)="limparBusca()">
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="carregando" class="loading-container">
+    <div class="grid">
+      <div class="col-12 md:col-6 lg:col-4" *ngFor="let i of [1,2,3,4,5,6]">
+        <p-skeleton height="400px" borderRadius="12px"></p-skeleton>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cards de Empreendimentos -->
+  <div *ngIf="!carregando && empreendimentos.length > 0" class="empreendimentos-grid">
+    <div *ngFor="let emp of empreendimentos" class="empreendimento-card-wrapper">
+      <p-card styleClass="empreendimento-card" (click)="verDetalhes(emp)">
+        <!-- Header do Card -->
+        <ng-template pTemplate="header">
+          <div class="card-header-image">
+            <div class="card-header-overlay">
+              <div class="header-info">
+                <h2 class="emp-nome">{{ emp.nome }}</h2>
+                <p class="emp-construtora">
+                  <i class="pi pi-building"></i>
+                  {{ emp.construtora }}
+                </p>
+              </div>
+              <div 
+                class="status-badge"
+                [style.background]="getStatusColor(emp.status).bg"
+                [style.color]="getStatusColor(emp.status).color">
+                <i [class]="getStatusColor(emp.status).icon"></i>
+                <span>{{ emp.status }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Corpo do Card -->
+        <div class="card-body">
+          <!-- Descrição -->
+          <p class="emp-descricao">{{ emp.descricao }}</p>
+
+          <!-- Localização -->
+          <div class="emp-localizacao">
+            <i class="pi pi-map-marker"></i>
+            <div>
+              <strong>{{ emp.cidade }}, {{ emp.estado }}</strong>
+              <p>{{ emp.endereco }}</p>
+            </div>
+          </div>
+
+          <p-divider></p-divider>
+
+          <!-- Estatísticas -->
+          <div class="emp-stats">
+            <div class="stat-item">
+              <i class="pi pi-th-large stat-icon"></i>
+              <div>
+                <label>Total de Unidades</label>
+                <strong>{{ emp.totalUnidades }}</strong>
+              </div>
+            </div>
+
+            <div class="stat-item highlight">
+              <i class="pi pi-check-circle stat-icon"></i>
+              <div>
+                <label>Disponíveis</label>
+                <strong>{{ emp.unidadesDisponiveis }}</strong>
+                <p-badge 
+                  [value]="getDisponibilidadePercentual(emp).toFixed(0) + '%'"
+                  [severity]="getDisponibilidadeSeverity(getDisponibilidadePercentual(emp))">
+                </p-badge>
+              </div>
+            </div>
+          </div>
+
+          <div class="emp-stats">
+            <div class="stat-item">
+              <i class="pi pi-dollar stat-icon"></i>
+              <div>
+                <label>Valores a partir de</label>
+                <strong class="preco-destaque">{{ formatarValor(emp.valorMinimo) }}</strong>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <i class="pi pi-calendar stat-icon"></i>
+              <div>
+                <label>Previsão de Entrega</label>
+                <strong>{{ emp.dataPrevistaEntrega }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer do Card -->
+        <ng-template pTemplate="footer">
+          <div class="card-footer">
+            <p-chip 
+              label="Ver Unidades Disponíveis"
+              icon="pi pi-eye"
+              styleClass="chip-action">
+            </p-chip>
+            <i class="pi pi-arrow-right arrow-icon"></i>
+          </div>
+        </ng-template>
+      </p-card>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!carregando && empreendimentos.length === 0" class="empty-state">
+    <i class="pi pi-inbox empty-icon"></i>
+    <h3>Nenhum empreendimento encontrado</h3>
+    <p *ngIf="searchTerm">Tente ajustar sua busca ou limpar os filtros</p>
+    <p *ngIf="!searchTerm">Ainda não há empreendimentos cadastrados no sistema</p>
+    <button
+      *ngIf="searchTerm"
+      pButton
+      label="Limpar Busca"
+      icon="pi pi-times"
+      class="p-button-outlined"
+      (click)="limparBusca()">
+    </button>
+  </div>
+
+  <!-- Paginação -->
+  <div *ngIf="!carregando && empreendimentos.length > 0" class="paginacao-section">
+    <p-paginator
+      [rows]="pageSize"
+      [totalRecords]="totalElements"
+      [rowsPerPageOptions]="[12, 24, 48]"
+      (onPageChange)="onPageChange($event)"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} empreendimentos">
+    </p-paginator>
+  </div>
+</div>

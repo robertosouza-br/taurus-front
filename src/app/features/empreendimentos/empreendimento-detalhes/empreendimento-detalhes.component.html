@@ -1,0 +1,335 @@
+<div class="empreendimento-detalhes" *ngIf="empreendimento">
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <div class="detalhes-header">
+    <button pButton type="button" icon="pi pi-arrow-left" 
+            class="p-button-text p-button-secondary btn-voltar"
+            (click)="voltar()" label="Voltar"></button>
+
+    <app-page-header 
+      [title]="empreendimento.nome"
+      [subtitle]="empreendimento.descricao">
+    </app-page-header>
+  </div>
+
+  <!-- Informações do Empreendimento -->
+  <div class="info-container">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="card-header-custom">
+          <i class="pi pi-building"></i>
+          <h3>Informações do Empreendimento</h3>
+        </div>
+      </ng-template>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <label><i class="pi pi-tag"></i> Status</label>
+          <p-chip 
+            [label]="empreendimento.status"
+            [style]="{ 
+              'background-color': getStatusEmpColor(empreendimento.status).bg, 
+              'color': getStatusEmpColor(empreendimento.status).color 
+            }">
+            <i [class]="getStatusEmpColor(empreendimento.status).icon" class="mr-2"></i>
+          </p-chip>
+        </div>
+
+        <div class="info-item">
+          <label><i class="pi pi-calendar"></i> Previsão de Entrega</label>
+          <span class="value">{{ empreendimento.dataPrevistaEntrega }}</span>
+        </div>
+
+        <div class="info-item">
+          <label><i class="pi pi-building-columns"></i> Construtora</label>
+          <span class="value">{{ empreendimento.construtora }}</span>
+        </div>
+
+        <div class="info-item">
+          <label><i class="pi pi-map-marker"></i> Localização</label>
+          <span class="value">{{ empreendimento.cidade }} - {{ empreendimento.estado }}</span>
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <!-- Estatísticas -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total">
+            <i class="pi pi-home"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Total de Unidades</span>
+            <span class="stat-value">{{ empreendimento.totalUnidades }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon disponiveis">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Disponíveis</span>
+            <span class="stat-value">{{ empreendimento.unidadesDisponiveis }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon preco-min">
+            <i class="pi pi-dollar"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Preço Mínimo</span>
+            <span class="stat-value">{{ formatarValor(empreendimento.valorMinimo) }}</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon preco-max">
+            <i class="pi pi-money-bill"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Preço Máximo</span>
+            <span class="stat-value">{{ formatarValor(empreendimento.valorMaximo) }}</span>
+          </div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Visualização de Unidades -->
+  <div class="unidades-container">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="unidades-header">
+          <div class="header-left">
+            <i class="pi pi-th-large"></i>
+            <h3>Unidades Disponíveis ({{ unidadesFiltradas.length }})</h3>
+          </div>
+          
+          <div class="header-right">
+            <p-selectButton 
+              [options]="visualizacaoOptions" 
+              [(ngModel)]="visualizacao"
+              optionLabel="label" 
+              optionValue="value">
+              <ng-template let-item>
+                <i [class]="item.icon"></i>
+                <span class="ml-2">{{ item.label }}</span>
+              </ng-template>
+            </p-selectButton>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros-container">
+          <div class="filtro-item">
+            <label>Status</label>
+            <p-dropdown 
+              [(ngModel)]="statusSelecionado"
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Todos os status"
+              [showClear]="true"
+              (onChange)="aplicarFiltros()">
+            </p-dropdown>
+          </div>
+
+          <div class="filtro-item">
+            <label>Tipo</label>
+            <p-dropdown 
+              [(ngModel)]="tipoSelecionado"
+              [options]="tiposOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Todos os tipos"
+              [showClear]="true"
+              (onChange)="aplicarFiltros()">
+            </p-dropdown>
+          </div>
+
+          <button pButton type="button" 
+                  icon="pi pi-filter-slash" 
+                  label="Limpar Filtros"
+                  class="p-button-outlined"
+                  (click)="limparFiltros()"
+                  [disabled]="!statusSelecionado && !tipoSelecionado">
+          </button>
+        </div>
+      </ng-template>
+
+      <!-- Visualização em Planta 3D -->
+      <div class="planta-view" *ngIf="visualizacao === 'planta'">
+        <div class="bloco-container" *ngFor="let bloco of getBlocos()">
+          <div class="bloco-header">
+            <i class="pi pi-building"></i>
+            <h4>Bloco {{ bloco }}</h4>
+          </div>
+
+          <div class="andares-container">
+            <div class="andar-row" *ngFor="let andar of getAndares(bloco)">
+              <div class="andar-label">
+                <span>{{ andar }}º Andar</span>
+              </div>
+              
+              <div class="unidades-andar">
+                <div 
+                  *ngFor="let unidade of getUnidadesDoAndar(bloco, andar)"
+                  class="unidade-planta"
+                  [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                  tooltipPosition="top"
+                  (click)="selecionarUnidade(unidade)">
+                  
+                  <div class="unidade-codigo">{{ unidade.unidade }}</div>
+                  <div class="unidade-tipo">
+                    <i class="pi pi-home"></i>
+                  </div>
+                  <div class="unidade-info">
+                    <span class="area">{{ unidade.sigla }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legenda de Status -->
+        <div class="legenda">
+          <h5>Status das Unidades:</h5>
+          <div class="legenda-item" *ngFor="let status of statusOptions">
+            <span class="legenda-badge">{{ status.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visualização em Grid -->
+      <div class="grid-view" *ngIf="visualizacao === 'grid'">
+        <div class="unidade-card-grid" 
+             *ngFor="let unidade of unidadesFiltradas"
+             (click)="selecionarUnidade(unidade)">
+          <div class="card-header" style="background-color: #e0e7ff">
+            <span class="unidade-codigo">{{ unidade.unidade }}</span>
+            <p-tag 
+              [value]="unidade.statusUnidade"
+              severity="info">
+            </p-tag>
+          </div>
+          
+          <div class="card-body">
+            <div class="unidade-tipo-icon">
+              <i class="pi pi-home"></i>
+              <span>{{ unidade.tipologia }}</span>
+            </div>
+            
+            <div class="unidade-specs">
+              <div class="spec">
+                <i class="pi pi-tag"></i>
+                <span>{{ unidade.sigla }}</span>
+              </div>
+              <div class="spec">
+                <i class="pi pi-building"></i>
+                <span>Bloco {{ unidade.bloco }}</span>
+              </div>
+            </div>
+            
+            <div class="unidade-preco">
+              {{ formatarValor(unidade.preco) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visualização em Cards -->
+      <div class="cards-view" *ngIf="visualizacao === 'cards'">
+        <p-card *ngFor="let unidade of unidadesFiltradas" class="unidade-card-detalhada">
+          <ng-template pTemplate="header">
+            <div class="card-header-detalhada">
+              <div class="header-left">
+                <h4>{{ unidade.tipologia }}</h4>
+                <span class="codigo">Código: {{ unidade.unidade }}</span>
+              </div>
+              <p-tag 
+                [value]="unidade.statusUnidade"
+                severity="info">
+              </p-tag>
+            </div>
+          </ng-template>
+
+          <div class="card-content-detalhada">
+            <div class="info-row">
+              <div class="info-col">
+                <i class="pi pi-home"></i>
+                <div>
+                  <label>Tipo</label>
+                  <span>{{ unidade.tipo }}</span>
+                </div>
+              </div>
+
+              <div class="info-col">
+                <i class="pi pi-building"></i>
+                <div>
+                  <label>Bloco</label>
+                  <span>{{ unidade.bloco }}</span>
+                </div>
+              </div>
+
+              <div class="info-col">
+                <i class="pi pi-tag"></i>
+                <div>
+                  <label>Sigla</label>
+                  <span>{{ unidade.sigla }}</span>
+                </div>
+              </div>
+
+              <div class="info-col">
+                <i class="pi pi-percentage"></i>
+                <div>
+                  <label>Fração Ideal</label>
+                  <span>{{ formatarFracaoIdeal(unidade.fracaoIdeal) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <p-divider></p-divider>
+
+            <div class="preco-row">
+              <div class="preco-info">
+                <label>Valor da Unidade</label>
+                <span class="preco">{{ formatarValor(unidade.preco) }}</span>
+              </div>
+              
+              <button pButton type="button" 
+                      label="Ver Detalhes" 
+                      icon="pi pi-eye"
+                      class="p-button-rounded"
+                      (click)="selecionarUnidade(unidade)">
+              </button>
+            </div>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Estado Vazio -->
+      <div class="empty-state" *ngIf="unidadesFiltradas.length === 0 && !carregando">
+        <i class="pi pi-inbox"></i>
+        <p>Nenhuma unidade encontrada com os filtros selecionados</p>
+        <button pButton type="button" 
+                label="Limpar Filtros" 
+                icon="pi pi-filter-slash"
+                class="p-button-outlined"
+                (click)="limparFiltros()">
+        </button>
+      </div>
+    </p-card>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="carregando">
+  <p-progressSpinner></p-progressSpinner>
+  <p>Carregando dados do empreendimento...</p>
+</div>
+
+<p-toast position="top-right"></p-toast>
