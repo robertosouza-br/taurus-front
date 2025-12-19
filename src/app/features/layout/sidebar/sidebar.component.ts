@@ -130,6 +130,22 @@ export class SidebarComponent implements OnInit {
     return items
       .map(item => ({ ...item }))
       .filter(item => {
+        // Para itens com subitens, filtra os subitens primeiro
+        if (item.items && item.items.length > 0) {
+          item.items = this.filterMenuItems(item.items);
+          
+          // Se tem subitens após filtrar, mostra o item pai (mesmo sem permissão direta)
+          if (item.items.length > 0) {
+            item.visible = true;
+            return true;
+          }
+          
+          // Se não sobrou nenhum subitem, remove o item pai
+          return false;
+        }
+
+        // Para itens sem subitens, verifica permissões normalmente
+        
         // Verifica funcionalidade (novo sistema de permissões)
         if (item.funcionalidade) {
           if (!this.permissaoService.temFuncionalidade(item.funcionalidade)) {
@@ -147,15 +163,6 @@ export class SidebarComponent implements OnInit {
         // Verifica permissões (sistema legado - mantido para compatibilidade)
         if (item.permissions && item.permissions.length > 0) {
           if (!this.authorizationService.hasAnyPermission(item.permissions)) {
-            return false;
-          }
-        }
-
-        // Filtra subitens recursivamente
-        if (item.items && item.items.length > 0) {
-          item.items = this.filterMenuItems(item.items);
-          // Remove item pai se todos os filhos foram filtrados
-          if (item.items.length === 0) {
             return false;
           }
         }

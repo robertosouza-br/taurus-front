@@ -15,9 +15,24 @@ export class PermissaoService {
   constructor(private authService: AuthService) {}
 
   /**
+   * Verifica se o usuário é administrador.
+   */
+  private isAdministrador(): boolean {
+    const usuario = this.authService.getUsuarioLogado();
+    if (!usuario) return false;
+    
+    return usuario.perfis?.some(perfil => 
+      perfil.nome === 'ADMINISTRADOR' || perfil.nome === 'Administrador'
+    ) || false;
+  }
+
+  /**
    * Verifica se o usuário tem acesso a uma funcionalidade.
+   * Administradores têm acesso a tudo.
    */
   temFuncionalidade(funcionalidade: Funcionalidade): boolean {
+    if (this.isAdministrador()) return true;
+
     const usuario = this.authService.getUsuarioLogado();
     if (!usuario) return false;
 
@@ -26,8 +41,11 @@ export class PermissaoService {
 
   /**
    * Verifica se o usuário tem uma permissão específica em uma funcionalidade.
+   * Administradores têm todas as permissões.
    */
   temPermissao(funcionalidade: Funcionalidade, permissao: Permissao): boolean {
+    if (this.isAdministrador()) return true;
+
     const usuario = this.authService.getUsuarioLogado();
     if (!usuario) return false;
 
