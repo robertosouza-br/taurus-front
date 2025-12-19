@@ -3,7 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorPublicoService } from '../../../core/services/corretor-publico.service';
+import { UsuarioService } from '../../../core/services/usuario.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, Banco, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-corretor-cadastro-publico',
@@ -19,10 +21,17 @@ export class CorretorCadastroPublicoComponent implements OnInit {
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
+  
+  // Controle de validação de CPF
+  cpfJaCadastrado = false;
+  cpfInvalido = false;
+  mensagemValidacaoCpf = '';
+  validandoCpf = false;
 
   constructor(
     private fb: FormBuilder,
     private corretorPublicoService: CorretorPublicoService,
+    private usuarioService: UsuarioService,
     private router: Router,
     private messageService: MessageService
   ) {}
@@ -31,6 +40,7 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     this.inicializarFormulario();
     this.carregarBancos();
     this.carregarOpcoes();
+    this.configurarValidacaoCpf();
   }
 
   private inicializarFormulario(): void {
@@ -91,6 +101,123 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     }));
   }
 
+  /**
+   * Configura validação automática de CPF com debounce
+   */
+  private configurarValidacaoCpf(): void {
+    this.formulario.get('cpf')?.valueChanges.pipe(
+      debounceTime(800),
+      distinctUntilChanged()
+    ).subscribe(cpf => {
+      if (cpf && cpf.length === 11) {
+        // Valida o CPF antes de chamar o backend
+        if (!this.validarCPF(cpf)) {
+          this.validandoCpf = false;
+          this.cpfJaCadastrado = false;
+          this.cpfInvalido = true;
+          this.mensagemValidacaoCpf = 'CPF inválido. Verifique o número digitado.';
+          return;
+        }
+        this.cpfInvalido = false;
+        this.validarCpfNoBackend(cpf);
+      } else {
+        this.limparValidacaoCpf();
+      }
+    });
+  }
+
+  /**
+   * Valida CPF usando algoritmo de dígitos verificadores
+   */
+  private validarCPF(cpf: string): boolean {
+    cpf = cpf.replace(/\D/g, '');
+    
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+    
+    let soma = 0;
+    let resto;
+    
+    for (let i = 1; i <= 9; i++) {
+      soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+    }
+    
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    
+    soma = 0;
+    for (let i = 1; i <= 10; i++) {
+      soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+    }
+    
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+    
+    return true;
+  }
+
+  /**
+   * Valida CPF no backend
+   */
+  private validarCpfNoBackend(cpf: string): void {
+    this.validandoCpf = true;
+    this.mensagemValidacaoCpf = '';
+
+    this.usuarioService.validarCpf(cpf).subscribe({
+      next: (response) => {
+        this.validandoCpf = false;
+        this.cpfJaCadastrado = response.cpfCadastrado;
+        this.mensagemValidacaoCpf = response.mensagem;
+
+        if (response.cpfCadastrado) {
+          // Bloqueia todos os campos exceto CPF
+          Object.keys(this.formulario.controls).forEach(key => {
+            if (key !== 'cpf') {
+              this.formulario.get(key)?.disable();
+            }
+          });
+        } else {
+          // Habilita todos os campos
+          this.formulario.enable();
+        }
+      },
+      error: (error) => {
+        this.validandoCpf = false;
+        console.error('Erro ao validar CPF:', error);
+        
+        if (error.status === 400) {
+          this.mensagemValidacaoCpf = 'CPF inválido. Verifique o número digitado.';
+        } else {
+          this.mensagemValidacaoCpf = 'Erro ao validar CPF. Tente novamente mais tarde.';
+        }
+        this.cpfJaCadastrado = false;
+      }
+    });
+  }
+
+  /**
+   * Limpa validação de CPF
+   */
+  private limparValidacaoCpf(): void {
+    this.cpfJaCadastrado = false;
+    this.cpfInvalido = false;
+    this.mensagemValidacaoCpf = '';
+    this.validandoCpf = false;
+    this.formulario.enable();
+  }
+
+  /**
+   * Redireciona para tela de recuperar senha
+   */
+  recuperarSenha(): void {
+    const cpf = this.formulario.get('cpf')?.value;
+    this.router.navigate(['/auth/recuperar-senha'], {
+      queryParams: { cpf: cpf }
+    });
+  }
+
   private atualizarValidacaoChavePix(): void {
     const tipoChave = this.formulario.get('tipoChavePix')?.value;
     const chavePix = this.formulario.get('chavePix');
@@ -129,14 +256,6 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     this.formulario.get('cpf')?.setValue(value);
   }
 
-  onTelefoneInput(event: any): void {
-    let value = event.target.value.replace(/\D/g, '');
-    if (value.length > 11) {
-      value = value.substring(0, 11);
-    }
-    this.formulario.get('telefone')?.setValue(value);
-  }
-
   formatarCpfDisplay(cpf: string): string {
     if (!cpf) return '';
     const value = cpf.replace(/\D/g, '');
@@ -144,17 +263,6 @@ export class CorretorCadastroPublicoComponent implements OnInit {
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  }
-
-  formatarTelefoneDisplay(telefone: string): string {
-    if (!telefone) return '';
-    const value = telefone.replace(/\D/g, '');
-    if (value.length === 11) {
-      return value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    } else if (value.length === 10) {
-      return value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    }
-    return telefone;
   }
 
   filtrarCargos(event: any): void {
@@ -185,6 +293,16 @@ export class CorretorCadastroPublicoComponent implements OnInit {
 
   onSubmit(): void {
     this.submitted = true;
+
+    // Impede cadastro se CPF já existe
+    if (this.cpfJaCadastrado) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Este CPF já está cadastrado. Utilize a opção "Recuperar Senha".'
+      });
+      return;
+    }
 
     if (this.formulario.invalid) {
       this.messageService.add({

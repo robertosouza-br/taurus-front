@@ -5,7 +5,7 @@ import { UsuarioService } from '../../../core/services/usuario.service';
 import { FuncionalidadeService } from '../../../core/services/funcionalidade.service';
 import { UsuarioSaidaDTO, UsuarioAtualizacaoDTO } from '../../../core/models/usuario.model';
 import { PerfilDTO } from '../../../core/models/funcionalidade.model';
-import { PermissaoService, AuthService } from '../../../core/services';
+import { PermissaoService, AuthService, AuthorizationService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -34,6 +34,7 @@ export class UsuarioEdicaoComponent implements OnInit {
   salvando = false;
   tentouSalvar = false;
   editandoProprioUsuario = false;
+  usuarioLogadoEhAdministrador = false;
   resetarSenha: boolean = false;
 
   breadcrumbItems: BreadcrumbItem[] = [];
@@ -46,7 +47,8 @@ export class UsuarioEdicaoComponent implements OnInit {
     private messageService: MessageService,
     private permissaoService: PermissaoService,
     private confirmationService: ConfirmationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private authorizationService: AuthorizationService
   ) {
     this.usuarioId = +this.route.snapshot.params['id'];
   }
@@ -78,6 +80,9 @@ export class UsuarioEdicaoComponent implements OnInit {
 
     // Verificar se está editando o próprio usuário
     const usuarioLogado = this.authService.getUsuarioLogado();
+    
+    // Verificar se o usuário logado tem perfil de ADMINISTRADOR
+    this.usuarioLogadoEhAdministrador = this.authorizationService.isAdministrador();
 
     Promise.all([
       this.usuarioService.obterUsuario(this.usuarioId).toPromise(),
@@ -123,6 +128,13 @@ export class UsuarioEdicaoComponent implements OnInit {
 
   mostrarTodosPerfis(): void {
     this.perfisFiltrados = this.perfis;
+  }
+
+  /**
+   * Verifica se o campo perfil deve estar desabilitado
+   */
+  get perfilDesabilitado(): boolean {
+    return this.editandoProprioUsuario || !this.usuarioLogadoEhAdministrador;
   }
 
   salvarUsuario(): void {

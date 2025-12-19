@@ -42,6 +42,83 @@
   }
 
   .cadastro-form {
+    // Validação de CPF
+    .cpf-field-container {
+      margin-bottom: 1rem;
+
+      .cpf-validacao-loading {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #f0f4ff;
+        border-radius: 6px;
+        color: #667eea;
+        font-size: 0.9rem;
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      .cpf-validacao-mensagem {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        animation: fadeIn 0.3s ease-out;
+
+        i {
+          font-size: 1.1rem;
+        }
+
+        &.mensagem-invalido {
+          background: #f8d7da;
+          border: 1px solid #dc3545;
+          color: #721c24;
+
+          i {
+            color: #dc3545;
+          }
+        }
+
+        &.mensagem-erro {
+          background: #fff3cd;
+          border: 1px solid #ffc107;
+          color: #856404;
+
+          i {
+            color: #ff9800;
+          }
+        }
+
+        &.mensagem-sucesso {
+          background: #d1f2eb;
+          border: 1px solid #28a745;
+          color: #155724;
+
+          i {
+            color: #28a745;
+          }
+        }
+      }
+
+      .cpf-recuperar-senha {
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: flex-start;
+      }
+    }
+
+    // Campo Telefone
+    .telefone-field-container {
+      margin-bottom: 1rem;
+    }
+
     ::ng-deep {
       .p-card {
         margin-bottom: 1.25rem;

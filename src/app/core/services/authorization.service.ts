@@ -16,7 +16,7 @@ export class AuthorizationService {
   /**
    * Verifica se o usuário é administrador.
    */
-  private isAdministrador(): boolean {
+  isAdministrador(): boolean {
     const usuario = this.authService.getUsuarioLogado();
     if (!usuario || !usuario.perfis) return false;
     

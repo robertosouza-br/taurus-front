@@ -30,14 +30,46 @@
         </app-input-text>
 
         <!-- CPF -->
-        <app-input-cpf
-          id="cpf"
-          label="CPF"
-          [required]="true"
-          formControlName="cpf"
-          [showValidation]="submitted"
-          errorMessage="CPF é obrigatório (11 dígitos)">
-        </app-input-cpf>
+        <div class="cpf-field-container">
+          <app-input-cpf
+            id="cpf"
+            label="CPF"
+            [required]="true"
+            formControlName="cpf"
+            [showValidation]="submitted"
+            errorMessage="CPF é obrigatório (11 dígitos)">
+          </app-input-cpf>
+          
+          <!-- Loading da validação -->
+          <div *ngIf="validandoCpf" class="cpf-validacao-loading">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Validando CPF...</span>
+          </div>
+          
+          <!-- Mensagem de validação -->
+          <div *ngIf="mensagemValidacaoCpf && !validandoCpf" 
+               class="cpf-validacao-mensagem"
+               [ngClass]="{
+                 'mensagem-invalido': cpfInvalido,
+                 'mensagem-erro': cpfJaCadastrado && !cpfInvalido,
+                 'mensagem-sucesso': !cpfJaCadastrado && !cpfInvalido
+               }">
+            <i [class]="cpfInvalido ? 'pi pi-times-circle' : (cpfJaCadastrado ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle')"></i>
+            <span>{{ mensagemValidacaoCpf }}</span>
+          </div>
+          
+          <!-- Botão Recuperar Senha -->
+          <div *ngIf="cpfJaCadastrado" class="cpf-recuperar-senha">
+            <app-custom-button
+              label="Recuperar Senha"
+              icon="pi pi-key"
+              severity="warning"
+              [outlined]="true"
+              size="small"
+              (onClick)="recuperarSenha()">
+            </app-custom-button>
+          </div>
+        </div>
 
         <!-- Email -->
         <app-input-text
@@ -60,14 +92,15 @@
         </app-input-text>
 
         <!-- Telefone -->
-        <app-input-text
-          id="telefone"
-          label="Telefone"
-          [required]="false"
-          formControlName="telefone"
-          [maxlength]="15"
-          [showValidation]="submitted">
-        </app-input-text>
+        <div class="telefone-field-container">
+          <app-input-telefone
+            id="telefone"
+            label="Telefone"
+            [required]="false"
+            formControlName="telefone"
+            [showValidation]="submitted">
+          </app-input-telefone>
+        </div>
 
         <!-- Número do CRECI -->
         <app-input-text

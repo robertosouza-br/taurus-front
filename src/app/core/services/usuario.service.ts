@@ -12,6 +12,14 @@ import {
 import { Page } from '../models/page.model';
 
 /**
+ * Interface para resposta de validação de CPF
+ */
+export interface ValidacaoCpfDTO {
+  cpfCadastrado: boolean;
+  mensagem: string;
+}
+
+/**
  * Serviço para gerenciamento de usuários
  */
 @Injectable({
@@ -100,5 +108,16 @@ export class UsuarioService {
    */
   removerUsuario(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Valida se um CPF já está cadastrado no sistema
+   * Endpoint público para validação antes do cadastro de corretor
+   * @param cpf CPF a ser validado (apenas números)
+   */
+  validarCpf(cpf: string): Observable<ValidacaoCpfDTO> {
+    const cpfNumerico = cpf.replace(/\D/g, '');
+    const params = new HttpParams().set('cpf', cpfNumerico);
+    return this.http.get<ValidacaoCpfDTO>(`${this.apiUrl}/validar-cpf`, { params });
   }
 }

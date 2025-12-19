@@ -471,7 +471,8 @@ export class AuthService {
         ...parsed,
         expiracao: new Date(parsed.expiracao),
         refreshExpiracao: parsed.refreshExpiracao ? new Date(parsed.refreshExpiracao) : undefined,
-        permissoes: permissoesMap
+        permissoes: permissoesMap,
+        perfis: parsed.perfis || []
       };
     } catch {
       return null;

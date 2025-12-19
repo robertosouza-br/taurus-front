@@ -5,7 +5,7 @@ import { UsuarioService } from '../../../core/services/usuario.service';
 import { FuncionalidadeService } from '../../../core/services/funcionalidade.service';
 import { UsuarioEntradaDTO } from '../../../core/models/usuario.model';
 import { PerfilDTO } from '../../../core/models/funcionalidade.model';
-import { PermissaoService } from '../../../core/services';
+import { PermissaoService, AuthService, AuthorizationService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -36,6 +36,7 @@ export class UsuarioNovoComponent implements OnInit {
 
   carregando = false;
   salvando = false;
+  usuarioLogadoEhAdministrador = false;
   senhaGerada: string | null = null;
   mostrarModalSenha = false;
 
@@ -47,7 +48,9 @@ export class UsuarioNovoComponent implements OnInit {
     private funcionalidadeService: FuncionalidadeService,
     private messageService: MessageService,
     private permissaoService: PermissaoService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private authService: AuthService,
+    private authorizationService: AuthorizationService
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +64,10 @@ export class UsuarioNovoComponent implements OnInit {
       this.router.navigate(['/admin/usuarios']);
       return;
     }
+    
+    // Verificar se o usuário logado tem perfil de ADMINISTRADOR
+    this.usuarioLogadoEhAdministrador = this.authorizationService.isAdministrador();
+    
     this.configurarBreadcrumb();
     this.carregarPerfis();
   }
@@ -79,6 +86,15 @@ export class UsuarioNovoComponent implements OnInit {
       .subscribe({
         next: (page) => {
           this.perfis = page.content.filter(p => p.ativo);
+          
+          // Se não for administrador, definir perfil CORRETOR automaticamente
+          if (!this.usuarioLogadoEhAdministrador) {
+            const perfilCorretor = this.perfis.find(p => p.nome === 'CORRETOR');
+            if (perfilCorretor) {
+              this.perfilSelecionado = perfilCorretor;
+            }
+          }
+          
           this.carregando = false;
         },
         error: () => {

@@ -97,15 +97,15 @@
           field="nome"
           [required]="true"
           [showValidation]="tentouSalvar"
-          [disabled]="editandoProprioUsuario"
+          [disabled]="perfilDesabilitado"
           emptyMessage="Nenhum resultado encontrado"
           placeholder="Digite para buscar um perfil"
           [itemTemplate]="perfilTemplate">
         </app-autocomplete>
-        <div class="field-helper">
-          <i class="pi pi-info-circle" [style.visibility]="editandoProprioUsuario ? 'visible' : 'hidden'"></i>
-          <span [style.visibility]="editandoProprioUsuario ? 'visible' : 'hidden'">
-            Você não pode alterar seu próprio perfil
+        <div class="field-helper" *ngIf="editandoProprioUsuario || !usuarioLogadoEhAdministrador">
+          <i class="pi pi-info-circle"></i>
+          <span>
+            {{ editandoProprioUsuario ? 'Você não pode alterar seu próprio perfil' : 'Apenas usuários com perfil ADMINISTRADOR podem alterar perfis' }}
           </span>
         </div>
 
