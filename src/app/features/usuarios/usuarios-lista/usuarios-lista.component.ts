@@ -100,8 +100,10 @@ export class UsuariosListaComponent implements OnInit {
 
   carregarUsuarios(search: string = ''): void {
     this.carregando = true;
+    console.log('Iniciando carregamento de usuários...');
     this.usuarioService.listarUsuarios(0, 50, search).subscribe({
       next: (page: Page<UsuarioSaidaDTO>) => {
+        console.log('Usuários carregados com sucesso:', page);
         this.usuarios = page.content.map((usuario: UsuarioSaidaDTO) => ({
           ...usuario,
           perfil: usuario.perfis && usuario.perfis.length > 0 ? usuario.perfis[0].nome : 'Sem perfil'
@@ -109,12 +111,36 @@ export class UsuariosListaComponent implements OnInit {
         this.totalRecords = page.totalElements;
         this.carregando = false;
       },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao carregar usuários'
-        });
+      error: (error) => {
+        console.log('========== ERRO NO CARREGAMENTO ==========');
+        console.log('Erro capturado no componente:', error);
+        console.log('Status do erro:', error.status);
+        console.log('Detalhes do erro:', error.error);
+        console.log('==========================================');
+        
+        // Exibe mensagem específica para erro 403 e redireciona
+        if (error.status === 403) {
+          const mensagem = error.error?.detail || error.error?.message || 'Você não tem permissão para consultar usuários';
+          console.log('Mensagem 403:', mensagem);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Acesso Negado',
+            detail: mensagem,
+            life: 5000
+          });
+          
+          // Redireciona para tela de acesso negado após mostrar o toast
+          setTimeout(() => {
+            this.router.navigate(['/acesso-negado']);
+          }, 1500);
+        } else {
+          const mensagem = error.error?.message || error.error?.detail || 'Erro ao carregar usuários';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: mensagem
+          });
+        }
         this.carregando = false;
       }
     });

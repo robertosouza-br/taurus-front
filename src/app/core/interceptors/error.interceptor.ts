@@ -70,10 +70,9 @@ export class ErrorInterceptor implements HttpInterceptor {
             return throwError(() => exclusaoError);
           }
           
-          // 403 - Sem permissão: redireciona para página de acesso negado
+          // 403 - Sem permissão: apenas loga e repassa o erro para o componente tratar
           if (error.status === 403) {
             console.warn('Acesso negado. Usuário sem permissão para realizar esta ação.');
-            this.router.navigate(['/acesso-negado']);
             errorMessage = error.error?.detail || error.error?.message || 'Você não tem permissão para realizar esta ação';
             console.error('Erro 403:', errorMessage);
             return throwError(() => error);

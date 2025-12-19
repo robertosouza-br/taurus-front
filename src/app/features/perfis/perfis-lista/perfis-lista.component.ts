@@ -156,13 +156,30 @@ export class PerfisListaComponent implements OnInit {
           this.currentPage = response.number;
           this.carregando = false;
         },
-        error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: 'Erro ao carregar perfis',
-            life: 300000
-          });
+        error: (error) => {
+          // Exibe mensagem específica para erro 403 e redireciona
+          if (error.status === 403) {
+            const mensagem = error.error?.detail || error.error?.message || 'Você não tem permissão para consultar perfis';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Acesso Negado',
+              detail: mensagem,
+              life: 5000
+            });
+            
+            // Redireciona para tela de acesso negado após mostrar o toast
+            setTimeout(() => {
+              this.router.navigate(['/acesso-negado']);
+            }, 1500);
+          } else {
+            const mensagem = error.error?.message || error.error?.detail || 'Erro ao carregar perfis';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro',
+              detail: mensagem,
+              life: 5000
+            });
+          }
           this.carregando = false;
         }
       });
