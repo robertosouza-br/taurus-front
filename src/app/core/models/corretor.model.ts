@@ -31,14 +31,16 @@ export interface CorretorDTO {
   nome: string;
   cpf: string; // 11 dígitos numéricos, sem máscara
   email: string;
-  telefone: string;
+  nomeGuerra?: string;
+  telefone?: string;
+  numeroCreci?: string;
   cargo: CorretorCargo;
-  banco: Banco;
-  agencia: string;
-  conta: string;
-  digitoConta: string;
-  tipoChavePix: TipoChavePix;
-  chavePix: string;
+  banco?: Banco;
+  agencia?: string;
+  conta?: string;
+  digitoConta?: string;
+  tipoChavePix?: TipoChavePix;
+  chavePix?: string;
   ativo: boolean;
 }
 

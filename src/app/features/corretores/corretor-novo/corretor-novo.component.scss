@@ -1,89 +1,73 @@
-.corretor-novo-container {
-  padding: 1.5rem;
+// Estilos específicos do componente corretor-novo
+// Estilos comuns de formulário estão em src/styles.scss
 
-  .card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-
-    .form-section {
-      margin-bottom: 2rem;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid #e0e0e0;
-
-      &:last-of-type {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-      }
-
-      h3 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #333;
-        margin: 0 0 1.5rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-
-        i {
-          font-size: 1.2rem;
-          color: #667eea;
-        }
-      }
-
-      ::ng-deep .p-field {
-        margin-bottom: 1.5rem;
-
-        .p-float-label {
-          label {
-            font-weight: 500;
-          }
-        }
-
-        small.p-error {
-          display: block;
-          margin-top: 0.25rem;
-        }
-      }
-
-      ::ng-deep .p-field-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 2rem;
-
-        label {
-          font-weight: 500;
-          margin: 0;
-        }
-      }
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: flex-end;
-      margin-top: 2rem;
-      padding-top: 2rem;
-      border-top: 1px solid #e0e0e0;
+.corretor-form {
+  ::ng-deep {
+    .p-card {
+      margin-bottom: 1.5rem;
     }
   }
+}
 
-  @media (max-width: 768px) {
-    padding: 1rem;
+// Validação de CPF
+.cpf-validacao-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #1976d2;
 
-    .card {
-      padding: 1.5rem;
-    }
+  i {
+    font-size: 1rem;
+  }
+}
 
-    .form-actions {
-      flex-direction: column-reverse;
+.cpf-validacao-mensagem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border-left: 4px solid;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease-in;
 
-      ::ng-deep .p-button {
-        width: 100%;
-      }
-    }
+  i {
+    font-size: 1rem;
+  }
+
+  &.mensagem-invalido {
+    background-color: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+  }
+
+  &.mensagem-erro {
+    background-color: #fff3e0;
+    border-color: #ff9800;
+    color: #e65100;
+  }
+
+  &.mensagem-sucesso {
+    background-color: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
