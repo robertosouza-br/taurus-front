@@ -1,27 +1,49 @@
 <div class="acesso-negado-container">
   <div class="acesso-negado-content">
-    <i class="pi pi-ban icon-error"></i>
-    <h1>Acesso Negado</h1>
-    <p class="message">
-      Você não possui permissão para acessar este recurso.
-    </p>
-    <p class="description">
-      Se você acredita que deveria ter acesso a esta página, entre em contato com o administrador do sistema.
-    </p>
-    <div class="actions">
-      <button 
-        pButton 
-        label="Voltar" 
-        icon="pi pi-arrow-left" 
-        class="p-button-secondary"
-        (click)="voltar()">
-      </button>
-      <button 
-        pButton 
-        label="Ir para Dashboard" 
-        icon="pi pi-home"
-        (click)="irParaDashboard()">
-      </button>
+    <!-- Ilustração de Acesso Negado -->
+    <div class="illustration">
+      <div class="shield-container">
+        <i class="pi pi-shield shield-icon"></i>
+        <i class="pi pi-lock lock-icon"></i>
+      </div>
+      <div class="warning-badge">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="content-wrapper">
+      <div class="status-code">403</div>
+      <h1 class="title">Acesso Negado</h1>
+      <p class="message">
+        Você não possui permissão para acessar este recurso.
+      </p>
+      <p class="description">
+        Se você acredita que deveria ter acesso a esta página, entre em contato com o administrador do sistema para solicitar as permissões necessárias.
+      </p>
+
+      <!-- Informações Adicionais -->
+      <div class="info-box">
+        <i class="pi pi-info-circle"></i>
+        <div class="info-content">
+          <strong>O que posso fazer?</strong>
+          <ul>
+            <li>Volte à página anterior</li>
+            <li>Acesse o dashboard principal</li>
+            <li>Entre em contato com o suporte</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="actions">
+        <app-custom-button
+          label="Ir para Dashboard"
+          icon="pi pi-home"
+          severity="primary"
+          (onClick)="irParaDashboard()">
+        </app-custom-button>
+      </div>
     </div>
   </div>
 </div>
