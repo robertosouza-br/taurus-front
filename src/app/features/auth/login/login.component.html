@@ -14,18 +14,21 @@
         <div class="error-alert" [ngClass]="{
           'alert-warning': tipoErro === 'credenciais',
           'alert-danger': tipoErro === 'bloqueado',
-          'alert-info': tipoErro === 'generico'
+          'alert-info': tipoErro === 'generico',
+          'alert-inatividade': tipoErro === 'inatividade'
         }">
           <i class="pi" [ngClass]="{
             'pi-exclamation-triangle': tipoErro === 'credenciais',
             'pi-lock': tipoErro === 'bloqueado',
-            'pi-info-circle': tipoErro === 'generico'
+            'pi-info-circle': tipoErro === 'generico',
+            'pi-clock': tipoErro === 'inatividade'
           }"></i>
           <div class="error-content">
             <strong>
               <span *ngIf="tipoErro === 'credenciais'">Atenção!</span>
               <span *ngIf="tipoErro === 'bloqueado'">Acesso Bloqueado</span>
               <span *ngIf="tipoErro === 'generico'">Erro</span>
+              <span *ngIf="tipoErro === 'inatividade'">Sessão Encerrada</span>
             </strong>
             <p>{{ errorMessage }}</p>
           </div>

@@ -19,7 +19,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   loading = false;
   submitted = false;
   errorMessage = '';
-  tipoErro: 'credenciais' | 'bloqueado' | 'generico' | null = null;
+  tipoErro: 'credenciais' | 'bloqueado' | 'generico' | 'inatividade' | null = null;
   mostrarBotaoSuporte = false;
   returnUrl = '/';
   hidePassword = true;
@@ -53,6 +53,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
     const mensagem = this.route.snapshot.queryParams['mensagem'];
     if (mensagem) {
       this.errorMessage = mensagem;
+      // Define tipo especial para mensagem de inatividade
+      if (mensagem.toLowerCase().includes('inatividade') || mensagem.toLowerCase().includes('desconectado')) {
+        this.tipoErro = 'inatividade';
+      }
     }
   }
 
