@@ -36,6 +36,12 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
   statusFiltrados: { label: string; value: string }[] = [];
   tiposFiltrados: { label: string; value: string }[] = [];
   
+  // Cubo 3D
+  rotacaoY = 0;
+  rotacaoX = 0;
+  blocoAtual = 0;
+  animandoCubo = false;
+  
   // Opções
   visualizacaoOptions: VisualizacaoOption[] = [
     { label: 'Planta 3D', value: 'planta', icon: 'pi pi-th-large' },
@@ -74,6 +80,43 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  rotacionarCubo(direcao: 'proximo' | 'anterior'): void {
+    if (this.animandoCubo) return;
+    
+    const blocos = this.getBlocos();
+    if (blocos.length === 0) return;
+    
+    this.animandoCubo = true;
+    
+    if (direcao === 'proximo') {
+      this.blocoAtual = (this.blocoAtual + 1) % blocos.length;
+      this.rotacaoY -= 90;
+    } else {
+      this.blocoAtual = this.blocoAtual === 0 ? blocos.length - 1 : this.blocoAtual - 1;
+      this.rotacaoY += 90;
+    }
+    
+    setTimeout(() => {
+      this.animandoCubo = false;
+    }, 600);
+  }
+  
+  rotacionarCuboVertical(direcao: 'cima' | 'baixo'): void {
+    if (this.animandoCubo) return;
+    
+    this.animandoCubo = true;
+    
+    if (direcao === 'cima') {
+      this.rotacaoX += 90;
+    } else {
+      this.rotacaoX -= 90;
+    }
+    
+    setTimeout(() => {
+      this.animandoCubo = false;
+    }, 600);
   }
 
   private carregarOpcoes(): void {

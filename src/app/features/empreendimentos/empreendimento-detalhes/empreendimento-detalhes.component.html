@@ -203,34 +203,175 @@
         </div>
       </ng-template>
 
-      <!-- Visualização em Planta 3D -->
-      <div class="planta-view" *ngIf="visualizacao === 'planta'">
-        <div class="bloco-container" *ngFor="let bloco of getBlocos()">
-          <div class="bloco-header">
-            <i class="pi pi-building"></i>
-            <h4>Bloco {{ bloco }}</h4>
+      <!-- Visualização em Cubo 3D -->
+      <div class="cubo-view" *ngIf="visualizacao === 'planta'">
+        <!-- Controles de Rotação -->
+        <div class="controles-cubo">
+          <div class="controles-horizontais">
+            <button pButton type="button" 
+                    icon="pi pi-chevron-left" 
+                    class="p-button-rounded p-button-outlined"
+                    (click)="rotacionarCubo('anterior')"
+                    [disabled]="animandoCubo"
+                    pTooltip="Bloco Anterior"
+                    tooltipPosition="top"></button>
+            
+            <div class="info-bloco-atual">
+              <i class="pi pi-building"></i>
+              <span>Bloco {{ getBlocos()[blocoAtual] }}</span>
+            </div>
+            
+            <button pButton type="button" 
+                    icon="pi pi-chevron-right" 
+                    class="p-button-rounded p-button-outlined"
+                    (click)="rotacionarCubo('proximo')"
+                    [disabled]="animandoCubo"
+                    pTooltip="Próximo Bloco"
+                    tooltipPosition="top"></button>
           </div>
+        </div>
 
-          <div class="andares-container">
-            <div class="andar-row" *ngFor="let andar of getAndares(bloco)">
-              <div class="andar-label">
-                <span>{{ andar }}º Andar</span>
-              </div>
-              
-              <div class="unidades-andar">
-                <div 
-                  *ngFor="let unidade of getUnidadesDoAndar(bloco, andar)"
-                  class="unidade-planta"
-                  [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
-                  tooltipPosition="top"
-                  (click)="selecionarUnidade(unidade)">
-                  
-                  <div class="unidade-codigo">{{ unidade.unidade }}</div>
-                  <div class="unidade-tipo">
-                    <i class="pi pi-home"></i>
+        <!-- Container do Cubo 3D -->
+        <div class="scene-container">
+          <div class="cube" [style.transform]="'rotateY(' + rotacaoY + 'deg) rotateX(' + rotacaoX + 'deg)'">
+            <!-- Face para cada bloco -->
+            <div class="cube-face face-front" 
+                 *ngIf="getBlocos()[0]"
+                 [attr.data-bloco]="getBlocos()[0]">
+              <div class="face-content">
+                <div class="face-header">
+                  <i class="pi pi-building"></i>
+                  <h3>Bloco {{ getBlocos()[0] }}</h3>
+                </div>
+                <div class="andares-container">
+                  <div class="andar-row" *ngFor="let andar of getAndares(getBlocos()[0])">
+                    <div class="andar-label">{{ andar }}º</div>
+                    <div class="unidades-andar">
+                      <div *ngFor="let unidade of getUnidadesDoAndar(getBlocos()[0], andar)"
+                           class="unidade-mini"
+                           [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                           (click)="selecionarUnidade(unidade)">
+                        {{ unidade.unidade }}
+                      </div>
+                    </div>
                   </div>
-                  <div class="unidade-info">
-                    <span class="area">{{ unidade.sigla }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="cube-face face-right" 
+                 *ngIf="getBlocos()[1]"
+                 [attr.data-bloco]="getBlocos()[1]">
+              <div class="face-content">
+                <div class="face-header">
+                  <i class="pi pi-building"></i>
+                  <h3>Bloco {{ getBlocos()[1] }}</h3>
+                </div>
+                <div class="andares-container">
+                  <div class="andar-row" *ngFor="let andar of getAndares(getBlocos()[1])">
+                    <div class="andar-label">{{ andar }}º</div>
+                    <div class="unidades-andar">
+                      <div *ngFor="let unidade of getUnidadesDoAndar(getBlocos()[1], andar)"
+                           class="unidade-mini"
+                           [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                           (click)="selecionarUnidade(unidade)">
+                        {{ unidade.unidade }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cube-face face-back" 
+                 *ngIf="getBlocos()[2]"
+                 [attr.data-bloco]="getBlocos()[2]">
+              <div class="face-content">
+                <div class="face-header">
+                  <i class="pi pi-building"></i>
+                  <h3>Bloco {{ getBlocos()[2] }}</h3>
+                </div>
+                <div class="andares-container">
+                  <div class="andar-row" *ngFor="let andar of getAndares(getBlocos()[2])">
+                    <div class="andar-label">{{ andar }}º</div>
+                    <div class="unidades-andar">
+                      <div *ngFor="let unidade of getUnidadesDoAndar(getBlocos()[2], andar)"
+                           class="unidade-mini"
+                           [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                           (click)="selecionarUnidade(unidade)">
+                        {{ unidade.unidade }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cube-face face-left" 
+                 *ngIf="getBlocos()[3]"
+                 [attr.data-bloco]="getBlocos()[3]">
+              <div class="face-content">
+                <div class="face-header">
+                  <i class="pi pi-building"></i>
+                  <h3>Bloco {{ getBlocos()[3] }}</h3>
+                </div>
+                <div class="andares-container">
+                  <div class="andar-row" *ngFor="let andar of getAndares(getBlocos()[3])">
+                    <div class="andar-label">{{ andar }}º</div>
+                    <div class="unidades-andar">
+                      <div *ngFor="let unidade of getUnidadesDoAndar(getBlocos()[3], andar)"
+                           class="unidade-mini"
+                           [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                           (click)="selecionarUnidade(unidade)">
+                        {{ unidade.unidade }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cube-face face-top" 
+                 *ngIf="getBlocos()[4]">
+              <div class="face-content">
+                <div class="face-header">
+                  <i class="pi pi-building"></i>
+                  <h3>Bloco {{ getBlocos()[4] }}</h3>
+                </div>
+                <div class="andares-container">
+                  <div class="andar-row" *ngFor="let andar of getAndares(getBlocos()[4])">
+                    <div class="andar-label">{{ andar }}º</div>
+                    <div class="unidades-andar">
+                      <div *ngFor="let unidade of getUnidadesDoAndar(getBlocos()[4], andar)"
+                           class="unidade-mini"
+                           [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                           (click)="selecionarUnidade(unidade)">
+                        {{ unidade.unidade }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cube-face face-bottom" 
+                 *ngIf="getBlocos()[5]">
+              <div class="face-content">
+                <div class="face-header">
+                  <i class="pi pi-building"></i>
+                  <h3>Bloco {{ getBlocos()[5] }}</h3>
+                </div>
+                <div class="andares-container">
+                  <div class="andar-row" *ngFor="let andar of getAndares(getBlocos()[5])">
+                    <div class="andar-label">{{ andar }}º</div>
+                    <div class="unidades-andar">
+                      <div *ngFor="let unidade of getUnidadesDoAndar(getBlocos()[5], andar)"
+                           class="unidade-mini"
+                           [pTooltip]="unidade.tipologia + ' - ' + formatarValor(unidade.preco)"
+                           (click)="selecionarUnidade(unidade)">
+                        {{ unidade.unidade }}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -238,7 +379,7 @@
           </div>
         </div>
 
-        <!-- Legenda de Status -->
+        <!-- Legenda -->
         <div class="legenda">
           <h5>Status das Unidades:</h5>
           <div class="legenda-item" *ngFor="let status of statusOptions">
