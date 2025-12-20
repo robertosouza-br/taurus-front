@@ -10,8 +10,8 @@
   </app-page-header>
 
   <!-- Loading -->
-  <div *ngIf="carregando" class="loading-container">
-    <p-progressSpinner></p-progressSpinner>
+  <div class="loading-container" *ngIf="carregando">
+    <app-loading-spinner message="Carregando dados do corretor..."></app-loading-spinner>
   </div>
 
   <!-- Formulário -->

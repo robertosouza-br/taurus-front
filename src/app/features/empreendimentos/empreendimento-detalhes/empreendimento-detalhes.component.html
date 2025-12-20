@@ -1,4 +1,4 @@
-<div class="empreendimento-detalhes" *ngIf="empreendimento">
+<div class="empreendimento-detalhes" *ngIf="empreendimento && !carregando">
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
   <div class="detalhes-header">
@@ -354,14 +354,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Legenda -->
-        <div class="legenda">
-          <h5>Status das Unidades:</h5>
-          <div class="legenda-item" *ngFor="let status of statusOptions">
-            <span class="legenda-badge">{{ status.label }}</span>
-          </div>
-        </div>
       </div>
 
       <!-- Visualização em Grid -->
@@ -488,8 +480,7 @@
 
 <!-- Loading -->
 <div class="loading-container" *ngIf="carregando">
-  <p-progressSpinner></p-progressSpinner>
-  <p>Carregando dados do empreendimento...</p>
+  <app-loading-spinner message="Carregando dados do empreendimento..."></app-loading-spinner>
 </div>
 
 <p-toast position="top-right"></p-toast>

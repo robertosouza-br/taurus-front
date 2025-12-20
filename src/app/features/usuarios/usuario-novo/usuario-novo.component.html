@@ -9,7 +9,9 @@
     icon="pi pi-user-plus">
   </app-page-header>
 
-  <app-loading-spinner *ngIf="carregando" message="Carregando informações..."></app-loading-spinner>
+  <div class="loading-container" *ngIf="carregando">
+    <app-loading-spinner message="Carregando informações..."></app-loading-spinner>
+  </div>
 
   <div class="usuario-form" *ngIf="!carregando">
     <!-- Dados Básicos -->

@@ -13,7 +13,9 @@
     </ng-container>
   </app-page-header>
 
-  <app-loading-spinner *ngIf="carregando" message="Carregando configurações..."></app-loading-spinner>
+  <div class="loading-container" *ngIf="carregando">
+    <app-loading-spinner message="Carregando configurações..."></app-loading-spinner>
+  </div>
 
   <div *ngIf="!carregando && perfil" class="configuracao-content">
     <!-- Aviso para Perfis de Sistema -->
