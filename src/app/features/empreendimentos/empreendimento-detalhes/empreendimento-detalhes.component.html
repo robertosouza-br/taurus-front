@@ -2,10 +2,6 @@
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
   <div class="detalhes-header">
-    <button pButton type="button" icon="pi pi-arrow-left" 
-            class="p-button-text p-button-secondary btn-voltar"
-            (click)="voltar()" label="Voltar"></button>
-
     <app-page-header 
       [title]="empreendimento.nome"
       [subtitle]="empreendimento.descricao">
@@ -121,85 +117,79 @@
             </p-selectButton>
           </div>
         </div>
-
-        <!-- Busca por Unidade -->
-        <div class="busca-unidade-container">
-          <div class="busca-unidade">
-            <label><i class="pi pi-search"></i> Buscar Unidade</label>
-            <p-autoComplete
+        <!-- Filtros -->
+        <div class="filtros-container">
+          <div class="filtro-item">
+            <app-autocomplete
+              id="busca-unidade"
+              label="Buscar Unidade"
               [(ngModel)]="unidadeSelecionada"
               [suggestions]="unidadesFiltradasAutocomplete"
               (completeMethod)="buscarUnidades($event)"
               (onSelect)="aoSelecionarUnidade($event)"
-              (onClear)="limparSelecaoUnidade()"
+              (onDropdownClick)="buscarUnidades({ query: '' })"
               field="unidade"
-              [dropdown]="true"
-              [forceSelection]="true"
-              [showClear]="true"
               placeholder="Digite o código, tipo ou bloco da unidade"
-              [minLength]="1"
-              emptyMessage="Nenhuma unidade encontrada">
-              <ng-template let-unidade pTemplate="item">
-                <div class="autocomplete-item">
-                  <div class="item-header">
-                    <span class="codigo">{{ unidade.unidade }}</span>
-                    <span class="sigla">{{ unidade.sigla }}</span>
-                  </div>
-                  <div class="item-body">
-                    <span class="tipologia">{{ unidade.tipologia }}</span>
-                    <span class="bloco">Bloco {{ unidade.bloco }}</span>
-                  </div>
-                  <div class="item-footer">
-                    <span class="status">{{ unidade.statusUnidade }}</span>
-                    <span class="preco">{{ formatarValor(unidade.preco) }}</span>
-                  </div>
-                </div>
-              </ng-template>
-            </p-autoComplete>
-          </div>
-        </div>
+              emptyMessage="Nenhuma unidade encontrada"
+              [itemTemplate]="unidadeTemplate">
+            </app-autocomplete>
 
-        <!-- Filtros -->
-        <div class="filtros-container">
+            <ng-template #unidadeTemplate let-unidade>
+              <div class="autocomplete-item">
+                <div class="item-header">
+                  <span class="codigo">{{ unidade.unidade }}</span>
+                  <span class="sigla">{{ unidade.sigla }}</span>
+                </div>
+                <div class="item-body">
+                  <span class="tipologia">{{ unidade.tipologia }}</span>
+                  <span class="bloco">Bloco {{ unidade.bloco }}</span>
+                </div>
+                <div class="item-footer">
+                  <span class="status">{{ unidade.statusUnidade }}</span>
+                  <span class="preco">{{ formatarValor(unidade.preco) }}</span>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
           <div class="filtro-item">
-            <label>Status</label>
-            <p-autoComplete
+            <app-autocomplete
+              id="filtro-status"
+              label="Status"
               [(ngModel)]="statusSelecionado"
               [suggestions]="statusFiltrados"
               (completeMethod)="buscarStatus($event)"
-              field="label"
-              [dropdown]="true"
-              [forceSelection]="false"
-              [showClear]="true"
-              placeholder="Selecione o status"
               (onSelect)="aplicarFiltros()"
-              (onClear)="aplicarFiltros()">
-            </p-autoComplete>
+              (onDropdownClick)="buscarStatus({ query: '' })"
+              field="label"
+              placeholder="Selecione o status"
+              emptyMessage="Nenhum status encontrado">
+            </app-autocomplete>
           </div>
 
           <div class="filtro-item">
-            <label>Tipo</label>
-            <p-autoComplete
+            <app-autocomplete
+              id="filtro-tipo"
+              label="Tipo"
               [(ngModel)]="tipoSelecionado"
               [suggestions]="tiposFiltrados"
               (completeMethod)="buscarTipos($event)"
-              field="label"
-              [dropdown]="true"
-              [forceSelection]="false"
-              [showClear]="true"
-              placeholder="Selecione o tipo"
               (onSelect)="aplicarFiltros()"
-              (onClear)="aplicarFiltros()">
-            </p-autoComplete>
+              (onDropdownClick)="buscarTipos({ query: '' })"
+              field="label"
+              placeholder="Selecione o tipo"
+              emptyMessage="Nenhum tipo encontrado">
+            </app-autocomplete>
           </div>
 
-          <button pButton type="button" 
-                  icon="pi pi-filter-slash" 
-                  label="Limpar Filtros"
-                  class="p-button-outlined"
-                  (click)="limparFiltros()"
-                  [disabled]="!statusSelecionado && !tipoSelecionado">
-          </button>
+          <app-custom-button
+            icon="pi pi-eraser"
+            styleClass="p-button-rounded p-button-text p-button-lg p-button-plain"
+            (onClick)="limparFiltros()"
+            [disabled]="!statusSelecionado && !tipoSelecionado"
+            pTooltip="Limpar Filtros"
+            tooltipPosition="top">
+          </app-custom-button>
         </div>
       </ng-template>
 
@@ -208,26 +198,28 @@
         <!-- Controles de Rotação -->
         <div class="controles-cubo">
           <div class="controles-horizontais">
-            <button pButton type="button" 
-                    icon="pi pi-chevron-left" 
-                    class="p-button-rounded p-button-outlined"
-                    (click)="rotacionarCubo('anterior')"
-                    [disabled]="animandoCubo"
-                    pTooltip="Bloco Anterior"
-                    tooltipPosition="top"></button>
+            <app-custom-button
+              icon="pi pi-chevron-left"
+              styleClass="p-button-rounded p-button-outlined"
+              (onClick)="rotacionarCubo('anterior')"
+              [disabled]="animandoCubo"
+              pTooltip="Bloco Anterior"
+              tooltipPosition="top">
+            </app-custom-button>
             
             <div class="info-bloco-atual">
               <i class="pi pi-building"></i>
               <span>Bloco {{ getBlocos()[blocoAtual] }}</span>
             </div>
             
-            <button pButton type="button" 
-                    icon="pi pi-chevron-right" 
-                    class="p-button-rounded p-button-outlined"
-                    (click)="rotacionarCubo('proximo')"
-                    [disabled]="animandoCubo"
-                    pTooltip="Próximo Bloco"
-                    tooltipPosition="top"></button>
+            <app-custom-button
+              icon="pi pi-chevron-right"
+              styleClass="p-button-rounded p-button-outlined"
+              (onClick)="rotacionarCubo('proximo')"
+              [disabled]="animandoCubo"
+              pTooltip="Próximo Bloco"
+              tooltipPosition="top">
+            </app-custom-button>
           </div>
         </div>
 
@@ -452,12 +444,12 @@
                 <span class="preco">{{ formatarValor(unidade.preco) }}</span>
               </div>
               
-              <button pButton type="button" 
-                      label="Ver Detalhes" 
-                      icon="pi pi-eye"
-                      class="p-button-rounded"
-                      (click)="selecionarUnidade(unidade)">
-              </button>
+              <app-custom-button
+                label="Ver Detalhes"
+                icon="pi pi-eye"
+                styleClass="p-button-rounded"
+                (onClick)="selecionarUnidade(unidade)">
+              </app-custom-button>
             </div>
           </div>
         </p-card>
@@ -467,12 +459,12 @@
       <div class="empty-state" *ngIf="unidadesFiltradas.length === 0 && !carregando">
         <i class="pi pi-inbox"></i>
         <p>Nenhuma unidade encontrada com os filtros selecionados</p>
-        <button pButton type="button" 
-                label="Limpar Filtros" 
-                icon="pi pi-filter-slash"
-                class="p-button-outlined"
-                (click)="limparFiltros()">
-        </button>
+        <app-custom-button
+          label="Limpar Filtros"
+          icon="pi pi-filter-slash"
+          styleClass="p-button-outlined"
+          (onClick)="limparFiltros()">
+        </app-custom-button>
       </div>
     </p-card>
   </div>

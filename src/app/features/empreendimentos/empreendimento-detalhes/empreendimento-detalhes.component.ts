@@ -44,7 +44,7 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
   
   // Opções
   visualizacaoOptions: VisualizacaoOption[] = [
-    { label: 'Planta 3D', value: 'planta', icon: 'pi pi-th-large' },
+    { label: 'Cubo', value: 'planta', icon: 'pi pi-th-large' },
     { label: 'Grid', value: 'grid', icon: 'pi pi-table' },
     { label: 'Cards', value: 'cards', icon: 'pi pi-list' }
   ];
@@ -220,7 +220,13 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
    * Busca unidades para autocomplete
    */
   buscarUnidades(event: any): void {
-    const query = event.query.toLowerCase();
+    const query = event.query?.toLowerCase() || '';
+    
+    if (!query) {
+      // Se não há query, mostrar todas as unidades
+      this.unidadesFiltradasAutocomplete = [...this.unidades];
+      return;
+    }
     
     this.unidadesFiltradasAutocomplete = this.unidades.filter(unidade => {
       const codigo = unidade.unidade.toLowerCase();
@@ -269,7 +275,14 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
    * Busca status para autocomplete
    */
   buscarStatus(event: any): void {
-    const query = event.query.toLowerCase();
+    const query = event.query?.toLowerCase() || '';
+    
+    if (!query) {
+      // Se não há query, mostrar todos os status
+      this.statusFiltrados = [...this.statusOptions];
+      return;
+    }
+    
     this.statusFiltrados = this.statusOptions.filter(status => 
       status.label.toLowerCase().includes(query)
     );
@@ -279,7 +292,14 @@ export class EmpreendimentoDetalhesComponent implements OnInit, OnDestroy {
    * Busca tipos para autocomplete
    */
   buscarTipos(event: any): void {
-    const query = event.query.toLowerCase();
+    const query = event.query?.toLowerCase() || '';
+    
+    if (!query) {
+      // Se não há query, mostrar todos os tipos
+      this.tiposFiltrados = [...this.tiposOptions];
+      return;
+    }
+    
     this.tiposFiltrados = this.tiposOptions.filter(tipo => 
       tipo.label.toLowerCase().includes(query)
     );
