@@ -9,9 +9,7 @@
     icon="pi pi-user-edit">
   </app-page-header>
 
-  <div class="loading-container" *ngIf="carregando">
-    <app-loading-spinner message="Carregando dados do usuário..."></app-loading-spinner>
-  </div>
+  <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados do usuário..."></app-loading-spinner>
 
   <div *ngIf="!carregando && usuario" class="usuario-form">
     <p-card header="Dados do Usuário">

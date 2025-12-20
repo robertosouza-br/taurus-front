@@ -10,9 +10,7 @@
   </app-page-header>
 
   <!-- Loading -->
-  <div class="loading-container" *ngIf="carregando">
-    <app-loading-spinner message="Carregando dados do corretor..."></app-loading-spinner>
-  </div>
+  <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados do corretor..."></app-loading-spinner>
 
   <!-- Formulário -->
   <div *ngIf="!carregando && corretor" class="card">

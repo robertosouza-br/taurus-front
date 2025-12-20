@@ -12,7 +12,8 @@
   top: 0;
   left: 0;
   z-index: 9999;
-  background: #ffffff;
+  background: rgba(240, 240, 240, 0.95);
+  backdrop-filter: blur(4px);
 }
 
 .senha-info-box {

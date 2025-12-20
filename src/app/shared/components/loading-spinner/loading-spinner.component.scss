@@ -11,7 +11,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(200, 200, 200, 0.7);
+    backdrop-filter: blur(4px);
     z-index: 9999;
     padding: 0;
   }
@@ -61,13 +62,13 @@
 
 .size-medium {
   .spinner-logo {
-    width: 60px;
+    width: 120px;
     height: auto;
   }
   
   .spinner-ring {
-    width: 75px;
-    height: 75px;
+    width: 145px;
+    height: 145px;
   }
 }
 
