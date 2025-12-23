@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services';
 import { UserActivityService } from '../../../core/services/user-activity.service';
@@ -42,7 +42,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
     // Inicializa o formulário
     this.loginForm = this.formBuilder.group({
-      cpf: ['', [Validators.required]],
+      cpf: ['', [Validators.required, this.cpfMinLengthValidator]],
       senha: ['', [Validators.required, Validators.minLength(6)]]
     });
 
@@ -88,11 +88,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
   onSubmit(): void {
     this.submitted = true;
     this.errorMessage = '';
-    
-    // Limpa erros customizados antes de validar novamente
-    this.loginForm.get('cpf')?.setErrors(null);
-    this.loginForm.get('senha')?.setErrors(null);
-    this.loginForm.updateValueAndValidity();
+    this.loginForm.markAllAsTouched();
+
+    // Remove apenas erros manuais de credenciais inválidas e preserva validações obrigatórias
+    this.removeManualInvalidErrors('cpf');
+    this.removeManualInvalidErrors('senha');
+    this.loginForm.updateValueAndValidity({ onlySelf: false, emitEvent: false });
 
     // Para se o formulário for inválido
     if (this.loginForm.invalid) {
@@ -103,12 +104,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
     }
 
     const cpfSemMascara = this.loginForm.value.cpf.replace(/\D/g, '');
-    
-    // Valida se tem 11 dígitos
-    if (cpfSemMascara.length !== 11) {
-      this.errorMessage = 'CPF deve ter 11 dígitos';
-      return;
-    }
 
     this.loading = true;
 
@@ -136,6 +131,19 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * Limpa erro manual "invalido" sem afetar required/minLength
+   */
+  private removeManualInvalidErrors(controlName: 'cpf' | 'senha') {
+    const control = this.loginForm.get(controlName);
+    if (!control || !control.errors) return;
+    if (!control.errors['invalido']) return;
+
+    // Mantém demais erros (required/minlength)
+    const { invalido, ...rest } = control.errors;
+    control.setErrors(Object.keys(rest).length ? rest : null);
+  }
+
+  /**
    * Formata CPF com máscara enquanto digita
    */
   onCpfInput(event: Event): void {
@@ -159,6 +167,18 @@ export class LoginComponent implements OnInit, AfterViewInit {
     input.value = valor;
     this.loginForm.patchValue({ cpf: valor }, { emitEvent: false });
   }
+
+  /**
+   * Valida CPF com 11 dígitos, mas só quando há valor (permite que o obrigatório seja exibido primeiro)
+   */
+  cpfMinLengthValidator = (control: AbstractControl) => {
+    const raw = (control.value || '') as string;
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) {
+      return null;
+    }
+    return digits.length === 11 ? null : { minlengthCpf: true };
+  };
 
   /**
    * Alterna a visibilidade da senha

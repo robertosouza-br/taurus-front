@@ -54,10 +54,10 @@
         <small class="p-error" *ngIf="submitted && f['cpf'].errors?.['required']">
           CPF é obrigatório
         </small>
-        <small class="p-error" *ngIf="submitted && f['cpf'].errors?.['minlength']">
+        <small class="p-error" *ngIf="submitted && f['cpf'].errors?.['minlengthCpf']">
           CPF deve ter 11 dígitos
         </small>
-        <div class="field-helper" *ngIf="!submitted || (!f['cpf'].errors?.['required'] && !f['cpf'].errors?.['minlength'])" style="visibility: hidden;">
+        <div class="field-helper" *ngIf="!submitted || (!f['cpf'].errors?.['required'] && !f['cpf'].errors?.['minlengthCpf'])" style="visibility: hidden;">
           <i class="pi pi-info-circle"></i>
           <span>&nbsp;</span>
         </div>
