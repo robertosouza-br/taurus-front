@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
-import { CorretorDTO, CorretorSaidaDTO, CorretorCargo, TipoChavePix, Banco, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { CorretorDTO, CorretorSaidaDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -15,13 +15,12 @@ import { Permissao } from '../../../core/enums/permissao.enum';
   styleUrls: ['./corretor-edicao.component.scss']
 })
 export class CorretorEdicaoComponent implements OnInit {
-  corretorId!: string;
+  cpfCorretor!: string;
   formulario!: FormGroup;
   carregando = false;
   salvando = false;
   submitted = false;
-  corretor: CorretorSaidaDTO | null = null;
-  bancos: Banco[] = [];
+  corretor: CorretorDTO | null = null;
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   breadcrumbItems: BreadcrumbItem[] = [];
@@ -46,11 +45,10 @@ export class CorretorEdicaoComponent implements OnInit {
       return;
     }
 
-    this.corretorId = this.route.snapshot.params['id'];
+    this.cpfCorretor = this.route.snapshot.params['id']; // O parâmetro ainda é 'id' mas agora contém CPF
     this.configurarBreadcrumb();
     this.inicializarFormulario();
     this.carregarOpcoes();
-    this.carregarBancos();
     this.carregarCorretor();
   }
 
@@ -69,10 +67,10 @@ export class CorretorEdicaoComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       telefone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(11)]],
       cargo: [CorretorCargo.CORRETOR, Validators.required],
-      banco: [null, Validators.required],
-      agencia: ['', [Validators.required, Validators.minLength(1)]],
-      conta: ['', [Validators.required, Validators.minLength(1)]],
-      digitoConta: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(2)]],
+      numeroBanco: [''],
+      numeroAgencia: [''],
+      numeroContaCorrente: [''],
+      tipoConta: [''],
       tipoChavePix: [TipoChavePix.CPF, Validators.required],
       chavePix: ['', [Validators.required, Validators.minLength(1)]],
       ativo: [true]
@@ -84,21 +82,6 @@ export class CorretorEdicaoComponent implements OnInit {
     // Atualizar validação da chave PIX quando o tipo mudar
     this.formulario.get('tipoChavePix')?.valueChanges.subscribe(() => {
       this.atualizarValidacaoChavePix();
-    });
-  }
-
-  private carregarBancos(): void {
-    this.corretorService.listarBancos().subscribe({
-      next: (bancos) => {
-        this.bancos = bancos;
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao carregar lista de bancos'
-        });
-      }
     });
   }
 
@@ -116,37 +99,41 @@ export class CorretorEdicaoComponent implements OnInit {
 
   private carregarCorretor(): void {
     this.carregando = true;
-    this.corretorService.buscarPorId(this.corretorId).subscribe({
+    this.corretorService.buscarPorCpf(this.cpfCorretor).subscribe({
       next: (corretor) => {
         this.corretor = corretor;
         this.preencherFormulario(corretor);
         this.carregando = false;
       },
-      error: () => {
+      error: (error) => {
         this.carregando = false;
+        let mensagem = 'Erro ao carregar dados do corretor';
+        if (error.status === 404) {
+          mensagem = 'Corretor não encontrado';
+        }
         this.messageService.add({
           severity: 'error',
           summary: 'Erro',
-          detail: 'Erro ao carregar dados do corretor'
+          detail: mensagem
         });
         this.router.navigate(['/cadastros/corretores']);
       }
     });
   }
 
-  private preencherFormulario(corretor: CorretorSaidaDTO): void {
+  private preencherFormulario(corretor: CorretorDTO): void {
     this.formulario.patchValue({
       nome: corretor.nome,
       cpf: corretor.cpf,
-      email: corretor.email,
-      telefone: corretor.telefone,
+      email: corretor.email || '',
+      telefone: corretor.telefone || '',
       cargo: corretor.cargo,
-      banco: corretor.banco,
-      agencia: corretor.agencia,
-      conta: corretor.conta,
-      digitoConta: corretor.digitoConta,
-      tipoChavePix: corretor.tipoChavePix,
-      chavePix: corretor.chavePix,
+      numeroBanco: corretor.numeroBanco || '',
+      numeroAgencia: corretor.numeroAgencia || '',
+      numeroContaCorrente: corretor.numeroContaCorrente || '',
+      tipoConta: corretor.tipoConta || '',
+      tipoChavePix: corretor.tipoChavePix || TipoChavePix.CPF,
+      chavePix: corretor.chavePix || '',
       ativo: corretor.ativo
     });
   }
@@ -224,7 +211,19 @@ export class CorretorEdicaoComponent implements OnInit {
       chavePix: this.formulario.value.chavePix.replace(/\D/g, '')
     };
 
-    this.corretorService.atualizar(this.corretorId, corretorAtualizado).subscribe({
+    // Usa o ID retornado pela API na busca por CPF
+    const corretorId = this.corretor?.id;
+    if (!corretorId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'ID do corretor não encontrado'
+      });
+      this.salvando = false;
+      return;
+    }
+
+    this.corretorService.atualizar(corretorId, corretorAtualizado).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',

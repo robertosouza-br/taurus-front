@@ -128,34 +128,23 @@
       <div class="p-fluid">
         <br>
         <div class="p-field">
-          <app-autocomplete
-            id="banco"
-            label="Banco"
-            [(ngModel)]="banco"
-            [suggestions]="bancosFiltrados"
-            (completeMethod)="filtrarBancos($event)"
-            (onDropdownClick)="mostrarTodosBancos()"
-            field="nome"
+          <app-input-text
+            id="numeroBanco"
+            label="Número do Banco"
+            [(ngModel)]="numeroBanco"
             [required]="false"
             [showValidation]="tentouSalvar"
-            emptyMessage="Nenhum banco encontrado"
-            placeholder="Digite para buscar um banco"
-            [itemTemplate]="bancoTemplate">
-          </app-autocomplete>
-
-          <ng-template #bancoTemplate let-banco>
-            <div class="flex align-items-center gap-2">
-              <span class="font-bold">{{ banco.codigo }}</span>
-              <span>{{ banco.nome }}</span>
-            </div>
-          </ng-template>
+            [maxlength]="3"
+            placeholder="Ex: 001, 237, 341"
+            helper="Digite o código do banco (ex: 001, 237, 341)">
+          </app-input-text>
         </div>
 
         <div class="p-field">
           <app-input-text
-            id="agencia"
+            id="numeroAgencia"
             label="Agência"
-            [(ngModel)]="agencia"
+            [(ngModel)]="numeroAgencia"
             [required]="false"
             [showValidation]="tentouSalvar">
           </app-input-text>
@@ -163,9 +152,9 @@
 
         <div class="p-field">
           <app-input-text
-            id="conta"
-            label="Conta"
-            [(ngModel)]="conta"
+            id="numeroContaCorrente"
+            label="Conta Corrente"
+            [(ngModel)]="numeroContaCorrente"
             [required]="false"
             [showValidation]="tentouSalvar">
           </app-input-text>
@@ -173,12 +162,12 @@
 
         <div class="p-field">
           <app-input-text
-            id="digitoConta"
-            label="Dígito da Conta"
-            [(ngModel)]="digitoConta"
+            id="tipoConta"
+            label="Tipo de Conta"
+            [(ngModel)]="tipoConta"
             [required]="false"
             [showValidation]="tentouSalvar"
-            [maxlength]="2">
+            placeholder="Ex: CORRENTE, POUPANÇA">
           </app-input-text>
         </div>
         <br>

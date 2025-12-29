@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
-import { CorretorDTO, CorretorCargo, TipoChavePix, Banco, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
@@ -23,10 +23,10 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
   numeroCreci = '';
   cargo: CorretorCargo = CorretorCargo.CORRETOR;
   cargoSelecionado: { label: string; value: CorretorCargo } | null = null;
-  banco: Banco | null = null;
-  agencia = '';
-  conta = '';
-  digitoConta = '';
+  numeroBanco = '';
+  numeroAgencia = '';
+  numeroContaCorrente = '';
+  tipoConta = '';
   tipoChavePix: TipoChavePix = TipoChavePix.CPF;
   tipoChavePixSelecionado: { label: string; value: TipoChavePix } | null = null;
   chavePix = '';
@@ -45,8 +45,6 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // Opções
-  bancos: Banco[] = [];
-  bancosFiltrados: Banco[] = [];
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
@@ -62,7 +60,6 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.configurarBreadcrumb();
-    this.carregarBancos();
     this.carregarOpcoes();
     this.configurarValidacaoCpf();
   }
@@ -78,21 +75,6 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
       { label: 'Corretores', url: '/cadastros/corretores' },
       { label: 'Novo Corretor' }
     ];
-  }
-
-  private carregarBancos(): void {
-    this.corretorService.listarBancos().subscribe({
-      next: (bancos) => {
-        this.bancos = bancos;
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao carregar lista de bancos'
-        });
-      }
-    });
   }
 
   private carregarOpcoes(): void {
@@ -197,18 +179,6 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     this.cpfSubject.next(this.cpf);
   }
 
-  filtrarBancos(event: any): void {
-    const query = event.query.toLowerCase();
-    this.bancosFiltrados = this.bancos.filter(banco =>
-      banco.nome.toLowerCase().includes(query) ||
-      banco.codigo.toLowerCase().includes(query)
-    );
-  }
-
-  mostrarTodosBancos(): void {
-    this.bancosFiltrados = [...this.bancos];
-  }
-
   filtrarCargos(event: any): void {
     const query = event.query.toLowerCase();
     this.cargosFiltrados = this.cargosOptions.filter(cargo =>
@@ -276,10 +246,10 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     if (this.nomeGuerra) corretor.nomeGuerra = this.nomeGuerra;
     if (this.telefone) corretor.telefone = this.telefone.replace(/\D/g, '');
     if (this.numeroCreci) corretor.numeroCreci = this.numeroCreci;
-    if (this.banco) corretor.banco = this.banco;
-    if (this.agencia) corretor.agencia = this.agencia;
-    if (this.conta) corretor.conta = this.conta;
-    if (this.digitoConta) corretor.digitoConta = this.digitoConta;
+    if (this.numeroBanco) corretor.numeroBanco = this.numeroBanco;
+    if (this.numeroAgencia) corretor.numeroAgencia = this.numeroAgencia;
+    if (this.numeroContaCorrente) corretor.numeroContaCorrente = this.numeroContaCorrente;
+    if (this.tipoConta) corretor.tipoConta = this.tipoConta;
     if (this.tipoChavePixSelecionado) corretor.tipoChavePix = this.tipoChavePixSelecionado.value;
     if (this.chavePix) corretor.chavePix = this.chavePix;
 
@@ -317,10 +287,10 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     this.telefone = '';
     this.numeroCreci = '';
     this.cargoSelecionado = this.cargosOptions.find(c => c.value === CorretorCargo.CORRETOR) || null;
-    this.banco = null;
-    this.agencia = '';
-    this.conta = '';
-    this.digitoConta = '';
+    this.numeroBanco = '';
+    this.numeroAgencia = '';
+    this.numeroContaCorrente = '';
+    this.tipoConta = '';
     this.tipoChavePixSelecionado = null;
     this.chavePix = '';
     this.ativo = true;

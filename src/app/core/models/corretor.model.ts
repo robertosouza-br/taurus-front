@@ -25,38 +25,39 @@ export interface Banco {
 }
 
 /**
- * DTO de entrada para criação/atualização de corretor
+ * DTO de entrada/saída para corretor
+ * Usado tanto para criação/atualização quanto para busca por CPF
  */
 export interface CorretorDTO {
+  id?: string; // ID do sistema RMS (retornado pela API ao buscar por CPF)
   nome: string;
-  cpf: string; // 11 dígitos numéricos, sem máscara
-  email: string;
+  cpf: string; // CPF formatado: 000.000.000-00
+  email?: string;
   nomeGuerra?: string;
   telefone?: string;
   numeroCreci?: string;
   cargo: CorretorCargo;
-  banco?: Banco;
-  agencia?: string;
-  conta?: string;
-  digitoConta?: string;
+  numeroBanco?: string;
+  numeroAgencia?: string;
+  numeroContaCorrente?: string;
+  tipoConta?: string;
   tipoChavePix?: TipoChavePix;
   chavePix?: string;
-  ativo: boolean;
+  ativo: boolean; // Obrigatório
 }
 
 /**
  * DTO de saída do corretor (retorno da API)
  */
 export interface CorretorSaidaDTO extends CorretorDTO {
-  id: string; // ID do sistema externo
-  idSistemaExterno?: string; // ID alternativo se houver
+  idExterno: string; // ID do sistema externo RMS
 }
 
 /**
  * Interface para exibição de corretor na tabela
  */
 export interface CorretorListaDTO {
-  id: string;
+  idExterno: string;
   cpf: string;
   nome: string;
   telefone?: string;

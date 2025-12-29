@@ -2,11 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CorretorDTO, CorretorSaidaDTO, Banco } from '../models/corretor.model';
+import { CorretorDTO, CorretorSaidaDTO } from '../models/corretor.model';
 import { Page } from '../models/page.model';
 
 /**
- * Serviço para gestão de corretores (autenticado)
+ * Serviço para gestão de corretores
+ * API pública - não requer autenticação
+ * 
+ * IMPORTANTE: A API RMS não suporta paginação tradicional com offset.
+ * O backend busca TODOS os registros (~3496) e faz paginação em memória.
+ * A primeira requisição pode ter latência de 2-3 segundos.
  */
 @Injectable({
   providedIn: 'root'
@@ -18,9 +23,13 @@ export class CorretorService {
 
   /**
    * Lista corretores com paginação e busca
+   * 
+   * ATENÇÃO: A primeira requisição busca TODOS os ~3496 corretores da API RMS
+   * e pode demorar 2-3 segundos. Implemente loading/spinner na UI.
+   * 
    * @param page Número da página (base 0)
-   * @param size Tamanho da página
-   * @param search Termo de busca (nome ou CPF)
+   * @param size Tamanho da página (padrão: 50)
+   * @param search Termo de busca (nome ou CPF) - ainda não implementado
    */
   listar(page: number = 0, size: number = 50, search?: string): Observable<Page<CorretorSaidaDTO>> {
     let params = new HttpParams()
@@ -40,6 +49,15 @@ export class CorretorService {
    */
   buscarPorId(id: string): Observable<CorretorSaidaDTO> {
     return this.http.get<CorretorSaidaDTO>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Busca corretor por CPF (usado na edição)
+   * O CPF pode ser enviado com ou sem formatação
+   * @param cpf CPF do corretor (ex: "029.377.527-30" ou "02937752730")
+   */
+  buscarPorCpf(cpf: string): Observable<CorretorDTO> {
+    return this.http.get<CorretorDTO>(`${this.baseUrl}/cpf/${cpf}`);
   }
 
   /**
@@ -65,12 +83,5 @@ export class CorretorService {
    */
   excluir(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
-  }
-
-  /**
-   * Lista bancos disponíveis
-   */
-  listarBancos(): Observable<Banco[]> {
-    return this.http.get<Banco[]>(`${environment.apiUrl}/bancos`);
   }
 }

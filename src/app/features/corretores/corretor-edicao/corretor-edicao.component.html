@@ -20,9 +20,9 @@
       <div class="form-section">
         <h3><i class="pi pi-user"></i> Dados Pessoais</h3>
         
-        <div class="p-fluid p-formgrid p-grid">
+        <div class="formgrid grid">
           <!-- Nome -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <input 
                 id="nome" 
@@ -39,7 +39,7 @@
           </div>
 
           <!-- CPF (Desabilitado) -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <input 
                 id="cpf" 
@@ -55,7 +55,7 @@
           </div>
 
           <!-- Email -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <input 
                 id="email" 
@@ -75,7 +75,7 @@
           </div>
 
           <!-- Telefone -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <input 
                 id="telefone" 
@@ -95,7 +95,7 @@
           </div>
 
           <!-- Cargo -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <p-dropdown 
                 id="cargo"
@@ -110,8 +110,8 @@
           </div>
 
           <!-- Ativo -->
-          <div class="p-field p-col-12 p-md-6">
-            <div class="p-field-checkbox">
+          <div class="field col-12 md:col-6">
+            <div class="flex align-items-center">
               <p-checkbox 
                 inputId="ativo" 
                 formControlName="ativo" 
@@ -127,84 +127,61 @@
       <div class="form-section">
         <h3><i class="pi pi-building"></i> Dados Bancários</h3>
         
-        <div class="p-fluid p-formgrid p-grid">
-          <!-- Banco -->
-          <div class="p-field p-col-12">
+        <div class="formgrid grid">
+          <!-- Número do Banco -->
+          <div class="field col-12 md:col-4">
             <span class="p-float-label">
-              <p-dropdown 
-                id="banco"
-                formControlName="banco"
-                [options]="bancos"
-                optionLabel="nome"
-                [class.ng-invalid]="submitted && f['banco'].errors"
-                [filter]="true"
-                filterBy="nome,codigo"
-                placeholder="Selecione o banco"
+              <input 
+                id="numeroBanco" 
+                type="text" 
+                pInputText 
+                formControlName="numeroBanco"
+                maxlength="3"
+                placeholder="Ex: 001, 237, 341"
               >
-                <ng-template let-banco pTemplate="item">
-                  <div class="flex align-items-center gap-2">
-                    <span class="font-bold">{{ banco.codigo }}</span>
-                    <span>{{ banco.nome }}</span>
-                  </div>
-                </ng-template>
-              </p-dropdown>
-              <label for="banco">Banco *</label>
+              <label for="numeroBanco">Número do Banco</label>
             </span>
-            <small class="p-error" *ngIf="submitted && f['banco'].errors?.['required']">
-              Banco é obrigatório
-            </small>
+            <small class="p-text-secondary">Digite o código do banco (ex: 001, 237, 341)</small>
           </div>
 
           <!-- Agência -->
-          <div class="p-field p-col-12 p-md-4">
+          <div class="field col-12 md:col-4">
             <span class="p-float-label">
               <input 
-                id="agencia" 
+                id="numeroAgencia" 
                 type="text" 
                 pInputText 
-                formControlName="agencia"
-                [class.ng-invalid]="submitted && f['agencia'].errors"
+                formControlName="numeroAgencia"
               >
-              <label for="agencia">Agência *</label>
+              <label for="numeroAgencia">Agência</label>
             </span>
-            <small class="p-error" *ngIf="submitted && f['agencia'].errors?.['required']">
-              Agência é obrigatória
-            </small>
           </div>
 
-          <!-- Conta -->
-          <div class="p-field p-col-12 p-md-6">
+          <!-- Conta Corrente -->
+          <div class="field col-12 md:col-4">
             <span class="p-float-label">
               <input 
-                id="conta" 
+                id="numeroContaCorrente" 
                 type="text" 
                 pInputText 
-                formControlName="conta"
-                [class.ng-invalid]="submitted && f['conta'].errors"
+                formControlName="numeroContaCorrente"
               >
-              <label for="conta">Conta *</label>
+              <label for="numeroContaCorrente">Conta Corrente</label>
             </span>
-            <small class="p-error" *ngIf="submitted && f['conta'].errors?.['required']">
-              Conta é obrigatória
-            </small>
           </div>
 
-          <!-- Dígito -->
-          <div class="p-field p-col-12 p-md-2">
+          <!-- Tipo de Conta -->
+          <div class="field col-12">
             <span class="p-float-label">
               <input 
-                id="digitoConta" 
+                id="tipoConta" 
                 type="text" 
                 pInputText 
-                formControlName="digitoConta"
-                [class.ng-invalid]="submitted && f['digitoConta'].errors"
-                maxlength="2"
+                formControlName="tipoConta"
+                placeholder="Ex: CORRENTE, POUPANÇA"
               >
-              <label for="digitoConta">Dígito *</label>
+              <label for="tipoConta">Tipo de Conta</label>
             </span>
-            <small class="p-error" *ngIf="submitted && f['digitoConta'].errors?.['required']">
-              Dígito é obrigatório
-            </small>
           </div>
         </div>
       </div>
@@ -213,9 +190,9 @@
       <div class="form-section">
         <h3><i class="pi pi-qrcode"></i> Dados PIX</h3>
         
-        <div class="p-fluid p-formgrid p-grid">
+        <div class="formgrid grid">
           <!-- Tipo de Chave PIX -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <p-dropdown 
                 id="tipoChavePix"
@@ -230,7 +207,7 @@
           </div>
 
           <!-- Chave PIX -->
-          <div class="p-field p-col-12 p-md-6">
+          <div class="field col-12 md:col-6">
             <span class="p-float-label">
               <input 
                 id="chavePix" 
@@ -249,10 +226,10 @@
       </div>
 
       <!-- Informações do Sistema -->
-      <div class="info-section" *ngIf="corretor.idSistemaExterno">
+      <div class="info-section" *ngIf="corretor?.id">
         <i class="pi pi-info-circle"></i>
         <div class="info-content">
-          <strong>ID Sistema Externo:</strong> {{ corretor.idSistemaExterno }}
+          <strong>ID Sistema RMS:</strong> {{ corretor.id }}
         </div>
       </div>
 

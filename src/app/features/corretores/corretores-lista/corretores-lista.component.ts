@@ -21,6 +21,8 @@ export class CorretoresListaComponent implements OnInit {
   corretores: any[] = [];
   totalRecords = 0;
   carregando = false;
+  currentPage = 0;
+  pageSize = 50;
 
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
@@ -79,7 +81,7 @@ export class CorretoresListaComponent implements OnInit {
         icon: 'pi pi-pencil',
         tooltip: 'Editar',
         severity: 'info',
-        command: (rowData: any) => this.editarCorretor(rowData.id)
+        command: (rowData: any) => this.editarCorretor(rowData.cpf)
       });
     }
 
@@ -94,19 +96,60 @@ export class CorretoresListaComponent implements OnInit {
   }
 
   onBuscar(termo: any): void {
-    this.carregarCorretores(termo as string);
+    this.currentPage = 0; // Reset para primeira página ao buscar
+    this.carregarCorretores(this.currentPage, this.pageSize, termo as string);
   }
 
-  carregarCorretores(search: string = ''): void {
+  /**
+   * Evento disparado quando usuário troca de página, ordena ou filtra
+   */
+  onLazyLoad(event: any): void {
+    const page = event.first / event.rows; // Calcula página atual
+    this.currentPage = page;
+    this.pageSize = event.rows;
+    
+    console.log('🔄 LazyLoad Event:', {
+      first: event.first,
+      rows: event.rows,
+      calculatedPage: page,
+      totalRecords: this.totalRecords
+    });
+    
+    this.carregarCorretores(page, event.rows);
+  }
+
+  /**
+   * Carrega lista de corretores
+   * 
+   * IMPORTANTE: A primeira requisição pode demorar 2-3 segundos pois o backend
+   * busca TODOS os ~3496 corretores da API RMS em memória.
+   * Requisições seguintes são instantâneas pois os dados já estão em cache.
+   */
+  carregarCorretores(page: number = 0, size: number = 50, search: string = ''): void {
     this.carregando = true;
-    this.corretorService.listar(0, 50, search).subscribe({
-      next: (page: Page<CorretorSaidaDTO>) => {
-        this.corretores = page.content.map((corretor: CorretorSaidaDTO) => ({
+    
+    this.corretorService.listar(page, size, search).subscribe({
+      next: (response: Page<CorretorSaidaDTO>) => {
+        this.corretores = response.content.map((corretor: CorretorSaidaDTO) => ({
           ...corretor,
           cargoLabel: CARGO_LABELS[corretor.cargo]
         }));
-        this.totalRecords = page.totalElements;
-        this.carregando = false;
+        this.totalRecords = response.totalElements;
+        
+        // Para navegação rápida entre páginas, oculta loading imediatamente
+        // Para primeira carga (mais lenta), o loading natural do subscribe funciona
+        setTimeout(() => {
+          this.carregando = false;
+        }, 0);
+        
+        // Log de debug para verificar paginação
+        console.log('📊 Paginação:', {
+          paginaAtual: response.number + 1,
+          totalPaginas: response.totalPages,
+          totalRegistros: response.totalElements,
+          registrosNestaPagina: response.numberOfElements,
+          tamanhoPagina: response.size
+        });
       },
       error: (error) => {
         // Exibe mensagem específica para erro 403 e redireciona
@@ -140,8 +183,8 @@ export class CorretoresListaComponent implements OnInit {
     this.router.navigate(['/cadastros/corretores/novo']);
   }
 
-  editarCorretor(id: string): void {
-    this.router.navigate(['/cadastros/corretores/editar', id]);
+  editarCorretor(cpf: string): void {
+    this.router.navigate(['/cadastros/corretores/editar', cpf]);
   }
 
   excluirCorretor(corretor: CorretorSaidaDTO): void {
@@ -149,7 +192,7 @@ export class CorretoresListaComponent implements OnInit {
       .subscribe(confirmed => {
         if (!confirmed) return;
 
-        this.corretorService.excluir(corretor.id).subscribe({
+        this.corretorService.excluir(corretor.idExterno).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
@@ -177,9 +220,16 @@ export class CorretoresListaComponent implements OnInit {
 
   /**
    * Formata CPF para exibição (000.000.000-00)
+   * 
+   * NOTA: A API RMS já retorna o CPF formatado (ex: "077.696.437-24").
+   * Este método é mantido para casos onde o CPF venha sem formatação.
    */
   formatarCPF(cpf: string): string {
-    if (!cpf || cpf.length !== 11) return cpf;
+    if (!cpf) return cpf;
+    // Se já estiver formatado, retorna direto
+    if (cpf.includes('.') || cpf.includes('-')) return cpf;
+    // Se tiver 11 dígitos sem formatação, aplica a máscara
+    if (cpf.length !== 11) return cpf;
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 

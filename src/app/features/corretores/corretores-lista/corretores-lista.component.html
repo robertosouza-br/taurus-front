@@ -17,6 +17,10 @@
     [actions]="acoes"
     [totalRecords]="totalRecords"
     [loading]="carregando"
+    [lazy]="true"
+    [rows]="pageSize"
+    [rowsPerPageOptions]="[10, 25, 50, 100]"
+    (onLazyLoad)="onLazyLoad($event)"
     (onSearch)="onBuscar($event)">
     
     <!-- Template para CPF -->

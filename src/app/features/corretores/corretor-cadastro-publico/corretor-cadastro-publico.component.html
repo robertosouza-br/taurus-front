@@ -139,56 +139,49 @@
           </div>
         </ng-template>
         
-        <!-- Banco -->
-        <app-autocomplete
-          id="banco"
-          label="Banco"
+        <!-- Número do Banco -->
+        <app-input-text
+          id="numeroBanco"
+          label="Número do Banco"
+          placeholder="Ex: 001, 237, 341"
           [required]="false"
-          formControlName="banco"
-          [suggestions]="bancosFiltrados"
-          field="nome"
+          [maxlength]="3"
+          formControlName="numeroBanco"
           [showValidation]="submitted"
-          (completeMethod)="filtrarBancos($event)"
-          (onDropdownClick)="carregarTodosBancos()">
-          <ng-template let-banco pTemplate="item">
-            <div class="flex align-items-center gap-2">
-              <span class="font-bold">{{ banco.codigo }}</span>
-              <span>{{ banco.nome }}</span>
-            </div>
-          </ng-template>
-        </app-autocomplete>
+          helper="Digite o código do banco (ex: 001, 237, 341)">
+        </app-input-text>
 
         <div class="form-row">
           <!-- Agência -->
           <div class="form-field flex-1">
             <app-input-text
-              id="agencia"
+              id="numeroAgencia"
               label="Agência"
               [required]="false"
-              formControlName="agencia"
+              formControlName="numeroAgencia"
               [showValidation]="submitted">
             </app-input-text>
           </div>
 
-          <!-- Conta -->
+          <!-- Conta Corrente -->
           <div class="form-field flex-2">
             <app-input-text
-              id="conta"
-              label="Conta"
+              id="numeroContaCorrente"
+              label="Conta Corrente"
               [required]="false"
-              formControlName="conta"
+              formControlName="numeroContaCorrente"
               [showValidation]="submitted">
             </app-input-text>
           </div>
 
-          <!-- Dígito -->
+          <!-- Tipo de Conta -->
           <div class="form-field flex-1">
             <app-input-text
-              id="digitoConta"
-              label="Dígito"
+              id="tipoConta"
+              label="Tipo de Conta"
+              placeholder="Ex: CORRENTE"
               [required]="false"
-              [maxlength]="2"
-              formControlName="digitoConta"
+              formControlName="tipoConta"
               [showValidation]="submitted">
             </app-input-text>
           </div>

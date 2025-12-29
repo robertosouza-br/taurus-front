@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CorretorDTO, CorretorSaidaDTO, Banco } from '../models/corretor.model';
+import { CorretorDTO, CorretorSaidaDTO } from '../models/corretor.model';
 
 /**
  * Serviço público para cadastro de corretores (sem autenticação)
@@ -21,12 +21,5 @@ export class CorretorPublicoService {
    */
   cadastrar(corretor: CorretorDTO): Observable<CorretorSaidaDTO> {
     return this.http.post<CorretorSaidaDTO>(this.baseUrl, corretor);
-  }
-
-  /**
-   * Lista bancos disponíveis (endpoint público)
-   */
-  listarBancos(): Observable<Banco[]> {
-    return this.http.get<Banco[]>(`${environment.apiUrl}/bancos`);
   }
 }

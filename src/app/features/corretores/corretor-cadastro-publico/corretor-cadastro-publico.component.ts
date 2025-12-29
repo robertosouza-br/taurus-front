@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorPublicoService } from '../../../core/services/corretor-publico.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
-import { CorretorDTO, CorretorCargo, TipoChavePix, Banco, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -16,8 +16,6 @@ export class CorretorCadastroPublicoComponent implements OnInit {
   formulario!: FormGroup;
   carregando = false;
   submitted = false;
-  bancos: Banco[] = [];
-  bancosFiltrados: Banco[] = [];
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
@@ -38,7 +36,6 @@ export class CorretorCadastroPublicoComponent implements OnInit {
 
   ngOnInit(): void {
     this.inicializarFormulario();
-    this.carregarBancos();
     this.carregarOpcoes();
     this.configurarValidacaoCpf();
   }
@@ -52,10 +49,10 @@ export class CorretorCadastroPublicoComponent implements OnInit {
       telefone: [''],
       numeroCreci: [''],
       cargo: [CorretorCargo.CORRETOR, Validators.required],
-      banco: [null],
-      agencia: [''],
-      conta: [''],
-      digitoConta: [''],
+      numeroBanco: [''],
+      numeroAgencia: [''],
+      numeroContaCorrente: [''],
+      tipoConta: [''],
       tipoChavePix: [TipoChavePix.CPF],
       chavePix: [''],
       ativo: [true]
@@ -70,21 +67,6 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     this.formulario.get('cpf')?.valueChanges.subscribe((cpf) => {
       if (this.formulario.get('tipoChavePix')?.value === TipoChavePix.CPF) {
         this.formulario.get('chavePix')?.setValue(cpf);
-      }
-    });
-  }
-
-  private carregarBancos(): void {
-    this.corretorPublicoService.listarBancos().subscribe({
-      next: (bancos) => {
-        this.bancos = bancos;
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao carregar lista de bancos'
-        });
       }
     });
   }
@@ -270,18 +252,6 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     // O autocomplete do PrimeNG já faz a filtragem internamente,
     // mas podemos implementar uma filtragem customizada se necessário
     // Por enquanto, não precisamos filtrar pois são poucas opções
-  }
-
-  filtrarBancos(event: any): void {
-    const query = event.query.toLowerCase();
-    this.bancosFiltrados = this.bancos.filter(banco => 
-      banco.nome.toLowerCase().includes(query) || 
-      banco.codigo.includes(query)
-    );
-  }
-
-  carregarTodosBancos(): void {
-    this.bancosFiltrados = [...this.bancos];
   }
 
   filtrarTiposChavePix(event: any): void {
