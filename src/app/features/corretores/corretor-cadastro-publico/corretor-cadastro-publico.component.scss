@@ -120,6 +120,11 @@
     }
 
     ::ng-deep {
+      // Z-index para autocomplete ficar acima do card
+      .p-autocomplete-panel {
+        z-index: 1100 !important;
+      }
+
       .p-card {
         margin-bottom: 1.25rem;
         border: 1px solid #dee2e6;
@@ -169,7 +174,7 @@
         border: 1px solid #dee2e6;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-radius: 12px;
-        overflow: hidden;
+        overflow: visible;
         transition: box-shadow 0.3s ease;
 
         &:hover {
@@ -221,6 +226,7 @@
         .p-panel-content {
           padding: 1.5rem;
           border: none;
+          overflow: visible;
         }
 
         &.p-panel-collapsed {

@@ -98,7 +98,8 @@
             label="Telefone"
             [required]="false"
             formControlName="telefone"
-            [showValidation]="submitted">
+            [showValidation]="submitted"
+            errorMessage="Telefone inválido (mínimo 10 dígitos)">
           </app-input-telefone>
         </div>
 
@@ -139,17 +140,20 @@
           </div>
         </ng-template>
         
-        <!-- Número do Banco -->
-        <app-input-text
+        <!-- Banco -->
+        <app-autocomplete
           id="numeroBanco"
-          label="Número do Banco"
-          placeholder="Ex: 001, 237, 341"
-          [required]="false"
-          [maxlength]="3"
+          label="Banco"
           formControlName="numeroBanco"
+          [suggestions]="bancosFiltrados"
+          (completeMethod)="filtrarBancos($event)"
+          (onDropdownClick)="mostrarTodosBancos()"
+          field="label"
+          [required]="false"
           [showValidation]="submitted"
-          helper="Digite o código do banco (ex: 001, 237, 341)">
-        </app-input-text>
+          emptyMessage="Nenhum banco encontrado"
+          placeholder="Digite o código ou nome do banco">
+        </app-autocomplete>
 
         <div class="form-row">
           <!-- Agência -->

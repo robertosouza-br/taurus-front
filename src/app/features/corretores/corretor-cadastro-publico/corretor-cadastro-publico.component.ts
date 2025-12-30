@@ -4,7 +4,9 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorPublicoService } from '../../../core/services/corretor-publico.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { BancoService } from '../../../core/services/banco.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { Banco } from '../../../core/models/banco.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -17,6 +19,8 @@ export class CorretorCadastroPublicoComponent implements OnInit {
   carregando = false;
   submitted = false;
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
+  bancosOptions: { label: string; value: string; banco: Banco }[] = [];
+  bancosFiltrados: { label: string; value: string; banco: Banco }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
   
@@ -30,6 +34,7 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     private fb: FormBuilder,
     private corretorPublicoService: CorretorPublicoService,
     private usuarioService: UsuarioService,
+    private bancoService: BancoService,
     private router: Router,
     private messageService: MessageService
   ) {}
@@ -44,12 +49,12 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     this.formulario = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
       cpf: ['', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, this.validadorEmail]],
       nomeGuerra: [''],
-      telefone: [''],
+      telefone: ['', this.validadorTelefone],
       numeroCreci: [''],
       cargo: [CorretorCargo.CORRETOR, Validators.required],
-      numeroBanco: [''],
+      numeroBanco: [null], // Agora aceita objeto do autocomplete
       numeroAgencia: [''],
       numeroContaCorrente: [''],
       tipoConta: [''],
@@ -81,6 +86,24 @@ export class CorretorCadastroPublicoComponent implements OnInit {
       label: TIPO_CHAVE_PIX_LABELS[key as TipoChavePix],
       value: key as TipoChavePix
     }));
+
+    // Carregar lista de bancos
+    this.bancoService.listar().subscribe({
+      next: (bancos) => {
+        this.bancosOptions = bancos.map(banco => ({
+          label: `${banco.codigo} - ${banco.nome}`,
+          value: banco.codigo,
+          banco: banco
+        }));
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Aviso',
+          detail: 'Não foi possível carregar a lista de bancos'
+        });
+      }
+    });
   }
 
   /**
@@ -106,6 +129,24 @@ export class CorretorCadastroPublicoComponent implements OnInit {
         this.limparValidacaoCpf();
       }
     });
+  }
+
+  /**
+   * Validador customizado de email
+   */
+  private validadorEmail(control: any): { [key: string]: boolean } | null {
+    if (!control.value) return null;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(control.value) ? null : { 'emailInvalido': true };
+  }
+
+  /**
+   * Validador customizado de telefone
+   */
+  private validadorTelefone(control: any): { [key: string]: boolean } | null {
+    if (!control.value) return null; // Telefone é opcional
+    const numbers = control.value.replace(/\D/g, '');
+    return numbers.length >= 10 && numbers.length <= 11 ? null : { 'telefoneInvalido': true };
   }
 
   /**
@@ -204,27 +245,32 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     const tipoChave = this.formulario.get('tipoChavePix')?.value;
     const chavePix = this.formulario.get('chavePix');
 
+    // Limpa validadores anteriores
     chavePix?.clearValidators();
-    chavePix?.addValidators(Validators.required);
+    
+    // Se tipoChavePix estiver preenchido, chavePix se torna obrigatório
+    if (tipoChave) {
+      chavePix?.addValidators(Validators.required);
 
-    switch (tipoChave) {
-      case TipoChavePix.CPF:
-        chavePix?.addValidators([Validators.minLength(11), Validators.maxLength(11)]);
-        // Copiar CPF automaticamente
-        const cpf = this.formulario.get('cpf')?.value;
-        if (cpf) {
-          chavePix?.setValue(cpf);
-        }
-        break;
-      case TipoChavePix.CELULAR:
-        chavePix?.addValidators([Validators.minLength(10), Validators.maxLength(11)]);
-        break;
-      case TipoChavePix.EMAIL:
-        chavePix?.addValidators(Validators.email);
-        break;
-      case TipoChavePix.CHAVE_ALEATORIA:
-        chavePix?.addValidators([Validators.minLength(32), Validators.maxLength(36)]);
-        break;
+      switch (tipoChave) {
+        case TipoChavePix.CPF:
+          chavePix?.addValidators([Validators.minLength(11), Validators.maxLength(11)]);
+          // Copiar CPF automaticamente
+          const cpf = this.formulario.get('cpf')?.value;
+          if (cpf) {
+            chavePix?.setValue(cpf);
+          }
+          break;
+        case TipoChavePix.CELULAR:
+          chavePix?.addValidators([Validators.minLength(10), Validators.maxLength(11)]);
+          break;
+        case TipoChavePix.EMAIL:
+          chavePix?.addValidators(this.validadorEmail);
+          break;
+        case TipoChavePix.CHAVE_ALEATORIA:
+          chavePix?.addValidators([Validators.minLength(32), Validators.maxLength(36)]);
+          break;
+      }
     }
 
     chavePix?.updateValueAndValidity();
@@ -254,6 +300,18 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     // Por enquanto, não precisamos filtrar pois são poucas opções
   }
 
+  filtrarBancos(event: any): void {
+    const query = event.query.toLowerCase();
+    this.bancosFiltrados = this.bancosOptions.filter(banco =>
+      banco.label.toLowerCase().includes(query) ||
+      banco.value.includes(query)
+    );
+  }
+
+  mostrarTodosBancos(): void {
+    this.bancosFiltrados = [...this.bancosOptions];
+  }
+
   filtrarTiposChavePix(event: any): void {
     const query = event.query.toLowerCase();
     this.tiposChavePixFiltrados = this.tiposChavePixOptions.filter(tipo =>
@@ -274,23 +332,80 @@ export class CorretorCadastroPublicoComponent implements OnInit {
       return;
     }
 
-    if (this.formulario.invalid) {
+    // Impede cadastro se CPF é inválido
+    if (this.cpfInvalido) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Preencha todos os campos obrigatórios corretamente'
+        detail: 'CPF inválido. Verifique o número digitado.'
+      });
+      return;
+    }
+
+    if (this.formulario.invalid) {
+      // Mostra erros específicos
+      const errors = [];
+      
+      if (this.formulario.get('nome')?.hasError('required')) {
+        errors.push('Nome é obrigatório');
+      } else if (this.formulario.get('nome')?.hasError('minlength')) {
+        errors.push('Nome deve ter no mínimo 3 caracteres');
+      }
+      
+      if (this.formulario.get('cpf')?.hasError('required')) {
+        errors.push('CPF é obrigatório');
+      }
+      
+      if (this.formulario.get('email')?.hasError('required')) {
+        errors.push('E-mail é obrigatório');
+      } else if (this.formulario.get('email')?.hasError('emailInvalido')) {
+        errors.push('E-mail inválido');
+      }
+      
+      if (this.formulario.get('telefone')?.hasError('telefoneInvalido')) {
+        errors.push('Telefone inválido (mínimo 10 dígitos)');
+      }
+      
+      if (this.formulario.get('chavePix')?.hasError('required')) {
+        errors.push('Chave PIX é obrigatória quando o tipo é informado');
+      }
+      
+      const detail = errors.length > 0 ? errors.join(', ') : 'Preencha todos os campos obrigatórios corretamente';
+      
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: detail
       });
       return;
     }
 
     this.carregando = true;
 
+    const formValue = this.formulario.value;
     const corretor: CorretorDTO = {
-      ...this.formulario.value,
-      cpf: this.formulario.value.cpf.replace(/\D/g, ''),
-      telefone: this.formulario.value.telefone.replace(/\D/g, ''),
-      chavePix: this.formulario.value.chavePix.replace(/\D/g, '')
+      nome: formValue.nome,
+      cpf: formValue.cpf.replace(/\D/g, ''),
+      email: formValue.email,
+      cargo: formValue.cargo,
+      ativo: formValue.ativo
     };
+
+    // Adicionar campos opcionais apenas se preenchidos
+    if (formValue.nomeGuerra) corretor.nomeGuerra = formValue.nomeGuerra;
+    if (formValue.telefone) corretor.telefone = formValue.telefone.replace(/\D/g, '');
+    if (formValue.numeroCreci) corretor.numeroCreci = formValue.numeroCreci;
+    if (formValue.numeroBanco) {
+      // Extrai o código do banco (pode ser string ou objeto do autocomplete)
+      corretor.numeroBanco = typeof formValue.numeroBanco === 'string' 
+        ? formValue.numeroBanco 
+        : formValue.numeroBanco.value;
+    }
+    if (formValue.numeroAgencia) corretor.numeroAgencia = formValue.numeroAgencia;
+    if (formValue.numeroContaCorrente) corretor.numeroContaCorrente = formValue.numeroContaCorrente;
+    if (formValue.tipoConta) corretor.tipoConta = formValue.tipoConta;
+    if (formValue.tipoChavePix) corretor.tipoChavePix = formValue.tipoChavePix;
+    if (formValue.chavePix) corretor.chavePix = formValue.chavePix.replace(/\D/g, '');
 
     this.corretorPublicoService.cadastrar(corretor).subscribe({
       next: () => {
