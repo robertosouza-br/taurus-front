@@ -69,7 +69,6 @@ export class CorretoresListaComponent implements OnInit {
       { field: 'nome', header: 'Nome', sortable: true },
       { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf', align: 'center' },
       { field: 'telefone', header: 'Telefone', sortable: true, template: 'telefone', align: 'center' },
-      { field: 'cargo', header: 'Cargo', sortable: true, template: 'cargo', align: 'center' },
       { field: 'email', header: 'E-mail', sortable: true },
       { field: 'ativo', header: 'Status', sortable: true, template: 'status', align: 'center' }
     ];
@@ -102,9 +101,12 @@ export class CorretoresListaComponent implements OnInit {
 
   /**
    * Evento disparado quando usuário troca de página, ordena ou filtra
+   * 
+   * IMPORTANTE: Frontend trabalha com paginação 0-based (primeira página = 0).
+   * O backend automaticamente converte para 1-based ao chamar a API externa.
    */
   onLazyLoad(event: any): void {
-    const page = event.first / event.rows; // Calcula página atual
+    const page = event.first / event.rows; // Calcula página atual (0-based)
     this.currentPage = page;
     this.pageSize = event.rows;
     
@@ -112,18 +114,25 @@ export class CorretoresListaComponent implements OnInit {
       first: event.first,
       rows: event.rows,
       calculatedPage: page,
-      totalRecords: this.totalRecords
+      totalRecords: this.totalRecords,
+      note: 'Frontend 0-based → Backend converte para 1-based'
     });
+    
+    // Scroll suave para o topo da página
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     this.carregarCorretores(page, event.rows);
   }
 
   /**
-   * Carrega lista de corretores
+   * Carrega lista de corretores com paginação server-side
    * 
-   * IMPORTANTE: A primeira requisição pode demorar 2-3 segundos pois o backend
-   * busca TODOS os ~3496 corretores da API RMS em memória.
-   * Requisições seguintes são instantâneas pois os dados já estão em cache.
+   * IMPORTANTE: 
+   * - A paginação é feita totalmente no backend via API externa RMS
+   * - Frontend envia page 0-based, backend converte para 1-based
+   * - Cada página retorna até 50 registros (fixo no backend)
+   * - Total de ~3496 corretores distribuídos em 70 páginas
+   * - O parâmetro 'search' NÃO é suportado pela API externa (filtrar no frontend se necessário)
    */
   carregarCorretores(page: number = 0, size: number = 50, search: string = ''): void {
     this.carregando = true;
@@ -137,18 +146,19 @@ export class CorretoresListaComponent implements OnInit {
         this.totalRecords = response.totalElements;
         
         // Para navegação rápida entre páginas, oculta loading imediatamente
-        // Para primeira carga (mais lenta), o loading natural do subscribe funciona
         setTimeout(() => {
           this.carregando = false;
         }, 0);
         
-        // Log de debug para verificar paginação
-        console.log('📊 Paginação:', {
+        // Log de debug para verificar paginação server-side
+        console.log('📊 Paginação Server-Side:', {
           paginaAtual: response.number + 1,
           totalPaginas: response.totalPages,
           totalRegistros: response.totalElements,
           registrosNestaPagina: response.numberOfElements,
-          tamanhoPagina: response.size
+          tamanhoPagina: response.size,
+          primeiraRegistro: (response.number * response.size) + 1,
+          ultimoRegistro: (response.number * response.size) + response.numberOfElements
         });
       },
       error: (error) => {
