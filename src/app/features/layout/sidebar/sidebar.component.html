@@ -1,13 +1,22 @@
 <aside class="sidebar" [class.collapsed]="!isExpanded" (click)="onSidebarClick($event)">
   <!-- Campo de busca -->
   <div class="sidebar-search" *ngIf="isExpanded">
-    <app-input-text
-      id="menu-search"
-      label="Pesquisar..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="filterMenu()"
-      styleClass="search-input-custom"
-    ></app-input-text>
+    <div class="search-wrapper">
+      <app-input-text
+        id="menu-search"
+        label="Pesquisar..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterMenu()"
+        styleClass="search-input-custom"
+      ></app-input-text>
+      <i 
+        *ngIf="searchTerm" 
+        class="pi pi-times clear-icon" 
+        (click)="clearSearch()"
+        pTooltip="Limpar pesquisa"
+        tooltipPosition="left"
+      ></i>
+    </div>
   </div>
 
   <nav class="sidebar-nav">

@@ -40,6 +40,27 @@
   border-bottom: 1px solid #e0e0e0;
   background: #ffffff;
 
+  .search-wrapper {
+    position: relative;
+    display: block;
+
+    .clear-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #757575;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: color 0.2s;
+      z-index: 10;
+
+      &:hover {
+        color: #d32f2f;
+      }
+    }
+  }
+
   ::ng-deep {
     app-input-text {
       display: block;
