@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -10,6 +11,7 @@ import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 
 // PrimeNG Services
 import { MessageService } from 'primeng/api';
@@ -42,6 +44,7 @@ import { AcessoNegadoComponent } from './acesso-negado/acesso-negado.component';
   imports: [
     CommonModule,
     RouterModule,
+    FormsModule,
     SharedModule,
     // PrimeNG modules
     ButtonModule,
@@ -50,7 +53,8 @@ import { AcessoNegadoComponent } from './acesso-negado/acesso-negado.component';
     BadgeModule,
     CardModule,
     ToastModule,
-    DialogModule
+    DialogModule,
+    InputTextModule
   ],
   providers: [
     MessageService

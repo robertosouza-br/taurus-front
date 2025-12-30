@@ -35,6 +35,65 @@
   }
 }
 
+.sidebar-search {
+  padding: 1.25rem 1rem 1rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #ffffff;
+
+  ::ng-deep {
+    app-input-text {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+
+    .input-text-container {
+      display: block;
+      margin: 0 !important;
+      padding: 0 !important;
+      
+      .p-float-label {
+        display: block;
+        position: relative;
+        margin: 0 !important;
+        padding: 0 !important;
+        
+        input.p-inputtext {
+          width: 100%;
+          font-size: 0.875rem;
+          padding: 0.75rem 1rem !important;
+          height: 2.75rem !important;
+          margin: 0 !important;
+        }
+
+        label {
+          font-size: 0.875rem;
+          position: absolute;
+          left: 1rem;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          margin: 0 !important;
+          padding: 0 0.25rem;
+          background: white;
+          pointer-events: none;
+        }
+
+        input:focus ~ label,
+        input.p-filled ~ label,
+        input:-webkit-autofill ~ label {
+          top: 0 !important;
+          font-size: 0.75rem;
+          color: var(--primary-color);
+        }
+      }
+      
+      small {
+        display: none !important;
+      }
+    }
+  }
+}
+
 .sidebar-nav {
   padding: 1rem 0.5rem 5rem;
 }

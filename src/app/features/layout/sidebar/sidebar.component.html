@@ -1,7 +1,18 @@
 <aside class="sidebar" [class.collapsed]="!isExpanded" (click)="onSidebarClick($event)">
+  <!-- Campo de busca -->
+  <div class="sidebar-search" *ngIf="isExpanded">
+    <app-input-text
+      id="menu-search"
+      label="Pesquisar..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterMenu()"
+      styleClass="search-input-custom"
+    ></app-input-text>
+  </div>
+
   <nav class="sidebar-nav">
     <ul class="menu-list">
-      <li *ngFor="let item of menuItems" class="menu-item">
+      <li *ngFor="let item of filteredMenuItems" class="menu-item">
         
         <!-- Item sem subitens -->
         <a 

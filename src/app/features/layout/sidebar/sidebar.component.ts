@@ -30,6 +30,8 @@ interface MenuItem {
 export class SidebarComponent implements OnInit {
   isExpanded = false;
   menuItems: MenuItem[] = [];
+  filteredMenuItems: MenuItem[] = [];
+  searchTerm: string = '';
 
   constructor(
     private authorizationService: AuthorizationService,
@@ -45,8 +47,19 @@ export class SidebarComponent implements OnInit {
     
     // Sincroniza com o serviço
     this.sidebarService.isExpanded$.subscribe(
-      isExpanded => this.isExpanded = isExpanded
+      isExpanded => {
+        this.isExpanded = isExpanded;
+        
+        // Quando a sidebar abre, limpa o filtro e colapsa todos os itens
+        if (isExpanded) {
+          this.clearSearch();
+          this.collapseAllItems();
+        }
+      }
     );
+    
+    // Inicializa o menu filtrado
+    this.filteredMenuItems = this.menuItems;
   }
 
   /**
@@ -212,12 +225,11 @@ export class SidebarComponent implements OnInit {
   }
 
   /**
-   * Fecha menu ao clicar em item (mobile)
+   * Fecha menu ao clicar em item
+   * Fecha sempre em todas as resoluções para melhor UX
    */
   onMenuItemClick(): void {
-    if (this.isMobile()) {
-      this.sidebarService.setExpanded(false);
-    }
+    this.sidebarService.setExpanded(false);
   }
 
   /**
@@ -241,6 +253,82 @@ export class SidebarComponent implements OnInit {
    */
   onSidebarClick(event: Event): void {
     event.stopPropagation();
+  }
+
+  /**
+   * Remove acentuação de uma string
+   */
+  private removeAccents(str: string): string {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  /**
+   * Normaliza string para busca (remove acentos e converte para minúsculas)
+   */
+  private normalizeForSearch(str: string): string {
+    return this.removeAccents(str.toLowerCase().trim());
+  }
+
+  /**
+   * Filtra os itens do menu com base no termo de busca
+   * Ignora acentuação e case sensitive
+   */
+  filterMenu(): void {
+    const term = this.normalizeForSearch(this.searchTerm);
+    
+    if (!term) {
+      this.filteredMenuItems = this.menuItems;
+      return;
+    }
+
+    this.filteredMenuItems = this.menuItems
+      .map(item => {
+        const normalizedLabel = this.normalizeForSearch(item.label);
+        
+        // Se o item pai corresponde ao filtro
+        if (normalizedLabel.includes(term)) {
+          return { ...item, expanded: true }; // Expande automaticamente ao filtrar
+        }
+
+        // Se tem subitens, filtra os subitens
+        if (item.items && item.items.length > 0) {
+          const filteredSubItems = item.items.filter(subItem => {
+            const normalizedSubLabel = this.normalizeForSearch(subItem.label);
+            return normalizedSubLabel.includes(term);
+          });
+
+          if (filteredSubItems.length > 0) {
+            return {
+              ...item,
+              items: filteredSubItems,
+              expanded: true // Expande automaticamente ao filtrar
+            };
+          }
+        }
+
+        return null;
+      })
+      .filter(item => item !== null) as MenuItem[];
+  }
+
+  /**
+   * Limpa o filtro de busca
+   */
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.filterMenu();
+  }
+
+  /**
+   * Colapsa todos os itens do menu
+   */
+  private collapseAllItems(): void {
+    this.menuItems.forEach(item => {
+      if (item.items && item.items.length > 0) {
+        item.expanded = false;
+      }
+    });
+    this.filteredMenuItems = this.menuItems;
   }
 
   /**
