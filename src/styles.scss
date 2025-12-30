@@ -1268,3 +1268,28 @@ small.info-message,
   }
 }
 
+/* ===================================== */
+/* RESPONSIVIDADE GLOBAL PARA TABELAS */
+/* ===================================== */
+
+/* Container de lista padrão */
+.lista-container {
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Responsividade mobile para todas as tabelas do sistema */
+@media (max-width: 768px) {
+  // Força scroll horizontal no mobile para todas as tabelas
+  .p-datatable-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch; // Scroll suave no iOS
+  }
+  
+  // Define largura mínima para forçar scroll horizontal
+  .p-datatable table {
+    min-width: 800px; // Largura padrão que força scroll horizontal no mobile
+  }
+}
+

@@ -1,19 +1,2 @@
-.lista-container {
-  padding: 1rem;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-::ng-deep {
-  // Força scroll horizontal no mobile
-  @media (max-width: 768px) {
-    .p-datatable-wrapper {
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    .p-datatable table {
-      min-width: 768px; // Define largura mínima para forçar scroll horizontal
-    }
-  }
-}
+// Estilos específicos da lista de corretores (se necessário)
+// CSS de responsividade global está em src/styles.scss
