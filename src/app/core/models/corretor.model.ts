@@ -16,15 +16,6 @@ export enum TipoChavePix {
 }
 
 /**
- * Interface para Banco
- */
-export interface Banco {
-  id: number;
-  codigo: string;
-  nome: string;
-}
-
-/**
  * DTO de entrada/saída para corretor
  * Usado tanto para criação/atualização quanto para busca por CPF
  */

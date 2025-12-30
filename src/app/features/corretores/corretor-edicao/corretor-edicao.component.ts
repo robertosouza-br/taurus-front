@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
-import { CorretorDTO, CorretorSaidaDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { BancoService } from '../../../core/services/banco.service';
+import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -16,19 +17,43 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 })
 export class CorretorEdicaoComponent implements OnInit {
   cpfCorretor!: string;
-  formulario!: FormGroup;
+  
+  // Campos do formulário
+  nome = '';
+  cpf = '';
+  email = '';
+  nomeGuerra = '';
+  telefone = '';
+  numeroCreci = '';
+  cargo: CorretorCargo = CorretorCargo.CORRETOR;
+  cargoSelecionado: { label: string; value: CorretorCargo } | null = null;
+  numeroBanco = '';
+  bancoSelecionado: { label: string; value: string; banco: Banco } | null = null;
+  numeroAgencia = '';
+  numeroContaCorrente = '';
+  tipoConta = '';
+  tipoChavePix: TipoChavePix = TipoChavePix.CPF;
+  tipoChavePixSelecionado: { label: string; value: TipoChavePix } | null = null;
+  chavePix = '';
+  ativo = true;
+  
   carregando = false;
   salvando = false;
-  submitted = false;
+  tentouSalvar = false;
   corretor: CorretorDTO | null = null;
+  
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
+  cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
+  bancosOptions: { label: string; value: string; banco: Banco }[] = [];
+  bancosFiltrados: { label: string; value: string; banco: Banco }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
+  tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
   breadcrumbItems: BreadcrumbItem[] = [];
 
   constructor(
     private route: ActivatedRoute,
-    private fb: FormBuilder,
     private corretorService: CorretorService,
+    private bancoService: BancoService,
     private router: Router,
     private messageService: MessageService,
     private permissaoService: PermissaoService
@@ -47,7 +72,6 @@ export class CorretorEdicaoComponent implements OnInit {
 
     this.cpfCorretor = this.route.snapshot.params['id']; // O parâmetro ainda é 'id' mas agora contém CPF
     this.configurarBreadcrumb();
-    this.inicializarFormulario();
     this.carregarOpcoes();
     this.carregarCorretor();
   }
@@ -60,31 +84,6 @@ export class CorretorEdicaoComponent implements OnInit {
     ];
   }
 
-  private inicializarFormulario(): void {
-    this.formulario = this.fb.group({
-      nome: ['', [Validators.required, Validators.minLength(3)]],
-      cpf: ['', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]],
-      email: ['', [Validators.required, Validators.email]],
-      telefone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(11)]],
-      cargo: [CorretorCargo.CORRETOR, Validators.required],
-      numeroBanco: [''],
-      numeroAgencia: [''],
-      numeroContaCorrente: [''],
-      tipoConta: [''],
-      tipoChavePix: [TipoChavePix.CPF, Validators.required],
-      chavePix: ['', [Validators.required, Validators.minLength(1)]],
-      ativo: [true]
-    });
-
-    // Desabilitar CPF (não pode ser alterado)
-    this.formulario.get('cpf')?.disable();
-
-    // Atualizar validação da chave PIX quando o tipo mudar
-    this.formulario.get('tipoChavePix')?.valueChanges.subscribe(() => {
-      this.atualizarValidacaoChavePix();
-    });
-  }
-
   private carregarOpcoes(): void {
     this.cargosOptions = Object.keys(CorretorCargo).map(key => ({
       label: CARGO_LABELS[key as CorretorCargo],
@@ -95,6 +94,24 @@ export class CorretorEdicaoComponent implements OnInit {
       label: TIPO_CHAVE_PIX_LABELS[key as TipoChavePix],
       value: key as TipoChavePix
     }));
+
+    // Carregar lista de bancos
+    this.bancoService.listar().subscribe({
+      next: (bancos) => {
+        this.bancosOptions = bancos.map(banco => ({
+          label: `${banco.codigo} - ${banco.nome}`,
+          value: banco.codigo,
+          banco: banco
+        }));
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Aviso',
+          detail: 'Não foi possível carregar a lista de bancos'
+        });
+      }
+    });
   }
 
   private carregarCorretor(): void {
@@ -122,93 +139,105 @@ export class CorretorEdicaoComponent implements OnInit {
   }
 
   private preencherFormulario(corretor: CorretorDTO): void {
-    this.formulario.patchValue({
-      nome: corretor.nome,
-      cpf: corretor.cpf,
-      email: corretor.email || '',
-      telefone: corretor.telefone || '',
-      cargo: corretor.cargo,
-      numeroBanco: corretor.numeroBanco || '',
-      numeroAgencia: corretor.numeroAgencia || '',
-      numeroContaCorrente: corretor.numeroContaCorrente || '',
-      tipoConta: corretor.tipoConta || '',
-      tipoChavePix: corretor.tipoChavePix || TipoChavePix.CPF,
-      chavePix: corretor.chavePix || '',
-      ativo: corretor.ativo
-    });
-  }
+    this.nome = corretor.nome;
+    this.cpf = corretor.cpf;
+    this.email = corretor.email || '';
+    this.nomeGuerra = corretor.nomeGuerra || '';
+    this.telefone = corretor.telefone || '';
+    this.numeroCreci = corretor.numeroCreci || '';
+    this.cargo = corretor.cargo;
+    this.numeroBanco = corretor.numeroBanco || '';
+    this.numeroAgencia = corretor.numeroAgencia || '';
+    this.numeroContaCorrente = corretor.numeroContaCorrente || '';
+    this.tipoConta = corretor.tipoConta || '';
+    this.tipoChavePix = corretor.tipoChavePix || TipoChavePix.CPF;
+    this.chavePix = corretor.chavePix || '';
+    this.ativo = corretor.ativo;
 
-  private atualizarValidacaoChavePix(): void {
-    const tipoChave = this.formulario.get('tipoChavePix')?.value;
-    const chavePix = this.formulario.get('chavePix');
-
-    chavePix?.clearValidators();
-    chavePix?.addValidators(Validators.required);
-
-    switch (tipoChave) {
-      case TipoChavePix.CPF:
-        chavePix?.addValidators([Validators.minLength(11), Validators.maxLength(11)]);
-        break;
-      case TipoChavePix.CELULAR:
-        chavePix?.addValidators([Validators.minLength(10), Validators.maxLength(11)]);
-        break;
-      case TipoChavePix.EMAIL:
-        chavePix?.addValidators(Validators.email);
-        break;
-      case TipoChavePix.CHAVE_ALEATORIA:
-        chavePix?.addValidators([Validators.minLength(32), Validators.maxLength(36)]);
-        break;
+    // Preencher autocompletes
+    this.cargoSelecionado = this.cargosOptions.find(c => c.value === corretor.cargo) || null;
+    
+    // Preencher banco se houver numeroBanco
+    if (corretor.numeroBanco) {
+      this.bancoSelecionado = this.bancosOptions.find(b => b.value === corretor.numeroBanco) || null;
     }
-
-    chavePix?.updateValueAndValidity();
+    
+    this.tipoChavePixSelecionado = corretor.tipoChavePix 
+      ? this.tiposChavePixOptions.find(t => t.value === corretor.tipoChavePix) || null 
+      : null;
   }
 
-  onTelefoneInput(event: any): void {
-    let value = event.target.value.replace(/\D/g, '');
-    if (value.length > 11) {
-      value = value.substring(0, 11);
-    }
-    this.formulario.get('telefone')?.setValue(value);
+  // Métodos para Autocomplete de Cargo
+  filtrarCargos(event: any): void {
+    const query = event.query.toLowerCase();
+    this.cargosFiltrados = this.cargosOptions.filter(cargo =>
+      cargo.label.toLowerCase().includes(query)
+    );
   }
 
-  formatarCpfDisplay(cpf: string): string {
-    if (!cpf) return '';
-    const value = cpf.replace(/\D/g, '');
-    return value
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  mostrarTodosCargos(): void {
+    this.cargosFiltrados = [...this.cargosOptions];
   }
 
-  formatarTelefoneDisplay(telefone: string): string {
-    if (!telefone) return '';
-    const value = telefone.replace(/\D/g, '');
-    if (value.length === 11) {
-      return value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    } else if (value.length === 10) {
-      return value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    }
-    return telefone;
+  // Métodos para Autocomplete de Tipo Chave PIX
+  filtrarTiposChavePix(event: any): void {
+    const query = event.query.toLowerCase();
+    this.tiposChavePixFiltrados = this.tiposChavePixOptions.filter(tipo =>
+      tipo.label.toLowerCase().includes(query)
+    );
   }
 
-  onSubmit(): void {
-    this.submitted = true;
+  mostrarTodosTiposChavePix(): void {
+    this.tiposChavePixFiltrados = [...this.tiposChavePixOptions];
+  }
 
-    if (this.formulario.invalid) {
+  // Métodos para Autocomplete de Banco
+  filtrarBancos(event: any): void {
+    const query = event.query.toLowerCase();
+    this.bancosFiltrados = this.bancosOptions.filter(banco =>
+      banco.label.toLowerCase().includes(query) ||
+      banco.value.includes(query)
+    );
+  }
+
+  mostrarTodosBancos(): void {
+    this.bancosFiltrados = [...this.bancosOptions];
+  }
+
+  salvarCorretor(): void {
+    this.tentouSalvar = true;
+
+    // Validação básica
+    if (!this.nome || !this.cpf || !this.email) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Preencha todos os campos obrigatórios corretamente'
+        detail: 'Preencha todos os campos obrigatórios'
       });
       return;
     }
 
     this.salvando = true;
 
+    // Extrair valor do cargo se for objeto
+    const cargoValue = this.cargoSelecionado ? this.cargoSelecionado.value : this.cargo;
+    const tipoChavePixValue = this.tipoChavePixSelecionado ? this.tipoChavePixSelecionado.value : this.tipoChavePix;
+
     const corretorAtualizado: CorretorDTO = {
-      ...this.formulario.getRawValue(),
-      telefone: this.formulario.value.telefone.replace(/\D/g, ''),
-      chavePix: this.formulario.value.chavePix.replace(/\D/g, '')
+      nome: this.nome,
+      cpf: this.cpf,
+      email: this.email,
+      nomeGuerra: this.nomeGuerra || undefined,
+      telefone: this.telefone || undefined,
+      numeroCreci: this.numeroCreci || undefined,
+      cargo: cargoValue,
+      numeroBanco: this.bancoSelecionado ? this.bancoSelecionado.value : undefined, // Envia apenas o código
+      numeroAgencia: this.numeroAgencia || undefined,
+      numeroContaCorrente: this.numeroContaCorrente || undefined,
+      tipoConta: this.tipoConta || undefined,
+      tipoChavePix: tipoChavePixValue,
+      chavePix: this.chavePix || undefined,
+      ativo: this.ativo
     };
 
     // Usa o ID retornado pela API na busca por CPF
@@ -251,9 +280,5 @@ export class CorretorEdicaoComponent implements OnInit {
 
   cancelar(): void {
     this.router.navigate(['/cadastros/corretores']);
-  }
-
-  get f() {
-    return this.formulario.controls;
   }
 }

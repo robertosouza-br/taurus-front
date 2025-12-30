@@ -16,6 +16,9 @@
       [class.ng-dirty]="isInvalid">
     <label [for]="inputId">{{ displayLabel }}</label>
   </span>
+  <small class="p-text-secondary" *ngIf="helper && !isInvalid" style="display: block; margin-top: 0.25rem;">
+    {{ helper }}
+  </small>
   <small class="p-error" *ngIf="isInvalid">
     {{ displayErrorMessage }}
   </small>

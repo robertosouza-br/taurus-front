@@ -2,8 +2,10 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
+import { BancoService } from '../../../core/services/banco.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
@@ -24,6 +26,7 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
   cargo: CorretorCargo = CorretorCargo.CORRETOR;
   cargoSelecionado: { label: string; value: CorretorCargo } | null = null;
   numeroBanco = '';
+  bancoSelecionado: { label: string; value: string; banco: Banco } | null = null;
   numeroAgencia = '';
   numeroContaCorrente = '';
   tipoConta = '';
@@ -47,12 +50,15 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
   // Opções
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
+  bancosOptions: { label: string; value: string; banco: Banco }[] = [];
+  bancosFiltrados: { label: string; value: string; banco: Banco }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
   breadcrumbItems: BreadcrumbItem[] = [];
 
   constructor(
     private corretorService: CorretorService,
+    private bancoService: BancoService,
     private usuarioService: UsuarioService,
     private router: Router,
     private messageService: MessageService
@@ -90,6 +96,24 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
 
     // Definir apenas o cargo padrão (PIX é opcional)
     this.cargoSelecionado = this.cargosOptions.find(c => c.value === CorretorCargo.CORRETOR) || null;
+
+    // Carregar lista de bancos
+    this.bancoService.listar().subscribe({
+      next: (bancos) => {
+        this.bancosOptions = bancos.map(banco => ({
+          label: `${banco.codigo} - ${banco.nome}`,
+          value: banco.codigo,
+          banco: banco
+        }));
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Aviso',
+          detail: 'Não foi possível carregar a lista de bancos'
+        });
+      }
+    });
   }
 
   private configurarValidacaoCpf(): void {
@@ -201,6 +225,19 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     this.tiposChavePixFiltrados = [...this.tiposChavePixOptions];
   }
 
+  // Métodos para Autocomplete de Banco
+  filtrarBancos(event: any): void {
+    const query = event.query.toLowerCase();
+    this.bancosFiltrados = this.bancosOptions.filter(banco =>
+      banco.label.toLowerCase().includes(query) ||
+      banco.value.includes(query)
+    );
+  }
+
+  mostrarTodosBancos(): void {
+    this.bancosFiltrados = [...this.bancosOptions];
+  }
+
   validarFormulario(): boolean {
     // Apenas campos obrigatórios: nome, cpf, email, cargo
     return !!(
@@ -246,7 +283,7 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     if (this.nomeGuerra) corretor.nomeGuerra = this.nomeGuerra;
     if (this.telefone) corretor.telefone = this.telefone.replace(/\D/g, '');
     if (this.numeroCreci) corretor.numeroCreci = this.numeroCreci;
-    if (this.numeroBanco) corretor.numeroBanco = this.numeroBanco;
+    if (this.bancoSelecionado) corretor.numeroBanco = this.bancoSelecionado.value; // Envia apenas o código
     if (this.numeroAgencia) corretor.numeroAgencia = this.numeroAgencia;
     if (this.numeroContaCorrente) corretor.numeroContaCorrente = this.numeroContaCorrente;
     if (this.tipoConta) corretor.tipoConta = this.tipoConta;

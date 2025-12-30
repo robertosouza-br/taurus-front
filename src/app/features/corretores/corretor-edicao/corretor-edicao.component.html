@@ -1,4 +1,4 @@
-<div class="corretor-edicao-container">
+<div class="form-container">
   <!-- Breadcrumb -->
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
@@ -13,246 +13,219 @@
   <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados do corretor..."></app-loading-spinner>
 
   <!-- Formulário -->
-  <div *ngIf="!carregando && corretor" class="card">
-    <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
-      
-      <!-- Dados Pessoais -->
-      <div class="form-section">
-        <h3><i class="pi pi-user"></i> Dados Pessoais</h3>
-        
-        <div class="formgrid grid">
-          <!-- Nome -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <input 
-                id="nome" 
-                type="text" 
-                pInputText 
-                formControlName="nome"
-                [class.ng-invalid]="submitted && f['nome'].errors"
-              >
-              <label for="nome">Nome Completo *</label>
-            </span>
-            <small class="p-error" *ngIf="submitted && f['nome'].errors?.['required']">
-              Nome é obrigatório
-            </small>
-          </div>
+  <div *ngIf="!carregando && corretor" class="corretor-form">
+    <!-- Dados Pessoais -->
+    <p-card header="Dados Pessoais">
+      <div class="p-fluid">
+        <br>
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome Completo"
+            [(ngModel)]="nome"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
 
-          <!-- CPF (Desabilitado) -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <input 
-                id="cpf" 
-                type="text" 
-                pInputText 
-                formControlName="cpf"
-                [value]="formatarCpfDisplay(f['cpf'].value)"
-                [disabled]="true"
-              >
-              <label for="cpf">CPF *</label>
-            </span>
-            <small class="field-help">CPF não pode ser alterado</small>
-          </div>
+        <div class="p-field">
+          <app-input-cpf
+            id="cpf"
+            label="CPF"
+            [(ngModel)]="cpf"
+            [required]="true"
+            [disabled]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-cpf>
+          <small class="field-help" style="color: #64748b; display: block; margin-top: 0.25rem;">
+            <i class="pi pi-info-circle"></i> CPF não pode ser alterado
+          </small>
+        </div>
 
-          <!-- Email -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <input 
-                id="email" 
-                type="email" 
-                pInputText 
-                formControlName="email"
-                [class.ng-invalid]="submitted && f['email'].errors"
-              >
-              <label for="email">E-mail *</label>
-            </span>
-            <small class="p-error" *ngIf="submitted && f['email'].errors?.['required']">
-              E-mail é obrigatório
-            </small>
-            <small class="p-error" *ngIf="submitted && f['email'].errors?.['email']">
-              E-mail inválido
-            </small>
-          </div>
+        <div class="p-field">
+          <app-input-text
+            id="email"
+            label="E-mail"
+            [(ngModel)]="email"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            type="email">
+          </app-input-text>
+        </div>
 
-          <!-- Telefone -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <input 
-                id="telefone" 
-                type="text" 
-                pInputText 
-                formControlName="telefone"
-                [class.ng-invalid]="submitted && f['telefone'].errors"
-                maxlength="11"
-                (input)="onTelefoneInput($event)"
-                [value]="formatarTelefoneDisplay(f['telefone'].value)"
-              >
-              <label for="telefone">Telefone *</label>
-            </span>
-            <small class="p-error" *ngIf="submitted && f['telefone'].errors?.['required']">
-              Telefone é obrigatório
-            </small>
-          </div>
+        <div class="p-field">
+          <app-input-text
+            id="nomeGuerra"
+            label="Nome de Guerra"
+            [(ngModel)]="nomeGuerra"
+            [required]="false"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
 
-          <!-- Cargo -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <p-dropdown 
-                id="cargo"
-                formControlName="cargo"
-                [options]="cargosOptions"
-                optionLabel="label"
-                optionValue="value"
-                [class.ng-invalid]="submitted && f['cargo'].errors"
-              ></p-dropdown>
-              <label for="cargo">Cargo *</label>
-            </span>
-          </div>
+        <div class="p-field">
+          <app-input-telefone
+            id="telefone"
+            label="Telefone"
+            [(ngModel)]="telefone"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            placeholder="(00) 00000-0000">
+          </app-input-telefone>
+        </div>
 
-          <!-- Ativo -->
-          <div class="field col-12 md:col-6">
-            <div class="flex align-items-center">
-              <p-checkbox 
-                inputId="ativo" 
-                formControlName="ativo" 
-                [binary]="true"
-              ></p-checkbox>
-              <label for="ativo">Corretor Ativo</label>
-            </div>
-          </div>
+        <div class="p-field">
+          <app-input-text
+            id="numeroCreci"
+            label="Número do CRECI"
+            [(ngModel)]="numeroCreci"
+            [required]="false"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <app-autocomplete
+            id="cargo"
+            label="Cargo"
+            [(ngModel)]="cargoSelecionado"
+            [suggestions]="cargosFiltrados"
+            (completeMethod)="filtrarCargos($event)"
+            (onDropdownClick)="mostrarTodosCargos()"
+            field="label"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            emptyMessage="Nenhum cargo encontrado"
+            placeholder="Digite para buscar um cargo">
+          </app-autocomplete>
+        </div>
+
+        <div class="p-field-checkbox">
+          <p-checkbox
+            [(ngModel)]="ativo"
+            [binary]="true"
+            inputId="ativo"
+            label="Corretor Ativo">
+          </p-checkbox>
+        </div>
+        <br>
+      </div>
+    </p-card>
+
+    <!-- Dados Bancários -->
+    <p-card header="Dados Bancários (Opcional)">
+      <div class="p-fluid">
+        <br>
+        <div class="p-field">
+          <app-autocomplete
+            id="numeroBanco"
+            label="Banco"
+            [(ngModel)]="bancoSelecionado"
+            [suggestions]="bancosFiltrados"
+            (completeMethod)="filtrarBancos($event)"
+            (onDropdownClick)="mostrarTodosBancos()"
+            field="label"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            emptyMessage="Nenhum banco encontrado"
+            placeholder="Digite o código ou nome do banco">
+          </app-autocomplete>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="numeroAgencia"
+            label="Agência"
+            [(ngModel)]="numeroAgencia"
+            [required]="false"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="numeroContaCorrente"
+            label="Conta Corrente"
+            [(ngModel)]="numeroContaCorrente"
+            [required]="false"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="tipoConta"
+            label="Tipo de Conta"
+            [(ngModel)]="tipoConta"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: CORRENTE, POUPANÇA">
+          </app-input-text>
+        </div>
+        <br>
+      </div>
+    </p-card>
+
+    <!-- Dados PIX -->
+    <p-card header="Dados PIX (Opcional)">
+      <div class="p-fluid">
+        <br>
+        <div class="p-field">
+          <app-autocomplete
+            id="tipoChavePix"
+            label="Tipo de Chave PIX"
+            [(ngModel)]="tipoChavePixSelecionado"
+            [suggestions]="tiposChavePixFiltrados"
+            (completeMethod)="filtrarTiposChavePix($event)"
+            (onDropdownClick)="mostrarTodosTiposChavePix()"
+            field="label"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            emptyMessage="Nenhum tipo de chave encontrado"
+            placeholder="Digite para buscar um tipo de chave">
+          </app-autocomplete>
+        </div>
+
+        <div class="p-field">
+          <app-input-text
+            id="chavePix"
+            label="Chave PIX"
+            [(ngModel)]="chavePix"
+            [required]="false"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+        <br>
+      </div>
+    </p-card>
+
+    <!-- Informações do Sistema -->
+    <p-card *ngIf="corretor?.id" styleClass="info-card">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <i class="pi pi-info-circle" style="color: #3b82f6; font-size: 1.5rem;"></i>
+        <div>
+          <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.25rem;">Sistema RMS</div>
+          <div style="font-size: 1rem; font-weight: 600; color: #1e293b;">ID: {{ corretor.id }}</div>
         </div>
       </div>
+    </p-card>
 
-      <!-- Dados Bancários -->
-      <div class="form-section">
-        <h3><i class="pi pi-building"></i> Dados Bancários</h3>
-        
-        <div class="formgrid grid">
-          <!-- Número do Banco -->
-          <div class="field col-12 md:col-4">
-            <span class="p-float-label">
-              <input 
-                id="numeroBanco" 
-                type="text" 
-                pInputText 
-                formControlName="numeroBanco"
-                maxlength="3"
-                placeholder="Ex: 001, 237, 341"
-              >
-              <label for="numeroBanco">Número do Banco</label>
-            </span>
-            <small class="p-text-secondary">Digite o código do banco (ex: 001, 237, 341)</small>
-          </div>
-
-          <!-- Agência -->
-          <div class="field col-12 md:col-4">
-            <span class="p-float-label">
-              <input 
-                id="numeroAgencia" 
-                type="text" 
-                pInputText 
-                formControlName="numeroAgencia"
-              >
-              <label for="numeroAgencia">Agência</label>
-            </span>
-          </div>
-
-          <!-- Conta Corrente -->
-          <div class="field col-12 md:col-4">
-            <span class="p-float-label">
-              <input 
-                id="numeroContaCorrente" 
-                type="text" 
-                pInputText 
-                formControlName="numeroContaCorrente"
-              >
-              <label for="numeroContaCorrente">Conta Corrente</label>
-            </span>
-          </div>
-
-          <!-- Tipo de Conta -->
-          <div class="field col-12">
-            <span class="p-float-label">
-              <input 
-                id="tipoConta" 
-                type="text" 
-                pInputText 
-                formControlName="tipoConta"
-                placeholder="Ex: CORRENTE, POUPANÇA"
-              >
-              <label for="tipoConta">Tipo de Conta</label>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dados PIX -->
-      <div class="form-section">
-        <h3><i class="pi pi-qrcode"></i> Dados PIX</h3>
-        
-        <div class="formgrid grid">
-          <!-- Tipo de Chave PIX -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <p-dropdown 
-                id="tipoChavePix"
-                formControlName="tipoChavePix"
-                [options]="tiposChavePixOptions"
-                optionLabel="label"
-                optionValue="value"
-                [class.ng-invalid]="submitted && f['tipoChavePix'].errors"
-              ></p-dropdown>
-              <label for="tipoChavePix">Tipo de Chave PIX *</label>
-            </span>
-          </div>
-
-          <!-- Chave PIX -->
-          <div class="field col-12 md:col-6">
-            <span class="p-float-label">
-              <input 
-                id="chavePix" 
-                type="text" 
-                pInputText 
-                formControlName="chavePix"
-                [class.ng-invalid]="submitted && f['chavePix'].errors"
-              >
-              <label for="chavePix">Chave PIX *</label>
-            </span>
-            <small class="p-error" *ngIf="submitted && f['chavePix'].errors?.['required']">
-              Chave PIX é obrigatória
-            </small>
-          </div>
-        </div>
-      </div>
-
-      <!-- Informações do Sistema -->
-      <div class="info-section" *ngIf="corretor?.id">
-        <i class="pi pi-info-circle"></i>
-        <div class="info-content">
-          <strong>ID Sistema RMS:</strong> {{ corretor.id }}
-        </div>
-      </div>
-
-      <!-- Botões de Ação -->
-      <div class="form-actions">
-        <p-button 
-          type="button"
-          label="Cancelar" 
-          icon="pi pi-times"
-          severity="secondary"
-          [outlined]="true"
-          [disabled]="salvando"
-          (onClick)="cancelar()"
-        ></p-button>
-        
-        <p-button 
-          type="submit"
-          label="Salvar Alterações" 
-          icon="pi pi-check"
-          [loading]="salvando"
-          [disabled]="salvando"
-        ></p-button>
-      </div>
-    </form>
+    <!-- Ações -->
+    <div class="form-actions">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        (onClick)="cancelar()"
+        [disabled]="salvando">
+      </app-custom-button>
+      <app-custom-button
+        label="Salvar Alterações"
+        icon="pi pi-save"
+        severity="success"
+        (onClick)="salvarCorretor()"
+        [loading]="salvando">
+      </app-custom-button>
+    </div>
   </div>
 </div>

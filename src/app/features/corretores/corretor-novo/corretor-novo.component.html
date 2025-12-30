@@ -128,16 +128,19 @@
       <div class="p-fluid">
         <br>
         <div class="p-field">
-          <app-input-text
+          <app-autocomplete
             id="numeroBanco"
-            label="Número do Banco"
-            [(ngModel)]="numeroBanco"
+            label="Banco"
+            [(ngModel)]="bancoSelecionado"
+            [suggestions]="bancosFiltrados"
+            (completeMethod)="filtrarBancos($event)"
+            (onDropdownClick)="mostrarTodosBancos()"
+            field="label"
             [required]="false"
             [showValidation]="tentouSalvar"
-            [maxlength]="3"
-            placeholder="Ex: 001, 237, 341"
-            helper="Digite o código do banco (ex: 001, 237, 341)">
-          </app-input-text>
+            emptyMessage="Nenhum banco encontrado"
+            placeholder="Digite o código ou nome do banco">
+          </app-autocomplete>
         </div>
 
         <div class="p-field">

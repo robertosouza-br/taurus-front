@@ -25,6 +25,7 @@ export class InputTextComponent implements ControlValueAccessor {
   @Input() styleClass: string = '';
   @Input() showValidation: boolean = false; // Controla se deve mostrar validação
   @Input() errorMessage: string = ''; // Mensagem de erro customizada
+  @Input() helper: string = ''; // Texto de ajuda abaixo do campo
 
   value: string = '';
   touched: boolean = false;
