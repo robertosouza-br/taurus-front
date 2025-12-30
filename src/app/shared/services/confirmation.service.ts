@@ -101,6 +101,16 @@ export class ConfirmationService {
   }
 
   /**
+   * Confirmação para limpar formulário
+   */
+  confirmClear(customMessage?: string): Observable<boolean> {
+    return this.confirm({
+      action: ConfirmationAction.LIMPAR,
+      message: customMessage
+    });
+  }
+
+  /**
    * Confirmação customizada
    */
   confirmCustom(title: string, message: string, config?: Partial<ConfirmationConfig>): Observable<boolean> {

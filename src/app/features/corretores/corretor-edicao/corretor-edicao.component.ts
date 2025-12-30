@@ -262,6 +262,35 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     });
   }
 
+  /**
+   * Verifica se o formulário foi alterado comparando com valores originais
+   */
+  get formularioAlterado(): boolean {
+    if (!this.corretor) return false;
+    
+    return this.nome !== this.corretor.nome ||
+           this.cpf !== this.corretor.cpf ||
+           this.email !== (this.corretor.email || '') ||
+           this.nomeGuerra !== (this.corretor.nomeGuerra || '') ||
+           this.telefone !== (this.corretor.telefone || '') ||
+           this.numeroCreci !== (this.corretor.numeroCreci || '') ||
+           (this.cargoSelecionado?.value || this.cargo) !== this.corretor.cargo ||
+           (this.bancoSelecionado?.value || this.numeroBanco) !== (this.corretor.numeroBanco || '') ||
+           this.numeroAgencia !== (this.corretor.numeroAgencia || '') ||
+           this.numeroContaCorrente !== (this.corretor.numeroContaCorrente || '') ||
+           this.tipoConta !== (this.corretor.tipoConta || '') ||
+           (this.tipoChavePixSelecionado?.value || this.tipoChavePix) !== (this.corretor.tipoChavePix || TipoChavePix.CPF) ||
+           this.chavePix !== (this.corretor.chavePix || '') ||
+           this.ativo !== this.corretor.ativo;
+  }
+
+  limparTela(): void {
+    if (this.corretor) {
+      this.preencherFormulario(this.corretor);
+      this.tentouSalvar = false;
+    }
+  }
+
   cancelar(): void {
     this.router.navigate(['/cadastros/corretores']);
   }

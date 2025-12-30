@@ -216,6 +216,8 @@
         label="Cancelar"
         icon="pi pi-times"
         severity="warning"
+        actionType="cancel"
+        [requireConfirmation]="formularioAlterado"
         (onClick)="cancelar()"
         [disabled]="salvando">
       </app-custom-button>
@@ -223,6 +225,7 @@
         label="Limpar"
         icon="pi pi-refresh"
         severity="info"
+        actionType="clear"
         [outlined]="true"
         (onClick)="limparTela()"
         [disabled]="salvando">
@@ -231,6 +234,7 @@
         label="Criar Corretor"
         icon="pi pi-save"
         severity="success"
+        actionType="save"
         (onClick)="salvarCorretor()"
         [loading]="salvando">
       </app-custom-button>

@@ -10,13 +10,14 @@ import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { BaseFormComponent } from '../../../shared/base/base-form.component';
 
 @Component({
   selector: 'app-usuario-novo',
   templateUrl: './usuario-novo.component.html',
   styleUrls: ['./usuario-novo.component.scss']
 })
-export class UsuarioNovoComponent implements OnInit {
+export class UsuarioNovoComponent extends BaseFormComponent implements OnInit {
   // Dados do formulário
   nome: string = '';
   email: string = '';
@@ -28,14 +29,14 @@ export class UsuarioNovoComponent implements OnInit {
   perfilSelecionado: PerfilDTO | null = null;
 
   // Controle de validação
-  tentouSalvar: boolean = false;
+  override tentouSalvar: boolean = false;
 
   // Perfis disponíveis
   perfis: PerfilDTO[] = [];
   perfisFiltrados: PerfilDTO[] = [];
 
   carregando = false;
-  salvando = false;
+  override salvando = false;
   usuarioLogadoEhAdministrador = false;
   senhaGerada: string | null = null;
   mostrarModalSenha = false;
@@ -51,7 +52,9 @@ export class UsuarioNovoComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private authService: AuthService,
     private authorizationService: AuthorizationService
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     // Verifica se tem permissão para incluir
@@ -121,67 +124,13 @@ export class UsuarioNovoComponent implements OnInit {
   }
 
   salvarUsuario(): void {
-    // Marcar que tentou salvar
-    this.tentouSalvar = true;
-
-    // Validações
-    const erros: string[] = [];
-    let primeiroCampoInvalido: string | null = null;
-
-    if (!this.nome || this.nome.trim().length === 0) {
-      erros.push('Nome do usuário é obrigatório');
-      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'nome';
-    }
-
-    if (!this.email || this.email.trim().length === 0) {
-      erros.push('E-mail é obrigatório');
-      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'email';
-    } else if (!this.validarEmail(this.email)) {
-      erros.push('E-mail inválido');
-      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'email';
-    }
-
-    if (!this.cpf || this.cpf.trim().length === 0) {
-      erros.push('CPF é obrigatório');
-      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'cpf';
-    } else if (!this.validarCPF(this.cpf)) {
-      erros.push('CPF inválido');
-      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'cpf';
-    }
-
-    if (!this.perfilSelecionado) {
-      erros.push('Selecione um perfil');
-      if (!primeiroCampoInvalido) primeiroCampoInvalido = 'perfil';
-    }
-
-    // Se houver erros, mostrar e focar no primeiro campo
-    if (erros.length > 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: erros.join('. ')
-      });
-
-      if (primeiroCampoInvalido) {
-        setTimeout(() => {
-          const elemento = document.getElementById(primeiroCampoInvalido!);
-          if (elemento) {
-            elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            if (elemento instanceof HTMLInputElement || elemento instanceof HTMLTextAreaElement) {
-              elemento.focus();
-            }
-          }
-        }, 100);
-      }
+    // Validar formulário usando BaseFormComponent
+    if (!this.validarFormulario()) {
       return;
     }
 
-    // Mostrar confirmação antes de criar
-    this.confirmationService.confirmSave().subscribe((confirmed) => {
-      if (confirmed) {
-        this.executarCriacao();
-      }
-    });
+    // A confirmação é feita automaticamente pelo botão com actionType="save"
+    this.executarCriacao();
   }
 
   private executarCriacao(): void {
@@ -361,5 +310,37 @@ export class UsuarioNovoComponent implements OnInit {
     }
     
     this.cpf = valor;
+  }
+
+  /**
+   * Verifica se o formulário foi alterado (algum campo foi preenchido)
+   */
+  get formularioAlterado(): boolean {
+    return this.nome.trim() !== '' ||
+           this.email.trim() !== '' ||
+           this.cpf.trim() !== '' ||
+           this.telefone.trim() !== '' ||
+           this.apelido.trim() !== '' ||
+           this.dataExpiracao !== null ||
+           this.perfilSelecionado !== null ||
+           !this.ativo; // Se desativou, considera alterado
+  }
+
+  // Implementação do método abstrato
+  protected override getCamposObrigatorios() {
+    return [
+      { id: 'nome', valor: this.nome, label: 'Nome' },
+      { id: 'email', valor: this.email, label: 'E-mail', validacao: () => this.validarEmail(this.email) },
+      { id: 'cpf', valor: this.cpf, label: 'CPF', validacao: () => this.validarCPF(this.cpf) },
+      { id: 'perfil', valor: this.perfilSelecionado, label: 'Perfil' }
+    ];
+  }
+
+  protected override exibirMensagemCampoObrigatorio(campo: { id: string; valor: any; label?: string }): void {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Atenção',
+      detail: 'Preencha todos os campos obrigatórios'
+    });
   }
 }

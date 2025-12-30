@@ -330,6 +330,26 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.limparValidacaoCpf();
   }
 
+  /**
+   * Verifica se o formulário foi alterado (algum campo foi preenchido)
+   */
+  get formularioAlterado(): boolean {
+    return this.nome.trim() !== '' ||
+           this.cpf.trim() !== '' ||
+           this.email.trim() !== '' ||
+           this.nomeGuerra.trim() !== '' ||
+           this.telefone.trim() !== '' ||
+           this.numeroCreci.trim() !== '' ||
+           this.cargoSelecionado !== null ||
+           this.bancoSelecionado !== null ||
+           this.numeroAgencia.trim() !== '' ||
+           this.numeroContaCorrente.trim() !== '' ||
+           this.tipoConta.trim() !== '' ||
+           this.tipoChavePixSelecionado !== null ||
+           this.chavePix.trim() !== '' ||
+           !this.ativo; // Se desativou, considera alterado
+  }
+
   cancelar(): void {
     this.router.navigate(['/cadastros/corretores']);
   }

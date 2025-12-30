@@ -227,6 +227,16 @@ export class PerfilNovoComponent implements OnInit {
     this.router.navigate(['/admin/perfis']);
   }
 
+  /**
+   * Verifica se o formulário foi alterado (algum campo foi preenchido)
+   */
+  get formularioAlterado(): boolean {
+    return this.nome.trim() !== '' ||
+           this.descricao.trim() !== '' ||
+           !this.ativo || // Se desativou, considera alterado
+           this.temPermissoesSelecionadas;
+  }
+
   limparPermissoes(funcionalidade: string): void {
     this.permissoesSelecionadas[funcionalidade].clear();
   }

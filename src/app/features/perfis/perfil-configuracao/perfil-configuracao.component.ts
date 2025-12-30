@@ -197,27 +197,23 @@ export class PerfilConfiguracaoComponent implements OnInit {
       return;
     }
 
-    this.confirmationService.confirmSave('Deseja salvar as alterações realizadas no perfil e suas permissões?')
-      .subscribe(confirmed => {
-        if (!confirmed) return;
+    this.salvando = true;
 
-        this.salvando = true;
+    // Atualiza dados básicos do perfil e permissões em lote
+    const perfilAtualizado = {
+      nome: this.perfil!.nome,
+      descricao: this.perfil!.descricao,
+      ativo: this.perfil!.ativo,
+      permissoes: this.permissoesConfiguradas
+    };
 
-        // Atualiza dados básicos do perfil e permissões em lote
-        const perfilAtualizado = {
-          nome: this.perfil!.nome,
-          descricao: this.perfil!.descricao,
-          ativo: this.perfil!.ativo,
-          permissoes: this.permissoesConfiguradas
-        };
-
-        // Executa atualização do perfil (com permissões incluídas) e depois substitui permissões em lote
-        Promise.all([
-          this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
-          this.funcionalidadeService.substituirPermissoesLote(this.perfilId, this.permissoesConfiguradas).toPromise()
-        ]).then(([perfil, _]) => {
-          this.salvando = false;
-          // Exibe toast de sucesso
+    // Executa atualização do perfil (com permissões incluídas) e depois substitui permissões em lote
+    Promise.all([
+      this.funcionalidadeService.atualizarPerfil(this.perfilId, perfilAtualizado).toPromise(),
+      this.funcionalidadeService.substituirPermissoesLote(this.perfilId, this.permissoesConfiguradas).toPromise()
+    ]).then(([perfil, _]) => {
+      this.salvando = false;
+      // Exibe toast de sucesso
           this.messageService.add({
             severity: 'success',
             summary: 'Sucesso!',
@@ -248,7 +244,6 @@ export class PerfilConfiguracaoComponent implements OnInit {
             life: 5000
           });
         });
-      });
   }
 
   limparPermissoes(funcionalidade: string): void {
@@ -328,6 +323,18 @@ export class PerfilConfiguracaoComponent implements OnInit {
    */
   get podeAlterarPermissoes(): boolean {
     return !this.isAdministrador;
+  }
+
+  /**
+   * Verifica se o formulário foi alterado comparando com valores originais
+   */
+  get formularioAlterado(): boolean {
+    if (!this.perfil || !this.perfilInicial) return false;
+    
+    return this.perfil.nome !== this.perfilInicial.nome ||
+           this.perfil.descricao !== this.perfilInicial.descricao ||
+           this.perfil.ativo !== this.perfilInicial.ativo ||
+           JSON.stringify(this.permissoesConfiguradas) !== JSON.stringify(this.permissoesIniciais);
   }
 
   /**

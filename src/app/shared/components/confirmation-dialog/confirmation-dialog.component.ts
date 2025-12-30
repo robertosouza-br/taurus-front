@@ -10,6 +10,7 @@ export enum ConfirmationAction {
   INCLUIR = 'incluir',
   CANCELAR = 'cancelar',
   DESCARTAR = 'descartar',
+  LIMPAR = 'limpar',
   CUSTOM = 'custom'
 }
 
@@ -114,6 +115,16 @@ export class ConfirmationDialogComponent {
         confirmLabel: 'Descartar',
         cancelLabel: 'Manter',
         icon: 'pi pi-exclamation-triangle',
+        severity: 'warning',
+        showCancel: true
+      },
+      [ConfirmationAction.LIMPAR]: {
+        action: ConfirmationAction.LIMPAR,
+        title: 'Limpar formulário!',
+        message: 'Todos os dados preenchidos serão perdidos. Deseja realmente limpar o formulário?',
+        confirmLabel: 'Sim, limpar',
+        cancelLabel: 'Cancelar',
+        icon: 'pi pi-eraser',
         severity: 'warning',
         showCancel: true
       },

@@ -79,6 +79,8 @@
               label="Cancelar"
               icon="pi pi-times"
               severity="warning"
+              actionType="cancel"
+              [requireConfirmation]="formularioAlterado"
               [disabled]="salvando"
               (onClick)="cancelar()">
             </app-custom-button>
@@ -86,6 +88,7 @@
               label="Salvar"
               icon="pi pi-check"
               severity="success"
+              actionType="save"
               [loading]="salvando"
               (onClick)="salvarDados()">
             </app-custom-button>
@@ -246,6 +249,7 @@
         label="Cancelar"
         icon="pi pi-times"
         severity="warning"
+        actionType="cancel"
         [disabled]="trocandoSenha"
         (onClick)="fecharModalSenha()">
       </app-custom-button>
@@ -253,6 +257,7 @@
         label="Alterar Senha"
         icon="pi pi-check"
         severity="success"
+        actionType="save"
         [loading]="trocandoSenha"
         (onClick)="trocarSenha()">
       </app-custom-button>

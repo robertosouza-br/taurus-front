@@ -104,6 +104,8 @@
         label="Cancelar" 
         icon="pi pi-times"
         severity="warning"
+        actionType="cancel"
+        [requireConfirmation]="formularioAlterado"
         (onClick)="cancelar()"
         [disabled]="salvando">
       </app-custom-button>
@@ -111,6 +113,7 @@
         label="Criar Perfil" 
         icon="pi pi-save"
         severity="success"
+        actionType="save"
         (onClick)="criarPerfil()"
         [loading]="salvando">
       </app-custom-button>

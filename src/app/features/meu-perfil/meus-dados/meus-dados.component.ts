@@ -171,6 +171,18 @@ export class MeusDadosComponent implements OnInit {
     };
   }
 
+  /**
+   * Verifica se o formulário foi alterado comparando com valores originais
+   */
+  get formularioAlterado(): boolean {
+    if (!this.meusDados) return false;
+    
+    return this.dadosForm.nome !== this.meusDados.nome ||
+           this.dadosForm.email !== this.meusDados.email ||
+           this.dadosForm.telefone !== (this.meusDados.telefone || '') ||
+           this.dadosForm.apelido !== (this.meusDados.apelido || '');
+  }
+
   trocarSenha(): void {
     if (!this.validarSenha()) {
       return;

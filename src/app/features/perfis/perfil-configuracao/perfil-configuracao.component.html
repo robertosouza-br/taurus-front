@@ -138,6 +138,8 @@
         label="Cancelar" 
         icon="pi pi-times"
         severity="warning"
+        actionType="cancel"
+        [requireConfirmation]="formularioAlterado"
         (onClick)="cancelar()">
       </app-custom-button>
       <app-custom-button 
@@ -145,12 +147,14 @@
         icon="pi pi-refresh"
         severity="info"
         [outlined]="true"
+        actionType="clear"
         (onClick)="limparTela()">
       </app-custom-button>
       <app-custom-button 
         label="Salvar" 
         icon="pi pi-save"
         severity="success"
+        actionType="save"
         [loading]="salvando"
         (onClick)="salvarPerfil()">
       </app-custom-button>
