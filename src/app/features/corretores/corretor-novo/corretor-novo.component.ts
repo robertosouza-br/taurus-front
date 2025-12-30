@@ -7,6 +7,7 @@ import { UsuarioService } from '../../../core/services/usuario.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
@@ -15,7 +16,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
   templateUrl: './corretor-novo.component.html',
   styleUrls: ['./corretor-novo.component.scss']
 })
-export class CorretorNovoComponent implements OnInit, OnDestroy {
+export class CorretorNovoComponent extends BaseFormComponent implements OnInit, OnDestroy {
   // Campos do formulário
   nome = '';
   cpf = '';
@@ -35,9 +36,7 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
   chavePix = '';
   ativo = true;
 
-  // Controle do formulário
-  salvando = false;
-  tentouSalvar = false;
+  // Controle do formulário (herdado de BaseFormComponent: tentouSalvar, salvando)
 
   // Controle de validação de CPF
   cpfJaCadastrado = false;
@@ -62,7 +61,9 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     private usuarioService: UsuarioService,
     private router: Router,
     private messageService: MessageService
-  ) {}
+  ) {
+    super(); // Chama construtor da classe base
+  }
 
   ngOnInit(): void {
     this.configurarBreadcrumb();
@@ -246,29 +247,15 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
     this.bancosFiltrados = [...this.bancosOptions];
   }
 
-  validarFormulario(): boolean {
-    // Apenas campos obrigatórios: nome, cpf, email, cargo
-    return !!(
-      this.nome &&
-      this.cpf &&
-      this.email &&
-      this.cargoSelecionado
-    );
-  }
-
   salvarCorretor(): void {
-    this.tentouSalvar = true;
-
+    // Usa validação da classe base (já marca tentouSalvar, foca no erro e exibe mensagem)
     if (!this.validarFormulario()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Preencha todos os campos obrigatórios'
-      });
       return;
     }
 
     if (this.cpfJaCadastrado) {
+      // Foca no campo CPF quando já cadastrado
+      this.focarCampo('cpf');
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
@@ -345,5 +332,29 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
 
   cancelar(): void {
     this.router.navigate(['/cadastros/corretores']);
+  }
+
+  /**
+   * Implementação do método abstrato da classe base
+   * Define os campos obrigatórios do formulário
+   */
+  protected override getCamposObrigatorios() {
+    return [
+      { id: 'nome', valor: this.nome, label: 'Nome Completo' },
+      { id: 'cpf', valor: this.cpf, label: 'CPF' },
+      { id: 'email', valor: this.email, label: 'E-mail' },
+      { id: 'cargo', valor: this.cargoSelecionado, label: 'Cargo' }
+    ];
+  }
+
+  /**
+   * Sobrescreve o método da classe base para exibir mensagem com MessageService
+   */
+  protected override exibirMensagemCampoObrigatorio(campo: { id: string; valor: any; label?: string }): void {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Atenção',
+      detail: 'Preencha todos os campos obrigatórios'
+    });
   }
 }

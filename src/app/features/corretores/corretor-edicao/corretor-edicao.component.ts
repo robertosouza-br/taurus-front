@@ -6,6 +6,7 @@ import { BancoService } from '../../../core/services/banco.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
@@ -15,7 +16,7 @@ import { Permissao } from '../../../core/enums/permissao.enum';
   templateUrl: './corretor-edicao.component.html',
   styleUrls: ['./corretor-edicao.component.scss']
 })
-export class CorretorEdicaoComponent implements OnInit {
+export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit {
   cpfCorretor!: string;
   
   // Campos do formulário
@@ -38,8 +39,7 @@ export class CorretorEdicaoComponent implements OnInit {
   ativo = true;
   
   carregando = false;
-  salvando = false;
-  tentouSalvar = false;
+  // salvando e tentouSalvar herdados de BaseFormComponent
   corretor: CorretorDTO | null = null;
   
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
@@ -57,7 +57,9 @@ export class CorretorEdicaoComponent implements OnInit {
     private router: Router,
     private messageService: MessageService,
     private permissaoService: PermissaoService
-  ) {}
+  ) {
+    super(); // Chama construtor da classe base
+  }
 
   ngOnInit(): void {
     if (!this.permissaoService.temPermissao(Funcionalidade.CORRETOR, Permissao.ALTERAR)) {
@@ -205,15 +207,8 @@ export class CorretorEdicaoComponent implements OnInit {
   }
 
   salvarCorretor(): void {
-    this.tentouSalvar = true;
-
-    // Validação básica
-    if (!this.nome || !this.cpf || !this.email) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Preencha todos os campos obrigatórios'
-      });
+    // Usa validação da classe base (já marca tentouSalvar, foca no erro e exibe mensagem)
+    if (!this.validarFormulario()) {
       return;
     }
 
@@ -269,5 +264,28 @@ export class CorretorEdicaoComponent implements OnInit {
 
   cancelar(): void {
     this.router.navigate(['/cadastros/corretores']);
+  }
+
+  /**
+   * Implementação do método abstrato da classe base
+   * Define os campos obrigatórios do formulário
+   */
+  protected override getCamposObrigatorios() {
+    return [
+      { id: 'nome', valor: this.nome, label: 'Nome Completo' },
+      { id: 'cpf', valor: this.cpf, label: 'CPF' },
+      { id: 'email', valor: this.email, label: 'E-mail' }
+    ];
+  }
+
+  /**
+   * Sobrescreve o método da classe base para exibir mensagem com MessageService
+   */
+  protected override exibirMensagemCampoObrigatorio(campo: { id: string; valor: any; label?: string }): void {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Atenção',
+      detail: 'Preencha todos os campos obrigatórios'
+    });
   }
 }
