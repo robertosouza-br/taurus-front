@@ -240,19 +240,8 @@ export class CorretorEdicaoComponent implements OnInit {
       ativo: this.ativo
     };
 
-    // Usa o ID retornado pela API na busca por CPF
-    const corretorId = this.corretor?.id;
-    if (!corretorId) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'ID do corretor não encontrado'
-      });
-      this.salvando = false;
-      return;
-    }
-
-    this.corretorService.atualizar(corretorId, corretorAtualizado).subscribe({
+    // Usa o CPF como identificador para atualização (endpoint PATCH /cpf/{cpf})
+    this.corretorService.atualizar(this.cpfCorretor, corretorAtualizado).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',

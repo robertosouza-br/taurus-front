@@ -13,10 +13,13 @@ import { Page } from '../models/page.model';
 
 /**
  * Interface para resposta de validação de CPF
+ * Considera validação dupla: base local + sistema externo
  */
 export interface ValidacaoCpfDTO {
-  cpfCadastrado: boolean;
-  mensagem: string;
+  cpfCadastrado: boolean;          // true se existe em ambas as bases (bloqueia cadastro)
+  existeUsuarioLocal: boolean;      // true se existe usuário local
+  existeCorretorExterno: boolean;   // true se existe corretor no sistema externo
+  mensagem: string;                 // Mensagem descritiva do status
 }
 
 /**

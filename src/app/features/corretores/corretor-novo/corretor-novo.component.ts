@@ -177,6 +177,14 @@ export class CorretorNovoComponent implements OnInit, OnDestroy {
         this.validandoCpf = false;
         this.cpfJaCadastrado = response.cpfCadastrado;
         this.mensagemValidacaoCpf = response.mensagem;
+        
+        // Log detalhado para debug (pode ser removido em produção)
+        console.log('Validação CPF:', {
+          cpfCadastrado: response.cpfCadastrado,
+          existeUsuarioLocal: response.existeUsuarioLocal,
+          existeCorretorExterno: response.existeCorretorExterno,
+          mensagem: response.mensagem
+        });
       },
       error: (error) => {
         this.validandoCpf = false;

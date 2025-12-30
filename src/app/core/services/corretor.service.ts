@@ -69,12 +69,13 @@ export class CorretorService {
   }
 
   /**
-   * Atualiza corretor
-   * @param id ID do corretor
-   * @param corretor Dados do corretor
+   * Atualiza corretor usando CPF como identificador
+   * PATCH /api/v1/corretores/cpf/{cpf}
+   * @param cpf CPF do corretor (com ou sem formatação)
+   * @param corretor Dados do corretor a serem atualizados
    */
-  atualizar(id: string, corretor: CorretorDTO): Observable<CorretorSaidaDTO> {
-    return this.http.put<CorretorSaidaDTO>(`${this.baseUrl}/${id}`, corretor);
+  atualizar(cpf: string, corretor: CorretorDTO): Observable<CorretorSaidaDTO> {
+    return this.http.patch<CorretorSaidaDTO>(`${this.baseUrl}/cpf/${cpf}`, corretor);
   }
 
   /**
