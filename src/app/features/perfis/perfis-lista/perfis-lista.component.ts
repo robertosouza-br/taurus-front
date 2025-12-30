@@ -99,20 +99,20 @@ export class PerfisListaComponent implements OnInit {
   private configurarTabela(): void {
     // Configuração das colunas
     this.colunas = [
-      { field: 'id', header: '#', width: '80px', sortable: true, align: 'center' },
-      { field: 'nome', header: 'Nome', sortable: true, align: 'left', template: 'nome' },
-      { field: 'descricao', header: 'Descrição', sortable: true, align: 'left' },
+      { field: 'id', header: '#', width: '5%', sortable: true, align: 'center' },
+      { field: 'nome', header: 'Nome', sortable: true, align: 'left', template: 'nome', width: '25%' },
+      { field: 'descricao', header: 'Descrição', sortable: true, align: 'left', width: '30%' },
       { 
         field: 'status', 
         header: 'Status', 
-        width: '120px', 
+        width: '10%', 
         align: 'center',
         template: 'status'
       },
       { 
         field: 'funcionalidades', 
         header: 'Funcionalidades', 
-        width: '150px', 
+        width: '13%', 
         align: 'center',
         template: 'funcionalidades'
       },

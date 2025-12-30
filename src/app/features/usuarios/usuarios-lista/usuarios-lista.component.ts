@@ -65,12 +65,12 @@ export class UsuariosListaComponent implements OnInit {
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'nome', header: 'Nome', sortable: true },
-      { field: 'email', header: 'E-mail', sortable: true, align: 'center' },
-      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf', align: 'center' },
-      { field: 'dataExpiracao', header: 'Expiração', sortable: true, template: 'expiracao', align: 'center' },
-      { field: 'perfil', header: 'Perfil', sortable: true, align: 'center' },
-      { field: 'ativo', header: 'Status', sortable: true, template: 'status', align: 'center' }
+      { field: 'nome', header: 'Nome', sortable: true, width: '20%' },
+      { field: 'email', header: 'E-mail', sortable: true, align: 'center', width: '20%' },
+      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf', align: 'center', width: '15%' },
+      { field: 'dataExpiracao', header: 'Expiração', sortable: true, template: 'expiracao', align: 'center', width: '15%' },
+      { field: 'perfil', header: 'Perfil', sortable: true, align: 'center', width: '15%' },
+      { field: 'ativo', header: 'Status', sortable: true, template: 'status', align: 'center', width: '10%' }
     ];
 
     this.acoes = [];

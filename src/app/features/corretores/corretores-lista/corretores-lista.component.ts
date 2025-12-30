@@ -4,7 +4,7 @@ import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { CorretorSaidaDTO, CARGO_LABELS } from '../../../core/models/corretor.model';
 import { Page } from '../../../core/models/page.model';
-import { PermissaoService } from '../../../core/services';
+import { PermissaoService, AuthorizationService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -34,6 +34,7 @@ export class CorretoresListaComponent implements OnInit {
     private router: Router,
     private messageService: MessageService,
     private permissaoService: PermissaoService,
+    private authorizationService: AuthorizationService,
     private confirmationService: ConfirmationService
   ) {}
 
@@ -66,11 +67,11 @@ export class CorretoresListaComponent implements OnInit {
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'nome', header: 'Nome', sortable: true },
-      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf', align: 'center' },
-      { field: 'telefone', header: 'Telefone', sortable: true, template: 'telefone', align: 'center' },
-      { field: 'email', header: 'E-mail', sortable: true },
-      { field: 'ativo', header: 'Status', sortable: true, template: 'status', align: 'center' }
+      { field: 'nome', header: 'Nome', sortable: true, width: '25%' },
+      { field: 'cpf', header: 'CPF', sortable: true, template: 'cpf', align: 'center', width: '15%' },
+      { field: 'telefone', header: 'Telefone', sortable: true, template: 'telefone', align: 'center', width: '15%' },
+      { field: 'email', header: 'E-mail', sortable: true, width: '25%' },
+      { field: 'ativo', header: 'Status', sortable: true, template: 'status', align: 'center', width: '10%' }
     ];
 
     this.acoes = [];
@@ -84,7 +85,8 @@ export class CorretoresListaComponent implements OnInit {
       });
     }
 
-    if (this.permissaoService.temPermissao(Funcionalidade.CORRETOR, Permissao.EXCLUIR)) {
+    // Exclusão permitida apenas para administradores
+    if (this.authorizationService.isAdministrador()) {
       this.acoes.push({
         icon: 'pi pi-trash',
         tooltip: 'Excluir',

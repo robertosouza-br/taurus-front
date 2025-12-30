@@ -1,4 +1,7 @@
 .perfis-lista-container {
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
   // padding, max-width e margin herdados de .lista-container
 
   .nome-perfil-container {
@@ -141,6 +144,20 @@
           font-size: 0.85rem;
         }
       }
+    }
+  }
+}
+
+::ng-deep {
+  // Força scroll horizontal no mobile
+  @media (max-width: 768px) {
+    .p-datatable-wrapper {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .p-datatable table {
+      min-width: 900px; // Define largura mínima para forçar scroll horizontal
     }
   }
 }
