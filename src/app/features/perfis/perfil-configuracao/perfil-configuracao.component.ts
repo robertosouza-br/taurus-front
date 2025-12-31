@@ -128,6 +128,17 @@ export class PerfilConfiguracaoComponent implements OnInit {
   salvarPerfil(): void {
     if (!this.perfil) return;
 
+    // Bloqueia salvamento para perfil Administrador
+    if (this.isAdministrador) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Operação Não Permitida',
+        detail: 'O perfil ADMINISTRADOR não pode ser alterado',
+        life: 5000
+      });
+      return;
+    }
+
     // Marcar que tentou salvar
     this.tentouSalvar = true;
 
@@ -151,17 +162,7 @@ export class PerfilConfiguracaoComponent implements OnInit {
       if (!primeiroCampoInvalido) primeiroCampoInvalido = 'permissoes-section';
     }
 
-    // Validações específicas para perfis de sistema
-    if (this.isAdministrador && this.hasChangesOtherThanDescription()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Operação Não Permitida',
-        detail: 'Apenas a descrição pode ser alterada no perfil ADMINISTRADOR',
-        life: 5000
-      });
-      return;
-    }
-
+    // Validações específicas para perfil CORRETOR
     if (this.isCorretor && (this.nomeAlterado() || this.statusAlterado())) {
       this.messageService.add({
         severity: 'warn',

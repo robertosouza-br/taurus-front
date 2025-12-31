@@ -22,7 +22,7 @@
       <div class="alert-content">
         <strong>Perfil de Sistema</strong>
         <p *ngIf="isAdministrador">
-          Este perfil possui acesso total ao sistema. Apenas a descrição pode ser alterada.
+          Este perfil possui acesso total ao sistema e não pode ser alterado. Você está no modo de visualização.
         </p>
         <p *ngIf="isCorretor">
           As permissões podem ser configuradas pelo administrador. O nome e status não podem ser alterados.
@@ -56,8 +56,13 @@
             [(ngModel)]="perfil.descricao"
             [rows]="3"
             [required]="true"
+            [readonly]="isAdministrador"
             [showValidation]="tentouSalvar">
           </app-input-textarea>
+          <small *ngIf="isAdministrador" class="field-info">
+            <i class="pi pi-info-circle"></i>
+            O perfil ADMINISTRADOR não pode ser alterado
+          </small>
         </div>
 
         <div class="p-field-checkbox">
@@ -135,14 +140,13 @@
     <!-- Ações finais -->
     <div class="acoes-footer">
       <app-custom-button 
-        label="Cancelar" 
-        icon="pi pi-times"
-        severity="warning"
-        actionType="cancel"
-        [requireConfirmation]="formularioAlterado"
+        label="Voltar" 
+        icon="pi pi-arrow-left"
+        severity="secondary"
         (onClick)="cancelar()">
       </app-custom-button>
       <app-custom-button 
+        *ngIf="!isAdministrador"
         label="Limpar" 
         icon="pi pi-refresh"
         severity="info"
@@ -151,6 +155,7 @@
         (onClick)="limparTela()">
       </app-custom-button>
       <app-custom-button 
+        *ngIf="!isAdministrador"
         label="Salvar" 
         icon="pi pi-save"
         severity="success"
