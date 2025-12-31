@@ -1,0 +1,162 @@
+<div class="lista-container" *ngIf="auditoria">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Detalhes da Auditoria"
+    subtitle="Visualize as informações e alterações registradas"
+    icon="pi pi-history">
+  </app-page-header>
+
+  <div class="content-section">
+    <!-- Informações Gerais -->
+    <p-card header="Informações Gerais" styleClass="mb-3">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>ID do Registro</label>
+            <p>{{ auditoria.id }}</p>
+          </div>
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>Número da Revisão</label>
+            <p>{{ auditoria.numeroRevisao }}</p>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>Entidade</label>
+            <p>{{ auditoria.nomeEntidade }}</p>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>ID da Entidade</label>
+            <p>{{ auditoria.idEntidade }}</p>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>Tipo de Operação</label>
+            <p>
+              <p-tag
+                [value]="getLabelOperacao()"
+                [severity]="getSeverityOperacao()">
+              </p-tag>
+            </p>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>Data/Hora</label>
+            <p>{{ formatarDataHora(auditoria.dataHora) }}</p>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>Usuário</label>
+            <p>{{ auditoria.usuarioNome }}</p>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field-readonly">
+            <label>CPF do Usuário</label>
+            <p>{{ formatarCpf(auditoria.usuarioCpf) }}</p>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field-readonly">
+            <label>IP de Origem</label>
+            <p>{{ auditoria.ipOrigem }}</p>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Comparação de Dados -->
+    <p-card header="Alterações dos Dados" styleClass="mb-3">
+      <div class="comparison-container">
+        <div class="comparison-header grid">
+          <div class="col-5 text-center">
+            <h4>Dados Anteriores</h4>
+          </div>
+          <div class="col-2"></div>
+          <div class="col-5 text-center">
+            <h4>Dados Novos</h4>
+          </div>
+        </div>
+
+        <div *ngIf="auditoria.tipoOperacao === 'INSERT'" class="alert alert-info">
+          <i class="pi pi-info-circle"></i>
+          Operação de inserção - não há dados anteriores
+        </div>
+
+        <div *ngIf="auditoria.tipoOperacao === 'DELETE'" class="alert alert-warning">
+          <i class="pi pi-exclamation-triangle"></i>
+          Operação de exclusão - não há dados novos
+        </div>
+
+        <div *ngIf="auditoria.tipoOperacao === 'UPDATE'" class="dados-diff">
+          <div *ngFor="let chave of getChavesDados()" class="diff-row grid" [class.alterado]="valorAlterado(chave)">
+            <div class="col-5 diff-cell">
+              <div class="campo-nome">{{ chave }}</div>
+              <div class="campo-valor antigo">
+                <pre>{{ formatarValor(dadosAntigosFormatados?.[chave]) }}</pre>
+              </div>
+            </div>
+            <div class="col-2 text-center diff-separator">
+              <i *ngIf="valorAlterado(chave)" class="pi pi-arrow-right"></i>
+              <i *ngIf="!valorAlterado(chave)" class="pi pi-equals"></i>
+            </div>
+            <div class="col-5 diff-cell">
+              <div class="campo-nome">{{ chave }}</div>
+              <div class="campo-valor novo">
+                <pre>{{ formatarValor(dadosNovosFormatados?.[chave]) }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualização para INSERT -->
+        <div *ngIf="auditoria.tipoOperacao === 'INSERT' && dadosNovosFormatados" class="dados-completos">
+          <div *ngFor="let chave of getChavesDados()" class="info-row">
+            <strong>{{ chave }}:</strong>
+            <pre>{{ formatarValor(dadosNovosFormatados[chave]) }}</pre>
+          </div>
+        </div>
+
+        <!-- Visualização para DELETE -->
+        <div *ngIf="auditoria.tipoOperacao === 'DELETE' && dadosAntigosFormatados" class="dados-completos">
+          <div *ngFor="let chave of getChavesDados()" class="info-row">
+            <strong>{{ chave }}:</strong>
+            <pre>{{ formatarValor(dadosAntigosFormatados[chave]) }}</pre>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Ações -->
+    <div class="actions-container">
+      <app-custom-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        actionType="cancel"
+        (onClick)="voltar()">
+      </app-custom-button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="carregando" class="loading-container">
+  <p-progressSpinner></p-progressSpinner>
+</div>

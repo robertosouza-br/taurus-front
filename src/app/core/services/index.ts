@@ -10,3 +10,4 @@ export * from './usuario.service';
 export * from './meus-dados.service';
 export * from './corretor.service';
 export * from './corretor-publico.service';
+export * from './auditoria.service';

@@ -133,6 +133,12 @@ export class SidebarComponent implements OnInit {
         ]
       },
       {
+        label: 'Auditoria',
+        icon: 'pi pi-history',
+        routerLink: '/auditoria',
+        funcionalidade: Funcionalidade.AUDITORIA
+      },
+      {
         label: 'Meu Perfil',
         icon: 'pi pi-user',
         items: [

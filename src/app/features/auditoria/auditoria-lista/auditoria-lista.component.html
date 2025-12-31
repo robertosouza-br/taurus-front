@@ -1,0 +1,116 @@
+<div class="lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Auditoria"
+    subtitle="Consulte o histórico de alterações do sistema"
+    icon="pi pi-history">
+  </app-page-header>
+
+  <!-- Filtros -->
+  <p-card header="Filtros" styleClass="mb-3">
+    <div class="formgrid grid">
+      <div class="field col-12 md:col-4">
+        <app-autocomplete
+          id="entidade"
+          label="Entidade"
+          [(ngModel)]="filtro.entidade"
+          [suggestions]="entidadesFiltradas"
+          field="label"
+          placeholder="Todas"
+          (completeMethod)="filtrarEntidades($event)"
+          (onDropdownClick)="mostrarTodasEntidades()">
+        </app-autocomplete>
+      </div>
+
+      <div class="field col-12 md:col-4">
+        <app-autocomplete
+          id="tipoOperacao"
+          label="Tipo de Operação"
+          [(ngModel)]="filtro.tipoOperacao"
+          [suggestions]="tiposOperacaoFiltrados"
+          field="label"
+          placeholder="Todas"
+          (completeMethod)="filtrarTiposOperacao($event)"
+          (onDropdownClick)="mostrarTodosTiposOperacao()">
+        </app-autocomplete>
+      </div>
+
+      <div class="field col-12 md:col-4">
+        <app-input-text
+          id="usuario"
+          label="Usuário"
+          [(ngModel)]="filtro.usuario"
+          placeholder="Nome ou CPF">
+        </app-input-text>
+      </div>
+
+      <div class="p-field col-12 md:col-4">
+        <app-input-date
+          id="dataInicio"
+          label="Data Início"
+          [(ngModel)]="filtro.dataInicio"
+          placeholder="dd/mm/aaaa">
+        </app-input-date>
+      </div>
+
+      <div class="p-field col-12 md:col-4">
+        <app-input-date
+          id="dataFim"
+          label="Data Fim"
+          [(ngModel)]="filtro.dataFim"
+          placeholder="dd/mm/aaaa">
+        </app-input-date>
+      </div>
+
+      <div class="field col-12 md:col-4 flex align-items-end justify-content-end gap-2">
+        <app-custom-button
+          label="Limpar"
+          icon="pi pi-refresh"
+          severity="info"
+          [outlined]="true"
+          actionType="clear"
+          (onClick)="limparFiltros()">
+        </app-custom-button>
+        <app-custom-button
+          label="Filtrar"
+          icon="pi pi-search"
+          actionType="none"
+          (onClick)="filtrar()">
+        </app-custom-button>
+      </div>
+    </div>
+  </p-card>
+
+    <!-- Tabela -->
+    <app-data-table
+      [data]="auditorias"
+      [columns]="colunas"
+      [actions]="acoes"
+      [totalRecords]="totalRegistros"
+      [loading]="carregando"
+      [lazy]="true"
+      [rows]="10"
+      (onLazyLoad)="onLazyLoad($event)">
+      
+      <!-- Template para tipo de operação -->
+      <ng-template appTableTemplate="tipoOperacao" let-auditoria="rowData">
+        <p-tag
+          [value]="getLabelOperacao(auditoria.tipoOperacao)"
+          [severity]="getSeverityOperacao(auditoria.tipoOperacao)">
+        </p-tag>
+      </ng-template>
+
+      <!-- Template para CPF -->
+      <ng-template appTableTemplate="usuarioCpf" let-auditoria="rowData">
+        {{ formatarCpf(auditoria.usuarioCpf) }}
+      </ng-template>
+
+      <!-- Template para data/hora -->
+      <ng-template appTableTemplate="dataHora" let-auditoria="rowData">
+      {{ formatarDataHora(auditoria.dataHora) }}
+    </ng-template>
+  </app-data-table>
+</div>
