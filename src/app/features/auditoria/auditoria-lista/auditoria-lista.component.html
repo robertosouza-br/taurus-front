@@ -11,8 +11,9 @@
 
   <!-- Filtros -->
   <p-card header="Filtros" styleClass="mb-3">
+    <br>
     <div class="formgrid grid">
-      <div class="field col-12 md:col-4">
+      <div class="field col-12 md:col-3">
         <app-autocomplete
           id="tipoEntidade"
           label="Tipo de Entidade"
@@ -25,16 +26,16 @@
         </app-autocomplete>
       </div>
 
-      <div class="field col-12 md:col-4">
+      <div class="field col-12 md:col-3">
         <app-input-text
-          id="usuario"
-          label="Usuário"
-          [(ngModel)]="filtro.usuario"
-          placeholder="Email do usuário">
+          id="nomeUsuario"
+          label="Nome/Email do Usuário"
+          [(ngModel)]="filtro.nomeUsuario"
+          placeholder="Nome ou email">
         </app-input-text>
       </div>
 
-      <div class="p-field col-12 md:col-2">
+      <div class="p-field col-12 md:col-3">
         <app-input-date
           id="dataInicio"
           label="Data Início"
@@ -43,13 +44,22 @@
         </app-input-date>
       </div>
 
-      <div class="p-field col-12 md:col-2">
+      <div class="p-field col-12 md:col-3">
         <app-input-date
           id="dataFim"
           label="Data Fim"
           [(ngModel)]="filtro.dataFim"
           placeholder="dd/mm/aaaa">
         </app-input-date>
+      </div>
+
+      <div class="field col-12 md:col-3">
+        <app-input-cpf
+          id="cpfUsuario"
+          label="CPF do Usuário"
+          [(ngModel)]="filtro.cpfUsuario"
+          placeholder="000.000.000-00">
+        </app-input-cpf>
       </div>
     </div>
 

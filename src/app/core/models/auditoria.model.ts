@@ -66,7 +66,8 @@ export interface FiltroAuditoriaDTO {
   size?: number;
   sort?: string;
   tipoEntidade?: string; // Tipo da entidade (USUARIO, PERFIL, BANCO)
-  usuario?: string; // Email do usuário
+  nomeUsuario?: string; // Nome ou email do usuário que fez a alteração
+  cpfUsuario?: string; // CPF do usuário que fez a alteração (com ou sem formatação)
   dataInicio?: string; // Data/hora inicial (ISO 8601): yyyy-MM-ddTHH:mm:ss
   dataFim?: string; // Data/hora final (ISO 8601): yyyy-MM-ddTHH:mm:ss
 }

@@ -101,13 +101,15 @@ export class AuditoriaListaComponent implements OnInit {
         icon: 'pi pi-eye',
         tooltip: 'Visualizar detalhes',
         severity: 'info',
-        action: (row: AuditoriaDTO) => this.visualizar(row.revisaoId)
+        action: (row: AuditoriaDTO) => this.visualizar(row)
       }
     ];
   }
 
-  visualizar(id: number): void {
-    this.router.navigate(['/auditoria', id]);
+  visualizar(auditoria: AuditoriaDTO): void {
+    this.router.navigate(['/auditoria', auditoria.revisaoId], {
+      state: { auditoria }
+    });
   }
 
   carregar(): void {

@@ -34,8 +34,11 @@ export class AuditoriaService {
     if (filtro.tipoEntidade) {
       params = params.set('tipoEntidade', filtro.tipoEntidade);
     }
-    if (filtro.usuario) {
-      params = params.set('usuario', filtro.usuario);
+    if (filtro.nomeUsuario) {
+      params = params.set('nomeUsuario', filtro.nomeUsuario);
+    }
+    if (filtro.cpfUsuario) {
+      params = params.set('cpfUsuario', filtro.cpfUsuario);
     }
     if (filtro.dataInicio) {
       params = params.set('dataInicio', filtro.dataInicio);
@@ -45,13 +48,6 @@ export class AuditoriaService {
     }
 
     return this.http.get<Page<AuditoriaDTO>>(this.apiUrl, { params });
-  }
-
-  /**
-   * Busca auditoria por ID da revisão
-   */
-  buscarPorRevisaoId(revisaoId: number): Observable<AuditoriaDTO> {
-    return this.http.get<AuditoriaDTO>(`${this.apiUrl}/${revisaoId}`);
   }
 
   /**

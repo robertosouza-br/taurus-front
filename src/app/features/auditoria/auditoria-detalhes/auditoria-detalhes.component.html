@@ -1,4 +1,4 @@
-<div class="lista-container" *ngIf="auditoria">
+<div class="form-container" *ngIf="auditoria">
   <!-- Breadcrumb -->
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
@@ -96,17 +96,23 @@
           </div>
         </div>
 
-        <div *ngIf="auditoria.tipoOperacao === 'ADD'" class="alert alert-info">
-          <i class="pi pi-info-circle"></i>
-          Operação de inserção - não há dados anteriores
+        <div *ngIf="auditoria.tipoOperacao === 'ADD'">
+          <p-message 
+            severity="info" 
+            text="Operação de inserção - não há dados anteriores"
+            styleClass="mb-3">
+          </p-message>
         </div>
 
-        <div *ngIf="auditoria.tipoOperacao === 'DELETE'" class="alert alert-warning">
-          <i class="pi pi-exclamation-triangle"></i>
-          Operação de exclusão - não há dados novos
+        <div *ngIf="auditoria.tipoOperacao === 'DEL' || auditoria.tipoOperacao === 'DELETE'">
+          <p-message 
+            severity="warn" 
+            text="Operação de exclusão - não há dados novos"
+            styleClass="mb-3">
+          </p-message>
         </div>
 
-        <div *ngIf="auditoria.tipoOperacao === 'UPDATE'" class="dados-diff">
+        <div *ngIf="auditoria.tipoOperacao === 'MOD' || auditoria.tipoOperacao === 'UPDATE'" class="dados-diff">
           <div *ngFor="let chave of getChavesDados()" class="diff-row grid" [class.alterado]="valorAlterado(chave)">
             <div class="col-5 diff-cell">
               <div class="campo-nome">{{ chave }}</div>
@@ -136,7 +142,7 @@
         </div>
 
         <!-- Visualização para DELETE -->
-        <div *ngIf="auditoria.tipoOperacao === 'DELETE' && dadosAntigosFormatados" class="dados-completos">
+        <div *ngIf="(auditoria.tipoOperacao === 'DEL' || auditoria.tipoOperacao === 'DELETE') && dadosAntigosFormatados" class="dados-completos">
           <div *ngFor="let chave of getChavesDados()" class="info-row">
             <strong>{{ chave }}:</strong>
             <pre>{{ formatarValor(dadosAntigosFormatados[chave]) }}</pre>
@@ -146,10 +152,11 @@
     </p-card>
 
     <!-- Ações -->
-    <div class="actions-container">
+    <div class="form-actions">
       <app-custom-button
         label="Voltar"
         icon="pi pi-arrow-left"
+        severity="secondary"
         actionType="cancel"
         (onClick)="voltar()">
       </app-custom-button>

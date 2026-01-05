@@ -12,6 +12,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { MessageModule } from 'primeng/message';
 
 // Routing
 import { AuditoriaRoutingModule } from './auditoria-routing.module';
@@ -42,7 +43,9 @@ import { SharedModule } from '../../shared/shared.module';
     CalendarModule,
     TooltipModule,
     TagModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    MessageModule
   ]
 })
 export class AuditoriaModule { }
+

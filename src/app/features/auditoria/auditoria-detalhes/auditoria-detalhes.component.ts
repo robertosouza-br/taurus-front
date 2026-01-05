@@ -36,34 +36,28 @@ export class AuditoriaDetalhesComponent implements OnInit {
 
     this.configurarBreadcrumb();
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.carregar(+id);
+    // Tenta obter dados do state da navegação
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || history.state;
+    
+    if (state?.auditoria) {
+      this.auditoria = state.auditoria;
+      this.processarDados();
+    } else {
+      // Se não tiver dados no state, volta para lista
+      this.router.navigate(['/auditoria']);
     }
   }
 
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Administração', icon: 'pi pi-cog' },
-      { label: 'Auditoria' },
+      { label: 'Auditoria', url: '/auditoria' },
       { label: 'Detalhes' }
     ];
   }
 
-  carregar(id: number): void {
-    this.carregando = true;
-    this.auditoriaService.buscarPorRevisaoId(id).subscribe({
-      next: (auditoria) => {
-        this.auditoria = auditoria;
-        this.processarDados();
-        this.carregando = false;
-      },
-      error: () => {
-        this.carregando = false;
-        this.router.navigate(['/auditoria']);
-      }
-    });
-  }
+
 
   processarDados(): void {
     if (!this.auditoria) return;
