@@ -52,7 +52,7 @@ export class AuditoriaDetalhesComponent implements OnInit {
 
   carregar(id: number): void {
     this.carregando = true;
-    this.auditoriaService.buscarPorId(id).subscribe({
+    this.auditoriaService.buscarPorRevisaoId(id).subscribe({
       next: (auditoria) => {
         this.auditoria = auditoria;
         this.processarDados();
@@ -68,20 +68,13 @@ export class AuditoriaDetalhesComponent implements OnInit {
   processarDados(): void {
     if (!this.auditoria) return;
 
-    if (this.auditoria.dadosAntigos) {
-      try {
-        this.dadosAntigosFormatados = JSON.parse(this.auditoria.dadosAntigos);
-      } catch {
-        this.dadosAntigosFormatados = null;
-      }
+    // Backend retorna dadosAntes e dadosDepois já como objetos
+    if (this.auditoria.dadosAntes) {
+      this.dadosAntigosFormatados = this.auditoria.dadosAntes;
     }
 
-    if (this.auditoria.dadosNovos) {
-      try {
-        this.dadosNovosFormatados = JSON.parse(this.auditoria.dadosNovos);
-      } catch {
-        this.dadosNovosFormatados = null;
-      }
+    if (this.auditoria.dadosDepois) {
+      this.dadosNovosFormatados = this.auditoria.dadosDepois;
     }
   }
 
@@ -94,15 +87,10 @@ export class AuditoriaDetalhesComponent implements OnInit {
     return TIPO_OPERACAO_LABELS[this.auditoria.tipoOperacao as keyof typeof TIPO_OPERACAO_LABELS] || this.auditoria.tipoOperacao;
   }
 
-  getSeverityOperacao(): 'success' | 'info' | 'danger' {
+  getSeverityOperacao(): 'success' | 'info' | 'danger' | 'warning' {
     if (!this.auditoria) return 'info';
     const severity = TIPO_OPERACAO_SEVERITY[this.auditoria.tipoOperacao as keyof typeof TIPO_OPERACAO_SEVERITY];
     return severity || 'info';
-  }
-
-  formatarCpf(cpf: string): string {
-    if (!cpf) return '';
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
   formatarDataHora(dataHora: string): string {
@@ -116,6 +104,11 @@ export class AuditoriaDetalhesComponent implements OnInit {
       minute: '2-digit',
       second: '2-digit'
     });
+  }
+
+  formatarCpf(cpf: string): string {
+    if (!cpf) return '';
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
   getChavesDados(): string[] {

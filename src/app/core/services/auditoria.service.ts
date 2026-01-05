@@ -28,8 +28,11 @@ export class AuditoriaService {
     if (filtro.size !== undefined) {
       params = params.set('size', filtro.size.toString());
     }
-    if (filtro.entidade) {
-      params = params.set('entidade', filtro.entidade);
+    if (filtro.sort) {
+      params = params.set('sort', filtro.sort);
+    }
+    if (filtro.tipoEntidade) {
+      params = params.set('tipoEntidade', filtro.tipoEntidade);
     }
     if (filtro.usuario) {
       params = params.set('usuario', filtro.usuario);
@@ -40,24 +43,23 @@ export class AuditoriaService {
     if (filtro.dataFim) {
       params = params.set('dataFim', filtro.dataFim);
     }
-    if (filtro.tipoOperacao) {
-      params = params.set('tipoOperacao', filtro.tipoOperacao);
-    }
 
     return this.http.get<Page<AuditoriaDTO>>(this.apiUrl, { params });
   }
 
   /**
-   * Busca auditoria por ID
+   * Busca auditoria por ID da revisão
    */
-  buscarPorId(id: number): Observable<AuditoriaDTO> {
-    return this.http.get<AuditoriaDTO>(`${this.apiUrl}/${id}`);
+  buscarPorRevisaoId(revisaoId: number): Observable<AuditoriaDTO> {
+    return this.http.get<AuditoriaDTO>(`${this.apiUrl}/${revisaoId}`);
   }
 
   /**
-   * Busca histórico completo de uma entidade
+   * Busca histórico completo de uma entidade específica
+   * @param tipoEntidade Tipo da entidade (USUARIO, PERFIL, BANCO)
+   * @param entidadeId ID da entidade
    */
-  buscarHistoricoEntidade(nomeEntidade: string, idEntidade: number): Observable<AuditoriaDTO[]> {
-    return this.http.get<AuditoriaDTO[]>(`${this.apiUrl}/entidade/${nomeEntidade}/${idEntidade}`);
+  buscarHistoricoEntidade(tipoEntidade: string, entidadeId: number): Observable<AuditoriaDTO[]> {
+    return this.http.get<AuditoriaDTO[]>(`${this.apiUrl}/${tipoEntidade}/${entidadeId}`);
   }
 }

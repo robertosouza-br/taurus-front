@@ -26,7 +26,7 @@ export class ConfirmationService {
   confirm(config: ConfirmationConfig): Observable<boolean> {
     const subject = new Subject<boolean>();
     
-    const ref: DynamicDialogRef = this.dialogService.open(ConfirmationDialogComponent, {
+    const ref: DynamicDialogRef | null = this.dialogService.open(ConfirmationDialogComponent, {
       data: config,
       header: '',
       width: '500px',
@@ -36,6 +36,13 @@ export class ConfirmationService {
       closeOnEscape: true,
       styleClass: 'confirmation-dialog-wrapper'
     });
+
+    if (!ref) {
+      console.error('[ConfirmationService] Falha ao abrir diálogo de confirmação');
+      subject.next(false);
+      subject.complete();
+      return subject.asObservable();
+    }
 
     ref.onClose.subscribe((confirmed: boolean) => {
       subject.next(!!confirmed);

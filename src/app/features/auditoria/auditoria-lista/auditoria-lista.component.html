@@ -14,9 +14,9 @@
     <div class="formgrid grid">
       <div class="field col-12 md:col-4">
         <app-autocomplete
-          id="entidade"
-          label="Entidade"
-          [(ngModel)]="filtro.entidade"
+          id="tipoEntidade"
+          label="Tipo de Entidade"
+          [(ngModel)]="entidadeSelecionada"
           [suggestions]="entidadesFiltradas"
           field="label"
           placeholder="Todas"
@@ -26,28 +26,15 @@
       </div>
 
       <div class="field col-12 md:col-4">
-        <app-autocomplete
-          id="tipoOperacao"
-          label="Tipo de Operação"
-          [(ngModel)]="filtro.tipoOperacao"
-          [suggestions]="tiposOperacaoFiltrados"
-          field="label"
-          placeholder="Todas"
-          (completeMethod)="filtrarTiposOperacao($event)"
-          (onDropdownClick)="mostrarTodosTiposOperacao()">
-        </app-autocomplete>
-      </div>
-
-      <div class="field col-12 md:col-4">
         <app-input-text
           id="usuario"
           label="Usuário"
           [(ngModel)]="filtro.usuario"
-          placeholder="Nome ou CPF">
+          placeholder="Email do usuário">
         </app-input-text>
       </div>
 
-      <div class="p-field col-12 md:col-4">
+      <div class="p-field col-12 md:col-2">
         <app-input-date
           id="dataInicio"
           label="Data Início"
@@ -56,7 +43,7 @@
         </app-input-date>
       </div>
 
-      <div class="p-field col-12 md:col-4">
+      <div class="p-field col-12 md:col-2">
         <app-input-date
           id="dataFim"
           label="Data Fim"
@@ -64,12 +51,14 @@
           placeholder="dd/mm/aaaa">
         </app-input-date>
       </div>
+    </div>
 
-      <div class="field col-12 md:col-4 flex align-items-end justify-content-end gap-2">
+    <div class="formgrid grid">
+      <div class="field col-12 flex align-items-center justify-content-center gap-2">
         <app-custom-button
           label="Limpar"
           icon="pi pi-refresh"
-          severity="info"
+          severity="secondary"
           [outlined]="true"
           actionType="clear"
           (onClick)="limparFiltros()">
@@ -110,7 +99,7 @@
 
       <!-- Template para data/hora -->
       <ng-template appTableTemplate="dataHora" let-auditoria="rowData">
-      {{ formatarDataHora(auditoria.dataHora) }}
-    </ng-template>
+        {{ formatarDataHora(auditoria.dataHora) }}
+      </ng-template>
   </app-data-table>
 </div>

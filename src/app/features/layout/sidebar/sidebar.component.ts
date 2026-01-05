@@ -104,6 +104,12 @@ export class SidebarComponent implements OnInit {
             icon: 'pi pi-user',
             routerLink: '/admin/usuarios',
             funcionalidade: Funcionalidade.USUARIO
+          },
+          {
+            label: 'Auditoria',
+            icon: 'pi pi-history',
+            routerLink: '/auditoria',
+            funcionalidade: Funcionalidade.AUDITORIA
           }
         ]
       },
@@ -131,12 +137,6 @@ export class SidebarComponent implements OnInit {
             funcionalidade: Funcionalidade.IMOVEL
           }
         ]
-      },
-      {
-        label: 'Auditoria',
-        icon: 'pi pi-history',
-        routerLink: '/auditoria',
-        funcionalidade: Funcionalidade.AUDITORIA
       },
       {
         label: 'Meu Perfil',

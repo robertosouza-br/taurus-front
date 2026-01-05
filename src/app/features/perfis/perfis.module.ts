@@ -19,6 +19,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
 
 // PrimeNG Services
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -42,7 +43,8 @@ import { DialogService } from 'primeng/dynamicdialog';
     ConfirmDialogModule,
     TooltipModule,
     InputTextModule,
-    InputTextareaModule
+    InputTextareaModule,
+    DynamicDialogModule
   ]
 })
 export class PerfisModule { }

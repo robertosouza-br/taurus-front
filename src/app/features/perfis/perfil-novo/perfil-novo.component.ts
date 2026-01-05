@@ -182,12 +182,8 @@ export class PerfilNovoComponent implements OnInit {
       return;
     }
 
-    // Mostrar confirmação antes de criar
-    this.confirmationService.confirmSave().subscribe((confirmed) => {
-      if (confirmed) {
-        this.executarCriacao(permissoes);
-      }
-    });
+    // Executar criação diretamente (confirmação já é tratada pelo botão)
+    this.executarCriacao(permissoes);
   }
 
   private executarCriacao(permissoes: Record<string, string[]>): void {

@@ -1272,13 +1272,6 @@ small.info-message,
 /* RESPONSIVIDADE GLOBAL PARA TABELAS */
 /* ===================================== */
 
-/* Container de lista padrão */
-.lista-container {
-  padding: 1rem;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
 /* Responsividade mobile para todas as tabelas do sistema */
 @media (max-width: 768px) {
   // Força scroll horizontal no mobile para todas as tabelas

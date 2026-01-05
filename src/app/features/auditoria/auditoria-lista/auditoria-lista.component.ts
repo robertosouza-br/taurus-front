@@ -4,10 +4,19 @@ import { PermissaoService } from '../../../core/services/permissao.service';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { AuditoriaService } from '../../../core/services/auditoria.service';
-import { AuditoriaDTO, FiltroAuditoriaDTO, ENTIDADES_AUDITADAS, TIPO_OPERACAO_LABELS, TIPO_OPERACAO_SEVERITY } from '../../../core/models/auditoria.model';
+import { AuditoriaDTO, FiltroAuditoriaDTO, ENTIDADES_AUDITADAS, TIPO_OPERACAO_LABELS, TIPO_OPERACAO_SEVERITY, EntidadeAuditada } from '../../../core/models/auditoria.model';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
+/**
+ * Componente de listagem de auditoria
+ * 
+ * Funcionalidade: AUDITORIA (acesso restrito a administradores)
+ * Permissão requerida: CONSULTAR
+ * 
+ * Este componente permite visualizar o histórico completo de alterações do sistema,
+ * incluindo inserções, atualizações e exclusões de registros.
+ */
 @Component({
   selector: 'app-auditoria-lista',
   templateUrl: './auditoria-lista.component.html',
@@ -20,7 +29,8 @@ export class AuditoriaListaComponent implements OnInit {
   
   filtro: FiltroAuditoriaDTO = {
     page: 0,
-    size: 10
+    size: 10,
+    sort: 'dataHora,desc'
   };
 
   // Breadcrumb
@@ -28,14 +38,8 @@ export class AuditoriaListaComponent implements OnInit {
 
   // Opções dos filtros
   entidades = ENTIDADES_AUDITADAS;
-  entidadesFiltradas: string[] = [];
-  
-  tiposOperacao = [
-    { label: TIPO_OPERACAO_LABELS['INSERT'], value: 'INSERT' },
-    { label: TIPO_OPERACAO_LABELS['UPDATE'], value: 'UPDATE' },
-    { label: TIPO_OPERACAO_LABELS['DELETE'], value: 'DELETE' }
-  ];
-  tiposOperacaoFiltrados: any[] = [];
+  entidadesFiltradas: EntidadeAuditada[] = [];
+  entidadeSelecionada: EntidadeAuditada | null = null;
 
   // Colunas da tabela
   colunas: TableColumn[] = [];
@@ -62,29 +66,17 @@ export class AuditoriaListaComponent implements OnInit {
 
   private inicializarFiltros(): void {
     this.entidadesFiltradas = [...this.entidades];
-    this.tiposOperacaoFiltrados = [...this.tiposOperacao];
   }
 
   filtrarEntidades(event: any): void {
     const query = event.query.toLowerCase();
     this.entidadesFiltradas = this.entidades.filter(entidade => 
-      entidade.toLowerCase().includes(query)
+      entidade.label.toLowerCase().includes(query)
     );
   }
 
   mostrarTodasEntidades(): void {
     this.entidadesFiltradas = [...this.entidades];
-  }
-
-  filtrarTiposOperacao(event: any): void {
-    const query = event.query.toLowerCase();
-    this.tiposOperacaoFiltrados = this.tiposOperacao.filter(tipo => 
-      tipo.label.toLowerCase().includes(query)
-    );
-  }
-
-  mostrarTodosTiposOperacao(): void {
-    this.tiposOperacaoFiltrados = [...this.tiposOperacao];
   }
 
   private configurarBreadcrumb(): void {
@@ -96,14 +88,12 @@ export class AuditoriaListaComponent implements OnInit {
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'id', header: 'ID', width: '5%' },
-      { field: 'nomeEntidade', header: 'Entidade', width: '10%' },
-      { field: 'idEntidade', header: 'ID Entidade', width: '8%' },
-      { field: 'tipoOperacao', header: 'Operação', width: '10%', template: 'tipoOperacao' },
-      { field: 'usuarioNome', header: 'Usuário', width: '15%' },
-      { field: 'usuarioCpf', header: 'CPF', width: '12%', template: 'usuarioCpf' },
-      { field: 'dataHora', header: 'Data/Hora', width: '15%', template: 'dataHora' },
-      { field: 'ipOrigem', header: 'IP', width: '10%' }
+      { field: 'dataHora', header: 'Data/Hora', width: '15%', template: 'dataHora', align: 'center' },
+      { field: 'usuarioNome', header: 'Usuário', width: '20%', align: 'left' },
+      { field: 'usuarioCpf', header: 'CPF', width: '13%', template: 'usuarioCpf', align: 'center' },
+      { field: 'entidade', header: 'Entidade', width: '15%', align: 'center' },
+      { field: 'tipoOperacao', header: 'Operação', width: '12%', template: 'tipoOperacao', align: 'center' },
+      { field: 'ipCliente', header: 'IP', width: '13%', align: 'center' }
     ];
 
     this.acoes = [
@@ -111,7 +101,7 @@ export class AuditoriaListaComponent implements OnInit {
         icon: 'pi pi-eye',
         tooltip: 'Visualizar detalhes',
         severity: 'info',
-        action: (row: AuditoriaDTO) => this.visualizar(row.id)
+        action: (row: AuditoriaDTO) => this.visualizar(row.revisaoId)
       }
     ];
   }
@@ -141,6 +131,13 @@ export class AuditoriaListaComponent implements OnInit {
   }
 
   filtrar(): void {
+    // Extrai o value da entidade selecionada
+    if (this.entidadeSelecionada) {
+      this.filtro.tipoEntidade = this.entidadeSelecionada.value;
+    } else {
+      this.filtro.tipoEntidade = undefined;
+    }
+    
     this.filtro.page = 0;
     this.carregar();
   }
@@ -150,6 +147,7 @@ export class AuditoriaListaComponent implements OnInit {
       page: 0,
       size: this.filtro.size
     };
+    this.entidadeSelecionada = null;
     this.carregar();
   }
 
@@ -161,14 +159,9 @@ export class AuditoriaListaComponent implements OnInit {
     return TIPO_OPERACAO_LABELS[tipoOperacao as keyof typeof TIPO_OPERACAO_LABELS] || tipoOperacao;
   }
 
-  getSeverityOperacao(tipoOperacao: string): 'success' | 'info' | 'danger' {
+  getSeverityOperacao(tipoOperacao: string): 'success' | 'info' | 'danger' | 'warning' {
     const severity = TIPO_OPERACAO_SEVERITY[tipoOperacao as keyof typeof TIPO_OPERACAO_SEVERITY];
     return severity || 'info';
-  }
-
-  formatarCpf(cpf: string): string {
-    if (!cpf) return '';
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
   formatarDataHora(dataHora: string): string {
@@ -182,5 +175,10 @@ export class AuditoriaListaComponent implements OnInit {
       minute: '2-digit',
       second: '2-digit'
     });
+  }
+
+  formatarCpf(cpf: string): string {
+    if (!cpf) return '';
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 }
