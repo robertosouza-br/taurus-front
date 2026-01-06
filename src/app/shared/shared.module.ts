@@ -11,6 +11,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { PasswordModule } from 'primeng/password';
+import { SpeedDialModule } from 'primeng/speeddial';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
 import { DataTableComponent } from './components/data-table/data-table.component';
@@ -29,6 +31,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
 import { DialogService } from 'primeng/dynamicdialog';
 import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
+import { ExportSpeedDialComponent } from './components/export-speed-dial/export-speed-dial.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -55,7 +58,8 @@ import { CalendarModule } from 'primeng/calendar';
     InputDateComponent,
     ConfirmationDialogComponent,
     AutocompleteComponent,
-    LoadingSpinnerComponent
+    LoadingSpinnerComponent,
+    ExportSpeedDialComponent
   ],
   imports: [
     CommonModule,
@@ -68,7 +72,9 @@ import { CalendarModule } from 'primeng/calendar';
     DynamicDialogModule,
     AutoCompleteModule,
     CalendarModule,
-    PasswordModule
+    PasswordModule,
+    SpeedDialModule,
+    ProgressSpinnerModule
   ],
   exports: [
     CommonModule,
@@ -90,6 +96,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputDateComponent,
     AutocompleteComponent,
     LoadingSpinnerComponent,
+    ExportSpeedDialComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule
   ],

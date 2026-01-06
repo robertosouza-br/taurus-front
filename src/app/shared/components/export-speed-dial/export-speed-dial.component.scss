@@ -1,0 +1,91 @@
+// Loading Overlay para Exportação
+.export-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  
+  .loading-content {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .loading-text {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #495057;
+    }
+  }
+}
+
+// Floating Speed Dial
+::ng-deep {
+  .p-speeddial {
+    z-index: 1000;
+    background: transparent !important;
+    
+    // Remove o fundo branco da lista de ações com maior especificidade
+    ul.p-speeddial-list {
+      background-color: transparent !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    
+    .p-speeddial-button {
+      width: 3.5rem !important;
+      height: 3.5rem !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      transition: all 0.3s ease;
+      
+      &:hover:not(:disabled) {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+      }
+    }
+    
+    .p-speeddial-action {
+      width: 3rem !important;
+      height: 3rem !important;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+      background-color: white !important;
+      
+      &:hover {
+        transform: scale(1.15);
+        background-color: white !important;
+      }
+      
+      // Cores específicas para cada tipo de arquivo
+      .pi-file-pdf {
+        color: #dc3545 !important; // Vermelho para PDF
+        font-size: 1.5rem !important;
+      }
+      
+      .pi-file-excel {
+        color: #28a745 !important; // Verde para Excel
+        font-size: 1.5rem !important;
+      }
+      
+      .pi-file {
+        color: #007bff !important; // Azul para CSV
+        font-size: 1.5rem !important;
+      }
+      
+      .pi-file-edit {
+        color: #6c757d !important; // Cinza para TXT
+        font-size: 1.5rem !important;
+      }
+    }
+  }
+}

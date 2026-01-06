@@ -7,6 +7,7 @@ import { AuditoriaService } from '../../../core/services/auditoria.service';
 import { AuditoriaDTO, FiltroAuditoriaDTO, ENTIDADES_AUDITADAS, TIPO_OPERACAO_LABELS, TIPO_OPERACAO_SEVERITY, EntidadeAuditada, TipoRelatorio, TIPO_RELATORIO_ICONS } from '../../../core/models/auditoria.model';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { ExportOption } from '../../../shared/components/export-speed-dial/export-speed-dial.component';
 
 /**
  * Componente de listagem de auditoria
@@ -41,8 +42,8 @@ export class AuditoriaListaComponent implements OnInit {
   entidadesFiltradas: EntidadeAuditada[] = [];
   entidadeSelecionada: EntidadeAuditada | null = null;
 
-  // Menu de exportação
-  menuExportacao: any[] = [];
+  // Opções de exportação
+  exportOptions: ExportOption[] = [];
   exportando = false;
 
   // Colunas da tabela
@@ -65,7 +66,7 @@ export class AuditoriaListaComponent implements OnInit {
     this.configurarBreadcrumb();
     this.configurarTabela();
     this.inicializarFiltros();
-    this.inicializarMenuExportacao();
+    this.inicializarExportOptions();
     this.carregar();
   }
 
@@ -189,44 +190,36 @@ export class AuditoriaListaComponent implements OnInit {
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
-  inicializarMenuExportacao(): void {
-    this.menuExportacao = [
+  inicializarExportOptions(): void {
+    this.exportOptions = [
       {
         icon: TIPO_RELATORIO_ICONS[TipoRelatorio.PDF],
-        command: () => this.exportarRelatorio(TipoRelatorio.PDF),
-        tooltipOptions: {
-          tooltipLabel: 'Exportar PDF',
-          tooltipPosition: 'left'
-        }
+        label: 'PDF',
+        format: TipoRelatorio.PDF,
+        tooltipLabel: 'Exportar PDF'
       },
       {
         icon: TIPO_RELATORIO_ICONS[TipoRelatorio.XLSX],
-        command: () => this.exportarRelatorio(TipoRelatorio.XLSX),
-        tooltipOptions: {
-          tooltipLabel: 'Exportar Excel',
-          tooltipPosition: 'left'
-        }
+        label: 'Excel (XLSX)',
+        format: TipoRelatorio.XLSX,
+        tooltipLabel: 'Exportar Excel'
       },
       {
         icon: TIPO_RELATORIO_ICONS[TipoRelatorio.CSV],
-        command: () => this.exportarRelatorio(TipoRelatorio.CSV),
-        tooltipOptions: {
-          tooltipLabel: 'Exportar CSV',
-          tooltipPosition: 'left'
-        }
+        label: 'CSV',
+        format: TipoRelatorio.CSV,
+        tooltipLabel: 'Exportar CSV'
       },
       {
         icon: TIPO_RELATORIO_ICONS[TipoRelatorio.TXT],
-        command: () => this.exportarRelatorio(TipoRelatorio.TXT),
-        tooltipOptions: {
-          tooltipLabel: 'Exportar TXT',
-          tooltipPosition: 'left'
-        }
+        label: 'Texto (TXT)',
+        format: TipoRelatorio.TXT,
+        tooltipLabel: 'Exportar TXT'
       }
     ];
   }
 
-  exportarRelatorio(tipoRelatorio: TipoRelatorio): void {
+  exportarRelatorio(tipoRelatorio: string): void {
     this.exportando = true;
     
     // Extrai o value da entidade selecionada
@@ -240,7 +233,7 @@ export class AuditoriaListaComponent implements OnInit {
     delete filtroExportacao.size;
     delete filtroExportacao.sort;
     
-    this.auditoriaService.exportarRelatorio(filtroExportacao, tipoRelatorio).subscribe({
+    this.auditoriaService.exportarRelatorio(filtroExportacao, tipoRelatorio as TipoRelatorio).subscribe({
       next: (blob) => {
         // Cria URL para download
         const url = window.URL.createObjectURL(blob);

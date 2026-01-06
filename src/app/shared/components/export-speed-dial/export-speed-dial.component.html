@@ -1,0 +1,20 @@
+<!-- Loading Overlay -->
+<div class="export-loading-overlay" *ngIf="loading">
+  <div class="loading-content">
+    <p-progressSpinner></p-progressSpinner>
+    <p class="loading-text">Gerando relatório...</p>
+  </div>
+</div>
+
+<!-- Floating Speed Dial -->
+<p-speedDial 
+  [model]="menuItems" 
+  direction="up"
+  [transitionDelay]="80"
+  showIcon="pi pi-print"
+  hideIcon="pi pi-times"
+  buttonClassName="p-button-help p-button-lg"
+  [mask]="false"
+  [disabled]="loading"
+  [style]="{'position': 'fixed', 'bottom': '2rem', 'right': '2rem'}">
+</p-speedDial>
