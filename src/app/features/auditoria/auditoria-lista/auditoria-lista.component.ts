@@ -120,7 +120,21 @@ export class AuditoriaListaComponent implements OnInit {
 
   carregar(): void {
     this.carregando = true;
-    this.auditoriaService.listar(this.filtro).subscribe({
+    
+    // Cria uma cópia do filtro para enviar ao backend
+    const filtroParaEnvio = { ...this.filtro };
+    
+    // Formata as datas apenas na cópia, sem modificar o filtro original
+    if (filtroParaEnvio.dataInicio) {
+      filtroParaEnvio.dataInicio = this.formatarDataParaBackend(filtroParaEnvio.dataInicio) as any;
+    }
+    
+    if (filtroParaEnvio.dataFim) {
+      const dataFimAjustada = this.ajustarDataFimParaDiaCompleto(filtroParaEnvio.dataFim);
+      filtroParaEnvio.dataFim = this.formatarDataParaBackend(dataFimAjustada) as any;
+    }
+    
+    this.auditoriaService.listar(filtroParaEnvio).subscribe({
       next: (response) => {
         this.auditorias = response.content;
         this.totalRegistros = response.totalElements;
@@ -228,6 +242,16 @@ export class AuditoriaListaComponent implements OnInit {
       filtroExportacao.tipoEntidade = this.entidadeSelecionada.value;
     }
     
+    // Formata as datas para o backend
+    if (filtroExportacao.dataInicio) {
+      filtroExportacao.dataInicio = this.formatarDataParaBackend(filtroExportacao.dataInicio) as any;
+    }
+    
+    if (filtroExportacao.dataFim) {
+      const dataFimAjustada = this.ajustarDataFimParaDiaCompleto(filtroExportacao.dataFim);
+      filtroExportacao.dataFim = this.formatarDataParaBackend(dataFimAjustada) as any;
+    }
+    
     // Remove propriedades de paginação
     delete filtroExportacao.page;
     delete filtroExportacao.size;
@@ -257,5 +281,40 @@ export class AuditoriaListaComponent implements OnInit {
         this.exportando = false;
       }
     });
+  }
+
+  /**
+   * Formata uma data do JavaScript para o formato aceito pelo backend
+   * @param data - Date ou string
+   * @returns string no formato yyyy-MM-dd'T'HH:mm:ss
+   */
+  private formatarDataParaBackend(data: Date | string): string {
+    if (!data) return '';
+    
+    const d = typeof data === 'string' ? new Date(data) : data;
+    
+    // Verifica se é uma data válida
+    if (isNaN(d.getTime())) {
+      console.error('Data inválida:', data);
+      return '';
+    }
+    
+    const ano = d.getFullYear();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    const horas = String(d.getHours()).padStart(2, '0');
+    const minutos = String(d.getMinutes()).padStart(2, '0');
+    const segundos = String(d.getSeconds()).padStart(2, '0');
+    
+    return `${ano}-${mes}-${dia}T${horas}:${minutos}:${segundos}`;
+  }
+
+  /**
+   * Ajusta data fim para incluir todo o dia (23:59:59)
+   */
+  private ajustarDataFimParaDiaCompleto(data: Date | string): Date {
+    const d = typeof data === 'string' ? new Date(data) : new Date(data);
+    d.setHours(23, 59, 59, 999);
+    return d;
   }
 }
