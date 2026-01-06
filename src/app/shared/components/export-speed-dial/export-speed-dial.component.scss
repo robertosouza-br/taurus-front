@@ -1,35 +1,3 @@
-// Loading Overlay para Exportação
-.export-loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  
-  .loading-content {
-    background: white;
-    padding: 2rem 3rem;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    
-    .loading-text {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #495057;
-    }
-  }
-}
-
 // Floating Speed Dial
 ::ng-deep {
   .p-speeddial {

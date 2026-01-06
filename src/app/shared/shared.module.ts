@@ -12,7 +12,6 @@ import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { PasswordModule } from 'primeng/password';
 import { SpeedDialModule } from 'primeng/speeddial';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
 import { DataTableComponent } from './components/data-table/data-table.component';
@@ -73,8 +72,7 @@ import { CalendarModule } from 'primeng/calendar';
     AutoCompleteModule,
     CalendarModule,
     PasswordModule,
-    SpeedDialModule,
-    ProgressSpinnerModule
+    SpeedDialModule
   ],
   exports: [
     CommonModule,

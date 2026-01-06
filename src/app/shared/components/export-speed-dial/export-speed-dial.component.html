@@ -1,10 +1,9 @@
 <!-- Loading Overlay -->
-<div class="export-loading-overlay" *ngIf="loading">
-  <div class="loading-content">
-    <p-progressSpinner></p-progressSpinner>
-    <p class="loading-text">Gerando relatório...</p>
-  </div>
-</div>
+<app-loading-spinner 
+  *ngIf="loading" 
+  [overlay]="true" 
+  message="Gerando relatório...">
+</app-loading-spinner>
 
 <!-- Floating Speed Dial -->
 <p-speedDial 
