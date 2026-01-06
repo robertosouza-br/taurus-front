@@ -13,6 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageModule } from 'primeng/message';
+import { SpeedDialModule } from 'primeng/speeddial';
 
 // Routing
 import { AuditoriaRoutingModule } from './auditoria-routing.module';
@@ -44,7 +45,8 @@ import { SharedModule } from '../../shared/shared.module';
     TooltipModule,
     TagModule,
     ProgressSpinnerModule,
-    MessageModule
+    MessageModule,
+    SpeedDialModule
   ]
 })
 export class AuditoriaModule { }

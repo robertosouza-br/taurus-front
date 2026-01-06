@@ -113,3 +113,15 @@
       </ng-template>
   </app-data-table>
 </div>
+
+<!-- Floating Speed Dial para Exportação -->
+<p-speedDial 
+  [model]="menuExportacao" 
+  direction="up"
+  [transitionDelay]="80"
+  showIcon="pi pi-print"
+  hideIcon="pi pi-times"
+  buttonClassName="p-button-help p-button-lg"
+  [mask]="false"
+  [style]="{'position': 'fixed', 'bottom': '2rem', 'right': '2rem'}">
+</p-speedDial>

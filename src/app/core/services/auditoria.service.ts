@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuditoriaDTO, FiltroAuditoriaDTO } from '../models/auditoria.model';
+import { AuditoriaDTO, FiltroAuditoriaDTO, TipoRelatorio } from '../models/auditoria.model';
 import { Page } from '../models/page.model';
 
 /**
@@ -57,5 +57,36 @@ export class AuditoriaService {
    */
   buscarHistoricoEntidade(tipoEntidade: string, entidadeId: number): Observable<AuditoriaDTO[]> {
     return this.http.get<AuditoriaDTO[]>(`${this.apiUrl}/${tipoEntidade}/${entidadeId}`);
+  }
+
+  /**
+   * Exporta relatório de auditoria
+   * @param filtro Filtros para aplicar no relatório
+   * @param tipoRelatorio Tipo do relatório (PDF, XLSX, CSV, TXT)
+   */
+  exportarRelatorio(filtro: FiltroAuditoriaDTO = {}, tipoRelatorio: TipoRelatorio = TipoRelatorio.PDF): Observable<Blob> {
+    let params = new HttpParams();
+    
+    if (filtro.tipoEntidade) {
+      params = params.set('tipoEntidade', filtro.tipoEntidade);
+    }
+    if (filtro.nomeUsuario) {
+      params = params.set('nomeUsuario', filtro.nomeUsuario);
+    }
+    if (filtro.cpfUsuario) {
+      params = params.set('cpfUsuario', filtro.cpfUsuario);
+    }
+    if (filtro.dataInicio) {
+      params = params.set('dataInicio', filtro.dataInicio);
+    }
+    if (filtro.dataFim) {
+      params = params.set('dataFim', filtro.dataFim);
+    }
+    params = params.set('tipoRelatorio', tipoRelatorio);
+
+    return this.http.get(`${this.apiUrl}/relatorio`, { 
+      params, 
+      responseType: 'blob'
+    });
   }
 }

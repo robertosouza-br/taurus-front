@@ -4,7 +4,7 @@ import { PermissaoService } from '../../../core/services/permissao.service';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { AuditoriaService } from '../../../core/services/auditoria.service';
-import { AuditoriaDTO, FiltroAuditoriaDTO, ENTIDADES_AUDITADAS, TIPO_OPERACAO_LABELS, TIPO_OPERACAO_SEVERITY, EntidadeAuditada } from '../../../core/models/auditoria.model';
+import { AuditoriaDTO, FiltroAuditoriaDTO, ENTIDADES_AUDITADAS, TIPO_OPERACAO_LABELS, TIPO_OPERACAO_SEVERITY, EntidadeAuditada, TipoRelatorio, TIPO_RELATORIO_ICONS } from '../../../core/models/auditoria.model';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
@@ -41,6 +41,10 @@ export class AuditoriaListaComponent implements OnInit {
   entidadesFiltradas: EntidadeAuditada[] = [];
   entidadeSelecionada: EntidadeAuditada | null = null;
 
+  // Menu de exportação
+  menuExportacao: any[] = [];
+  exportando = false;
+
   // Colunas da tabela
   colunas: TableColumn[] = [];
   
@@ -61,6 +65,7 @@ export class AuditoriaListaComponent implements OnInit {
     this.configurarBreadcrumb();
     this.configurarTabela();
     this.inicializarFiltros();
+    this.inicializarMenuExportacao();
     this.carregar();
   }
 
@@ -182,5 +187,82 @@ export class AuditoriaListaComponent implements OnInit {
   formatarCpf(cpf: string): string {
     if (!cpf) return '';
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  inicializarMenuExportacao(): void {
+    this.menuExportacao = [
+      {
+        icon: TIPO_RELATORIO_ICONS[TipoRelatorio.PDF],
+        command: () => this.exportarRelatorio(TipoRelatorio.PDF),
+        tooltipOptions: {
+          tooltipLabel: 'Exportar PDF',
+          tooltipPosition: 'left'
+        }
+      },
+      {
+        icon: TIPO_RELATORIO_ICONS[TipoRelatorio.XLSX],
+        command: () => this.exportarRelatorio(TipoRelatorio.XLSX),
+        tooltipOptions: {
+          tooltipLabel: 'Exportar Excel',
+          tooltipPosition: 'left'
+        }
+      },
+      {
+        icon: TIPO_RELATORIO_ICONS[TipoRelatorio.CSV],
+        command: () => this.exportarRelatorio(TipoRelatorio.CSV),
+        tooltipOptions: {
+          tooltipLabel: 'Exportar CSV',
+          tooltipPosition: 'left'
+        }
+      },
+      {
+        icon: TIPO_RELATORIO_ICONS[TipoRelatorio.TXT],
+        command: () => this.exportarRelatorio(TipoRelatorio.TXT),
+        tooltipOptions: {
+          tooltipLabel: 'Exportar TXT',
+          tooltipPosition: 'left'
+        }
+      }
+    ];
+  }
+
+  exportarRelatorio(tipoRelatorio: TipoRelatorio): void {
+    this.exportando = true;
+    
+    // Extrai o value da entidade selecionada
+    const filtroExportacao = { ...this.filtro };
+    if (this.entidadeSelecionada) {
+      filtroExportacao.tipoEntidade = this.entidadeSelecionada.value;
+    }
+    
+    // Remove propriedades de paginação
+    delete filtroExportacao.page;
+    delete filtroExportacao.size;
+    delete filtroExportacao.sort;
+    
+    this.auditoriaService.exportarRelatorio(filtroExportacao, tipoRelatorio).subscribe({
+      next: (blob) => {
+        // Cria URL para download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Define o nome do arquivo com timestamp
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').split('.')[0];
+        const extensao = tipoRelatorio.toLowerCase();
+        link.download = `auditoria_${timestamp}.${extensao}`;
+        
+        // Dispara o download
+        link.click();
+        
+        // Limpa a URL criada
+        window.URL.revokeObjectURL(url);
+        
+        this.exportando = false;
+      },
+      error: () => {
+        this.exportando = false;
+      }
+    });
   }
 }

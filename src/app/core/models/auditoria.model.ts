@@ -73,6 +73,45 @@ export interface FiltroAuditoriaDTO {
 }
 
 /**
+ * Tipos de relatório de auditoria
+ */
+export enum TipoRelatorio {
+  PDF = 'PDF',
+  XLSX = 'XLSX',
+  CSV = 'CSV',
+  TXT = 'TXT'
+}
+
+/**
+ * Labels dos tipos de relatório
+ */
+export const TIPO_RELATORIO_LABELS: Record<string, string> = {
+  'PDF': 'PDF',
+  'XLSX': 'Excel (XLSX)',
+  'CSV': 'CSV',
+  'TXT': 'Texto (TXT)'
+};
+
+/**
+ * Opções de tipo de relatório para menu
+ */
+export interface TipoRelatorioMenuItem {
+  label: string;
+  icon: string;
+  command: () => void;
+}
+
+/**
+ * Ícones para cada tipo de relatório
+ */
+export const TIPO_RELATORIO_ICONS: Record<TipoRelatorio, string> = {
+  [TipoRelatorio.PDF]: 'pi pi-file-pdf',
+  [TipoRelatorio.XLSX]: 'pi pi-file-excel',
+  [TipoRelatorio.CSV]: 'pi pi-file',
+  [TipoRelatorio.TXT]: 'pi pi-file-edit'
+};
+
+/**
  * Entidades auditadas no sistema
  */
 export interface EntidadeAuditada {
