@@ -30,7 +30,7 @@ export class AuditoriaListaComponent implements OnInit {
   
   filtro: FiltroAuditoriaDTO = {
     page: 0,
-    size: 10,
+    size: 50,
     sort: 'dataHora,desc'
   };
 

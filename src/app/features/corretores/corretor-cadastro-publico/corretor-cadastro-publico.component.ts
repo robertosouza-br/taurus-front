@@ -88,7 +88,7 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     }));
 
     // Carregar lista de bancos
-    this.bancoService.listar().subscribe({
+    this.bancoService.listarTodos().subscribe({
       next: (bancos) => {
         this.bancosOptions = bancos.map(banco => ({
           label: `${banco.codigo} - ${banco.nome}`,

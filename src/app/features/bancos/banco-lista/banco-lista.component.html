@@ -1,0 +1,32 @@
+<div class="lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Bancos"
+    subtitle="Gerencie os bancos cadastrados no sistema"
+    icon="pi pi-building"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Tabela -->
+  <app-data-table
+    [data]="bancos"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRegistros"
+    [loading]="carregando"
+    [lazy]="true"
+    [rows]="50"
+    (onLazyLoad)="onLazyLoad($event)"
+    (onSearch)="onBuscar($event)">
+  </app-data-table>
+</div>
+
+<!-- Floating Speed Dial para Exportação -->
+<app-export-speed-dial
+  [loading]="exportando"
+  [options]="exportOptions"
+  (onExport)="exportarRelatorio($event)">
+</app-export-speed-dial>

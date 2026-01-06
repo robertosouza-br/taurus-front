@@ -98,7 +98,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     }));
 
     // Carregar lista de bancos
-    this.bancoService.listar().subscribe({
+    this.bancoService.listarTodos().subscribe({
       next: (bancos) => {
         this.bancosOptions = bancos.map(banco => ({
           label: `${banco.codigo} - ${banco.nome}`,

@@ -1,0 +1,88 @@
+<div class="form-container">
+  <!-- Loading Spinner -->
+  <app-loading-spinner 
+    *ngIf="carregando" 
+    [overlay]="true" 
+    message="Carregando dados do banco...">
+  </app-loading-spinner>
+
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    [title]="titulo"
+    [subtitle]="subtitulo"
+    icon="pi pi-building">
+  </app-page-header>
+
+  <!-- Formulário -->
+  <div *ngIf="!carregando" class="banco-form">
+    <p-card header="Dados do Banco">
+      <div class="p-fluid">
+        <br>
+        <!-- Código -->
+        <div class="p-field">
+          <app-input-text
+            id="codigo"
+            label="Código"
+            [(ngModel)]="codigo"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: 001"
+            [maxlength]="3">
+          </app-input-text>
+          <div class="field-helper">
+            <i class="pi pi-info-circle"></i>
+            <span>Código de 3 dígitos numéricos</span>
+          </div>
+        </div>
+
+        <!-- Nome -->
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome"
+            [(ngModel)]="nome"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: Banco do Brasil S.A."
+            [maxlength]="100">
+          </app-input-text>
+          <div class="field-helper">
+            <i class="pi pi-info-circle"></i>
+            <span>Nome completo do banco (entre 3 e 100 caracteres)</span>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <app-custom-button
+            label="Cancelar"
+            icon="pi pi-times"
+            severity="warning"
+            actionType="cancel"
+            [requireConfirmation]="formularioAlterado"
+            (onClick)="cancelar()">
+          </app-custom-button>
+          <app-custom-button
+            label="Limpar"
+            icon="pi pi-refresh"
+            severity="info"
+            [outlined]="true"
+            actionType="clear"
+            (onClick)="limparTela()">
+          </app-custom-button>
+          <app-custom-button
+            label="Salvar"
+            icon="pi pi-save"
+            severity="success"
+            actionType="save"
+            [loading]="salvando"
+            (onClick)="salvar()">
+          </app-custom-button>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</div>

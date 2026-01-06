@@ -99,7 +99,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.cargoSelecionado = this.cargosOptions.find(c => c.value === CorretorCargo.CORRETOR) || null;
 
     // Carregar lista de bancos
-    this.bancoService.listar().subscribe({
+    this.bancoService.listarTodos().subscribe({
       next: (bancos) => {
         this.bancosOptions = bancos.map(banco => ({
           label: `${banco.codigo} - ${banco.nome}`,

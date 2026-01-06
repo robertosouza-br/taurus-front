@@ -8,6 +8,7 @@ export enum Funcionalidade {
   USUARIO = 'USUARIO',
   PERFIL = 'PERFIL',
   CORRETOR = 'CORRETOR',
+  BANCO = 'BANCO',
   AUDITORIA = 'AUDITORIA',
   ADMINISTRACAO = 'ADMINISTRACAO'
 }
@@ -22,6 +23,7 @@ export const FuncionalidadeLabel: Record<Funcionalidade, string> = {
   [Funcionalidade.USUARIO]: 'Usuários',
   [Funcionalidade.CORRETOR]: 'Corretores',
   [Funcionalidade.PERFIL]: 'Perfis',
+  [Funcionalidade.BANCO]: 'Bancos',
   [Funcionalidade.AUDITORIA]: 'Auditoria',
   [Funcionalidade.ADMINISTRACAO]: 'Administração'
 };

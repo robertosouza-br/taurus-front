@@ -106,6 +106,12 @@ export class SidebarComponent implements OnInit {
             funcionalidade: Funcionalidade.USUARIO
           },
           {
+            label: 'Bancos',
+            icon: 'pi pi-building',
+            routerLink: '/bancos',
+            funcionalidade: Funcionalidade.BANCO
+          },
+          {
             label: 'Auditoria',
             icon: 'pi pi-history',
             routerLink: '/auditoria',
