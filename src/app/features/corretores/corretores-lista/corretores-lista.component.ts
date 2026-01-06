@@ -11,16 +11,15 @@ import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb
 import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { BaseListComponent } from '../../../shared/base/base-list.component';
 
 @Component({
   selector: 'app-corretores-lista',
   templateUrl: './corretores-lista.component.html',
   styleUrls: ['./corretores-lista.component.scss']
 })
-export class CorretoresListaComponent implements OnInit {
+export class CorretoresListaComponent extends BaseListComponent implements OnInit {
   corretores: any[] = [];
-  totalRecords = 0;
-  carregando = false;
   currentPage = 0;
   pageSize = 50;
 
@@ -36,7 +35,9 @@ export class CorretoresListaComponent implements OnInit {
     private permissaoService: PermissaoService,
     private authorizationService: AuthorizationService,
     private confirmationService: ConfirmationService
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     this.configurarBreadcrumb();
@@ -108,22 +109,11 @@ export class CorretoresListaComponent implements OnInit {
    * O backend automaticamente converte para 1-based ao chamar a API externa.
    */
   onLazyLoad(event: any): void {
-    const page = event.first / event.rows; // Calcula página atual (0-based)
-    this.currentPage = page;
-    this.pageSize = event.rows;
-    
-    console.log('🔄 LazyLoad Event:', {
-      first: event.first,
-      rows: event.rows,
-      calculatedPage: page,
-      totalRecords: this.totalRecords,
-      note: 'Frontend 0-based → Backend converte para 1-based'
+    this.handleLazyLoad(event, (page, size) => {
+      this.currentPage = page;
+      this.pageSize = size;
+      this.carregarCorretores(page, size);
     });
-    
-    // Scroll suave para o topo da página
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    this.carregarCorretores(page, event.rows);
   }
 
   /**
@@ -145,7 +135,7 @@ export class CorretoresListaComponent implements OnInit {
           ...corretor,
           cargoLabel: CARGO_LABELS[corretor.cargo]
         }));
-        this.totalRecords = response.totalElements;
+        this.totalRegistros = response.totalElements;
         
         // Para navegação rápida entre páginas, oculta loading imediatamente
         setTimeout(() => {

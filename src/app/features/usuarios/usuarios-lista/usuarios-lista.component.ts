@@ -11,16 +11,15 @@ import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb
 import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { BaseListComponent } from '../../../shared/base/base-list.component';
 
 @Component({
   selector: 'app-usuarios-lista',
   templateUrl: './usuarios-lista.component.html',
   styleUrls: ['./usuarios-lista.component.scss']
 })
-export class UsuariosListaComponent implements OnInit {
+export class UsuariosListaComponent extends BaseListComponent implements OnInit {
   usuarios: UsuarioSaidaDTO[] = [];
-  totalRecords = 0;
-  carregando = false;
 
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
@@ -34,7 +33,9 @@ export class UsuariosListaComponent implements OnInit {
     private permissaoService: PermissaoService,
     private confirmationService: ConfirmationService,
     private authService: AuthService
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     this.configurarBreadcrumb();
@@ -108,7 +109,7 @@ export class UsuariosListaComponent implements OnInit {
           ...usuario,
           perfil: usuario.perfis && usuario.perfis.length > 0 ? usuario.perfis[0].nome : 'Sem perfil'
         }));
-        this.totalRecords = page.totalElements;
+        this.totalRegistros = page.totalElements;
         this.carregando = false;
       },
       error: (error) => {

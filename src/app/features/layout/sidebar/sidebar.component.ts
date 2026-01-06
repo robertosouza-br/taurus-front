@@ -94,6 +94,18 @@ export class SidebarComponent implements OnInit {
         funcionalidade: Funcionalidade.ADMINISTRACAO,
         items: [
           {
+            label: 'Auditoria',
+            icon: 'pi pi-history',
+            routerLink: '/auditoria',
+            funcionalidade: Funcionalidade.AUDITORIA
+          },
+          {
+            label: 'Bancos',
+            icon: 'pi pi-building',
+            routerLink: '/bancos',
+            funcionalidade: Funcionalidade.BANCO
+          },
+          {
             label: 'Perfis',
             icon: 'pi pi-shield',
             routerLink: '/admin/perfis',
@@ -104,18 +116,6 @@ export class SidebarComponent implements OnInit {
             icon: 'pi pi-user',
             routerLink: '/admin/usuarios',
             funcionalidade: Funcionalidade.USUARIO
-          },
-          {
-            label: 'Bancos',
-            icon: 'pi pi-building',
-            routerLink: '/bancos',
-            funcionalidade: Funcionalidade.BANCO
-          },
-          {
-            label: 'Auditoria',
-            icon: 'pi pi-history',
-            routerLink: '/auditoria',
-            funcionalidade: Funcionalidade.AUDITORIA
           }
         ]
       },

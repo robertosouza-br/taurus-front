@@ -10,6 +10,7 @@ import { TableColumn, TableAction } from '../../../shared/components/data-table/
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { ExportOption } from '../../../shared/components/export-speed-dial/export-speed-dial.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { BaseListComponent } from '../../../shared/base/base-list.component';
 
 /**
  * Componente de listagem de bancos
@@ -22,11 +23,8 @@ import { ConfirmationService } from '../../../shared/services/confirmation.servi
   templateUrl: './banco-lista.component.html',
   styleUrls: ['./banco-lista.component.scss']
 })
-export class BancoListaComponent implements OnInit {
+export class BancoListaComponent extends BaseListComponent implements OnInit {
   bancos: Banco[] = [];
-  totalRegistros = 0;
-  carregando = false;
-  exportando = false;
 
   filtro: BancoFiltroDTO = {
     page: 0,
@@ -54,7 +52,9 @@ export class BancoListaComponent implements OnInit {
     private messageService: MessageService,
     private router: Router,
     private confirmationService: ConfirmationService
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     if (!this.temPermissao(Permissao.CONSULTAR)) {
@@ -161,13 +161,11 @@ export class BancoListaComponent implements OnInit {
   }
 
   onLazyLoad(event: any): void {
-    this.filtro.page = event.first / event.rows;
-    this.filtro.size = event.rows;
-    
-    // Scroll suave para o topo da página
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    this.carregar();
+    this.handleLazyLoad(event, (page, size) => {
+      this.filtro.page = page;
+      this.filtro.size = size;
+      this.carregar();
+    });
   }
 
   onBuscar(termo: string): void {

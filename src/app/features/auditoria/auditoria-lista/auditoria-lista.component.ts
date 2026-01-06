@@ -8,6 +8,7 @@ import { AuditoriaDTO, FiltroAuditoriaDTO, ENTIDADES_AUDITADAS, TIPO_OPERACAO_LA
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { ExportOption } from '../../../shared/components/export-speed-dial/export-speed-dial.component';
+import { BaseListComponent } from '../../../shared/base/base-list.component';
 
 /**
  * Componente de listagem de auditoria
@@ -23,10 +24,8 @@ import { ExportOption } from '../../../shared/components/export-speed-dial/expor
   templateUrl: './auditoria-lista.component.html',
   styleUrls: ['./auditoria-lista.component.scss']
 })
-export class AuditoriaListaComponent implements OnInit {
+export class AuditoriaListaComponent extends BaseListComponent implements OnInit {
   auditorias: AuditoriaDTO[] = [];
-  totalRegistros = 0;
-  carregando = false;
   
   filtro: FiltroAuditoriaDTO = {
     page: 0,
@@ -44,7 +43,6 @@ export class AuditoriaListaComponent implements OnInit {
 
   // Opções de exportação
   exportOptions: ExportOption[] = [];
-  exportando = false;
 
   // Colunas da tabela
   colunas: TableColumn[] = [];
@@ -56,7 +54,9 @@ export class AuditoriaListaComponent implements OnInit {
     private auditoriaService: AuditoriaService,
     private permissaoService: PermissaoService,
     private router: Router
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     if (!this.temPermissao(Permissao.CONSULTAR)) {
