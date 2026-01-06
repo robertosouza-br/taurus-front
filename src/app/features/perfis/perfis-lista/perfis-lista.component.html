@@ -59,24 +59,6 @@
         <span class="badge-count">{{ getTotalPermissoes(perfil) }}</span>
       </div>
     </ng-template>
-
-    <!-- Template para estado vazio -->
-    <ng-template appTableTemplate="empty">
-      <div class="empty-state">
-        <i class="pi pi-shield empty-icon"></i>
-        <h3>Nenhum perfil cadastrado</h3>
-        <p>Comece criando o primeiro perfil de acesso do sistema</p>
-        <app-custom-button
-          *ngIf="podeIncluir"
-          label="Criar Primeiro Perfil" 
-          icon="pi pi-plus"
-          severity="success"
-          size="large"
-          [raised]="true"
-          (onClick)="novoPerfil()">
-        </app-custom-button>
-      </div>
-    </ng-template>
   </app-data-table>
 </div>
 

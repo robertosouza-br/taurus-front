@@ -123,4 +123,23 @@ export class UsuarioService {
     const params = new HttpParams().set('cpf', cpfNumerico);
     return this.http.get<ValidacaoCpfDTO>(`${this.apiUrl}/validar-cpf`, { params });
   }
+
+  /**
+   * Exporta relatório de usuários
+   * @param search Filtro de busca (opcional)
+   * @param tipoRelatorio Tipo do relatório (PDF, XLSX, CSV, TXT)
+   */
+  exportarRelatorio(search: string, tipoRelatorio: string): Observable<Blob> {
+    let params = new HttpParams();
+    params = params.set('tipoRelatorio', tipoRelatorio);
+    
+    if (search && search.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    return this.http.get(`${this.apiUrl}/relatorio`, {
+      params,
+      responseType: 'blob'
+    });
+  }
 }

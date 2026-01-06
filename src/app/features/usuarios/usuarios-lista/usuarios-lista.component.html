@@ -15,7 +15,7 @@
     [data]="usuarios"
     [columns]="colunas"
     [actions]="acoes"
-    [totalRecords]="totalRecords"
+    [totalRecords]="totalRegistros"
     [loading]="carregando"
     (onSearch)="onBuscar($event)">
     
@@ -43,3 +43,10 @@
     </ng-template>
   </app-data-table>
 </div>
+
+<!-- Floating Speed Dial para Exportação -->
+<app-export-speed-dial
+  [loading]="exportando"
+  [options]="exportOptions"
+  (onExport)="exportarRelatorio($event)">
+</app-export-speed-dial>

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { UsuarioService } from '../../../core/services/usuario.service';
-import { UsuarioSaidaDTO } from '../../../core/models/usuario.model';
+import { UsuarioSaidaDTO, TipoRelatorioUsuario, TIPO_RELATORIO_USUARIO_ICONS } from '../../../core/models/usuario.model';
 import { Page } from '../../../core/models/page.model';
 import { PermissaoService, AuthService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -12,6 +12,7 @@ import { HeaderAction } from '../../../shared/components/page-header/page-header
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
+import { ExportOption } from '../../../shared/components/export-speed-dial/export-speed-dial.component';
 
 @Component({
   selector: 'app-usuarios-lista',
@@ -20,11 +21,13 @@ import { BaseListComponent } from '../../../shared/base/base-list.component';
 })
 export class UsuariosListaComponent extends BaseListComponent implements OnInit {
   usuarios: UsuarioSaidaDTO[] = [];
+  searchTerm: string = '';
 
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
   colunas: TableColumn[] = [];
   acoes: TableAction[] = [];
+  exportOptions: ExportOption[] = [];
 
   constructor(
     private usuarioService: UsuarioService,
@@ -41,7 +44,37 @@ export class UsuariosListaComponent extends BaseListComponent implements OnInit 
     this.configurarBreadcrumb();
     this.configurarHeader();
     this.configurarTabela();
+    this.inicializarExportOptions();
     this.carregarUsuarios();
+  }
+
+  private inicializarExportOptions(): void {
+    this.exportOptions = [
+      {
+        icon: TIPO_RELATORIO_USUARIO_ICONS[TipoRelatorioUsuario.PDF],
+        label: 'PDF',
+        format: TipoRelatorioUsuario.PDF,
+        tooltipLabel: 'Exportar PDF'
+      },
+      {
+        icon: TIPO_RELATORIO_USUARIO_ICONS[TipoRelatorioUsuario.XLSX],
+        label: 'Excel',
+        format: TipoRelatorioUsuario.XLSX,
+        tooltipLabel: 'Exportar Excel'
+      },
+      {
+        icon: TIPO_RELATORIO_USUARIO_ICONS[TipoRelatorioUsuario.CSV],
+        label: 'CSV',
+        format: TipoRelatorioUsuario.CSV,
+        tooltipLabel: 'Exportar CSV'
+      },
+      {
+        icon: TIPO_RELATORIO_USUARIO_ICONS[TipoRelatorioUsuario.TXT],
+        label: 'TXT',
+        format: TipoRelatorioUsuario.TXT,
+        tooltipLabel: 'Exportar TXT'
+      }
+    ];
   }
 
   private configurarBreadcrumb(): void {
@@ -96,7 +129,8 @@ export class UsuariosListaComponent extends BaseListComponent implements OnInit 
   }
 
   onBuscar(termo: any): void {
-    this.carregarUsuarios(termo as string);
+    this.searchTerm = termo as string;
+    this.carregarUsuarios(this.searchTerm);
   }
 
   carregarUsuarios(search: string = ''): void {
@@ -213,5 +247,38 @@ export class UsuariosListaComponent extends BaseListComponent implements OnInit 
     if (!data) return '';
     const [ano, mes, dia] = data.split('-');
     return `${dia}/${mes}/${ano}`;
+  }
+
+  /**
+   * Exporta relatório de usuários
+   * @param tipoRelatorio Tipo do relatório (PDF, XLSX, CSV, TXT)
+   */
+  exportarRelatorio(tipoRelatorio: string): void {
+    this.exportando = true;
+
+    this.usuarioService.exportarRelatorio(this.searchTerm, tipoRelatorio).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').split('.')[0];
+        const extensao = tipoRelatorio.toLowerCase();
+        link.download = `usuarios_${timestamp}.${extensao}`;
+        
+        link.click();
+        window.URL.revokeObjectURL(url);
+        
+        this.exportando = false;
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao gerar relatório'
+        });
+        this.exportando = false;
+      }
+    });
   }
 }

@@ -73,3 +73,23 @@ export interface UsuarioListaDTO {
   ativo: boolean;
   perfil?: string; // Nome do perfil principal para exibição
 }
+
+/**
+ * Enum de tipos de relatório
+ */
+export enum TipoRelatorioUsuario {
+  PDF = 'PDF',
+  XLSX = 'XLSX',
+  CSV = 'CSV',
+  TXT = 'TXT'
+}
+
+/**
+ * Mapeamento de ícones por tipo de relatório
+ */
+export const TIPO_RELATORIO_USUARIO_ICONS: Record<TipoRelatorioUsuario, string> = {
+  [TipoRelatorioUsuario.PDF]: 'pi pi-file-pdf',
+  [TipoRelatorioUsuario.XLSX]: 'pi pi-file-excel',
+  [TipoRelatorioUsuario.CSV]: 'pi pi-file',
+  [TipoRelatorioUsuario.TXT]: 'pi pi-file-edit'
+};
