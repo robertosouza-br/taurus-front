@@ -34,6 +34,9 @@ export class AuditoriaDetalhesComponent implements OnInit {
       return;
     }
 
+    // Scroll para o topo ao carregar a tela
+    this.scrollToTop();
+
     this.configurarBreadcrumb();
 
     // Tenta obter dados do state da navegação
@@ -138,6 +141,21 @@ export class AuditoriaDetalhesComponent implements OnInit {
       return JSON.stringify(valor, null, 2);
     }
     return String(valor);
+  }
+
+  private scrollToTop(): void {
+    const contentArea = document.querySelector('.content-area');
+    const contentWrapper = document.querySelector('.content-wrapper');
+    
+    if (contentArea) {
+      contentArea.scrollTop = 0;
+    }
+    if (contentWrapper) {
+      contentWrapper.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }
 
   voltar(): void {
