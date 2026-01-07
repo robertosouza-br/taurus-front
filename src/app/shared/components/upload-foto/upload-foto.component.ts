@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { interval, Subscription } from 'rxjs';
+import { ImageCroppedEvent, LoadedImage, ImageTransform } from 'ngx-image-cropper';
 
 /**
  * Interface para resposta de foto
@@ -53,6 +54,13 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
   fotoUrl: string | null = null;
   carregando = false;
   enviando = false;
+  
+  // Editor de imagem
+  exibirEditor = false;
+  imagemParaEditar: string = '';
+  imagemEditada: Blob | null = null;
+  zoom = 1;
+  transformacao: ImageTransform = {};
   
   private fotoCache = {
     url: null as string | null,
@@ -127,18 +135,119 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
    * Manipula seleção de arquivo
    */
   async onFileSelect(event: any): Promise<void> {
+    console.log('onFileSelect chamado', event);
     const arquivo = event.target.files?.[0];
-    if (!arquivo) return;
+    console.log('Arquivo selecionado:', arquivo);
+    
+    if (!arquivo) {
+      console.log('Nenhum arquivo selecionado');
+      return;
+    }
 
-    // Validações
-    if (!this.validarArquivo(arquivo)) {
+    // Validações iniciais
+    if (!this.validarArquivoInicial(arquivo)) {
       event.target.value = '';
       return;
     }
 
+    console.log('Iniciando leitura do arquivo...');
+    
+    // Carregar imagem no editor
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      console.log('Arquivo carregado:', e.target?.result);
+      this.imagemParaEditar = e.target?.result as string;
+      console.log('imagemParaEditar definida:', this.imagemParaEditar.substring(0, 50));
+      this.exibirEditor = true;
+      console.log('Editor exibido:', this.exibirEditor);
+    };
+    reader.onerror = (error) => {
+      console.error('Erro ao ler arquivo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Erro ao carregar a imagem'
+      });
+    };
+    reader.readAsDataURL(arquivo);
+    
+    event.target.value = '';
+  }
+
+  /**
+   * Validação inicial do arquivo (apenas tipo)
+   */
+  private validarArquivoInicial(arquivo: File): boolean {
+    const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!tiposPermitidos.includes(arquivo.type)) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Tipo inválido',
+        detail: 'Use apenas arquivos JPG, JPEG ou PNG'
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Callback quando imagem é recortada
+   */
+  onImageCropped(event: ImageCroppedEvent): void {
+    this.imagemEditada = event.blob || null;
+  }
+
+  /**
+   * Callback quando imagem é carregada
+   */
+  onImageLoaded(image: LoadedImage): void {
+    // Imagem carregada com sucesso no editor
+  }
+
+  /**
+   * Callback de erro ao carregar imagem
+   */
+  onCropperError(): void {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Erro',
+      detail: 'Erro ao carregar imagem no editor'
+    });
+    this.fecharEditor();
+  }
+
+  /**
+   * Confirma e faz upload da imagem editada
+   */
+  async confirmarEdicao(): Promise<void> {
+    if (!this.imagemEditada) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Aguarde o processamento da imagem'
+      });
+      return;
+    }
+
+    // Validar tamanho da imagem editada
+    const tamanhoMaximo = 5 * 1024 * 1024; // 5MB
+    if (this.imagemEditada.size > tamanhoMaximo) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Arquivo muito grande',
+        detail: 'A imagem editada deve ter no máximo 5 MB'
+      });
+      return;
+    }
+
     this.enviando = true;
+    this.exibirEditor = false;
 
     try {
+      // Converter Blob para File
+      const arquivo = new File([this.imagemEditada], 'foto.jpg', { type: 'image/jpeg' });
+      
       await this.uploadCallback(arquivo);
       
       this.messageService.add({
@@ -161,37 +270,63 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
       });
     } finally {
       this.enviando = false;
-      event.target.value = '';
+      this.limparEditor();
     }
   }
 
   /**
-   * Valida o arquivo selecionado
+   * Cancela edição
    */
-  private validarArquivo(arquivo: File): boolean {
-    // Validar tamanho (máx 5MB)
-    const tamanhoMaximo = 5 * 1024 * 1024; // 5MB em bytes
-    if (arquivo.size > tamanhoMaximo) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Arquivo muito grande',
-        detail: 'O arquivo deve ter no máximo 5 MB'
-      });
-      return false;
-    }
+  cancelarEdicao(): void {
+    this.fecharEditor();
+  }
 
-    // Validar tipo
-    const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!tiposPermitidos.includes(arquivo.type)) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Tipo inválido',
-        detail: 'Use apenas arquivos JPG, JPEG ou PNG'
-      });
-      return false;
-    }
+  /**
+   * Fecha o editor
+   */
+  private fecharEditor(): void {
+    this.exibirEditor = false;
+    this.limparEditor();
+  }
 
-    return true;
+  /**
+   * Limpa dados do editor
+   */
+  private limparEditor(): void {
+    this.imagemParaEditar = '';
+    this.imagemEditada = null;
+    this.zoom = 1;
+    this.transformacao = {};
+  }
+
+  /**
+   * Aumenta o zoom
+   */
+  aumentarZoom(): void {
+    if (this.zoom < 3) {
+      this.zoom = Math.min(3, this.zoom + 0.1);
+      this.aplicarZoom();
+    }
+  }
+
+  /**
+   * Diminui o zoom
+   */
+  diminuirZoom(): void {
+    if (this.zoom > 0.5) {
+      this.zoom = Math.max(0.5, this.zoom - 0.1);
+      this.aplicarZoom();
+    }
+  }
+
+  /**
+   * Aplica o zoom à imagem
+   */
+  aplicarZoom(): void {
+    this.transformacao = {
+      ...this.transformacao,
+      scale: this.zoom
+    };
   }
 
   /**
@@ -230,10 +365,14 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
    * Abre seletor de arquivo
    */
   abrirSeletorArquivo(): void {
+    console.log('abrirSeletorArquivo chamado');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/jpeg,image/jpg,image/png';
-    input.onchange = (e) => this.onFileSelect(e);
+    input.onchange = (e) => {
+      console.log('Input change event:', e);
+      this.onFileSelect(e);
+    };
     input.click();
   }
 

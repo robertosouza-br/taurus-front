@@ -92,6 +92,189 @@
   }
 }
 
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  
+  ::ng-deep image-cropper {
+    max-height: 60vh;
+    width: 100%;
+    max-width: 100%;
+    background-color: #fafafa;
+    
+    .cropper {
+      max-height: 450px !important;
+    }
+  }
+
+  .zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 0 1rem;
+    
+    .zoom-slider-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      
+      i {
+        color: #6c757d;
+        font-size: 1rem;
+      }
+      
+      .zoom-slider {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        background: linear-gradient(to right, #e9ecef 0%, var(--primary-color) 50%, #e9ecef 100%);
+        border-radius: 3px;
+        outline: none;
+        
+        &::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: var(--primary-color);
+          border: 3px solid white;
+          border-radius: 50%;
+          cursor: pointer;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          transition: all 0.2s ease;
+          
+          &:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+          }
+          
+          &:active {
+            transform: scale(0.95);
+          }
+        }
+        
+        &::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: var(--primary-color);
+          border: 3px solid white;
+          border-radius: 50%;
+          cursor: pointer;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          transition: all 0.2s ease;
+          
+          &:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+          }
+          
+          &:active {
+            transform: scale(0.95);
+          }
+        }
+      }
+    }
+  }
+
+  .editor-info {
+    text-align: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    
+    small {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #6c757d;
+      font-size: 0.813rem;
+      
+      i {
+        color: var(--primary-color);
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+// Custom Dialog Header
+.custom-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+  border-radius: 6px 6px 0 0;
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    
+    .header-icon {
+      font-size: 1.75rem;
+      color: white;
+      opacity: 0.9;
+    }
+    
+    .header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      
+      h3 {
+        margin: 0;
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+      
+      span {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.813rem;
+      }
+    }
+  }
+  
+  .header-close-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    i {
+      color: white;
+      font-size: 1.25rem;
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: rotate(90deg);
+    }
+    
+    &:active {
+      transform: rotate(90deg) scale(0.95);
+    }
+  }
+}
+
 // Responsividade
 @media (max-width: 576px) {
   .upload-foto-container {
@@ -105,5 +288,19 @@
         }
       }
     }
+  }
+}
+
+// Dialog customizations
+::ng-deep .p-dialog {
+  .p-dialog-content {
+    padding: 1.5rem;
+  }
+  
+  .p-dialog-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
   }
 }

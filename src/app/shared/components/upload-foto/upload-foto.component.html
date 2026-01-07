@@ -55,3 +55,112 @@
     JPG, JPEG ou PNG - Máx: 5 MB
   </small>
 </div>
+
+<!-- Dialog de Edição de Imagem -->
+<p-dialog 
+  [(visible)]="exibirEditor"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '90vw', maxWidth: '800px'}"
+  [breakpoints]="{'960px': '95vw', '640px': '100vw'}"
+  [showHeader]="false"
+  (onHide)="cancelarEdicao()">
+  
+  <!-- Header Customizado -->
+  <div class="custom-dialog-header">
+    <div class="header-content">
+      <i class="pi pi-image header-icon"></i>
+      <div class="header-text">
+        <h3>Editar Foto</h3>
+        <span>Ajuste o enquadramento e o zoom da sua imagem</span>
+      </div>
+    </div>
+    <button 
+      type="button" 
+      class="header-close-btn"
+      (click)="cancelarEdicao()"
+      pTooltip="Fechar"
+      tooltipPosition="left">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+  
+  <div class="editor-container">
+    <image-cropper
+      [imageBase64]="imagemParaEditar"
+      [maintainAspectRatio]="true"
+      [aspectRatio]="1"
+      [cropperMinWidth]="200"
+      [cropperMinHeight]="200"
+      [resizeToWidth]="500"
+      [roundCropper]="true"
+      [canvasRotation]="0"
+      [transform]="transformacao"
+      format="jpeg"
+      outputType="blob"
+      (imageCropped)="onImageCropped($event)"
+      (imageLoaded)="onImageLoaded($event)"
+      (loadImageFailed)="onCropperError()">
+    </image-cropper>
+    
+    <!-- Controles de Zoom -->
+    <div class="zoom-controls mt-3">
+      <button 
+        pButton 
+        type="button"
+        icon="pi pi-minus" 
+        class="p-button-rounded p-button-text p-button-sm"
+        (click)="diminuirZoom()"
+        [disabled]="zoom <= 0.5">
+      </button>
+      
+      <div class="zoom-slider-container">
+        <i class="pi pi-search-minus"></i>
+        <input 
+          type="range" 
+          class="zoom-slider"
+          [(ngModel)]="zoom" 
+          min="0.5" 
+          max="3" 
+          step="0.1"
+          (input)="aplicarZoom()">
+        <i class="pi pi-search-plus"></i>
+      </div>
+      
+      <button 
+        pButton 
+        type="button"
+        icon="pi pi-plus" 
+        class="p-button-rounded p-button-text p-button-sm"
+        (click)="aumentarZoom()"
+        [disabled]="zoom >= 3">
+      </button>
+    </div>
+    
+    <div class="editor-info mt-3">
+      <small class="text-muted">
+        <i class="pi pi-info-circle mr-1"></i>
+        Arraste e redimensione a área para selecionar a parte desejada da imagem
+      </small>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <app-custom-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancelarEdicao()">
+    </app-custom-button>
+    <app-custom-button
+      label="Confirmar"
+      icon="pi pi-check"
+      severity="success"
+      [loading]="enviando"
+      (onClick)="confirmarEdicao()">
+    </app-custom-button>
+  </ng-template>
+</p-dialog>

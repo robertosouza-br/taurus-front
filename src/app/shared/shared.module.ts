@@ -12,6 +12,11 @@ import { DynamicDialogModule } from 'primeng/dynamicdialog';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { PasswordModule } from 'primeng/password';
 import { SpeedDialModule } from 'primeng/speeddial';
+import { DialogModule } from 'primeng/dialog';
+import { SliderModule } from 'primeng/slider';
+
+// Image Cropper
+import { ImageCropperComponent } from 'ngx-image-cropper';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
 import { DataTableComponent } from './components/data-table/data-table.component';
@@ -74,7 +79,10 @@ import { CalendarModule } from 'primeng/calendar';
     AutoCompleteModule,
     CalendarModule,
     PasswordModule,
-    SpeedDialModule
+    SpeedDialModule,
+    DialogModule,
+    SliderModule,
+    ImageCropperComponent
   ],
   exports: [
     CommonModule,
@@ -99,7 +107,10 @@ import { CalendarModule } from 'primeng/calendar';
     UploadFotoComponent,
     ExportSpeedDialComponent,
     // PrimeNG modules necessários pelos componentes
-    CalendarModule
+    CalendarModule,
+    SliderModule,
+    // Image Cropper (componente standalone)
+    ImageCropperComponent
   ],
   providers: [DialogService]
 })
