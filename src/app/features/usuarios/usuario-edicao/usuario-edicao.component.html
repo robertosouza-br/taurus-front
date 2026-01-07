@@ -12,18 +12,21 @@
   <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados do usuário..."></app-loading-spinner>
 
   <div *ngIf="!carregando && usuario" class="usuario-form">
-    <p-card header="Dados do Usuário">
-      <div class="p-fluid">
-        <br>
-        <div class="p-field">
-          <app-input-text
-            id="nome"
-            label="Nome Completo"
-            [(ngModel)]="nome"
-            [required]="true"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
+    <div class="grid">
+      <!-- Coluna Principal - Formulário -->
+      <div class="col-12 lg:col-8">
+        <p-card header="Dados do Usuário">
+          <div class="p-fluid">
+            <br>
+            <div class="p-field">
+              <app-input-text
+                id="nome"
+                label="Nome Completo"
+                [(ngModel)]="nome"
+                [required]="true"
+                [showValidation]="tentouSalvar">
+              </app-input-text>
+            </div>
 
         <div class="p-field">
           <app-input-text
@@ -190,6 +193,30 @@
       </app-custom-button>
     </div>
   </div>
+
+  <!-- Coluna Lateral - Foto do Usuário -->
+  <div class="col-12 lg:col-4">
+    <p-card header="Foto do Usuário">
+      <div class="foto-section">
+        <app-upload-foto
+          [uploadCallback]="uploadFotoCallback"
+          [obterUrlCallback]="obterUrlCallback"
+          [removerCallback]="removerCallback"
+          [tamanho]="'grande'"
+          (fotoAlterada)="onFotoAlterada()">
+        </app-upload-foto>
+        
+        <div class="foto-info mt-3">
+          <p class="text-center text-muted">
+            <i class="pi pi-info-circle"></i>
+            A foto será exibida no perfil do usuário
+          </p>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</div>
+</div>
 
   <div *ngIf="!carregando && !usuario" class="empty-message">
     <i class="pi pi-exclamation-triangle"></i>

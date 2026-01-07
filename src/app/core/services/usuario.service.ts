@@ -142,4 +142,33 @@ export class UsuarioService {
       responseType: 'blob'
     });
   }
+
+  /**
+   * Faz upload da foto do usuário
+   * @param id ID do usuário
+   * @param arquivo Arquivo de imagem (JPG, JPEG ou PNG - máx 5MB)
+   */
+  uploadFoto(id: number, arquivo: File): Observable<{ mensagem: string }> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+    
+    // NÃO adicionar Content-Type manualmente - HttpClient detecta automaticamente
+    return this.http.post<{ mensagem: string }>(`${this.apiUrl}/${id}/foto`, formData);
+  }
+
+  /**
+   * Obtém URL temporária da foto do usuário (expira em 5 minutos)
+   * @param id ID do usuário
+   */
+  obterFotoUrl(id: number): Observable<{ url: string; expiresIn: number }> {
+    return this.http.get<{ url: string; expiresIn: number }>(`${this.apiUrl}/${id}/foto`);
+  }
+
+  /**
+   * Remove a foto do usuário
+   * @param id ID do usuário
+   */
+  removerFoto(id: number): Observable<{ mensagem: string }> {
+    return this.http.delete<{ mensagem: string }>(`${this.apiUrl}/${id}/foto`);
+  }
 }

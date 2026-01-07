@@ -120,14 +120,20 @@
       <div class="col-12 lg:col-4">
         <p-card header="Informações da Conta" styleClass="info-card">
           <div class="profile-info">
-            <div class="profile-header">
-              <div class="profile-avatar">
-                <i class="pi pi-user"></i>
-              </div>
-              <div class="profile-name">
-                <h3>{{ meusDados.nome }}</h3>
-                <span class="profile-email">{{ meusDados.email }}</span>
-              </div>
+            <!-- Foto do Perfil -->
+            <div class="profile-photo-section">
+              <app-upload-foto
+                [uploadCallback]="uploadFotoCallback"
+                [obterUrlCallback]="obterUrlCallback"
+                [removerCallback]="removerCallback"
+                [tamanho]="'grande'"
+                (fotoAlterada)="onFotoAlterada()">
+              </app-upload-foto>
+            </div>
+
+            <div class="profile-name mt-3">
+              <h3>{{ meusDados.nome }}</h3>
+              <span class="profile-email">{{ meusDados.email }}</span>
             </div>
             
             <p-divider></p-divider>

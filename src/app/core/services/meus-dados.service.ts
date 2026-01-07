@@ -35,4 +35,30 @@ export class MeusDadosService {
   trocarSenha(dados: TrocarSenhaDTO): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/senha`, dados);
   }
+
+  /**
+   * Faz upload da foto do usuário autenticado
+   * @param arquivo Arquivo de imagem (JPG, JPEG ou PNG - máx 5MB)
+   */
+  uploadFoto(arquivo: File): Observable<{ mensagem: string }> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+    
+    // NÃO adicionar Content-Type manualmente - HttpClient detecta automaticamente
+    return this.http.post<{ mensagem: string }>(`${this.apiUrl}/foto`, formData);
+  }
+
+  /**
+   * Obtém URL temporária da foto do usuário autenticado (expira em 5 minutos)
+   */
+  obterFotoUrl(): Observable<{ url: string; expiresIn: number }> {
+    return this.http.get<{ url: string; expiresIn: number }>(`${this.apiUrl}/foto`);
+  }
+
+  /**
+   * Remove a foto do usuário autenticado
+   */
+  removerFoto(): Observable<{ mensagem: string }> {
+    return this.http.delete<{ mensagem: string }>(`${this.apiUrl}/foto`);
+  }
 }

@@ -16,6 +16,20 @@
   backdrop-filter: blur(4px);
 }
 
+.foto-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
+
+  .foto-info {
+    margin-top: 1rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.875rem;
+  }
+}
+
 .senha-info-box {
   display: flex;
   flex-direction: column;

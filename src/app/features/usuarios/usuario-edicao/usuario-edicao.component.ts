@@ -11,6 +11,7 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
+import { FotoResponse } from '../../../shared/components/upload-foto/upload-foto.component';
 
 @Component({
   selector: 'app-usuario-edicao',
@@ -342,5 +343,25 @@ export class UsuarioEdicaoComponent extends BaseFormComponent implements OnInit 
       summary: 'Atenção',
       detail: 'Preencha todos os campos obrigatórios'
     });
+  }
+
+  // ===== Métodos para Upload de Foto =====
+
+  uploadFotoCallback = (arquivo: File): Promise<any> => {
+    return this.usuarioService.uploadFoto(this.usuarioId, arquivo).toPromise();
+  };
+
+  obterUrlCallback = async (): Promise<FotoResponse> => {
+    const result = await this.usuarioService.obterFotoUrl(this.usuarioId).toPromise();
+    return result as FotoResponse;
+  };
+
+  removerCallback = (): Promise<any> => {
+    return this.usuarioService.removerFoto(this.usuarioId).toPromise();
+  };
+
+  onFotoAlterada(): void {
+    // Callback quando foto é alterada ou removida
+    console.log('Foto do usuário foi alterada');
   }
 }

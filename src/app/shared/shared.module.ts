@@ -31,6 +31,7 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { ExportSpeedDialComponent } from './components/export-speed-dial/export-speed-dial.component';
+import { UploadFotoComponent } from './components/upload-foto/upload-foto.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -58,7 +59,8 @@ import { CalendarModule } from 'primeng/calendar';
     ConfirmationDialogComponent,
     AutocompleteComponent,
     LoadingSpinnerComponent,
-    ExportSpeedDialComponent
+    ExportSpeedDialComponent,
+    UploadFotoComponent
   ],
   imports: [
     CommonModule,
@@ -94,6 +96,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputDateComponent,
     AutocompleteComponent,
     LoadingSpinnerComponent,
+    UploadFotoComponent,
     ExportSpeedDialComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule

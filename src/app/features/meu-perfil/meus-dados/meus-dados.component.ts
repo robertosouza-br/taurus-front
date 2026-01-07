@@ -3,6 +3,7 @@ import { MessageService } from 'primeng/api';
 import { MeusDadosService } from '../../../core/services/meus-dados.service';
 import { MeusDadosDTO, AtualizarMeusDadosDTO, TrocarSenhaDTO } from '../../../core/models/meus-dados.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { FotoResponse } from '../../../shared/components/upload-foto/upload-foto.component';
 
 @Component({
   selector: 'app-meus-dados',
@@ -282,5 +283,25 @@ export class MeusDadosComponent implements OnInit {
     if (!data) return 'Ilimitado';
     const date = new Date(data);
     return date.toLocaleDateString('pt-BR');
+  }
+
+  // ===== Métodos para Upload de Foto =====
+
+  uploadFotoCallback = (arquivo: File): Promise<any> => {
+    return this.meusDadosService.uploadFoto(arquivo).toPromise();
+  };
+
+  obterUrlCallback = async (): Promise<FotoResponse> => {
+    const result = await this.meusDadosService.obterFotoUrl().toPromise();
+    return result as FotoResponse;
+  };
+
+  removerCallback = (): Promise<any> => {
+    return this.meusDadosService.removerFoto().toPromise();
+  };
+
+  onFotoAlterada(): void {
+    // Callback quando foto é alterada ou removida
+    console.log('Foto do perfil foi alterada');
   }
 }

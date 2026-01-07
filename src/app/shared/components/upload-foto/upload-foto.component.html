@@ -1,0 +1,57 @@
+<div class="upload-foto-container" [ngStyle]="getEstiloContainer()">
+  <!-- Loading -->
+  <div *ngIf="carregando" class="foto-loading">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+  </div>
+
+  <!-- Preview da Foto -->
+  <div *ngIf="!carregando" class="foto-preview">
+    <img 
+      [src]="fotoUrl || 'assets/images/no-user.png'" 
+      [alt]="'Foto do usuário'"
+      class="foto-imagem"
+      [class.enviando]="enviando"
+    />
+    
+    <!-- Overlay com ações (apenas se não for somente leitura) -->
+    <div *ngIf="!somenteLeitura" class="foto-overlay">
+      <div class="foto-acoes">
+        <button 
+          pButton 
+          type="button"
+          icon="pi pi-camera" 
+          class="p-button-rounded p-button-sm p-button-secondary"
+          (click)="abrirSeletorArquivo()"
+          [disabled]="enviando"
+          [pTooltip]="'Alterar foto'"
+          tooltipPosition="top">
+        </button>
+        
+        <button 
+          pButton 
+          type="button"
+          icon="pi pi-trash" 
+          class="p-button-rounded p-button-sm p-button-danger"
+          (click)="removerFoto()"
+          [disabled]="enviando"
+          [pTooltip]="'Remover foto'"
+          tooltipPosition="top">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador de envio -->
+  <div *ngIf="enviando" class="enviando-indicator">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Enviando...</span>
+  </div>
+</div>
+
+<!-- Informações sobre formato aceito -->
+<div *ngIf="!somenteLeitura" class="foto-info mt-2">
+  <small class="text-muted block">
+    <i class="pi pi-info-circle mr-1"></i>
+    JPG, JPEG ou PNG - Máx: 5 MB
+  </small>
+</div>
