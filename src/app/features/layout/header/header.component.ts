@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { Menu } from 'primeng/menu';
@@ -14,7 +14,7 @@ import { User } from '../../../core/models';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   @ViewChild('userMenu') userMenu!: Menu;
   
   currentUser: User | null = null;
@@ -22,6 +22,7 @@ export class HeaderComponent implements OnInit {
   userMenuItems: MenuItem[] = [];
   menuWidth = 220;
   fotoUsuario: string | null = null;
+  private refreshTimer: any = null;
 
   get firstName(): string {
     const name = this.currentUser?.name?.trim();
@@ -91,6 +92,9 @@ export class HeaderComponent implements OnInit {
     this.meusDadosService.obterFotoUrl().subscribe({
       next: (response) => {
         this.fotoUsuario = response.url;
+        
+        // Agenda refresh automático antes da URL expirar
+        this.agendarRefreshFoto(response.expiracaoSegundos);
       },
       error: () => {
         this.fotoUsuario = null;
@@ -99,11 +103,37 @@ export class HeaderComponent implements OnInit {
   }
 
   /**
+   * Agenda o refresh automático da foto
+   */
+  private agendarRefreshFoto(expiracaoSegundos: number): void {
+    // Limpa timer anterior se existir
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
+    // Renova 30 segundos antes de expirar
+    const tempoParaRenovar = Math.max(1000, (expiracaoSegundos - 30) * 1000);
+    
+    this.refreshTimer = setTimeout(() => {
+      this.carregarFotoUsuario();
+    }, tempoParaRenovar);
+  }
+
+  /**
    * Abre/fecha o menu do usuário
    */
   toggleUserMenu(event: Event): void {
     if (this.userMenu) {
       this.userMenu.toggle(event);
+    }
+  }
+
+  /**
+   * Limpa recursos ao destruir o componente
+   */
+  ngOnDestroy(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
     }
   }
 }

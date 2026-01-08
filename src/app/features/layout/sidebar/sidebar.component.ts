@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, ElementRef, HostListener, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthorizationService, SidebarService, PermissaoService, AuthService, MeusDadosService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -28,7 +28,7 @@ interface MenuItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss']
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   isExpanded = false;
   menuItems: MenuItem[] = [];
   filteredMenuItems: MenuItem[] = [];
@@ -38,6 +38,7 @@ export class SidebarComponent implements OnInit {
   usuarioLogado: MeusDadosDTO | null = null;
   fotoUsuario: string | null = null;
   nomeAbreviado: string = '';
+  private refreshTimer: any = null;
 
   constructor(
     private authorizationService: AuthorizationService,
@@ -374,11 +375,32 @@ export class SidebarComponent implements OnInit {
     this.meusDadosService.obterFotoUrl().subscribe({
       next: (response) => {
         this.fotoUsuario = response.url;
+        
+        // Agenda refresh automático antes da URL expirar
+        // Renova 30 segundos antes da expiração
+        this.agendarRefreshFoto(response.expiracaoSegundos);
       },
       error: () => {
         this.fotoUsuario = null;
       }
     });
+  }
+
+  /**
+   * Agenda o refresh automático da foto
+   */
+  private agendarRefreshFoto(expiracaoSegundos: number): void {
+    // Limpa timer anterior se existir
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
+    // Renova 30 segundos antes de expirar (ou após 80% do tempo se for menor que 30s)
+    const tempoParaRenovar = Math.max(1000, (expiracaoSegundos - 30) * 1000);
+    
+    this.refreshTimer = setTimeout(() => {
+      this.carregarFotoUsuario();
+    }, tempoParaRenovar);
   }
 
   /**
@@ -419,5 +441,14 @@ export class SidebarComponent implements OnInit {
    */
   logout(): void {
     this.authService.logout();
+  }
+
+  /**
+   * Limpa recursos ao destruir o componente
+   */
+  ngOnDestroy(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
   }
 }
