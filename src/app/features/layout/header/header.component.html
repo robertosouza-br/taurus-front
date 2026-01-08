@@ -28,17 +28,17 @@
 
     <!-- Menu do Usuário -->
     <div class="user-menu">
-      <button 
-        pButton 
-        type="button" 
-        #userButton
-        [label]="firstName"
-        [title]="firstName"
-        icon="pi pi-user"
-        iconPos="left"
-        class="p-button-text user-button"
-        (click)="toggleUserMenu($event)"
-      ></button>
+      <div class="user-avatar-button" (click)="toggleUserMenu($event)" [title]="firstName">
+        <img 
+          *ngIf="fotoUsuario" 
+          [src]="fotoUsuario" 
+          [alt]="firstName" 
+          class="user-avatar"
+        />
+        <div *ngIf="!fotoUsuario" class="user-avatar user-avatar-placeholder">
+          <i class="pi pi-user"></i>
+        </div>
+      </div>
       
       <p-menu 
         #userMenu 

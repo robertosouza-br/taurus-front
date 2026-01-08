@@ -37,12 +37,12 @@
 
 // Header do Usuário
 .sidebar-user-header {
-  padding: 1.5rem 1rem;
+  padding: 2rem 1rem 1.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
   cursor: pointer;
   transition: background 0.3s ease;
 
@@ -51,42 +51,43 @@
   }
 
   .user-avatar-wrapper {
-    flex-shrink: 0;
+    margin-bottom: 1rem;
   }
 
   .user-avatar {
-    width: 48px;
-    height: 48px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     
     &.user-avatar-placeholder {
       color: rgba(255, 255, 255, 0.9);
-      font-size: 1.5rem;
+      font-size: 2.5rem;
     }
   }
 
   .user-info {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
+    text-align: center;
     color: #ffffff;
 
     .user-name {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.35rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .user-profile {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       opacity: 0.85;
       text-transform: uppercase;
       letter-spacing: 0.5px;
