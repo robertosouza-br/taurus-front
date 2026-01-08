@@ -21,13 +21,13 @@
     
     <!-- Template para CPF -->
     <ng-template appTableTemplate="cpf" let-usuario="rowData">
-      {{ formatarCPF(usuario.cpf) }}
+      {{ usuario.cpf | cpf }}
     </ng-template>
     
     <!-- Template para Data de Expiração -->
     <ng-template appTableTemplate="expiracao" let-usuario="rowData">
       <span *ngIf="usuario.dataExpiracao; else ilimitado">
-        {{ formatarData(usuario.dataExpiracao) }}
+        {{ usuario.dataExpiracao | dataBr }}
       </span>
       <ng-template #ilimitado>
         <p-tag value="Ilimitado" severity="info"></p-tag>
@@ -50,3 +50,82 @@
   [options]="exportOptions"
   (onExport)="exportarRelatorio($event)">
 </app-export-speed-dial>
+
+<!-- Dialog de Visualização do Usuário -->
+<p-dialog
+  [(visible)]="exibirDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [showHeader]="false"
+  [dismissableMask]="true"
+  [style]="{width: '450px', borderRadius: '16px'}"
+  [breakpoints]="{'960px': '75vw', '640px': '95vw'}"
+  (onHide)="fecharDialog()">
+  
+  <div *ngIf="usuarioSelecionado" class="usuario-card">
+    <!-- Botão Fechar -->
+    <button 
+      class="close-button" 
+      (click)="fecharDialog()"
+      pTooltip="Fechar"
+      tooltipPosition="left">
+      <i class="pi pi-times"></i>
+    </button>
+
+    <!-- Foto do Usuário -->
+    <div class="foto-header">
+      <div class="foto-wrapper">
+        <i *ngIf="carregandoFoto" class="pi pi-spin pi-spinner"></i>
+        <img 
+          *ngIf="!carregandoFoto && fotoUsuarioUrl" 
+          [src]="fotoUsuarioUrl" 
+          [alt]="usuarioSelecionado.nome"
+          class="foto-usuario">
+        <div 
+          *ngIf="!carregandoFoto && !fotoUsuarioUrl" 
+          class="foto-placeholder">
+          <i class="pi pi-user"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informações do Usuário -->
+    <div class="info-card">
+      <h2 class="usuario-nome">{{ usuarioSelecionado.nome }}</h2>
+      
+      <div class="info-list">
+        <div class="info-row">
+          <div class="info-icon">
+            <i class="pi pi-envelope"></i>
+          </div>
+          <div class="info-content">
+            <span class="info-label">E-mail</span>
+            <span class="info-value">{{ usuarioSelecionado.email }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="usuarioSelecionado.telefone">
+          <div class="info-icon">
+            <i class="pi pi-phone"></i>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Telefone</span>
+            <span class="info-value">{{ usuarioSelecionado.telefone | telefone }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="!usuarioSelecionado.telefone">
+          <div class="info-icon">
+            <i class="pi pi-phone"></i>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Telefone</span>
+            <span class="info-value text-muted">Não informado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>

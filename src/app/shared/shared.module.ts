@@ -19,6 +19,9 @@ import { SliderModule } from 'primeng/slider';
 import { ImageCropperComponent } from 'ngx-image-cropper';
 
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
+import { TelefonePipe } from './pipes/telefone.pipe';
+import { CpfPipe } from './pipes/cpf.pipe';
+import { DataBrPipe } from './pipes/data-br.pipe';
 import { DataTableComponent } from './components/data-table/data-table.component';
 import { DataTableTemplateDirective } from './components/data-table/data-table-template.directive';
 import { PageHeaderComponent } from './components/page-header/page-header.component';
@@ -49,6 +52,9 @@ import { CalendarModule } from 'primeng/calendar';
     HasRoleDirective,
     HasPermissionDirective,
     TemPermissaoDirective,
+    TelefonePipe,
+    CpfPipe,
+    DataBrPipe,
     DataTableComponent,
     PageHeaderComponent,
     BreadcrumbComponent,
@@ -87,6 +93,9 @@ import { CalendarModule } from 'primeng/calendar';
   exports: [
     CommonModule,
     FormsModule,
+    TelefonePipe,
+    CpfPipe,
+    DataBrPipe,
     HasRoleDirective,
     HasPermissionDirective,
     TemPermissaoDirective,
@@ -109,6 +118,7 @@ import { CalendarModule } from 'primeng/calendar';
     // PrimeNG modules necessários pelos componentes
     CalendarModule,
     SliderModule,
+    TooltipModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

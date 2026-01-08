@@ -22,6 +22,12 @@ import { ExportOption } from '../../../shared/components/export-speed-dial/expor
 export class UsuariosListaComponent extends BaseListComponent implements OnInit {
   usuarios: UsuarioSaidaDTO[] = [];
   searchTerm: string = '';
+  
+  // Dialog de visualização
+  exibirDialog: boolean = false;
+  usuarioSelecionado: UsuarioSaidaDTO | null = null;
+  fotoUsuarioUrl: string | null = null;
+  carregandoFoto: boolean = false;
 
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
@@ -109,6 +115,16 @@ export class UsuariosListaComponent extends BaseListComponent implements OnInit 
 
     this.acoes = [];
 
+    // Ação de visualizar (sempre disponível se pode consultar)
+    if (this.permissaoService.temPermissao(Funcionalidade.USUARIO, Permissao.CONSULTAR)) {
+      this.acoes.push({
+        icon: 'pi pi-eye',
+        tooltip: 'Visualizar',
+        severity: 'secondary',
+        command: (rowData: any) => this.visualizarUsuario(rowData)
+      });
+    }
+
     if (this.permissaoService.temPermissao(Funcionalidade.USUARIO, Permissao.ALTERAR)) {
       this.acoes.push({
         icon: 'pi pi-pencil',
@@ -185,6 +201,35 @@ export class UsuariosListaComponent extends BaseListComponent implements OnInit 
     this.router.navigate(['/admin/usuarios/novo']);
   }
 
+  visualizarUsuario(usuario: UsuarioSaidaDTO): void {
+    this.usuarioSelecionado = usuario;
+    this.exibirDialog = true;
+    this.carregarFotoUsuario(usuario.id);
+  }
+
+  carregarFotoUsuario(usuarioId: number): void {
+    this.carregandoFoto = true;
+    this.fotoUsuarioUrl = null;
+    
+    this.usuarioService.obterFotoUrl(usuarioId).subscribe({
+      next: (response) => {
+        this.fotoUsuarioUrl = response.url;
+        this.carregandoFoto = false;
+      },
+      error: () => {
+        // Se não tiver foto, usa o avatar padrão
+        this.fotoUsuarioUrl = null;
+        this.carregandoFoto = false;
+      }
+    });
+  }
+
+  fecharDialog(): void {
+    this.exibirDialog = false;
+    this.usuarioSelecionado = null;
+    this.fotoUsuarioUrl = null;
+  }
+
   editarUsuario(id: number): void {
     this.router.navigate(['/admin/usuarios/editar', id]);
   }
@@ -230,23 +275,6 @@ export class UsuariosListaComponent extends BaseListComponent implements OnInit 
           }
         });
       });
-  }
-
-  /**
-   * Formata CPF para exibição (000.000.000-00)
-   */
-  formatarCPF(cpf: string): string {
-    if (!cpf || cpf.length !== 11) return cpf;
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  }
-
-  /**
-   * Formata data para exibição (DD/MM/YYYY)
-   */
-  formatarData(data: string): string {
-    if (!data) return '';
-    const [ano, mes, dia] = data.split('-');
-    return `${dia}/${mes}/${ano}`;
   }
 
   /**

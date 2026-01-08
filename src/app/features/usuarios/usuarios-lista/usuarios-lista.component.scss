@@ -1,2 +1,251 @@
-// Estilos específicos da lista de usuários (se necessário)
+// Estilos específicos da lista de usuários
 // CSS de responsividade global está em src/styles.scss
+
+// Dialog de Visualização do Usuário - Design Moderno
+::ng-deep .p-dialog {
+  .p-dialog-content {
+    padding: 0 !important;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+}
+
+.usuario-card {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600, #1976d2) 100%);
+  position: relative;
+
+  .close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    &:hover {
+      background: #ffffff;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    i {
+      font-size: 1.25rem;
+      color: var(--text-color);
+    }
+  }
+
+  .foto-header {
+    padding: 2.5rem 0 1.5rem;
+    display: flex;
+    justify-content: center;
+    position: relative;
+
+    .foto-wrapper {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.2),
+        0 0 0 10px rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+
+      .foto-usuario {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .foto-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+
+        i {
+          font-size: 5.5rem;
+          color: var(--text-color-secondary);
+        }
+      }
+
+      i.pi-spinner {
+        font-size: 3rem;
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .info-card {
+    background: #ffffff;
+    border-radius: 24px 24px 0 0;
+    padding: 2rem 2rem 2.5rem;
+    margin-top: -15px;
+    position: relative;
+
+    .usuario-nome {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin: 0 0 1.5rem 0;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+
+      .info-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        background: var(--surface-50);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: var(--surface-100);
+          transform: translateX(4px);
+        }
+
+        .info-icon {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600, #1976d2) 100%);
+          border-radius: 10px;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+          i {
+            font-size: 1.1rem;
+            color: #ffffff;
+          }
+        }
+
+        .info-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          min-width: 0;
+
+          .info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+            word-break: break-word;
+
+            &.text-muted {
+              color: var(--text-color-secondary);
+              font-style: italic;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsividade
+@media screen and (max-width: 640px) {
+  .usuario-card {
+    .close-button {
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 36px;
+      height: 36px;
+
+      i {
+        font-size: 1.1rem;
+      }
+    }
+
+    .foto-header {
+      padding: 2rem 0 1rem;
+
+      .foto-wrapper {
+        width: 140px;
+        height: 140px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+
+        .foto-placeholder i {
+          font-size: 4.5rem;
+        }
+      }
+    }
+
+    .info-card {
+      padding: 1.5rem 1.25rem 2rem;
+
+      .usuario-nome {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .info-list {
+        gap: 1rem;
+
+        .info-row {
+          padding: 0.65rem;
+
+          .info-icon {
+            width: 36px;
+            height: 36px;
+
+            i {
+              font-size: 1rem;
+            }
+          }
+
+          .info-content {
+            .info-label {
+              font-size: 0.7rem;
+            }
+
+            .info-value {
+              font-size: 0.95rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
