@@ -21,7 +21,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   errorMessage = '';
   tipoErro: 'credenciais' | 'bloqueado' | 'generico' | 'inatividade' | null = null;
   mostrarBotaoSuporte = false;
-  returnUrl = '/';
+  returnUrl = '/dashboard';
   hidePassword = true;
 
   constructor(
@@ -37,7 +37,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     // Se já estiver autenticado, redireciona
     if (this.authService.isAuthenticated) {
-      this.router.navigate(['/']);
+      this.router.navigate(['/dashboard']);
     }
 
     // Inicializa o formulário
@@ -47,7 +47,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     });
 
     // Obtém a URL de retorno dos parâmetros da query
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
     
     // Verifica se há mensagem de logout (ex: inatividade)
     const mensagem = this.route.snapshot.queryParams['mensagem'];
