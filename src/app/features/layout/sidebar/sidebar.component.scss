@@ -337,6 +337,13 @@
   }
 }
 
+// Landscape adjustments - oculta footer em telas com pouca altura
+@media (max-height: 600px) {
+  .sidebar-footer {
+    display: none;
+  }
+}
+
 // Mobile adjustments
 @media (max-width: 768px) {
   .sidebar {
