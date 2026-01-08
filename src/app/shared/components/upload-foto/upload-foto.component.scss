@@ -309,13 +309,13 @@
   }
 }
 
-// Dialog customizations
-::ng-deep .p-dialog {
-  .p-dialog-content {
+// Dialog customizations - específico para o componente de upload
+:host ::ng-deep .upload-foto-dialog {
+  &.p-dialog .p-dialog-content {
     padding: 1.5rem;
   }
   
-  .p-dialog-footer {
+  &.p-dialog .p-dialog-footer {
     padding: 1rem 1.5rem;
     display: flex;
     justify-content: flex-end;

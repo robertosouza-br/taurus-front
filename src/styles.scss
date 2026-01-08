@@ -1286,3 +1286,31 @@ small.info-message,
   }
 }
 
+/* ===================================== */
+/* ESTILOS GLOBAIS PARA DIALOGS (MODAIS) */
+/* ===================================== */
+
+// Garante que todos os dialogs tenham scroll e padding corretos
+.p-dialog {
+  .p-dialog-header {
+    padding: 1.5rem;
+  }
+
+  .p-dialog-content {
+    padding: 1.5rem;
+    overflow-y: auto !important;
+    max-height: calc(100vh - 200px);
+  }
+
+  .p-dialog-footer {
+    padding: 1rem 1.5rem;
+  }
+}
+
+// Ajuste para dialogs em mobile
+@media (max-width: 768px) {
+  .p-dialog .p-dialog-content {
+    max-height: calc(100vh - 180px);
+  }
+}
+
