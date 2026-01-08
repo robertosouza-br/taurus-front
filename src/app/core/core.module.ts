@@ -1,7 +1,7 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { JwtInterceptor, ErrorInterceptor, SecurityInterceptor } from './interceptors';
+import { JwtInterceptor, ErrorInterceptor, SecurityInterceptor, ActivityInterceptor } from './interceptors';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 
@@ -33,6 +33,11 @@ import { DialogService } from 'primeng/dynamicdialog';
     {
       provide: HTTP_INTERCEPTORS,
       useClass: SecurityInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ActivityInterceptor,
       multi: true
     }
   ]

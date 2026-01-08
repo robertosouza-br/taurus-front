@@ -370,9 +370,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   /**
    * Carrega a foto do usuário logado
+   * @param silencioso Se true, não conta como atividade (para refresh automático)
    */
-  private carregarFotoUsuario(): void {
-    this.meusDadosService.obterFotoUrl().subscribe({
+  private carregarFotoUsuario(silencioso: boolean = false): void {
+    this.meusDadosService.obterFotoUrl(silencioso).subscribe({
       next: (response) => {
         this.fotoUsuario = response.url;
         
@@ -399,7 +400,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const tempoParaRenovar = Math.max(1000, (expiracaoSegundos - 30) * 1000);
     
     this.refreshTimer = setTimeout(() => {
-      this.carregarFotoUsuario();
+      // Refresh automático é SILENCIOSO - não conta como atividade do usuário
+      this.carregarFotoUsuario(true);
     }, tempoParaRenovar);
   }
 

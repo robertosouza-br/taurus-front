@@ -1,8 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpContextToken } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MeusDadosDTO, AtualizarMeusDadosDTO, TrocarSenhaDTO } from '../models/meus-dados.model';
+
+/**
+ * Token de contexto para marcar requisições silenciosas que não devem resetar o timer de inatividade
+ */
+export const SILENT_REQUEST = new HttpContextToken<boolean>(() => false);
 
 /**
  * Serviço para gerenciamento de dados do usuário autenticado
@@ -50,10 +55,15 @@ export class MeusDadosService {
 
   /**
    * Obtém URL temporária da foto do usuário autenticado (expira em 5 minutos)
+   * @param silencioso Se true, não conta como atividade do usuário (não reseta timer de inatividade)
    * @returns Observable com URL assinada e tempo de expiração em segundos
    */
-  obterFotoUrl(): Observable<{ url: string; expiracaoSegundos: number }> {
-    return this.http.get<{ url: string; expiracaoSegundos: number }>(`${this.apiUrl}/foto`);
+  obterFotoUrl(silencioso: boolean = false): Observable<{ url: string; expiracaoSegundos: number }> {
+    const context = silencioso ? new HttpContext().set(SILENT_REQUEST, true) : undefined;
+    return this.http.get<{ url: string; expiracaoSegundos: number }>(
+      `${this.apiUrl}/foto`,
+      { context }
+    );
   }
 
   /**
