@@ -406,22 +406,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Abrevia o nome do usuário (Primeiro Nome + Inicial do último sobrenome)
-   * Exemplo: João Silva Santos -> João S.
+   * Retorna apenas o primeiro nome do usuário
+   * Exemplo: João Silva Santos -> João
    */
   private abreviarNome(nomeCompleto: string): string {
     if (!nomeCompleto) return '';
     
     const partes = nomeCompleto.trim().split(' ').filter(p => p.length > 0);
     
-    if (partes.length === 1) {
-      return partes[0];
-    }
-    
-    const primeiroNome = partes[0];
-    const ultimoSobrenome = partes[partes.length - 1];
-    
-    return `${primeiroNome} ${ultimoSobrenome.charAt(0).toUpperCase()}.`;
+    return partes[0] || '';
   }
 
   /**
