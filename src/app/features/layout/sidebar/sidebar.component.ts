@@ -1,7 +1,8 @@
 import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthorizationService, SidebarService, PermissaoService, AuthService } from '../../../core/services';
+import { AuthorizationService, SidebarService, PermissaoService, AuthService, MeusDadosService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
+import { MeusDadosDTO } from '../../../core/models/meus-dados.model';
 
 /**
  * Item do menu
@@ -32,6 +33,11 @@ export class SidebarComponent implements OnInit {
   menuItems: MenuItem[] = [];
   filteredMenuItems: MenuItem[] = [];
   searchTerm: string = '';
+  
+  // Dados do usuário logado
+  usuarioLogado: MeusDadosDTO | null = null;
+  fotoUsuario: string | null = null;
+  nomeAbreviado: string = '';
 
   constructor(
     private authorizationService: AuthorizationService,
@@ -39,11 +45,13 @@ export class SidebarComponent implements OnInit {
     private sidebarService: SidebarService,
     private permissaoService: PermissaoService,
     private elementRef: ElementRef,
-    private authService: AuthService
+    private authService: AuthService,
+    private meusDadosService: MeusDadosService
   ) {}
 
   ngOnInit(): void {
     this.initializeMenu();
+    this.carregarDadosUsuario();
     
     // Sincroniza com o serviço
     this.sidebarService.isExpanded$.subscribe(
@@ -341,6 +349,69 @@ export class SidebarComponent implements OnInit {
       }
     });
     this.filteredMenuItems = this.menuItems;
+  }
+
+  /**
+   * Carrega os dados do usuário logado
+   */
+  private carregarDadosUsuario(): void {
+    this.meusDadosService.buscarMeusDados().subscribe({
+      next: (dados) => {
+        this.usuarioLogado = dados;
+        this.nomeAbreviado = this.abreviarNome(dados.nome);
+        this.carregarFotoUsuario();
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados do usuário:', error);
+      }
+    });
+  }
+
+  /**
+   * Carrega a foto do usuário logado
+   */
+  private carregarFotoUsuario(): void {
+    this.meusDadosService.obterFotoUrl().subscribe({
+      next: (response) => {
+        this.fotoUsuario = response.url;
+      },
+      error: () => {
+        this.fotoUsuario = null;
+      }
+    });
+  }
+
+  /**
+   * Abrevia o nome do usuário (Primeiro Nome + Inicial do último sobrenome)
+   * Exemplo: João Silva Santos -> João S.
+   */
+  private abreviarNome(nomeCompleto: string): string {
+    if (!nomeCompleto) return '';
+    
+    const partes = nomeCompleto.trim().split(' ').filter(p => p.length > 0);
+    
+    if (partes.length === 1) {
+      return partes[0];
+    }
+    
+    const primeiroNome = partes[0];
+    const ultimoSobrenome = partes[partes.length - 1];
+    
+    return `${primeiroNome} ${ultimoSobrenome.charAt(0).toUpperCase()}.`;
+  }
+
+  /**
+   * Obtém o nome do primeiro perfil do usuário
+   */
+  get perfilPrincipal(): string {
+    return this.usuarioLogado?.perfis?.[0]?.nome || 'Usuário';
+  }
+
+  /**
+   * Navega para a página de Meu Perfil
+   */
+  irParaMeuPerfil(): void {
+    this.router.navigate(['/meu-perfil']);
   }
 
   /**

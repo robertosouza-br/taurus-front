@@ -1,4 +1,23 @@
 <aside class="sidebar" [class.collapsed]="!isExpanded" (click)="onSidebarClick($event)">
+  <!-- Header do Usuário -->
+  <div class="sidebar-user-header" *ngIf="usuarioLogado && isExpanded" (click)="irParaMeuPerfil()">
+    <div class="user-avatar-wrapper">
+      <img 
+        *ngIf="fotoUsuario" 
+        [src]="fotoUsuario" 
+        alt="Foto do usuário" 
+        class="user-avatar"
+      />
+      <div *ngIf="!fotoUsuario" class="user-avatar user-avatar-placeholder">
+        <i class="pi pi-user"></i>
+      </div>
+    </div>
+    <div class="user-info">
+      <div class="user-name">{{ nomeAbreviado }}</div>
+      <div class="user-profile">{{ perfilPrincipal }}</div>
+    </div>
+  </div>
+
   <!-- Campo de busca -->
   <div class="sidebar-search" *ngIf="isExpanded">
     <div class="search-wrapper">
