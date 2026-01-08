@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { FuncionalidadeService } from '../../../core/services/funcionalidade.service';
+import { MeusDadosService } from '../../../core/services/meus-dados.service';
 import { UsuarioSaidaDTO, UsuarioAtualizacaoDTO } from '../../../core/models/usuario.model';
 import { PerfilDTO } from '../../../core/models/funcionalidade.model';
 import { PermissaoService, AuthService, AuthorizationService } from '../../../core/services';
@@ -46,6 +47,7 @@ export class UsuarioEdicaoComponent extends BaseFormComponent implements OnInit 
     private router: Router,
     private usuarioService: UsuarioService,
     private funcionalidadeService: FuncionalidadeService,
+    private meusDadosService: MeusDadosService,
     private messageService: MessageService,
     private permissaoService: PermissaoService,
     private confirmationService: ConfirmationService,
@@ -81,16 +83,18 @@ export class UsuarioEdicaoComponent extends BaseFormComponent implements OnInit 
   carregarDados(): void {
     this.carregando = true;
 
-    // Verificar se está editando o próprio usuário
-    const usuarioLogado = this.authService.getUsuarioLogado();
-    
-    // Verificar se o usuário logado tem perfil de ADMINISTRADOR
-    this.usuarioLogadoEhAdministrador = this.authorizationService.isAdministrador();
-
+    // Buscar ID do usuário logado através da API para garantir comparação correta
     Promise.all([
+      this.meusDadosService.buscarMeusDados().toPromise(),
       this.usuarioService.obterUsuario(this.usuarioId).toPromise(),
       this.funcionalidadeService.listarPerfis(0, 200).toPromise()
-    ]).then(([usuario, perfisPage]) => {
+    ]).then(([meusDados, usuario, perfisPage]) => {
+      // Verificar se está editando o próprio usuário
+      this.editandoProprioUsuario = meusDados?.id === this.usuarioId;
+      
+      // Verificar se o usuário logado tem perfil de ADMINISTRADOR
+      this.usuarioLogadoEhAdministrador = this.authorizationService.isAdministrador();
+      
       this.usuario = usuario || null;
       this.perfis = perfisPage?.content.filter(p => p.ativo) || [];
 
@@ -105,9 +109,6 @@ export class UsuarioEdicaoComponent extends BaseFormComponent implements OnInit 
         this.perfilSelecionado = this.usuario.perfis && this.usuario.perfis.length > 0
           ? this.usuario.perfis[0]
           : null;
-        
-        // Verificar se o e-mail do usuário logado é o mesmo do usuário sendo editado
-        this.editandoProprioUsuario = usuarioLogado?.email === this.usuario.email;
       }
 
       this.carregando = false;

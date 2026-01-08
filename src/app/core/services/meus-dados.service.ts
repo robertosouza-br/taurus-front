@@ -45,14 +45,15 @@ export class MeusDadosService {
     formData.append('arquivo', arquivo);
     
     // NÃO adicionar Content-Type manualmente - HttpClient detecta automaticamente
-    return this.http.post<{ mensagem: string }>(`${this.apiUrl}/foto`, formData);
+    return this.http.post<{ mensagem: string; arquivo: string }>(`${this.apiUrl}/foto`, formData);
   }
 
   /**
    * Obtém URL temporária da foto do usuário autenticado (expira em 5 minutos)
+   * @returns Observable com URL assinada e tempo de expiração em segundos
    */
-  obterFotoUrl(): Observable<{ url: string; expiresIn: number }> {
-    return this.http.get<{ url: string; expiresIn: number }>(`${this.apiUrl}/foto`);
+  obterFotoUrl(): Observable<{ url: string; expiracaoSegundos: number }> {
+    return this.http.get<{ url: string; expiracaoSegundos: number }>(`${this.apiUrl}/foto`);
   }
 
   /**

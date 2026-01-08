@@ -7,11 +7,17 @@
   <!-- Preview da Foto -->
   <div *ngIf="!carregando" class="foto-preview">
     <img 
-      [src]="fotoUrl || 'assets/images/no-user.png'" 
+      *ngIf="fotoUrl"
+      [src]="fotoUrl" 
       [alt]="'Foto do usuário'"
       class="foto-imagem"
       [class.enviando]="enviando"
     />
+    
+    <!-- Avatar padrão quando não há foto -->
+    <div *ngIf="!fotoUrl" class="foto-placeholder">
+      <i class="pi pi-user"></i>
+    </div>
     
     <!-- Overlay com ações (apenas se não for somente leitura) -->
     <div *ngIf="!somenteLeitura" class="foto-overlay">

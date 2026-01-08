@@ -51,6 +51,7 @@ export interface JwtPayload {
  * Resposta do endpoint de login com permissões granulares
  */
 export interface LoginResponse {
+  id: number;
   token: string;
   expiracao: string;
   refreshToken: string;
@@ -80,6 +81,7 @@ export interface Perfil {
  * Usuário logado com permissões estruturadas
  */
 export interface UsuarioLogado {
+  id: number;
   email: string;
   nome: string;
   token: string;

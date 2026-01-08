@@ -147,21 +147,23 @@ export class UsuarioService {
    * Faz upload da foto do usuário
    * @param id ID do usuário
    * @param arquivo Arquivo de imagem (JPG, JPEG ou PNG - máx 5MB)
+   * @returns Observable com mensagem de sucesso e nome do arquivo
    */
-  uploadFoto(id: number, arquivo: File): Observable<{ mensagem: string }> {
+  uploadFoto(id: number, arquivo: File): Observable<{ mensagem: string; arquivo: string }> {
     const formData = new FormData();
     formData.append('arquivo', arquivo);
     
     // NÃO adicionar Content-Type manualmente - HttpClient detecta automaticamente
-    return this.http.post<{ mensagem: string }>(`${this.apiUrl}/${id}/foto`, formData);
+    return this.http.post<{ mensagem: string; arquivo: string }>(`${this.apiUrl}/${id}/foto`, formData);
   }
 
   /**
    * Obtém URL temporária da foto do usuário (expira em 5 minutos)
    * @param id ID do usuário
+   * @returns Observable com URL assinada e tempo de expiração em segundos
    */
-  obterFotoUrl(id: number): Observable<{ url: string; expiresIn: number }> {
-    return this.http.get<{ url: string; expiresIn: number }>(`${this.apiUrl}/${id}/foto`);
+  obterFotoUrl(id: number): Observable<{ url: string; expiracaoSegundos: number }> {
+    return this.http.get<{ url: string; expiracaoSegundos: number }>(`${this.apiUrl}/${id}/foto`);
   }
 
   /**

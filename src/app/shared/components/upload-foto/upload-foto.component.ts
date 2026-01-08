@@ -8,7 +8,7 @@ import { ImageCroppedEvent, LoadedImage, ImageTransform } from 'ngx-image-croppe
  */
 export interface FotoResponse {
   url: string;
-  expiresIn: number;
+  expiracaoSegundos: number;
 }
 
 /**
@@ -109,7 +109,7 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
       // Armazenar em cache com margem de segurança (renovar 30s antes de expirar)
       this.fotoCache = {
         url: response.url,
-        expiraEm: agora + ((response.expiresIn - 30) * 1000)
+        expiraEm: agora + ((response.expiracaoSegundos - 30) * 1000)
       };
       
       this.fotoUrl = response.url;
@@ -135,14 +135,8 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
    * Manipula seleção de arquivo
    */
   async onFileSelect(event: any): Promise<void> {
-    console.log('onFileSelect chamado', event);
     const arquivo = event.target.files?.[0];
-    console.log('Arquivo selecionado:', arquivo);
-    
-    if (!arquivo) {
-      console.log('Nenhum arquivo selecionado');
-      return;
-    }
+    if (!arquivo) return;
 
     // Validações iniciais
     if (!this.validarArquivoInicial(arquivo)) {
@@ -150,16 +144,11 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('Iniciando leitura do arquivo...');
-    
     // Carregar imagem no editor
     const reader = new FileReader();
     reader.onload = (e) => {
-      console.log('Arquivo carregado:', e.target?.result);
       this.imagemParaEditar = e.target?.result as string;
-      console.log('imagemParaEditar definida:', this.imagemParaEditar.substring(0, 50));
       this.exibirEditor = true;
-      console.log('Editor exibido:', this.exibirEditor);
     };
     reader.onerror = (error) => {
       console.error('Erro ao ler arquivo:', error);
@@ -365,14 +354,10 @@ export class UploadFotoComponent implements OnInit, OnDestroy {
    * Abre seletor de arquivo
    */
   abrirSeletorArquivo(): void {
-    console.log('abrirSeletorArquivo chamado');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/jpeg,image/jpg,image/png';
-    input.onchange = (e) => {
-      console.log('Input change event:', e);
-      this.onFileSelect(e);
-    };
+    input.onchange = (e) => this.onFileSelect(e);
     input.click();
   }
 

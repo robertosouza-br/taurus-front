@@ -108,6 +108,7 @@ export class AuthService {
     const permissoesMap = this.converterPermissoes(response.permissoes);
 
     const usuario: UsuarioLogado = {
+      id: response.id,
       email: response.usuario,
       nome: response.nomeUsuario,
       token: response.token,
@@ -344,6 +345,16 @@ export class AuthService {
    */
   getUsuarioLogado(): UsuarioLogado | null {
     return this.usuarioLogadoSubject.value;
+  }
+
+  /**
+   * Obtém o ID do usuário logado
+   * Busca diretamente do objeto UsuarioLogado armazenado
+   * @returns ID do usuário ou null se não estiver logado
+   */
+  getUsuarioLogadoId(): number | null {
+    const usuarioLogado = this.getUsuarioLogado();
+    return usuarioLogado?.id || null;
   }
 
   /**

@@ -203,13 +203,18 @@
           [obterUrlCallback]="obterUrlCallback"
           [removerCallback]="removerCallback"
           [tamanho]="'grande'"
+          [somenteLeitura]="!editandoProprioUsuario"
           (fotoAlterada)="onFotoAlterada()">
         </app-upload-foto>
         
         <div class="foto-info mt-3">
-          <p class="text-center text-muted">
+          <p *ngIf="editandoProprioUsuario" class="text-center text-muted">
             <i class="pi pi-info-circle"></i>
-            A foto será exibida no perfil do usuário
+            A foto será exibida no seu perfil
+          </p>
+          <p *ngIf="!editandoProprioUsuario" class="text-center text-muted">
+            <i class="pi pi-lock"></i>
+            Apenas o próprio usuário pode alterar sua foto
           </p>
         </div>
       </div>
