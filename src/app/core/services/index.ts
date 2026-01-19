@@ -8,6 +8,7 @@ export * from './sidebar.service';
 export * from './funcionalidade.service';
 export * from './usuario.service';
 export * from './meus-dados.service';
+export * from './foto-usuario.service';
 export * from './corretor.service';
 export * from './corretor-publico.service';
 export * from './auditoria.service';

@@ -2,7 +2,8 @@ import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { Menu } from 'primeng/menu';
-import { AuthService, SidebarService, MeusDadosService } from '../../../core/services';
+import { Subscription } from 'rxjs';
+import { AuthService, SidebarService, FotoUsuarioService } from '../../../core/services';
 import { User } from '../../../core/models';
 
 /**
@@ -22,7 +23,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userMenuItems: MenuItem[] = [];
   menuWidth = 220;
   fotoUsuario: string | null = null;
-  private refreshTimer: any = null;
+  
+  private subscriptions = new Subscription();
 
   get firstName(): string {
     const name = this.currentUser?.name?.trim();
@@ -35,15 +37,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private sidebarService: SidebarService,
-    private meusDadosService: MeusDadosService
+    private fotoUsuarioService: FotoUsuarioService
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        this.currentUser = user;
+      })
+    );
 
-    this.carregarFotoUsuario();
+    // Inscreve-se para receber atualizações da foto do usuário
+    // (o carregamento inicial é feito automaticamente pelo serviço)
+    this.subscriptions.add(
+      this.fotoUsuarioService.getFotoUrl().subscribe(
+        url => this.fotoUsuario = url
+      )
+    );
 
     this.userMenuItems = [
       {
@@ -86,42 +96,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carrega a foto do usuário logado
-   * @param silencioso Se true, não conta como atividade (para refresh automático)
-   */
-  private carregarFotoUsuario(silencioso: boolean = false): void {
-    this.meusDadosService.obterFotoUrl(silencioso).subscribe({
-      next: (response) => {
-        this.fotoUsuario = response.url;
-        
-        // Agenda refresh automático antes da URL expirar
-        this.agendarRefreshFoto(response.expiracaoSegundos);
-      },
-      error: () => {
-        this.fotoUsuario = null;
-      }
-    });
-  }
-
-  /**
-   * Agenda o refresh automático da foto
-   */
-  private agendarRefreshFoto(expiracaoSegundos: number): void {
-    // Limpa timer anterior se existir
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-    }
-
-    // Renova 30 segundos antes de expirar
-    const tempoParaRenovar = Math.max(1000, (expiracaoSegundos - 30) * 1000);
-    
-    this.refreshTimer = setTimeout(() => {
-      // Refresh automático é SILENCIOSO - não conta como atividade do usuário
-      this.carregarFotoUsuario(true);
-    }, tempoParaRenovar);
-  }
-
-  /**
    * Abre/fecha o menu do usuário
    */
   toggleUserMenu(event: Event): void {
@@ -129,13 +103,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.userMenu.toggle(event);
     }
   }
-
+  
   /**
    * Limpa recursos ao destruir o componente
    */
   ngOnDestroy(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-    }
+    this.subscriptions.unsubscribe();
   }
 }

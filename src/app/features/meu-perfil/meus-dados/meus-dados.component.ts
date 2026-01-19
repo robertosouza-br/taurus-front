@@ -293,7 +293,11 @@ export class MeusDadosComponent implements OnInit {
 
   obterUrlCallback = async (): Promise<FotoResponse> => {
     const result = await this.meusDadosService.obterFotoUrl().toPromise();
-    return result as FotoResponse;
+    // Backend retorna expiresIn, mas componente espera expiracaoSegundos
+    return {
+      url: result?.url || '',
+      expiracaoSegundos: result?.expiresIn || 300
+    } as FotoResponse;
   };
 
   removerCallback = (): Promise<any> => {

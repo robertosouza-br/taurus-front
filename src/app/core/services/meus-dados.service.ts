@@ -58,9 +58,9 @@ export class MeusDadosService {
    * @param silencioso Se true, não conta como atividade do usuário (não reseta timer de inatividade)
    * @returns Observable com URL assinada e tempo de expiração em segundos
    */
-  obterFotoUrl(silencioso: boolean = false): Observable<{ url: string; expiracaoSegundos: number }> {
+  obterFotoUrl(silencioso: boolean = false): Observable<{ url: string; expiresIn: number }> {
     const context = silencioso ? new HttpContext().set(SILENT_REQUEST, true) : undefined;
-    return this.http.get<{ url: string; expiracaoSegundos: number }>(
+    return this.http.get<{ url: string; expiresIn: number }>(
       `${this.apiUrl}/foto`,
       { context }
     );

@@ -1,8 +1,10 @@
 import { Component, OnInit, ElementRef, HostListener, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthorizationService, SidebarService, PermissaoService, AuthService, MeusDadosService } from '../../../core/services';
+import { Subscription } from 'rxjs';
+import { AuthorizationService, SidebarService, PermissaoService, AuthService, FotoUsuarioService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { MeusDadosDTO } from '../../../core/models/meus-dados.model';
+import { MeusDadosService } from '../../../core/services/meus-dados.service';
 
 /**
  * Item do menu
@@ -38,7 +40,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   usuarioLogado: MeusDadosDTO | null = null;
   fotoUsuario: string | null = null;
   nomeAbreviado: string = '';
-  private refreshTimer: any = null;
+  
+  private subscriptions = new Subscription();
 
   constructor(
     private authorizationService: AuthorizationService,
@@ -47,6 +50,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private permissaoService: PermissaoService,
     private elementRef: ElementRef,
     private authService: AuthService,
+    private fotoUsuarioService: FotoUsuarioService,
     private meusDadosService: MeusDadosService
   ) {}
 
@@ -54,17 +58,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.initializeMenu();
     this.carregarDadosUsuario();
     
+    // Inscreve-se para receber atualizações da foto do usuário
+    // (o carregamento inicial é feito automaticamente pelo serviço)
+    this.subscriptions.add(
+      this.fotoUsuarioService.getFotoUrl().subscribe(
+        url => this.fotoUsuario = url
+      )
+    );
+    
     // Sincroniza com o serviço
-    this.sidebarService.isExpanded$.subscribe(
-      isExpanded => {
-        this.isExpanded = isExpanded;
-        
-        // Quando a sidebar abre, limpa o filtro e colapsa todos os itens
-        if (isExpanded) {
-          this.clearSearch();
-          this.collapseAllItems();
+    this.subscriptions.add(
+      this.sidebarService.isExpanded$.subscribe(
+        isExpanded => {
+          this.isExpanded = isExpanded;
+          
+          // Quando a sidebar abre, limpa o filtro e colapsa todos os itens
+          if (isExpanded) {
+            this.clearSearch();
+            this.collapseAllItems();
+          }
         }
-      }
+      )
     );
     
     // Inicializa o menu filtrado
@@ -357,52 +371,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
    */
   private carregarDadosUsuario(): void {
     this.meusDadosService.buscarMeusDados().subscribe({
-      next: (dados) => {
+      next: (dados: MeusDadosDTO) => {
         this.usuarioLogado = dados;
         this.nomeAbreviado = this.abreviarNome(dados.nome);
-        this.carregarFotoUsuario();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Erro ao carregar dados do usuário:', error);
       }
     });
-  }
-
-  /**
-   * Carrega a foto do usuário logado
-   * @param silencioso Se true, não conta como atividade (para refresh automático)
-   */
-  private carregarFotoUsuario(silencioso: boolean = false): void {
-    this.meusDadosService.obterFotoUrl(silencioso).subscribe({
-      next: (response) => {
-        this.fotoUsuario = response.url;
-        
-        // Agenda refresh automático antes da URL expirar
-        // Renova 30 segundos antes da expiração
-        this.agendarRefreshFoto(response.expiracaoSegundos);
-      },
-      error: () => {
-        this.fotoUsuario = null;
-      }
-    });
-  }
-
-  /**
-   * Agenda o refresh automático da foto
-   */
-  private agendarRefreshFoto(expiracaoSegundos: number): void {
-    // Limpa timer anterior se existir
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-    }
-
-    // Renova 30 segundos antes de expirar (ou após 80% do tempo se for menor que 30s)
-    const tempoParaRenovar = Math.max(1000, (expiracaoSegundos - 30) * 1000);
-    
-    this.refreshTimer = setTimeout(() => {
-      // Refresh automático é SILENCIOSO - não conta como atividade do usuário
-      this.carregarFotoUsuario(true);
-    }, tempoParaRenovar);
   }
 
   /**
@@ -437,13 +413,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
   }
-
+  
   /**
    * Limpa recursos ao destruir o componente
    */
   ngOnDestroy(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-    }
+    this.subscriptions.unsubscribe();
   }
 }
