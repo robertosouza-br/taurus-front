@@ -7,7 +7,11 @@ import { Page } from '../models/page.model';
 
 /**
  * Serviço para gestão de corretores
- * API pública - não requer autenticação
+ * 
+ * ENDPOINTS DISPONÍVEIS:
+ * - POST /corretores (cadastrar): Público, cria corretor + usuário local
+ * - POST /corretores/incluir (incluir): Requer auth, apenas cria no TOTVS RM
+ * - PATCH /corretores/cpf/{cpf} (atualizar): Requer auth + permissão
  * 
  * IMPORTANTE: A API RMS não suporta paginação tradicional com offset.
  * O backend busca TODOS os registros (~3496) e faz paginação em memória.
@@ -62,10 +66,23 @@ export class CorretorService {
 
   /**
    * Cadastra novo corretor (uso interno administrativo)
+   * POST /api/v1/corretores
+   * Endpoint público - cria corretor E usuário local automaticamente
    * @param corretor Dados do corretor
    */
   cadastrar(corretor: CorretorDTO): Observable<CorretorSaidaDTO> {
     return this.http.post<CorretorSaidaDTO>(this.baseUrl, corretor);
+  }
+
+  /**
+   * Inclui corretor via SOAP TOTVS RM
+   * POST /api/v1/corretores/incluir
+   * Requer autenticação e permissão CORRETOR:INCLUIR
+   * Apenas cria corretor no sistema externo (não cria usuário local)
+   * @param corretor Dados do corretor
+   */
+  incluir(corretor: CorretorDTO): Observable<CorretorSaidaDTO> {
+    return this.http.post<CorretorSaidaDTO>(`${this.baseUrl}/incluir`, corretor);
   }
 
   /**
