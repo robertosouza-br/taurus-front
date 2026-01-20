@@ -53,8 +53,11 @@ export class LoginComponent implements OnInit, AfterViewInit {
     const mensagem = this.route.snapshot.queryParams['mensagem'];
     if (mensagem) {
       this.errorMessage = mensagem;
-      // Define tipo especial para mensagem de inatividade
-      if (mensagem.toLowerCase().includes('inatividade') || mensagem.toLowerCase().includes('desconectado')) {
+      // Define tipo especial para mensagem de inatividade ou sessão expirada
+      if (mensagem.toLowerCase().includes('inatividade') || 
+          mensagem.toLowerCase().includes('desconectado') ||
+          mensagem.toLowerCase().includes('sessão expirou') ||
+          mensagem.toLowerCase().includes('expirou')) {
         this.tipoErro = 'inatividade';
       }
     }
