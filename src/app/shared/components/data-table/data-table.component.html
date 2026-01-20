@@ -18,9 +18,11 @@
           pInputText 
           type="text" 
           [(ngModel)]="searchValue"
-          (input)="onSearch.observed ? onSearchChange($event) : dt.filterGlobal(searchValue, 'contains')"
-          class="search-input" />
-        <label for="tableSearch">Buscar...</label>
+          (input)="onSearch.observed ? onSearchInput($event) : dt.filterGlobal(searchValue, 'contains')"
+          class="search-input" 
+          [placeholder]="searchMask === 'cpf' ? '000.000.000-00' : ''" 
+          [maxlength]="searchMask === 'cpf' ? 14 : null" />
+        <label for="tableSearch">{{ searchMask === 'cpf' ? 'Buscar por CPF...' : 'Buscar...' }}</label>
       </span>
       <i class="pi pi-times clear-icon" 
          *ngIf="searchValue" 

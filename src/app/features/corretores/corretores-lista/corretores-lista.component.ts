@@ -97,9 +97,69 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
     }
   }
 
-  onBuscar(termo: any): void {
-    this.currentPage = 0; // Reset para primeira página ao buscar
-    this.carregarCorretores(this.currentPage, this.pageSize, termo as string);
+  onBuscar(cpf: string): void {
+    if (!cpf || cpf.trim() === '') {
+      // Se não houver termo de busca, carrega lista completa
+      this.currentPage = 0;
+      this.carregarCorretores(this.currentPage, this.pageSize);
+      return;
+    }
+
+    // Busca específica por CPF usando endpoint dedicado
+    this.buscarPorCpf(cpf);
+  }
+
+  /**
+   * Busca corretor específico por CPF
+   * Utiliza endpoint GET /api/v1/corretores/cpf/{cpf}
+   * 
+   * @param cpf CPF do corretor (apenas números, sem formatação)
+   */
+  buscarPorCpf(cpf: string): void {
+    this.carregando = true;
+    
+    this.corretorService.buscarPorCpf(cpf).subscribe({
+      next: (corretor: any) => {
+        // Exibe apenas o corretor encontrado
+        this.corretores = [{
+          ...corretor,
+          cargoLabel: CARGO_LABELS[corretor.cargo as keyof typeof CARGO_LABELS]
+        }];
+        this.totalRegistros = 1;
+        
+        setTimeout(() => {
+          this.carregando = false;
+        }, 0);
+      },
+      error: (error) => {
+        this.carregando = false;
+        
+        if (error.status === 404) {
+          // Limpa a lista quando não encontrar
+          this.corretores = [];
+          this.totalRegistros = 0;
+        } else if (error.status === 403) {
+          const mensagem = error.error?.detail || error.error?.message || 'Você não tem permissão para consultar corretores';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Acesso Negado',
+            detail: mensagem,
+            life: 5000
+          });
+          setTimeout(() => {
+            this.router.navigate(['/acesso-negado']);
+          }, 1500);
+        } else {
+          const mensagem = error.error?.message || error.error?.detail || 'Erro ao buscar corretor por CPF';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: mensagem,
+            life: 5000
+          });
+        }
+      }
+    });
   }
 
   /**
@@ -124,12 +184,12 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
    * - Frontend envia page 0-based, backend converte para 1-based
    * - Cada página retorna até 50 registros (fixo no backend)
    * - Total de ~3496 corretores distribuídos em 70 páginas
-   * - O parâmetro 'search' NÃO é suportado pela API externa (filtrar no frontend se necessário)
+   * - Para busca por CPF, use o método buscarPorCpf() que chama endpoint específico
    */
-  carregarCorretores(page: number = 0, size: number = 50, search: string = ''): void {
+  carregarCorretores(page: number = 0, size: number = 50): void {
     this.carregando = true;
     
-    this.corretorService.listar(page, size, search).subscribe({
+    this.corretorService.listar(page, size).subscribe({
       next: (response: Page<CorretorSaidaDTO>) => {
         this.corretores = response.content.map((corretor: CorretorSaidaDTO) => ({
           ...corretor,

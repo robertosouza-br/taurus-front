@@ -20,6 +20,7 @@
     [lazy]="true"
     [rows]="pageSize"
     [rowsPerPageOptions]="[10, 25, 50, 100]"
+    [searchMask]="'cpf'"
     (onLazyLoad)="onLazyLoad($event)"
     (onSearch)="onBuscar($event)">
     
