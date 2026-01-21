@@ -4,13 +4,12 @@ import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { CorretorSaidaDTO, CARGO_LABELS } from '../../../core/models/corretor.model';
 import { Page } from '../../../core/models/page.model';
-import { PermissaoService, AuthorizationService } from '../../../core/services';
+import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { HeaderAction } from '../../../shared/components/page-header/page-header.component';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
-import { ConfirmationService } from '../../../shared/services/confirmation.service';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
 
 @Component({
@@ -32,9 +31,7 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
     private corretorService: CorretorService,
     private router: Router,
     private messageService: MessageService,
-    private permissaoService: PermissaoService,
-    private authorizationService: AuthorizationService,
-    private confirmationService: ConfirmationService
+    private permissaoService: PermissaoService
   ) {
     super();
   }
@@ -83,16 +80,6 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
         tooltip: 'Editar',
         severity: 'info',
         command: (rowData: any) => this.editarCorretor(rowData.cpf)
-      });
-    }
-
-    // Exclusão permitida apenas para administradores
-    if (this.authorizationService.isAdministrador()) {
-      this.acoes.push({
-        icon: 'pi pi-trash',
-        tooltip: 'Excluir',
-        severity: 'danger',
-        command: (rowData: any) => this.excluirCorretor(rowData)
       });
     }
   }
@@ -247,37 +234,6 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
 
   editarCorretor(cpf: string): void {
     this.router.navigate(['/cadastros/corretores/editar', cpf]);
-  }
-
-  excluirCorretor(corretor: CorretorSaidaDTO): void {
-    this.confirmationService.confirmDelete(corretor.nome)
-      .subscribe(confirmed => {
-        if (!confirmed) return;
-
-        this.corretorService.excluir(corretor.idExterno).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Sucesso!',
-              detail: `Corretor "${corretor.nome}" excluído com sucesso.`,
-              life: 3000
-            });
-            this.carregarCorretores();
-          },
-          error: (error) => {
-            const mensagem = error.status === 400 && error.error?.message
-              ? error.error.message
-              : 'Não foi possível excluir o corretor.';
-            
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erro ao excluir',
-              detail: mensagem,
-              life: 5000
-            });
-          }
-        });
-      });
   }
 
   /**

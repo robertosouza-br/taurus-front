@@ -9,8 +9,11 @@
     icon="pi pi-briefcase">
   </app-page-header>
 
-  <!-- Loading -->
+  <!-- Loading Carregamento -->
   <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados do corretor..."></app-loading-spinner>
+
+  <!-- Loading Salvamento -->
+  <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Salvando alterações..."></app-loading-spinner>
 
   <!-- Formulário -->
   <div *ngIf="!carregando && corretor" class="corretor-form">
