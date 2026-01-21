@@ -222,16 +222,16 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
       nome: this.nome,
       cpf: this.cpf,
       email: this.email,
-      nomeGuerra: this.nomeGuerra || undefined,
-      telefone: this.telefone || undefined,
-      numeroCreci: this.numeroCreci || undefined,
+      nomeGuerra: this.nomeGuerra,
+      telefone: this.telefone,
+      numeroCreci: this.numeroCreci,
       cargo: cargoValue,
-      numeroBanco: this.bancoSelecionado ? this.bancoSelecionado.value : undefined, // Envia apenas o código
-      numeroAgencia: this.numeroAgencia || undefined,
-      numeroContaCorrente: this.numeroContaCorrente || undefined,
-      tipoConta: this.tipoConta || undefined,
+      numeroBanco: this.bancoSelecionado ? this.bancoSelecionado.value : '', // Envia string vazia se não selecionado
+      numeroAgencia: this.numeroAgencia,
+      numeroContaCorrente: this.numeroContaCorrente,
+      tipoConta: this.tipoConta,
       tipoChavePix: tipoChavePixValue,
-      chavePix: this.chavePix || undefined,
+      chavePix: this.chavePix,
       ativo: this.ativo
     };
 
