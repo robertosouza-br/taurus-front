@@ -1,0 +1,30 @@
+<div class="input-emails-container">
+  <label [for]="id" *ngIf="label">
+    {{ label }}
+    <span *ngIf="required" class="required">*</span>
+  </label>
+  
+  <p-chips 
+    [id]="id"
+    [(ngModel)]="value"
+    (ngModelChange)="onModelChange($event)"
+    (onAdd)="onAdd($event)"
+    (onRemove)="onRemove()"
+    [separator]="separator"
+    addOnBlur="true"
+    addOnTab="true"
+    [allowDuplicate]="allowDuplicate"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [class.ng-invalid]="hasError"
+    [class.ng-dirty]="showValidation">
+  </p-chips>
+
+  <small *ngIf="hasError" class="p-error">
+    <i class="pi pi-exclamation-circle"></i> {{ errorMessage }}
+  </small>
+
+  <small class="field-help">
+    <i class="pi pi-info-circle"></i> Adicione múltiplos emails separando com {{ separator === ';' ? 'ponto e vírgula (;)' : 'vírgula (,)' }} ou Enter
+  </small>
+</div>

@@ -1,0 +1,143 @@
+.input-emails-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+
+    .required {
+      color: #ef4444;
+      margin-left: 0.125rem;
+    }
+  }
+
+  ::ng-deep p-chips {
+    .p-chips-multiple-container {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.25rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #9ca3af;
+      }
+
+      &:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .p-chips-token {
+        background: #3b82f6;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        margin: 0.125rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        max-width: 300px;
+
+        .p-chips-token-label {
+          word-break: break-all;
+          flex: 1;
+        }
+
+        .p-chips-token-icon {
+          cursor: pointer;
+          font-size: 0.75rem;
+          opacity: 0.8;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+
+      .p-chips-input-token {
+        padding: 0.25rem;
+        flex: 1;
+
+        input {
+          font-size: 0.875rem;
+          border: none;
+          outline: none;
+          width: 100%;
+          min-width: 150px;
+          color: #374151;
+
+          &::placeholder {
+            color: #9ca3af;
+          }
+        }
+      }
+    }
+
+    &.ng-invalid.ng-dirty .p-chips-multiple-container,
+    .p-chips-multiple-container.ng-invalid {
+      border-color: #ef4444;
+
+      &:focus-within {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    }
+
+    .p-disabled .p-chips-multiple-container {
+      background-color: #f3f4f6;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  .p-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+
+    i {
+      font-size: 0.875rem;
+    }
+  }
+
+  .field-help {
+    color: #64748b;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+
+    i {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .input-emails-container {
+    ::ng-deep p-chips {
+      .p-chips-multiple-container {
+        .p-chips-token {
+          max-width: 200px;
+          font-size: 0.8125rem;
+        }
+
+        .p-chips-input-token input {
+          min-width: 100px;
+        }
+      }
+    }
+  }
+}

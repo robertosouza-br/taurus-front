@@ -46,14 +46,13 @@
         </div>
 
         <div class="p-field">
-          <app-input-text
+          <app-input-emails
             id="email"
-            label="E-mail"
-            [(ngModel)]="email"
+            label="E-mail(s)"
+            [(ngModel)]="emails"
             [required]="true"
-            [showValidation]="tentouSalvar"
-            type="email">
-          </app-input-text>
+            [showValidation]="tentouSalvar">
+          </app-input-emails>
         </div>
 
         <div class="p-field">
@@ -237,8 +236,8 @@
         label="Salvar Alterações"
         icon="pi pi-save"
         severity="success"
-        actionType="save"
-        (onClick)="salvarCorretor()"
+        actionType="none"
+        (onClick)="validarESalvar()"
         [loading]="salvando">
       </app-custom-button>
     </div>

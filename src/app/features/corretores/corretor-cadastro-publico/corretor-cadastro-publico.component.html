@@ -72,15 +72,13 @@
         </div>
 
         <!-- Email -->
-        <app-input-text
+        <app-input-emails
           id="email"
-          label="E-mail"
-          type="email"
-          [required]="true"
+          label="E-mail(s)"
           formControlName="email"
-          [showValidation]="submitted"
-          errorMessage="E-mail inválido">
-        </app-input-text>
+          [required]="true"
+          [showValidation]="submitted">
+        </app-input-emails>
 
         <!-- Nome de Guerra -->
         <app-input-text

@@ -49,7 +49,7 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     this.formulario = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
       cpf: ['', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]],
-      email: ['', [Validators.required, this.validadorEmail]],
+      email: [[], [Validators.required, this.validadorEmails]], // Array para múltiplos emails
       nomeGuerra: [''],
       telefone: ['', this.validadorTelefone],
       numeroCreci: [''],
@@ -138,6 +138,18 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     if (!control.value) return null;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(control.value) ? null : { 'emailInvalido': true };
+  }
+
+  /**
+   * Validador customizado de array de emails
+   */
+  private validadorEmails(control: any): { [key: string]: boolean } | null {
+    if (!control.value || control.value.length === 0) {
+      return { 'required': true };
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailsInvalidos = control.value.filter((email: string) => !emailRegex.test(email));
+    return emailsInvalidos.length > 0 ? { 'emailInvalido': true } : null;
   }
 
   /**
@@ -386,7 +398,7 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     const corretor: CorretorDTO = {
       nome: formValue.nome,
       cpf: formValue.cpf.replace(/\D/g, ''),
-      email: formValue.email,
+      email: Array.isArray(formValue.email) ? formValue.email.join(';') : formValue.email, // Converte array em string
       cargo: formValue.cargo,
       ativo: formValue.ativo
     };

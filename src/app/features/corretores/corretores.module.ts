@@ -19,6 +19,7 @@ import { TagModule } from 'primeng/tag';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
+import { ChipsModule } from 'primeng/chips';
 
 @NgModule({
   declarations: [
@@ -40,7 +41,8 @@ import { ButtonModule } from 'primeng/button';
     TagModule,
     DropdownModule,
     InputTextModule,
-    ButtonModule
+    ButtonModule,
+    ChipsModule
   ]
 })
 export class CorretoresModule { }

@@ -10,6 +10,7 @@ import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
 
 @Component({
   selector: 'app-corretor-edicao',
@@ -23,6 +24,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
   nome = '';
   cpf = '';
   email = '';
+  emails: string[] = []; // Array para p-chips
   nomeGuerra = '';
   telefone = '';
   numeroCreci = '';
@@ -56,7 +58,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     private bancoService: BancoService,
     private router: Router,
     private messageService: MessageService,
-    private permissaoService: PermissaoService
+    private permissaoService: PermissaoService,
+    private confirmationService: ConfirmationService
   ) {
     super(); // Chama construtor da classe base
   }
@@ -144,6 +147,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.nome = corretor.nome;
     this.cpf = corretor.cpf;
     this.email = corretor.email || '';
+    // Converte string "email1@gmail.com;email2@gmail.com" em array
+    this.emails = corretor.email ? corretor.email.split(';').map(e => e.trim()).filter(e => e) : [];
     this.nomeGuerra = corretor.nomeGuerra || '';
     this.telefone = corretor.telefone || '';
     this.numeroCreci = corretor.numeroCreci || '';
@@ -206,12 +211,25 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.bancosFiltrados = [...this.bancosOptions];
   }
 
-  salvarCorretor(): void {
-    // Usa validação da classe base (já marca tentouSalvar, foca no erro e exibe mensagem)
+  /**
+   * Valida o formulário antes de solicitar confirmação
+   * Chamado pelo botão com actionType="none" para controle manual
+   */
+  validarESalvar(): void {
+    // Valida primeiro
     if (!this.validarFormulario()) {
       return;
     }
+    
+    // Se validou, mostra confirmação e depois salva
+    this.confirmationService.confirmSave('Deseja realmente salvar as alterações do corretor?').subscribe(confirmed => {
+      if (confirmed) {
+        this.salvarCorretor();
+      }
+    });
+  }
 
+  salvarCorretor(): void {
     this.salvando = true;
 
     // Extrair valor do cargo se for objeto
@@ -221,7 +239,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     const corretorAtualizado: CorretorDTO = {
       nome: this.nome,
       cpf: this.cpf,
-      email: this.email,
+      email: this.emails.length > 0 ? this.emails.join(';') : '', // Converte array em string
       nomeGuerra: this.nomeGuerra,
       telefone: this.telefone,
       numeroCreci: this.numeroCreci,
@@ -303,7 +321,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     return [
       { id: 'nome', valor: this.nome, label: 'Nome Completo' },
       { id: 'cpf', valor: this.cpf, label: 'CPF' },
-      { id: 'email', valor: this.email, label: 'E-mail' }
+      { id: 'email', valor: this.emails.length > 0 ? this.emails.join(';') : '', label: 'E-mail' }
     ];
   }
 

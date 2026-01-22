@@ -14,6 +14,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { CardModule } from 'primeng/card';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { PanelModule } from 'primeng/panel';
+import { ChipsModule } from 'primeng/chips';
 
 import { LoginComponent } from './login/login.component';
 import { RecuperarSenhaComponent } from './recuperar-senha/recuperar-senha.component';
@@ -62,7 +63,8 @@ const routes: Routes = [
     CheckboxModule,
     CardModule,
     AutoCompleteModule,
-    PanelModule
+    PanelModule,
+    ChipsModule
   ]
 })
 export class AuthModule { }

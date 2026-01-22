@@ -14,6 +14,7 @@ import { PasswordModule } from 'primeng/password';
 import { SpeedDialModule } from 'primeng/speeddial';
 import { DialogModule } from 'primeng/dialog';
 import { SliderModule } from 'primeng/slider';
+import { ChipsModule } from 'primeng/chips';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -34,6 +35,7 @@ import { InputCpfComponent } from './components/input-cpf/input-cpf.component';
 import { InputTelefoneComponent } from './components/input-telefone/input-telefone.component';
 import { InputPasswordComponent } from './components/input-password/input-password.component';
 import { InputDateComponent } from './components/input-date/input-date.component';
+import { InputEmailsComponent } from './components/input-emails/input-emails.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { DialogService } from 'primeng/dynamicdialog';
 import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
@@ -67,6 +69,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputTelefoneComponent,
     InputPasswordComponent,
     InputDateComponent,
+    InputEmailsComponent,
     ConfirmationDialogComponent,
     AutocompleteComponent,
     LoadingSpinnerComponent,
@@ -88,6 +91,7 @@ import { CalendarModule } from 'primeng/calendar';
     SpeedDialModule,
     DialogModule,
     SliderModule,
+    ChipsModule,
     ImageCropperComponent
   ],
   exports: [
@@ -111,6 +115,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputTelefoneComponent,
     InputPasswordComponent,
     InputDateComponent,
+    InputEmailsComponent,
     AutocompleteComponent,
     LoadingSpinnerComponent,
     UploadFotoComponent,

@@ -21,6 +21,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   nome = '';
   cpf = '';
   email = '';
+  emails: string[] = []; // Array para p-chips
   nomeGuerra = '';
   telefone = '';
   numeroCreci = '';
