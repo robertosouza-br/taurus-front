@@ -55,6 +55,7 @@ export interface CorretorListaDTO {
   cargo: CorretorCargo;
   ativo: boolean;
   email?: string;
+  codcfo?: string;
 }
 
 /**
