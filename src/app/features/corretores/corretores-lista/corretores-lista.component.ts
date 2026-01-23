@@ -79,7 +79,7 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
         icon: 'pi pi-pencil',
         tooltip: 'Editar',
         severity: 'info',
-        command: (rowData: any) => this.editarCorretor(rowData.cpf)
+        command: (rowData: any) => this.editarCorretor(rowData.codcfo)
       });
     }
   }
@@ -178,6 +178,7 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
     
     this.corretorService.listar(page, size).subscribe({
       next: (response: Page<CorretorSaidaDTO>) => {
+        
         this.corretores = response.content.map((corretor: CorretorSaidaDTO) => ({
           ...corretor,
           cargoLabel: CARGO_LABELS[corretor.cargo]
@@ -189,16 +190,6 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
           this.carregando = false;
         }, 0);
         
-        // Log de debug para verificar paginação server-side
-        console.log('📊 Paginação Server-Side:', {
-          paginaAtual: response.number + 1,
-          totalPaginas: response.totalPages,
-          totalRegistros: response.totalElements,
-          registrosNestaPagina: response.numberOfElements,
-          tamanhoPagina: response.size,
-          primeiraRegistro: (response.number * response.size) + 1,
-          ultimoRegistro: (response.number * response.size) + response.numberOfElements
-        });
       },
       error: (error) => {
         // Exibe mensagem específica para erro 403 e redireciona
@@ -232,8 +223,12 @@ export class CorretoresListaComponent extends BaseListComponent implements OnIni
     this.router.navigate(['/cadastros/corretores/novo']);
   }
 
-  editarCorretor(cpf: string): void {
-    this.router.navigate(['/cadastros/corretores/editar', cpf]);
+  /**
+   * Redireciona para tela de edição usando CODCFO
+   * @param codcfo Código do corretor no sistema TOTVS RM
+   */
+  editarCorretor(codcfo: string): void {
+    this.router.navigate(['/cadastros/corretores/editar', codcfo]);
   }
 
   /**

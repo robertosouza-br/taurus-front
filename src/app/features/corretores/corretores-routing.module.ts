@@ -7,7 +7,7 @@ import { CorretorEdicaoComponent } from './corretor-edicao/corretor-edicao.compo
 const routes: Routes = [
   { path: '', component: CorretoresListaComponent },
   { path: 'novo', component: CorretorNovoComponent },
-  { path: 'editar/:id', component: CorretorEdicaoComponent }
+  { path: 'editar/:codcfo', component: CorretorEdicaoComponent }
 ];
 
 @NgModule({

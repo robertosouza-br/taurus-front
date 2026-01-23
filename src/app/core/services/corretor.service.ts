@@ -56,12 +56,21 @@ export class CorretorService {
   }
 
   /**
-   * Busca corretor por CPF (usado na edição)
+   * Busca corretor por CPF (usado na listagem/busca)
    * O CPF pode ser enviado com ou sem formatação
    * @param cpf CPF do corretor (ex: "029.377.527-30" ou "02937752730")
    */
   buscarPorCpf(cpf: string): Observable<CorretorDTO> {
     return this.http.get<CorretorDTO>(`${this.baseUrl}/cpf/${cpf}`);
+  }
+
+  /**
+   * Busca corretor por CODCFO (usado na edição)
+   * Retorna dados completos do corretor incluindo endereço e dados bancários
+   * @param codcfo Código do corretor no sistema TOTVS RM (ex: "00043576")
+   */
+  buscarPorCodigo(codcfo: string): Observable<CorretorSaidaDTO> {
+    return this.http.get<CorretorSaidaDTO>(`${this.baseUrl}/codigo/${codcfo}`);
   }
 
   /**

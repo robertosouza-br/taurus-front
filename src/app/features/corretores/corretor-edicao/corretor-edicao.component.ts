@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { BancoService } from '../../../core/services/banco.service';
-import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
+import { CorretorSaidaDTO, CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
@@ -19,7 +19,7 @@ import { TelefoneUtilsService } from '../../../shared/services/telefone-utils.se
   styleUrls: ['./corretor-edicao.component.scss']
 })
 export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit {
-  cpfCorretor!: string;
+  codcfoCorretor!: string;
   
   // Campos do formulário
   nome = '';
@@ -43,7 +43,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
   
   carregando = false;
   // salvando e tentouSalvar herdados de BaseFormComponent
-  corretor: CorretorDTO | null = null;
+  corretor: CorretorSaidaDTO | null = null;
   
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
@@ -77,7 +77,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
       return;
     }
 
-    this.cpfCorretor = this.route.snapshot.params['id']; // O parâmetro ainda é 'id' mas agora contém CPF
+    this.codcfoCorretor = this.route.snapshot.params['codcfo'];
     this.configurarBreadcrumb();
     this.carregarOpcoes();
     this.carregarCorretor();
@@ -123,7 +123,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
 
   private carregarCorretor(): void {
     this.carregando = true;
-    this.corretorService.buscarPorCpf(this.cpfCorretor).subscribe({
+    this.corretorService.buscarPorCodigo(this.codcfoCorretor).subscribe({
       next: (corretor) => {
         this.corretor = corretor;
         this.preencherFormulario(corretor);
@@ -153,7 +153,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     return this.telefoneUtils.removerDDI(telefone);
   }
 
-  private preencherFormulario(corretor: CorretorDTO): void {
+  private preencherFormulario(corretor: CorretorSaidaDTO): void {
     this.nome = corretor.nome;
     this.cpf = corretor.cpf;
     this.email = corretor.email || '';
@@ -263,8 +263,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
       ativo: this.ativo
     };
 
-    // Usa o CPF como identificador para atualização (endpoint PATCH /cpf/{cpf})
-    this.corretorService.atualizar(this.cpfCorretor, corretorAtualizado).subscribe({
+    // Usa o CPF do corretor como identificador para atualização (endpoint PATCH /cpf/{cpf})
+    this.corretorService.atualizar(this.cpf, corretorAtualizado).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
