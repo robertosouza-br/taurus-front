@@ -128,6 +128,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
         this.corretor = corretor;
         this.preencherFormulario(corretor);
         this.carregando = false;
+        debugger
       },
       error: (error) => {
         this.carregando = false;
@@ -154,34 +155,52 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
   }
 
   private preencherFormulario(corretor: CorretorSaidaDTO): void {
-    this.nome = corretor.nome;
-    this.cpf = corretor.cpf;
+    this.nome = corretor.nome || '';
+    this.cpf = corretor.cpf || '';
     this.email = corretor.email || '';
     // Converte string "email1@gmail.com;email2@gmail.com" em array
     this.emails = corretor.email ? corretor.email.split(';').map(e => e.trim()).filter(e => e) : [];
     this.nomeGuerra = corretor.nomeGuerra || '';
-    this.telefone = this.removerDDI(corretor.telefone || '');
+    this.telefone = corretor.telefone ? this.removerDDI(corretor.telefone) : '';
     this.numeroCreci = corretor.numeroCreci || '';
-    this.cargo = corretor.cargo;
+    this.cargo = corretor.cargo || CorretorCargo.CORRETOR;
+    this.ativo = corretor.ativo ?? true;
+
+    // Dados bancários - backend pode usar 'agencia' ao invés de 'numeroAgencia'
+    const agencia = (corretor as any).agencia || corretor.numeroAgencia || '';
+    const contaCorrente = (corretor as any).contaCorrente || corretor.numeroContaCorrente || '';
+    
     this.numeroBanco = corretor.numeroBanco || '';
-    this.numeroAgencia = corretor.numeroAgencia || '';
-    this.numeroContaCorrente = corretor.numeroContaCorrente || '';
+    this.numeroAgencia = agencia;
+    this.numeroContaCorrente = contaCorrente;
     this.tipoConta = corretor.tipoConta || '';
-    this.tipoChavePix = corretor.tipoChavePix || TipoChavePix.CPF;
+
+    // Dados PIX - backend pode enviar tipoChavePix como número
+    const tipoChavePixValue = corretor.tipoChavePix;
+    if (typeof tipoChavePixValue === 'number') {
+      // Converte número para enum (1=CPF, 2=CELULAR, 3=EMAIL, 4=CHAVE_ALEATORIA)
+      const tipoChaveMap: Record<number, TipoChavePix> = {
+        1: TipoChavePix.CPF,
+        2: TipoChavePix.CELULAR,
+        3: TipoChavePix.EMAIL,
+        4: TipoChavePix.CHAVE_ALEATORIA
+      };
+      this.tipoChavePix = tipoChaveMap[tipoChavePixValue] || TipoChavePix.CPF;
+    } else {
+      this.tipoChavePix = tipoChavePixValue || TipoChavePix.CPF;
+    }
     this.chavePix = corretor.chavePix || '';
-    this.ativo = corretor.ativo;
 
     // Preencher autocompletes
-    this.cargoSelecionado = this.cargosOptions.find(c => c.value === corretor.cargo) || null;
+    this.cargoSelecionado = this.cargosOptions.find(c => c.value === this.cargo) || null;
     
     // Preencher banco se houver numeroBanco
-    if (corretor.numeroBanco) {
-      this.bancoSelecionado = this.bancosOptions.find(b => b.value === corretor.numeroBanco) || null;
+    if (this.numeroBanco) {
+      this.bancoSelecionado = this.bancosOptions.find(b => b.value === this.numeroBanco) || null;
     }
     
-    this.tipoChavePixSelecionado = corretor.tipoChavePix 
-      ? this.tiposChavePixOptions.find(t => t.value === corretor.tipoChavePix) || null 
-      : null;
+    // Preencher tipo chave PIX
+    this.tipoChavePixSelecionado = this.tiposChavePixOptions.find(t => t.value === this.tipoChavePix) || null;
   }
 
   // Métodos para Autocomplete de Cargo
