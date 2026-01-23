@@ -26,5 +26,8 @@
 
   <small class="field-help">
     <i class="pi pi-info-circle"></i> Adicione múltiplos emails separando com {{ separator === ';' ? 'ponto e vírgula (;)' : 'vírgula (,)' }} ou Enter
+    <span *ngIf="maxLength" [class.text-danger]="tamanhoAtual > maxLength">
+      ({{ tamanhoAtual }}/{{ maxLength }} caracteres)
+    </span>
   </small>
 </div>

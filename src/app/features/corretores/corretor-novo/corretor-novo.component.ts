@@ -8,6 +8,7 @@ import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_
 import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
+import { TelefoneUtilsService } from '../../../shared/services/telefone-utils.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
@@ -61,7 +62,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     private bancoService: BancoService,
     private usuarioService: UsuarioService,
     private router: Router,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private telefoneUtils: TelefoneUtilsService
   ) {
     super(); // Chama construtor da classe base
   }
@@ -139,6 +141,14 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
         this.limparValidacaoCpf();
       }
     });
+  }
+
+  /**
+   * Remove DDI (55) do telefone se presente
+   * Exemplo: "5521998954455" -> "21998954455"
+   */
+  private removerDDI(telefone: string): string {
+    return this.telefoneUtils.removerDDI(telefone);
   }
 
   private validarCPF(cpf: string): boolean {

@@ -59,6 +59,7 @@
             label="E-mail(s)"
             [(ngModel)]="emails"
             [required]="true"
+            [maxLength]="60"
             [showValidation]="tentouSalvar">
           </app-input-emails>
         </div>

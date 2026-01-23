@@ -5,6 +5,7 @@ import { MessageService } from 'primeng/api';
 import { CorretorPublicoService } from '../../../core/services/corretor-publico.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { BancoService } from '../../../core/services/banco.service';
+import { TelefoneUtilsService } from '../../../shared/services/telefone-utils.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { Banco } from '../../../core/models/banco.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -36,7 +37,8 @@ export class CorretorCadastroPublicoComponent implements OnInit {
     private usuarioService: UsuarioService,
     private bancoService: BancoService,
     private router: Router,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private telefoneUtils: TelefoneUtilsService
   ) {}
 
   ngOnInit(): void {
@@ -129,6 +131,14 @@ export class CorretorCadastroPublicoComponent implements OnInit {
         this.limparValidacaoCpf();
       }
     });
+  }
+
+  /**
+   * Remove DDI (55) do telefone se presente
+   * Exemplo: "5521998954455" -> "21998954455"
+   */
+  private removerDDI(telefone: string): string {
+    return this.telefoneUtils.removerDDI(telefone);
   }
 
   /**

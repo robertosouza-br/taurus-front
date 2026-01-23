@@ -11,6 +11,7 @@ import { PermissaoService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { TelefoneUtilsService } from '../../../shared/services/telefone-utils.service';
 
 @Component({
   selector: 'app-corretor-edicao',
@@ -59,7 +60,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     private router: Router,
     private messageService: MessageService,
     private permissaoService: PermissaoService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private telefoneUtils: TelefoneUtilsService
   ) {
     super(); // Chama construtor da classe base
   }
@@ -143,6 +145,14 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     });
   }
 
+  /**
+   * Remove DDI (55) do telefone se presente
+   * Exemplo: "5521998954455" -> "21998954455"
+   */
+  private removerDDI(telefone: string): string {
+    return this.telefoneUtils.removerDDI(telefone);
+  }
+
   private preencherFormulario(corretor: CorretorDTO): void {
     this.nome = corretor.nome;
     this.cpf = corretor.cpf;
@@ -150,7 +160,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     // Converte string "email1@gmail.com;email2@gmail.com" em array
     this.emails = corretor.email ? corretor.email.split(';').map(e => e.trim()).filter(e => e) : [];
     this.nomeGuerra = corretor.nomeGuerra || '';
-    this.telefone = corretor.telefone || '';
+    this.telefone = this.removerDDI(corretor.telefone || '');
     this.numeroCreci = corretor.numeroCreci || '';
     this.cargo = corretor.cargo;
     this.numeroBanco = corretor.numeroBanco || '';

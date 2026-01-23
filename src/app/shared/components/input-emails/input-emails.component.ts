@@ -24,6 +24,7 @@ export class InputEmailsComponent implements ControlValueAccessor {
   @Input() allowDuplicate: boolean = false;
   @Input() maxEmails?: number;
   @Input() validateEmail: boolean = true;
+  @Input() maxLength?: number; // Tamanho máximo do texto completo (com separadores)
 
   value: string[] = [];
   private onChange: (value: string[]) => void = () => {};
@@ -52,7 +53,20 @@ export class InputEmailsComponent implements ControlValueAccessor {
       }
     }
 
-    // Verifica limite máximo
+    // Verifica limite de tamanho total
+    if (this.maxLength && this.value.length > 0) {
+      const tamanhoTotal = this.value.join(this.separator).length;
+      if (tamanhoTotal > this.maxLength) {
+        // Remove último email adicionado se exceder o limite
+        setTimeout(() => {
+          this.value = this.value.slice(0, -1);
+          this.onChange(this.value);
+        }, 0);
+        return;
+      }
+    }
+
+    // Verifica limite máximo de emails
     if (this.maxEmails && this.value.length > this.maxEmails) {
       setTimeout(() => {
         this.value = this.value.slice(0, this.maxEmails);
@@ -100,7 +114,20 @@ export class InputEmailsComponent implements ControlValueAccessor {
    * Verifica se há erro de validação
    */
   get hasError(): boolean {
-    return this.showValidation && this.required && (!this.value || this.value.length === 0);
+    if (this.showValidation && this.required && (!this.value || this.value.length === 0)) {
+      return true;
+    }
+    if (this.showValidation && this.maxLength && this.tamanhoAtual > this.maxLength) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Retorna tamanho atual do texto completo
+   */
+  get tamanhoAtual(): number {
+    return this.value.join(this.separator).length;
   }
 
   /**
@@ -109,6 +136,9 @@ export class InputEmailsComponent implements ControlValueAccessor {
   get errorMessage(): string {
     if (this.required && (!this.value || this.value.length === 0)) {
       return 'Campo obrigatório';
+    }
+    if (this.maxLength && this.tamanhoAtual > this.maxLength) {
+      return `Tamanho máximo de ${this.maxLength} caracteres excedido (atual: ${this.tamanhoAtual})`;
     }
     return '';
   }
