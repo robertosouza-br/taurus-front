@@ -7,8 +7,11 @@
       <p class="subtitle">Faça parte da nossa equipe de corretores</p>
     </div>
 
+    <!-- Loading Salvamento -->
+    <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Salvando cadastro..."></app-loading-spinner>
+
     <!-- Formulário -->
-    <form [formGroup]="formulario" (ngSubmit)="onSubmit()" class="cadastro-form">
+    <div class="cadastro-form">
       
       <!-- Dados Pessoais -->
       <p-card>
@@ -19,25 +22,15 @@
           </div>
         </ng-template>
         
-        <!-- Nome -->
-        <app-input-text
-          id="nome"
-          label="Nome Completo"
-          [required]="true"
-          formControlName="nome"
-          [showValidation]="submitted"
-          errorMessage="Nome é obrigatório (mínimo 3 caracteres)">
-        </app-input-text>
-
-        <!-- CPF -->
+        <!-- CPF em PRIMEIRO LUGAR -->
         <div class="cpf-field-container">
           <app-input-cpf
             id="cpf"
             label="CPF"
+            [(ngModel)]="cpf"
+            (ngModelChange)="onCpfChange()"
             [required]="true"
-            formControlName="cpf"
-            [showValidation]="submitted"
-            errorMessage="CPF é obrigatório (11 dígitos)">
+            [showValidation]="tentouSalvar">
           </app-input-cpf>
           
           <!-- Loading da validação -->
@@ -71,58 +64,85 @@
           </div>
         </div>
 
+        <!-- Nome -->
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome Completo"
+            [(ngModel)]="nome"
+            [required]="true"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
         <!-- Email -->
-        <app-input-emails
-          id="email"
-          label="E-mail(s)"
-          formControlName="email"
-          [required]="true"
-          [maxLength]="60"
-          [showValidation]="submitted">
-        </app-input-emails>
+        <div class="p-field">
+          <app-input-text
+            id="email"
+            label="E-mail"
+            [(ngModel)]="email"
+            [required]="true"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
 
         <!-- Nome de Guerra -->
-        <app-input-text
-          id="nomeGuerra"
-          label="Nome de Guerra"
-          [required]="false"
-          formControlName="nomeGuerra"
-          [showValidation]="submitted">
-        </app-input-text>
+        <div class="p-field">
+          <app-input-text
+            id="nomeGuerra"
+            label="Nome de Guerra"
+            [(ngModel)]="nomeGuerra"
+            [required]="false"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
 
         <!-- Telefone -->
-        <div class="telefone-field-container">
+        <div class="p-field">
           <app-input-telefone
             id="telefone"
             label="Telefone"
+            [(ngModel)]="telefone"
             [required]="false"
-            formControlName="telefone"
-            [showValidation]="submitted"
-            errorMessage="Telefone inválido (mínimo 10 dígitos)">
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar"
+            placeholder="(00) 00000-0000">
           </app-input-telefone>
         </div>
 
         <!-- Número do CRECI -->
-        <app-input-text
-          id="numeroCreci"
-          label="Número do CRECI"
-          [required]="false"
-          formControlName="numeroCreci"
-          [showValidation]="submitted">
-        </app-input-text>
+        <div class="p-field">
+          <app-input-text
+            id="numeroCreci"
+            label="Número do CRECI"
+            [(ngModel)]="numeroCreci"
+            [required]="false"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
 
-        <!-- Cargo -->
-        <app-autocomplete
-          id="cargo"
-          label="Cargo"
-          [required]="true"
-          formControlName="cargo"
-          [suggestions]="cargosOptions"
-          field="label"
-          [showValidation]="submitted"
-          errorMessage="Cargo é obrigatório"
-          (completeMethod)="filtrarCargos($event)">
-        </app-autocomplete>
+        <!-- Cargo - SEMPRE FIXO EM CORRETOR E DESABILITADO -->
+        <div class="p-field">
+          <app-autocomplete
+            id="cargo"
+            label="Cargo"
+            [(ngModel)]="cargoSelecionado"
+            [suggestions]="cargosFiltrados"
+            (completeMethod)="filtrarCargos($event)"
+            (onDropdownClick)="mostrarTodosCargos()"
+            field="label"
+            [required]="true"
+            [disabled]="true"
+            [showValidation]="tentouSalvar"
+            emptyMessage="Nenhum cargo encontrado"
+            placeholder="Digite para buscar um cargo">
+          </app-autocomplete>
+        </div>
+        <br>
       </p-card>
 
       <!-- Dados Bancários -->
@@ -139,53 +159,55 @@
           </div>
         </ng-template>
         
-        <!-- Banco -->
-        <app-autocomplete
-          id="numeroBanco"
-          label="Banco"
-          formControlName="numeroBanco"
-          [suggestions]="bancosFiltrados"
-          (completeMethod)="filtrarBancos($event)"
-          (onDropdownClick)="mostrarTodosBancos()"
-          field="label"
-          [required]="false"
-          [showValidation]="submitted"
-          emptyMessage="Nenhum banco encontrado"
-          placeholder="Digite o código ou nome do banco">
-        </app-autocomplete>
+        <div class="p-fluid" style="padding: 1rem;">
+          <div class="p-field">
+            <app-autocomplete
+              id="numeroBanco"
+              label="Banco"
+              [(ngModel)]="bancoSelecionado"
+              [suggestions]="bancosFiltrados"
+              (completeMethod)="filtrarBancos($event)"
+              (onDropdownClick)="mostrarTodosBancos()"
+              field="label"
+              [required]="false"
+              [disabled]="!camposHabilitados"
+              [showValidation]="tentouSalvar"
+              emptyMessage="Nenhum banco encontrado"
+              placeholder="Digite o código ou nome do banco">
+            </app-autocomplete>
+          </div>
 
-        <div class="form-row">
-          <!-- Agência -->
-          <div class="form-field flex-1">
+          <div class="p-field">
             <app-input-text
               id="numeroAgencia"
               label="Agência"
+              [(ngModel)]="numeroAgencia"
               [required]="false"
-              formControlName="numeroAgencia"
-              [showValidation]="submitted">
+              [disabled]="!camposHabilitados"
+              [showValidation]="tentouSalvar">
             </app-input-text>
           </div>
 
-          <!-- Conta Corrente -->
-          <div class="form-field flex-2">
+          <div class="p-field">
             <app-input-text
               id="numeroContaCorrente"
               label="Conta Corrente"
+              [(ngModel)]="numeroContaCorrente"
               [required]="false"
-              formControlName="numeroContaCorrente"
-              [showValidation]="submitted">
+              [disabled]="!camposHabilitados"
+              [showValidation]="tentouSalvar">
             </app-input-text>
           </div>
 
-          <!-- Tipo de Conta -->
-          <div class="form-field flex-1">
+          <div class="p-field">
             <app-input-text
               id="tipoConta"
               label="Tipo de Conta"
-              placeholder="Ex: CORRENTE"
+              [(ngModel)]="tipoConta"
               [required]="false"
-              formControlName="tipoConta"
-              [showValidation]="submitted">
+              [disabled]="!camposHabilitados"
+              [showValidation]="tentouSalvar"
+              placeholder="Ex: CORRENTE, POUPANÇA">
             </app-input-text>
           </div>
         </div>
@@ -205,62 +227,75 @@
           </div>
         </ng-template>
         
-        <!-- Tipo de Chave PIX -->
-        <app-autocomplete
-          id="tipoChavePix"
-          label="Tipo de Chave PIX"
-          [required]="false"
-          formControlName="tipoChavePix"
-          [suggestions]="tiposChavePixFiltrados"
-          field="label"
-          [showValidation]="submitted"
-          (completeMethod)="filtrarTiposChavePix($event)">
-        </app-autocomplete>
+        <div class="p-fluid" style="padding: 1rem;">
+          <div class="p-field">
+            <app-autocomplete
+              id="tipoChavePix"
+              label="Tipo de Chave PIX"
+              [(ngModel)]="tipoChavePixSelecionado"
+              [suggestions]="tiposChavePixFiltrados"
+              (completeMethod)="filtrarTiposChavePix($event)"
+              (onDropdownClick)="mostrarTodosTiposChavePix()"
+              field="label"
+              [required]="false"
+              [disabled]="!camposHabilitados"
+              [showValidation]="tentouSalvar"
+              emptyMessage="Nenhum tipo de chave encontrado"
+              placeholder="Digite para buscar um tipo de chave">
+            </app-autocomplete>
+          </div>
 
-        <!-- Chave PIX -->
-        <app-input-text
-          id="chavePix"
-          label="Chave PIX"
-          [required]="false"
-          formControlName="chavePix"
-          [showValidation]="submitted">
-        </app-input-text>
+          <div class="p-field">
+            <app-input-text
+              id="chavePix"
+              label="Chave PIX"
+              [(ngModel)]="chavePix"
+              [required]="false"
+              [disabled]="!camposHabilitados"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
+        </div>
       </p-panel>
 
       <!-- Informativo -->
-      <div class="info-message">
-        <i class="pi pi-info-circle"></i>
-        <div class="info-content">
-          <p><strong>Atenção:</strong> Após o cadastro, você receberá um e-mail com suas credenciais de acesso ao sistema.</p>
+      <div class="info-message" style="background-color: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 1rem; margin: 1.5rem 0; display: flex; align-items-start; gap: 1rem;">
+        <i class="pi pi-info-circle" style="color: #1976d2; font-size: 1.5rem; margin-top: 0.2rem;"></i>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; color: #1976d2; margin-bottom: 0.5rem;">
+            Importante
+          </div>
+          <p style="margin: 0; color: #1565c0; line-height: 1.5;">
+            Após o cadastro, você receberá um e-mail com suas credenciais de acesso ao sistema.
+          </p>
         </div>
       </div>
 
       <!-- Botões -->
-      <div class="form-actions">
+      <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; padding: 1.5rem 0;">
         <app-custom-button
-          type="button"
           label="Voltar para Login"
           icon="pi pi-arrow-left"
           severity="secondary"
           [outlined]="true"
-          [disabled]="carregando"
+          [disabled]="salvando"
           (onClick)="voltarLogin()">
         </app-custom-button>
         
         <app-custom-button
-          type="submit"
           label="Cadastrar"
           icon="pi pi-check"
-          severity="primary"
-          [loading]="carregando"
-          [disabled]="carregando">
+          severity="success"
+          [loading]="salvando"
+          [disabled]="!camposHabilitados || salvando"
+          (onClick)="salvarCorretor()">
         </app-custom-button>
       </div>
-    </form>
+    </div>
   </div>
 
   <!-- Footer -->
-  <div class="cadastro-footer">
+  <div class="cadastro-footer" style="text-align: center; padding: 1rem; color: #64748b;">
     <p>&copy; 2026 CALTER Construtora - Todos os direitos reservados</p>
   </div>
 </div>
