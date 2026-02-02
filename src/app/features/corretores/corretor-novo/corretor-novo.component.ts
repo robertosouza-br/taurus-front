@@ -215,6 +215,11 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
         } else if (!response.cpfCadastrado) {
           // CPF não existe, pode criar - habilitar campos
           this.camposHabilitados = true;
+          
+          // Se existe apenas no sistema local, preencher os campos com os dados retornados
+          if (response.existeUsuarioLocal && response.dadosUsuarioLocal) {
+            this.preencherCamposComDadosUsuarioLocal(response.dadosUsuarioLocal);
+          }
         }
         
         console.log('Validação CPF:', {
@@ -222,7 +227,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
           existeUsuarioLocal: response.existeUsuarioLocal,
           existeCorretorExterno: response.existeCorretorExterno,
           mensagem: response.mensagem,
-          camposHabilitados: this.camposHabilitados
+          camposHabilitados: this.camposHabilitados,
+          dadosPreenchidos: !!response.dadosUsuarioLocal
         });
       },
       error: (error) => {
@@ -248,6 +254,28 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.camposHabilitados = false;
     this.codcfoCorretorExistente = null;
     this.existeUsuarioLocal = false;
+  }
+
+  /**
+   * Preenche os campos do formulário com os dados do usuário local
+   */
+  private preencherCamposComDadosUsuarioLocal(dados: { nome: string; email: string; telefone: string; cpf: string }): void {
+    this.nome = dados.nome || '';
+    this.email = dados.email || '';
+    this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
+    
+    console.log('Campos preenchidos com dados do usuário local:', {
+      nome: this.nome,
+      email: this.email,
+      telefone: this.telefone
+    });
+    
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Dados Preenchidos',
+      detail: 'Os dados do usuário foram preenchidos automaticamente. Você pode alterá-los se necessário.',
+      life: 5000
+    });
   }
 
   /**

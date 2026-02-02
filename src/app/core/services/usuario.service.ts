@@ -20,6 +20,12 @@ export interface ValidacaoCpfDTO {
   existeUsuarioLocal: boolean;      // true se existe usuário local
   existeCorretorExterno: boolean;   // true se existe corretor no sistema externo
   mensagem: string;                 // Mensagem descritiva do status
+  dadosUsuarioLocal?: {             // Dados do usuário local (se existir)
+    nome: string;
+    email: string;
+    telefone: string;
+    cpf: string;
+  } | null;
 }
 
 /**
