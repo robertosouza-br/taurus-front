@@ -53,6 +53,9 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   validandoCpf = false;
   camposHabilitados = false;
   
+  // Mensagem do loading
+  mensagemLoading = 'Salvando cadastro...';
+  
   // Subject para validação reativa do CPF
   private cpfSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -424,17 +427,21 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
 
     this.corretorPublicoService.cadastrar(corretor).subscribe({
       next: () => {
-        this.salvando = false;
+        // Mudar mensagem do loading para sucesso
+        this.mensagemLoading = 'Cadastro realizado com sucesso! Redirecionando...';
+        
         this.messageService.add({
           severity: 'success',
-          summary: 'Cadastro Realizado com Sucesso!',
-          detail: 'Em breve você receberá um e-mail com suas credenciais de acesso ao sistema.',
-          life: 5000,
-          sticky: false
+          summary: 'Cadastro Realizado!',
+          detail: 'Em breve você receberá um e-mail com suas credenciais de acesso.',
+          life: 4000
         });
+        
+        // Redirecionar após 4 segundos (tempo suficiente para ver a mensagem)
         setTimeout(() => {
+          this.salvando = false;
           this.router.navigate(['/auth/login']);
-        }, 5000);
+        }, 4000);
       },
       error: (error) => {
         this.salvando = false;

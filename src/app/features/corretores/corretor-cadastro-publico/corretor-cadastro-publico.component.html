@@ -1,4 +1,7 @@
 <div class="cadastro-publico-container">
+  <!-- Toast para mensagens -->
+  <p-toast position="top-center" [baseZIndex]="99999"></p-toast>
+  
   <div class="cadastro-card">
     <!-- Header -->
     <div class="cadastro-header">
@@ -8,7 +11,7 @@
     </div>
 
     <!-- Loading Salvamento -->
-    <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Salvando cadastro..."></app-loading-spinner>
+    <app-loading-spinner *ngIf="salvando" [overlay]="true" [message]="mensagemLoading"></app-loading-spinner>
 
     <!-- Formulário -->
     <div class="cadastro-form">
@@ -259,20 +262,20 @@
       </p-panel>
 
       <!-- Informativo -->
-      <div class="info-message" style="background-color: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 1rem; margin: 1.5rem 0; display: flex; align-items-start; gap: 1rem;">
-        <i class="pi pi-info-circle" style="color: #1976d2; font-size: 1.5rem; margin-top: 0.2rem;"></i>
-        <div style="flex: 1;">
-          <div style="font-weight: 600; color: #1976d2; margin-bottom: 0.5rem;">
+      <div class="info-message">
+        <i class="pi pi-info-circle"></i>
+        <div class="info-content">
+          <div class="info-title">
             Importante
           </div>
-          <p style="margin: 0; color: #1565c0; line-height: 1.5;">
+          <p class="info-text">
             Após o cadastro, você receberá um e-mail com suas credenciais de acesso ao sistema.
           </p>
         </div>
       </div>
 
       <!-- Botões -->
-      <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; padding: 1.5rem 0;">
+      <div class="form-actions">
         <app-custom-button
           label="Voltar para Login"
           icon="pi pi-arrow-left"
@@ -295,7 +298,7 @@
   </div>
 
   <!-- Footer -->
-  <div class="cadastro-footer" style="text-align: center; padding: 1rem; color: #64748b;">
+  <div class="cadastro-footer">
     <p>&copy; 2026 CALTER Construtora - Todos os direitos reservados</p>
   </div>
 </div>
