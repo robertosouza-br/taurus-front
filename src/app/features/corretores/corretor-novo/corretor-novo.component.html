@@ -9,21 +9,15 @@
     icon="pi pi-briefcase">
   </app-page-header>
 
+  <!-- Loading Salvamento -->
+  <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Salvando corretor..."></app-loading-spinner>
+
   <div class="corretor-form">
     <!-- Dados Pessoais -->
     <p-card header="Dados Pessoais">
       <div class="p-fluid">
         <br>
-        <div class="p-field">
-          <app-input-text
-            id="nome"
-            label="Nome Completo"
-            [(ngModel)]="nome"
-            [required]="true"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
-
+        <!-- CPF em PRIMEIRO LUGAR -->
         <div class="p-field">
           <app-input-cpf
             id="cpf"
@@ -51,17 +45,36 @@
             <i [class]="cpfInvalido ? 'pi pi-times-circle' : (cpfJaCadastrado ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle')"></i>
             <span>{{ mensagemValidacaoCpf }}</span>
           </div>
+          
+          <!-- Mensagem informativa se corretor já existe -->
+          <small *ngIf="codcfoCorretorExistente && !validandoCpf" class="p-text-secondary" style="display: block; margin-top: 0.5rem;">
+            <i class="pi pi-info-circle"></i> Redirecionando para edição...
+          </small>
+        </div>
+
+        <!-- Demais campos DESABILITADOS até validar CPF -->
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome Completo"
+            [(ngModel)]="nome"
+            [required]="true"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
         </div>
 
         <div class="p-field">
-          <app-input-emails
+          <app-input-text
             id="email"
-            label="E-mail(s)"
-            [(ngModel)]="emails"
-            [required]="true"
-            [maxLength]="60"
-            [showValidation]="tentouSalvar">
-          </app-input-emails>
+            label="E-mail"
+            [(ngModel)]="email"
+            [required]="false"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar"
+            type="email"
+            placeholder="exemplo@email.com">
+          </app-input-text>
         </div>
 
         <div class="p-field">
@@ -70,6 +83,7 @@
             label="Nome de Guerra"
             [(ngModel)]="nomeGuerra"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -80,6 +94,7 @@
             label="Telefone"
             [(ngModel)]="telefone"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar"
             placeholder="(00) 00000-0000">
           </app-input-telefone>
@@ -91,6 +106,7 @@
             label="Número do CRECI"
             [(ngModel)]="numeroCreci"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -105,19 +121,11 @@
             (onDropdownClick)="mostrarTodosCargos()"
             field="label"
             [required]="true"
+            [disabled]="true"
             [showValidation]="tentouSalvar"
             emptyMessage="Nenhum cargo encontrado"
             placeholder="Digite para buscar um cargo">
           </app-autocomplete>
-        </div>
-
-        <div class="p-field-checkbox">
-          <p-checkbox
-            [(ngModel)]="ativo"
-            [binary]="true"
-            inputId="ativo"
-            label="Corretor Ativo">
-          </p-checkbox>
         </div>
         <br>
       </div>
@@ -137,6 +145,7 @@
             (onDropdownClick)="mostrarTodosBancos()"
             field="label"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar"
             emptyMessage="Nenhum banco encontrado"
             placeholder="Digite o código ou nome do banco">
@@ -149,6 +158,7 @@
             label="Agência"
             [(ngModel)]="numeroAgencia"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -159,6 +169,7 @@
             label="Conta Corrente"
             [(ngModel)]="numeroContaCorrente"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -169,6 +180,7 @@
             label="Tipo de Conta"
             [(ngModel)]="tipoConta"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar"
             placeholder="Ex: CORRENTE, POUPANÇA">
           </app-input-text>
@@ -191,6 +203,7 @@
             (onDropdownClick)="mostrarTodosTiposChavePix()"
             field="label"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar"
             emptyMessage="Nenhum tipo de chave encontrado"
             placeholder="Digite para buscar um tipo de chave">
@@ -203,6 +216,7 @@
             label="Chave PIX"
             [(ngModel)]="chavePix"
             [required]="false"
+            [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -228,7 +242,7 @@
         actionType="clear"
         [outlined]="true"
         (onClick)="limparTela()"
-        [disabled]="salvando">
+        [disabled]="salvando || validandoCpf">
       </app-custom-button>
       <app-custom-button
         label="Criar Corretor"
@@ -236,9 +250,9 @@
         severity="success"
         actionType="save"
         (onClick)="salvarCorretor()"
+        [disabled]="!camposHabilitados"
         [loading]="salvando">
       </app-custom-button>
     </div>
   </div>
 </div>
-

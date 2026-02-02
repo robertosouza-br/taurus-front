@@ -116,11 +116,10 @@ export class UsuarioService {
   /**
    * Valida se um CPF já está cadastrado no sistema
    * Endpoint público para validação antes do cadastro de corretor
-   * @param cpf CPF a ser validado (apenas números)
+   * @param cpf CPF a ser validado (com formatação: 000.000.000-00)
    */
   validarCpf(cpf: string): Observable<ValidacaoCpfDTO> {
-    const cpfNumerico = cpf.replace(/\D/g, '');
-    const params = new HttpParams().set('cpf', cpfNumerico);
+    const params = new HttpParams().set('cpf', cpf);
     return this.http.get<ValidacaoCpfDTO>(`${this.apiUrl}/validar-cpf`, { params });
   }
 

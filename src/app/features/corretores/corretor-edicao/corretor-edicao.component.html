@@ -9,6 +9,36 @@
     icon="pi pi-briefcase">
   </app-page-header>
 
+  <!-- Mensagem de Status do Usuário -->
+  <div *ngIf="exibirMensagemUsuario && !existeUsuarioLocal" 
+       class="alert-warning" 
+       style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 1rem;">
+    <i class="pi pi-exclamation-triangle" style="color: #856404; font-size: 1.5rem; margin-top: 0.2rem;"></i>
+    <div style="flex: 1;">
+      <div style="font-weight: 600; color: #856404; margin-bottom: 0.5rem; font-size: 1rem;">
+        Atenção: Corretor sem Usuário no Sistema
+      </div>
+      <p style="margin: 0; color: #856404; line-height: 1.5;">
+        Este corretor não possui usuário no sistema interno. 
+        Ao salvar as alterações, um usuário será criado automaticamente para acesso ao sistema.
+      </p>
+    </div>
+  </div>
+
+  <div *ngIf="exibirMensagemUsuario && existeUsuarioLocal" 
+       class="alert-info" 
+       style="background-color: #d1ecf1; border: 1px solid #17a2b8; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: start; gap: 1rem;">
+    <i class="pi pi-check-circle" style="color: #0c5460; font-size: 1.5rem; margin-top: 0.2rem;"></i>
+    <div style="flex: 1;">
+      <div style="font-weight: 600; color: #0c5460; margin-bottom: 0.5rem; font-size: 1rem;">
+        Corretor com Usuário no Sistema
+      </div>
+      <p style="margin: 0; color: #0c5460; line-height: 1.5;">
+        Este corretor possui usuário cadastrado no sistema interno.
+      </p>
+    </div>
+  </div>
+
   <!-- Loading Carregamento -->
   <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados do corretor..."></app-loading-spinner>
 
@@ -97,19 +127,11 @@
             (onDropdownClick)="mostrarTodosCargos()"
             field="label"
             [required]="true"
+            [disabled]="true"
             [showValidation]="tentouSalvar"
             emptyMessage="Nenhum cargo encontrado"
             placeholder="Digite para buscar um cargo">
           </app-autocomplete>
-        </div>
-
-        <div class="p-field-checkbox">
-          <p-checkbox
-            [(ngModel)]="ativo"
-            [binary]="true"
-            inputId="ativo"
-            label="Corretor Ativo">
-          </p-checkbox>
         </div>
         <br>
       </div>

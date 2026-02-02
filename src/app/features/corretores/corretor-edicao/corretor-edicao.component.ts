@@ -45,6 +45,11 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
   // salvando e tentouSalvar herdados de BaseFormComponent
   corretor: CorretorSaidaDTO | null = null;
   
+  // Informações sobre o usuário do sistema
+  existeUsuarioLocal = true; // Por padrão assume que existe
+  veioDeInclusao = false; // Indica se veio da tela de inclusão
+  exibirMensagemUsuario = false; // Controla exibição da mensagem
+  
   cargosOptions: { label: string; value: CorretorCargo }[] = [];
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
   bancosOptions: { label: string; value: string; banco: Banco }[] = [];
@@ -75,6 +80,16 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
       });
       this.router.navigate(['/cadastros/corretores']);
       return;
+    }
+
+    // Captura informações do router state
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || (window.history.state || {});
+    
+    if (state['existeUsuarioLocal'] !== undefined) {
+      this.existeUsuarioLocal = state['existeUsuarioLocal'];
+      this.veioDeInclusao = state['origem'] === 'inclusao';
+      this.exibirMensagemUsuario = this.veioDeInclusao;
     }
 
     this.codcfoCorretor = this.route.snapshot.params['codcfo'];
@@ -126,6 +141,7 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.corretorService.buscarPorCodigo(this.codcfoCorretor).subscribe({
       next: (corretor) => {
         this.corretor = corretor;
+        debugger
         this.preencherFormulario(corretor);
         this.carregando = false;
         debugger

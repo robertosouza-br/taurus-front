@@ -22,7 +22,6 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   nome = '';
   cpf = '';
   email = '';
-  emails: string[] = []; // Array para p-chips
   nomeGuerra = '';
   telefone = '';
   numeroCreci = '';
@@ -45,6 +44,9 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   cpfInvalido = false;
   mensagemValidacaoCpf = '';
   validandoCpf = false;
+  camposHabilitados = false; // Controla se os campos estão habilitados
+  codcfoCorretorExistente: string | null = null; // CODCFO se corretor já existe
+  existeUsuarioLocal = false; // Se corretor tem usuário no sistema interno
   private cpfSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -98,7 +100,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
       value: key as TipoChavePix
     }));
 
-    // Definir apenas o cargo padrão (PIX é opcional)
+    // Definir cargo padrão
     this.cargoSelecionado = this.cargosOptions.find(c => c.value === CorretorCargo.CORRETOR) || null;
 
     // Carregar lista de bancos
@@ -126,9 +128,12 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(cpf => {
-      if (cpf && cpf.length === 11) {
+      // Remove máscara para validação
+      const cpfSemMascara = cpf.replace(/\D/g, '');
+      
+      if (cpfSemMascara && cpfSemMascara.length === 11) {
         // Valida o CPF antes de chamar o backend
-        if (!this.validarCPF(cpf)) {
+        if (!this.validarCPF(cpfSemMascara)) {
           this.validandoCpf = false;
           this.cpfJaCadastrado = false;
           this.cpfInvalido = true;
@@ -136,11 +141,21 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
           return;
         }
         this.cpfInvalido = false;
-        this.validarCpfNoBackend(cpf);
+        
+        // Formatar CPF para enviar à API: 000.000.000-00
+        const cpfFormatado = this.formatarCpf(cpfSemMascara);
+        this.validarCpfNoBackend(cpfFormatado);
       } else {
         this.limparValidacaoCpf();
       }
     });
+  }
+
+  /**
+   * Formata CPF no padrão 000.000.000-00
+   */
+  private formatarCpf(cpf: string): string {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
   /**
@@ -183,19 +198,31 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   private validarCpfNoBackend(cpf: string): void {
     this.validandoCpf = true;
     this.mensagemValidacaoCpf = '';
+    this.camposHabilitados = false;
+    this.codcfoCorretorExistente = null;
+    this.existeUsuarioLocal = false;
 
     this.usuarioService.validarCpf(cpf).subscribe({
       next: (response) => {
         this.validandoCpf = false;
         this.cpfJaCadastrado = response.cpfCadastrado;
         this.mensagemValidacaoCpf = response.mensagem;
+        this.existeUsuarioLocal = response.existeUsuarioLocal;
         
-        // Log detalhado para debug (pode ser removido em produção)
+        // Se o CPF já existe no sistema externo, buscar o corretor para redirecionar
+        if (response.existeCorretorExterno) {
+          this.buscarCorretorExistente(cpf);
+        } else if (!response.cpfCadastrado) {
+          // CPF não existe, pode criar - habilitar campos
+          this.camposHabilitados = true;
+        }
+        
         console.log('Validação CPF:', {
           cpfCadastrado: response.cpfCadastrado,
           existeUsuarioLocal: response.existeUsuarioLocal,
           existeCorretorExterno: response.existeCorretorExterno,
-          mensagem: response.mensagem
+          mensagem: response.mensagem,
+          camposHabilitados: this.camposHabilitados
         });
       },
       error: (error) => {
@@ -208,6 +235,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
           this.mensagemValidacaoCpf = 'Erro ao validar CPF. Tente novamente mais tarde.';
         }
         this.cpfJaCadastrado = false;
+        this.camposHabilitados = false;
       }
     });
   }
@@ -217,6 +245,53 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.cpfInvalido = false;
     this.mensagemValidacaoCpf = '';
     this.validandoCpf = false;
+    this.camposHabilitados = false;
+    this.codcfoCorretorExistente = null;
+    this.existeUsuarioLocal = false;
+  }
+
+  /**
+   * Busca corretor existente por CPF e redireciona para edição
+   */
+  private buscarCorretorExistente(cpf: string): void {
+    this.corretorService.buscarPorCpf(cpf).subscribe({
+      next: (corretor) => {
+        // Se encontrou o corretor, armazenar CODCFO e preparar redirecionamento
+        this.codcfoCorretorExistente = (corretor as any).codcfo || (corretor as any).id;
+        
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Corretor Encontrado',
+          detail: 'Este CPF já está cadastrado. Redirecionando para edição...'
+        });
+        
+        // Redirecionar após pequeno delay para usuario ver a mensagem
+        setTimeout(() => {
+          this.redirecionarParaEdicao();
+        }, 1500);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar corretor:', error);
+        // Se não encontrou por algum motivo, apenas bloqueia
+        this.cpfJaCadastrado = true;
+        this.mensagemValidacaoCpf = 'CPF já cadastrado, mas não foi possível carregar os dados.';
+      }
+    });
+  }
+
+  /**
+   * Redireciona para tela de edição do corretor
+   * Passa informações sobre status do usuário no sistema
+   */
+  private redirecionarParaEdicao(): void {
+    if (this.codcfoCorretorExistente) {
+      this.router.navigate(['/cadastros/corretores/editar', this.codcfoCorretorExistente], {
+        state: {
+          existeUsuarioLocal: this.existeUsuarioLocal,
+          origem: 'inclusao'
+        }
+      });
+    }
   }
 
   onCpfChange(): void {
@@ -258,6 +333,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.bancosFiltrados = [...this.bancosOptions];
   }
 
+  // Métodos para Autocomplete de Cargo
+
   salvarCorretor(): void {
     // Usa validação da classe base (já marca tentouSalvar, foca no erro e exibe mensagem)
     if (!this.validarFormulario()) {
@@ -277,24 +354,28 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
 
     this.salvando = true;
 
+    // Construir DTO com APENAS os campos permitidos na inclusão conforme API
     const corretor: CorretorDTO = {
-      nome: this.nome,
       cpf: this.cpf.replace(/\D/g, ''),
-      email: this.email,
+      nome: this.nome,
       cargo: this.cargoSelecionado!.value,
-      ativo: this.ativo
+      ativo: true // Sempre true na inclusão
     };
 
     // Adicionar campos opcionais apenas se preenchidos
-    if (this.nomeGuerra) corretor.nomeGuerra = this.nomeGuerra;
-    if (this.telefone) corretor.telefone = this.telefone.replace(/\D/g, '');
-    if (this.numeroCreci) corretor.numeroCreci = this.numeroCreci;
-    if (this.bancoSelecionado) corretor.numeroBanco = this.bancoSelecionado.value; // Envia apenas o código
-    if (this.numeroAgencia) corretor.numeroAgencia = this.numeroAgencia;
-    if (this.numeroContaCorrente) corretor.numeroContaCorrente = this.numeroContaCorrente;
-    if (this.tipoConta) corretor.tipoConta = this.tipoConta;
-    if (this.tipoChavePixSelecionado) corretor.tipoChavePix = this.tipoChavePixSelecionado.value;
-    if (this.chavePix) corretor.chavePix = this.chavePix;
+    if (this.nomeGuerra) {
+      corretor.nomeGuerra = this.nomeGuerra;
+    }
+    
+    if (this.telefone) {
+      // Remove máscara e DDI (55) se presente
+      const telefoneSemMascara = this.telefone.replace(/\D/g, '');
+      corretor.telefone = this.removerDDI(telefoneSemMascara);
+    }
+    
+    if (this.email) {
+      corretor.email = this.email;
+    }
 
     this.corretorService.cadastrar(corretor).subscribe({
       next: () => {
@@ -330,6 +411,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.telefone = '';
     this.numeroCreci = '';
     this.cargoSelecionado = this.cargosOptions.find(c => c.value === CorretorCargo.CORRETOR) || null;
+    this.bancoSelecionado = null;
     this.numeroBanco = '';
     this.numeroAgencia = '';
     this.numeroContaCorrente = '';
@@ -338,6 +420,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.chavePix = '';
     this.ativo = true;
     this.tentouSalvar = false;
+    this.camposHabilitados = false;
     this.limparValidacaoCpf();
   }
 
@@ -358,7 +441,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
            this.tipoConta.trim() !== '' ||
            this.tipoChavePixSelecionado !== null ||
            this.chavePix.trim() !== '' ||
-           !this.ativo; // Se desativou, considera alterado
+           !this.ativo;
   }
 
   cancelar(): void {
@@ -368,12 +451,12 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   /**
    * Implementação do método abstrato da classe base
    * Define os campos obrigatórios do formulário
+   * Conforme documentação da API: nome, cpf e cargo são obrigatórios na inclusão
    */
   protected override getCamposObrigatorios() {
     return [
       { id: 'nome', valor: this.nome, label: 'Nome Completo' },
       { id: 'cpf', valor: this.cpf, label: 'CPF' },
-      { id: 'email', valor: this.email, label: 'E-mail' },
       { id: 'cargo', valor: this.cargoSelecionado, label: 'Cargo' }
     ];
   }
