@@ -219,6 +219,11 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
           if (response.existeUsuarioLocal && response.dadosUsuarioLocal) {
             this.preencherCamposComDadosUsuarioLocal(response.dadosUsuarioLocal);
           }
+          
+          // Se existe apenas no sistema externo, preencher os campos com os dados retornados
+          if (response.existeCorretorExterno && (response as any).dadosCorretorExterno) {
+            this.preencherCamposComDadosCorretorExterno((response as any).dadosCorretorExterno);
+          }
         }
         
         console.log('Validação CPF:', {
@@ -227,7 +232,8 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
           existeCorretorExterno: response.existeCorretorExterno,
           mensagem: response.mensagem,
           camposHabilitados: this.camposHabilitados,
-          dadosPreenchidos: !!response.dadosUsuarioLocal
+          dadosUsuarioLocal: !!response.dadosUsuarioLocal,
+          dadosCorretorExterno: !!(response as any).dadosCorretorExterno
         });
       },
       error: (error) => {
@@ -263,6 +269,62 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
       severity: 'info',
       summary: 'Dados Preenchidos',
       detail: 'Os dados do usuário foram preenchidos automaticamente. Você pode alterá-los se necessário.',
+      life: 5000
+    });
+  }
+
+  /**
+   * Preenche os campos do formulário com dados do corretor externo
+   */
+  private preencherCamposComDadosCorretorExterno(dados: any): void {
+    this.nome = dados.nome || '';
+    this.email = dados.email || '';
+    this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
+    this.nomeGuerra = dados.nomeGuerra || '';
+    this.numeroCreci = dados.numeroCreci || '';
+    
+    // Preencher dados bancários se existirem
+    if (dados.banco) {
+      const banco = this.bancosOptions.find(b => b.value === dados.banco);
+      if (banco) {
+        this.bancoSelecionado = banco;
+      }
+    }
+    if (dados.agencia) {
+      this.numeroAgencia = dados.agencia;
+    }
+    if (dados.contaCorrente) {
+      this.numeroContaCorrente = dados.contaCorrente;
+    }
+    if (dados.tipoConta) {
+      this.tipoConta = dados.tipoConta;
+    }
+    
+    // Preencher dados PIX se existirem
+    if (dados.tipoChavePix) {
+      const tipoPix = this.tiposChavePixOptions.find(
+        t => t.label === dados.tipoChavePix || t.value === dados.tipoChavePix
+      );
+      if (tipoPix) {
+        this.tipoChavePixSelecionado = tipoPix;
+      }
+    }
+    if (dados.chavePix) {
+      this.chavePix = dados.chavePix;
+    }
+    
+    console.log('Campos preenchidos com dados do corretor externo:', {
+      nome: this.nome,
+      email: this.email,
+      telefone: this.telefone,
+      numeroCreci: this.numeroCreci,
+      nomeGuerra: this.nomeGuerra
+    });
+    
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Dados Preenchidos',
+      detail: 'Os dados do corretor externo foram preenchidos automaticamente. Você pode alterá-los se necessário.',
       life: 5000
     });
   }

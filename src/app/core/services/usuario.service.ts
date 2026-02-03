@@ -26,6 +26,20 @@ export interface ValidacaoCpfDTO {
     telefone: string;
     cpf: string;
   } | null;
+  dadosCorretorExterno?: {          // Dados do corretor externo (se existir)
+    nome: string;
+    email: string;
+    telefone: string;
+    cpf: string;
+    numeroCreci?: string;
+    nomeGuerra?: string;
+    banco?: string;
+    agencia?: string;
+    contaCorrente?: string;
+    tipoConta?: string;
+    tipoChavePix?: string;
+    chavePix?: string;
+  } | null;
 }
 
 /**
