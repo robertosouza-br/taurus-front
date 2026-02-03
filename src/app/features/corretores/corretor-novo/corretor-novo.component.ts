@@ -46,6 +46,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   mensagemValidacaoCpf = '';
   validandoCpf = false;
   camposHabilitados = false; // Controla se os campos estão habilitados
+  camposDoUsuarioLocal = false; // Se os dados vieram do usuário local (campos devem ficar travados)
   codcfoCorretorExistente: string | null = null; // CODCFO se corretor já existe
   existeUsuarioLocal = false; // Se corretor tem usuário no sistema interno
   private cpfSubject = new Subject<string>();
@@ -207,20 +208,25 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
       next: (response) => {
         this.validandoCpf = false;
         this.cpfJaCadastrado = response.cpfCadastrado;
-        this.mensagemValidacaoCpf = response.mensagem;
         this.existeUsuarioLocal = response.existeUsuarioLocal;
         
         // Se o CPF já existe no sistema externo, buscar o corretor para redirecionar
         if (response.existeCorretorExterno) {
+          // Não mostrar mensagem, apenas redirecionar
+          this.mensagemValidacaoCpf = '';
           this.buscarCorretorExistente(cpf);
         } else if (!response.cpfCadastrado) {
           // CPF não existe, pode criar - habilitar campos
+          this.mensagemValidacaoCpf = response.mensagem;
           this.camposHabilitados = true;
           
           // Se existe apenas no sistema local, preencher os campos com os dados retornados
           if (response.existeUsuarioLocal && response.dadosUsuarioLocal) {
             this.preencherCamposComDadosUsuarioLocal(response.dadosUsuarioLocal);
           }
+        } else {
+          // CPF já cadastrado e não vai redirecionar - mostrar mensagem
+          this.mensagemValidacaoCpf = response.mensagem;
         }
         
         console.log('Validação CPF:', {
@@ -255,6 +261,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.camposHabilitados = false;
     this.codcfoCorretorExistente = null;
     this.existeUsuarioLocal = false;
+    this.camposDoUsuarioLocal = false; // Resetar também os campos do usuário local
   }
 
   /**
@@ -267,11 +274,15 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.emails = dados.email ? dados.email.split(';').map(e => e.trim()).filter(e => e) : [];
     this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
     
+    // Marcar que esses campos vieram do usuário local e devem ficar travados
+    this.camposDoUsuarioLocal = true;
+    
     console.log('Campos preenchidos com dados do usuário local:', {
       nome: this.nome,
       email: this.email,
       emails: this.emails,
-      telefone: this.telefone
+      telefone: this.telefone,
+      camposDoUsuarioLocal: this.camposDoUsuarioLocal
     });
     
     this.messageService.add({
@@ -288,19 +299,11 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   private buscarCorretorExistente(cpf: string): void {
     this.corretorService.buscarPorCpf(cpf).subscribe({
       next: (corretor) => {
-        // Se encontrou o corretor, armazenar CODCFO e preparar redirecionamento
+        // Se encontrou o corretor, armazenar CODCFO e redirecionar diretamente
         this.codcfoCorretorExistente = (corretor as any).codcfo || (corretor as any).id;
         
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Corretor Encontrado',
-          detail: 'Este CPF já está cadastrado. Redirecionando para edição...'
-        });
-        
-        // Redirecionar após pequeno delay para usuario ver a mensagem
-        setTimeout(() => {
-          this.redirecionarParaEdicao();
-        }, 1500);
+        // Redirecionar imediatamente
+        this.redirecionarParaEdicao();
       },
       error: (error) => {
         console.error('Erro ao buscar corretor:', error);
@@ -451,7 +454,9 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   limparTela(): void {
     this.nome = '';
     this.cpf = '';
+    this.cpfSubject.next(''); // Resetar o Subject para permitir revalidação do mesmo CPF
     this.email = '';
+    this.emails = []; // Limpar array de emails
     this.nomeGuerra = '';
     this.telefone = '';
     this.numeroCreci = '';
@@ -466,6 +471,9 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.ativo = true;
     this.tentouSalvar = false;
     this.camposHabilitados = false;
+    this.camposDoUsuarioLocal = false; // Resetar flag de campos do usuário local
+    this.existeUsuarioLocal = false; // Resetar flag de usuário local
+    this.codcfoCorretorExistente = null; // Resetar código do corretor existente
     this.limparValidacaoCpf();
   }
 

@@ -53,6 +53,9 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   mensagemValidacaoCpf = '';
   validandoCpf = false;
   camposHabilitados = false;
+  camposDoUsuarioLocal = false; // Se os dados vieram do usuário local (campos devem ficar travados)
+  codcfoCorretorExistente: string | null = null; // CODCFO se corretor já existe
+  existeUsuarioLocal = false; // Se corretor tem usuário no sistema interno
   
   // Mensagem do loading
   mensagemLoading = 'Salvando cadastro...';
@@ -262,17 +265,21 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     this.emails = dados.email ? dados.email.split(';').map((e: string) => e.trim()).filter((e: string) => e) : [];
     this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
     
+    // Marcar que esses campos vieram do usuário local e devem ficar travados
+    this.camposDoUsuarioLocal = true;
+    
     console.log('Campos preenchidos com dados do usuário local:', {
       nome: this.nome,
       email: this.email,
       emails: this.emails,
-      telefone: this.telefone
+      telefone: this.telefone,
+      camposDoUsuarioLocal: this.camposDoUsuarioLocal
     });
     
     this.messageService.add({
       severity: 'info',
       summary: 'Dados Preenchidos',
-      detail: 'Os dados do usuário foram preenchidos automaticamente. Você pode alterá-los se necessário.',
+      detail: 'Os dados do usuário foram preenchidos automaticamente e não podem ser alterados.',
       life: 5000
     });
   }
@@ -341,6 +348,9 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     this.mensagemValidacaoCpf = '';
     this.validandoCpf = false;
     this.camposHabilitados = false;
+    this.codcfoCorretorExistente = null;
+    this.existeUsuarioLocal = false;
+    this.camposDoUsuarioLocal = false; // Resetar também os campos do usuário local
   }
 
   /**

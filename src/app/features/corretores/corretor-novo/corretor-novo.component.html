@@ -59,9 +59,12 @@
             label="Nome Completo"
             [(ngModel)]="nome"
             [required]="true"
-            [disabled]="!camposHabilitados"
+            [disabled]="!camposHabilitados || camposDoUsuarioLocal"
             [showValidation]="tentouSalvar">
           </app-input-text>
+          <small *ngIf="camposDoUsuarioLocal" class="field-help" style="color: #64748b; display: block; margin-top: 0.25rem;">
+            <i class="pi pi-info-circle"></i> Dados do usuário interno não podem ser alterados
+          </small>
         </div>
 
         <div class="p-field">
@@ -71,9 +74,12 @@
             [(ngModel)]="emails"
             [required]="true"
             [maxLength]="60"
-            [disabled]="!camposHabilitados"
+            [disabled]="!camposHabilitados || camposDoUsuarioLocal"
             [showValidation]="tentouSalvar">
           </app-input-emails>
+          <small *ngIf="camposDoUsuarioLocal" class="field-help" style="color: #64748b; display: block; margin-top: 0.25rem;">
+            <i class="pi pi-info-circle"></i> Dados do usuário interno não podem ser alterados
+          </small>
         </div>
 
         <div class="p-field">
@@ -93,10 +99,13 @@
             label="Telefone"
             [(ngModel)]="telefone"
             [required]="false"
-            [disabled]="!camposHabilitados"
+            [disabled]="!camposHabilitados || camposDoUsuarioLocal"
             [showValidation]="tentouSalvar"
             placeholder="(00) 00000-0000">
           </app-input-telefone>
+          <small *ngIf="camposDoUsuarioLocal" class="field-help" style="color: #64748b; display: block; margin-top: 0.25rem;">
+            <i class="pi pi-info-circle"></i> Dados do usuário interno não podem ser alterados
+          </small>
         </div>
 
         <div class="p-field">
