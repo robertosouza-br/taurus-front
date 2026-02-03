@@ -411,7 +411,15 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     }
 
     // Valida campos obrigatórios
-    if (!this.nome || !this.cpf || !this.email) {
+    console.log('Validando campos:', {
+      nome: this.nome,
+      cpf: this.cpf,
+      email: this.email,
+      emails: this.emails,
+      emailsLength: this.emails?.length
+    });
+    
+    if (!this.nome || !this.cpf || !this.emails || this.emails.length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
@@ -514,15 +522,26 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.salvando = false;
         let mensagem = 'Erro ao realizar cadastro';
+        let severity: 'error' | 'warn' = 'error';
         
         if (error.status === 400) {
-          mensagem = error.error?.message || 'CPF já cadastrado ou dados inválidos';
+          mensagem = error.error?.message || 'Dados inválidos. Verifique os campos e tente novamente.';
+        } else if (error.status === 409) {
+          // Conflito - CPF ou Email duplicado
+          mensagem = error.error?.message || 'CPF ou e-mail já cadastrado no sistema';
+          severity = 'warn';
+        } else if (error.status === 422) {
+          // Erro de validação do sistema externo (Totvs)
+          mensagem = error.error?.message || 'Erro de validação no sistema externo';
+        } else if (error.status >= 500) {
+          mensagem = 'Erro no servidor. Tente novamente mais tarde.';
         }
         
         this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: mensagem
+          severity: severity,
+          summary: severity === 'warn' ? 'Atenção' : 'Erro',
+          detail: mensagem,
+          life: 6000
         });
         
         console.error('Erro ao cadastrar corretor:', error);
