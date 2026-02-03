@@ -1,0 +1,112 @@
+<div class="contato-publico-container">
+  <!-- Toast para mensagens -->
+  <p-toast position="top-right"></p-toast>
+  
+  <!-- Diálogo de confirmação -->
+  <p-confirmDialog></p-confirmDialog>
+  
+  <div class="contato-publico-wrapper">
+    <!-- Logo e Header -->
+    <div class="contato-header">
+      <div class="logo-container">
+        <img src="assets/images/logo_sm.png" alt="Taurus" class="logo">
+      </div>
+      <h1>Fale Conosco</h1>
+      <p class="subtitle">Envie sua mensagem e entraremos em contato em breve</p>
+    </div>
+
+    <!-- Loading -->
+    <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Enviando mensagem..."></app-loading-spinner>
+
+    <!-- Formulário -->
+    <p-card>
+      <div class="p-fluid">
+        <!-- Nome -->
+        <div class="p-field">
+          <app-input-text
+            id="nome"
+            label="Nome Completo"
+            [(ngModel)]="nome"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <!-- Email -->
+        <div class="p-field">
+          <app-input-text
+            id="email"
+            label="E-mail"
+            type="email"
+            [(ngModel)]="email"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <!-- Telefone -->
+        <div class="p-field">
+          <app-input-telefone
+            id="telefone"
+            label="Telefone (Opcional)"
+            [(ngModel)]="telefone"
+            [required]="false"
+            [showValidation]="tentouSalvar"
+            placeholder="(00) 00000-0000">
+          </app-input-telefone>
+        </div>
+
+        <!-- Assunto -->
+        <div class="p-field">
+          <app-input-text
+            id="assunto"
+            label="Assunto"
+            [(ngModel)]="assunto"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <!-- Mensagem -->
+        <div class="p-field">
+          <app-input-textarea
+            id="mensagem"
+            label="Mensagem"
+            [(ngModel)]="mensagem"
+            [required]="true"
+            [rows]="8"
+            [showValidation]="tentouSalvar">
+          </app-input-textarea>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <app-custom-button
+            label="Limpar"
+            icon="pi pi-refresh"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="limparFormulario()"
+            [disabled]="salvando">
+          </app-custom-button>
+          <app-custom-button
+            label="Enviar Mensagem"
+            icon="pi pi-send"
+            severity="success"
+            (onClick)="enviar()"
+            [loading]="salvando">
+          </app-custom-button>
+        </div>
+      </div>
+    </p-card>
+
+ 
+    <!-- Link para voltar ao login -->
+    <div class="back-to-login">
+      <a routerLink="/auth/login" class="login-link">
+        <i class="pi pi-arrow-left"></i>
+        Voltar para o Login
+      </a>
+    </div>
+  </div>
+</div>

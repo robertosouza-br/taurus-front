@@ -129,6 +129,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
             funcionalidade: Funcionalidade.BANCO
           },
           {
+            label: 'Contatos',
+            icon: 'pi pi-envelope',
+            routerLink: '/cadastros/contatos/lista',
+            funcionalidade: Funcionalidade.CONTATO
+          },
+          {
             label: 'Perfis',
             icon: 'pi pi-shield',
             routerLink: '/admin/perfis',

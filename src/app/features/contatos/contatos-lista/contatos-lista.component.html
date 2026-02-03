@@ -1,0 +1,81 @@
+<div class="form-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Mensagens de Contato"
+    subtitle="Gerencie as mensagens recebidas através do formulário de contato"
+    icon="pi pi-envelope">
+    <div actions>
+      <!-- Contador de Pendentes -->
+      <p-tag 
+        *ngIf="totalPendentes > 0"
+        [value]="totalPendentes.toString()"
+        severity="warning"
+        styleClass="mr-2">
+      </p-tag>
+      <span *ngIf="totalPendentes > 0" class="text-muted mr-3">
+        {{ totalPendentes }} {{ totalPendentes === 1 ? 'mensagem pendente' : 'mensagens pendentes' }}
+      </span>
+    </div>
+  </app-page-header>
+
+  <!-- Filtros -->
+  <p-card>
+    <div class="grid">
+      <div class="col-12 md:col-3">
+        <app-autocomplete
+          id="statusFiltro"
+          label="Filtrar por Status"
+          [(ngModel)]="statusFiltro"
+          [suggestions]="statusOptions"
+          field="label"
+          (onSelect)="filtrarPorStatus()"
+          (completeMethod)="buscarStatus($event)"
+          placeholder="Todos">
+        </app-autocomplete>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Tabela -->
+  <app-data-table
+    [data]="contatos"
+    [loading]="carregando"
+    [totalRecords]="totalRegistros"
+    [columns]="colunas"
+    [actions]="acoes"
+    [lazy]="true"
+    [rows]="rows"
+    (onLazyLoad)="onLazyLoad($event)"
+    [emptyMessage]="'Nenhuma mensagem encontrada'">
+    
+    <!-- Template para Data -->
+    <ng-template dataTableTemplate="data" let-contato>
+      <div class="text-sm">
+        {{ formatarData(contato.dataCriacao) }}
+      </div>
+    </ng-template>
+
+    <!-- Template para Status -->
+    <ng-template dataTableTemplate="status" let-contato>
+      <p-tag 
+        [value]="getStatusLabel(contato.status)" 
+        [severity]="getStatusSeverity(contato.status)">
+      </p-tag>
+    </ng-template>
+
+    <!-- Template para Nome -->
+    <ng-template dataTableTemplate="nome" let-contato>
+      <div class="font-semibold">{{ contato.nome }}</div>
+      <div class="text-sm text-muted">{{ contato.email }}</div>
+    </ng-template>
+
+    <!-- Template para Assunto -->
+    <ng-template dataTableTemplate="assunto" let-contato>
+      <div class="font-medium">{{ contato.assunto }}</div>
+      <div class="text-sm text-muted">{{ truncarTexto(contato.mensagem, 80) }}</div>
+    </ng-template>
+  </app-data-table>
+</div>

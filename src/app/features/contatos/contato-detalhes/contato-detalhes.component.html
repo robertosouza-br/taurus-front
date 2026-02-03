@@ -1,0 +1,209 @@
+<div class="form-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Detalhes da Mensagem"
+    subtitle="Visualize e responda a mensagem de contato"
+    icon="pi pi-envelope">
+    <div actions>
+      <app-custom-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="voltarParaLista()">
+      </app-custom-button>
+    </div>
+  </app-page-header>
+
+  <!-- Loading -->
+  <app-loading-spinner *ngIf="carregando || marcandoLida" [overlay]="true" 
+    [message]="carregando ? 'Carregando...' : 'Marcando como lida...'">
+  </app-loading-spinner>
+
+  <div *ngIf="contato && !carregando">
+    <!-- Informações da Mensagem -->
+    <p-card header="Informações da Mensagem">
+      <div class="grid">
+        <!-- Status -->
+        <div class="col-12 md:col-6 lg:col-3">
+          <div class="info-field">
+            <label>Status</label>
+            <div>
+              <p-tag 
+                [value]="getStatusLabel(contato.status!)" 
+                [severity]="getStatusSeverity(contato.status!)">
+              </p-tag>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data de Criação -->
+        <div class="col-12 md:col-6 lg:col-3">
+          <div class="info-field">
+            <label>Data de Envio</label>
+            <div class="value">{{ formatarData(contato.dataCriacao) }}</div>
+          </div>
+        </div>
+
+        <!-- Data de Leitura -->
+        <div class="col-12 md:col-6 lg:col-3" *ngIf="contato.dataLeitura">
+          <div class="info-field">
+            <label>Data de Leitura</label>
+            <div class="value">{{ formatarData(contato.dataLeitura) }}</div>
+          </div>
+        </div>
+
+        <!-- Data de Resposta -->
+        <div class="col-12 md:col-6 lg:col-3" *ngIf="contato.dataResposta">
+          <div class="info-field">
+            <label>Data de Resposta</label>
+            <div class="value">{{ formatarData(contato.dataResposta) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <div class="grid">
+        <!-- Nome -->
+        <div class="col-12 md:col-6">
+          <div class="info-field">
+            <label>Nome</label>
+            <div class="value">{{ contato.nome }}</div>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="col-12 md:col-6">
+          <div class="info-field">
+            <label>E-mail</label>
+            <div class="value">
+              <a [href]="'mailto:' + contato.email" class="email-link">
+                <i class="pi pi-envelope mr-2"></i>{{ contato.email }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telefone -->
+        <div class="col-12 md:col-6" *ngIf="contato.telefone">
+          <div class="info-field">
+            <label>Telefone</label>
+            <div class="value">
+              <a [href]="'tel:' + contato.telefone" class="phone-link">
+                <i class="pi pi-phone mr-2"></i>{{ contato.telefone }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assunto -->
+        <div class="col-12">
+          <div class="info-field">
+            <label>Assunto</label>
+            <div class="value font-semibold">{{ contato.assunto }}</div>
+          </div>
+        </div>
+
+        <!-- Mensagem -->
+        <div class="col-12">
+          <div class="info-field">
+            <label>Mensagem</label>
+            <div class="message-content">
+              {{ contato.mensagem }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Resposta Existente -->
+    <p-card header="Resposta Enviada" styleClass="mt-3" *ngIf="contato.resposta">
+      <div class="grid">
+        <!-- Usuário que Respondeu -->
+        <div class="col-12 md:col-6" *ngIf="contato.usuarioResposta">
+          <div class="info-field">
+            <label>Respondido por</label>
+            <div class="value">{{ contato.usuarioResposta }}</div>
+          </div>
+        </div>
+
+        <!-- Resposta -->
+        <div class="col-12">
+          <div class="info-field">
+            <label>Resposta</label>
+            <div class="message-content response-content">
+              {{ contato.resposta }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Formulário de Resposta -->
+    <p-card header="Responder Mensagem" styleClass="mt-3" 
+      *ngIf="!contato.resposta && podeAlterar">
+      
+      <div *ngIf="!modoResposta" class="text-center p-4">
+        <p class="mb-3">Clique no botão abaixo para responder esta mensagem.</p>
+        <app-custom-button
+          label="Responder"
+          icon="pi pi-reply"
+          severity="success"
+          (onClick)="ativarModoResposta()">
+        </app-custom-button>
+      </div>
+
+      <div *ngIf="modoResposta">
+        <!-- Loading Salvamento -->
+        <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Enviando resposta..."></app-loading-spinner>
+
+        <div class="p-fluid">
+          <div class="p-field">
+            <app-input-textarea
+              id="resposta"
+              label="Sua Resposta"
+              [(ngModel)]="resposta"
+              [required]="true"
+              [rows]="8"
+              [showValidation]="tentouSalvar"
+              placeholder="Digite sua resposta...">
+            </app-input-textarea>
+            <small class="help-text">
+              <i class="pi pi-info-circle"></i> A resposta será enviada automaticamente por email para {{ contato.email }}
+            </small>
+          </div>
+
+          <div class="form-actions">
+            <app-custom-button
+              label="Cancelar"
+              icon="pi pi-times"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelarResposta()"
+              [disabled]="salvando">
+            </app-custom-button>
+            <app-custom-button
+              label="Enviar Resposta"
+              icon="pi pi-send"
+              severity="success"
+              (onClick)="enviarResposta()"
+              [loading]="salvando">
+            </app-custom-button>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Mensagem se não pode responder -->
+    <p-card styleClass="mt-3" *ngIf="!contato.resposta && !podeAlterar">
+      <div class="text-center p-4 text-muted">
+        <i class="pi pi-lock" style="font-size: 2rem;"></i>
+        <p class="mt-2">Você não tem permissão para responder mensagens.</p>
+      </div>
+    </p-card>
+  </div>
+</div>

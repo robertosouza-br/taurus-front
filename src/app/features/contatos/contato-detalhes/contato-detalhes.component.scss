@@ -1,0 +1,93 @@
+.info-field {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .value {
+    font-size: 1rem;
+    color: #212529;
+    line-height: 1.5;
+  }
+}
+
+.message-content {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.response-content {
+  background: #e7f5ff;
+  border-color: #74c0fc;
+}
+
+.email-link,
+.phone-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--primary-color-text);
+    text-decoration: underline;
+  }
+
+  i {
+    font-size: 0.875rem;
+  }
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6c757d;
+  font-size: 0.875rem;
+
+  i {
+    margin-right: 0.25rem;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+
+    app-custom-button {
+      width: 100%;
+    }
+  }
+}
+
+:host ::ng-deep {
+  .p-divider {
+    margin: 1.5rem 0;
+  }
+}

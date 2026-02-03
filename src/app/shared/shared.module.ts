@@ -15,6 +15,12 @@ import { SpeedDialModule } from 'primeng/speeddial';
 import { DialogModule } from 'primeng/dialog';
 import { SliderModule } from 'primeng/slider';
 import { ChipsModule } from 'primeng/chips';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
+import { DropdownModule } from 'primeng/dropdown';
+import { DividerModule } from 'primeng/divider';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -92,6 +98,12 @@ import { CalendarModule } from 'primeng/calendar';
     DialogModule,
     SliderModule,
     ChipsModule,
+    CardModule,
+    TagModule,
+    DropdownModule,
+    DividerModule,
+    ToastModule,
+    ConfirmDialogModule,
     ImageCropperComponent
   ],
   exports: [
@@ -124,6 +136,13 @@ import { CalendarModule } from 'primeng/calendar';
     CalendarModule,
     SliderModule,
     TooltipModule,
+    CardModule,
+    TagModule,
+    DropdownModule,
+    DividerModule,
+    TableModule,
+    ToastModule,
+    ConfirmDialogModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

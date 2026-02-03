@@ -13,6 +13,10 @@ const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
   {
+    path: 'contato-publico',
+    loadChildren: () => import('./features/contatos/contatos.module').then(m => m.ContatosModule)
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     canActivate: [AuthGuard],
@@ -45,6 +49,10 @@ const routes: Routes = [
       {
         path: 'cadastros/corretores',
         loadChildren: () => import('./features/corretores/corretores.module').then(m => m.CorretoresModule)
+      },
+      {
+        path: 'cadastros/contatos',
+        loadChildren: () => import('./features/contatos/contatos.module').then(m => m.ContatosModule)
       },
       {
         path: 'bancos',
