@@ -81,14 +81,15 @@
 
         <!-- Email -->
         <div class="p-field">
-          <app-input-text
+          <app-input-emails
             id="email"
-            label="E-mail"
-            [(ngModel)]="email"
+            label="E-mail(s)"
+            [(ngModel)]="emails"
             [required]="true"
+            [maxLength]="60"
             [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar">
-          </app-input-text>
+          </app-input-emails>
         </div>
 
         <!-- Nome de Guerra -->

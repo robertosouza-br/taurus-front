@@ -22,6 +22,7 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   nome = '';
   cpf = '';
   email = '';
+  emails: string[] = []; // Array para múltiplos emails
   nomeGuerra = '';
   telefone = '';
   numeroCreci = '';
@@ -262,11 +263,14 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   private preencherCamposComDadosUsuarioLocal(dados: { nome: string; email: string; telefone: string; cpf: string }): void {
     this.nome = dados.nome || '';
     this.email = dados.email || '';
+    // Preencher array de emails
+    this.emails = dados.email ? dados.email.split(';').map(e => e.trim()).filter(e => e) : [];
     this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
     
     console.log('Campos preenchidos com dados do usuário local:', {
       nome: this.nome,
       email: this.email,
+      emails: this.emails,
       telefone: this.telefone
     });
     
@@ -401,8 +405,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
       corretor.telefone = this.removerDDI(telefoneSemMascara);
     }
     
-    if (this.email) {
-      corretor.email = this.email;
+    if (this.emails && this.emails.length > 0) {
+      corretor.email = this.emails.filter(e => e.trim()).join(';');
     }
 
     this.corretorService.cadastrar(corretor).subscribe({

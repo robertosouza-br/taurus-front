@@ -65,16 +65,15 @@
         </div>
 
         <div class="p-field">
-          <app-input-text
+          <app-input-emails
             id="email"
-            label="E-mail"
-            [(ngModel)]="email"
-            [required]="false"
+            label="E-mail(s)"
+            [(ngModel)]="emails"
+            [required]="true"
+            [maxLength]="60"
             [disabled]="!camposHabilitados"
-            [showValidation]="tentouSalvar"
-            type="email"
-            placeholder="exemplo@email.com">
-          </app-input-text>
+            [showValidation]="tentouSalvar">
+          </app-input-emails>
         </div>
 
         <div class="p-field">

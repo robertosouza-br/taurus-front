@@ -21,6 +21,7 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   nome = '';
   cpf = '';
   email = '';
+  emails: string[] = []; // Array para múltiplos emails
   nomeGuerra = '';
   telefone = '';
   numeroCreci = '';
@@ -257,11 +258,14 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   private preencherCamposComDadosUsuarioLocal(dados: { nome: string; email: string; telefone: string; cpf: string }): void {
     this.nome = dados.nome || '';
     this.email = dados.email || '';
+    // Preencher array de emails
+    this.emails = dados.email ? dados.email.split(';').map((e: string) => e.trim()).filter((e: string) => e) : [];
     this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
     
     console.log('Campos preenchidos com dados do usuário local:', {
       nome: this.nome,
       email: this.email,
+      emails: this.emails,
       telefone: this.telefone
     });
     
@@ -279,6 +283,8 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   private preencherCamposComDadosCorretorExterno(dados: any): void {
     this.nome = dados.nome || '';
     this.email = dados.email || '';
+    // Preencher array de emails
+    this.emails = dados.email ? dados.email.split(';').map((e: string) => e.trim()).filter((e: string) => e) : [];
     this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
     this.nomeGuerra = dados.nomeGuerra || '';
     this.numeroCreci = dados.numeroCreci || '';
@@ -442,8 +448,8 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     };
 
     // Adicionar campos opcionais apenas se preenchidos
-    if (this.email) {
-      corretor.email = this.email;
+    if (this.emails && this.emails.length > 0) {
+      corretor.email = this.emails.filter(e => e.trim()).join(';');
     }
 
     if (this.nomeGuerra) {
