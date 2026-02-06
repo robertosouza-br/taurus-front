@@ -7,6 +7,8 @@ import {
   EmpreendimentoImagem,
   EmpreendimentoImagemUploadDTO,
   EmpreendimentoImagemUpdateDTO,
+  TipoImagemEmpreendimento,
+  TipoImagemDetalhes,
   PageResponse
 } from '../models/empreendimento.model';
 
@@ -49,12 +51,18 @@ export class EmpreendimentoService {
   // ==================== IMAGENS ====================
 
   /**
+   * Lista os tipos de imagem disponíveis
+   */
+  getTiposImagem(): Observable<TipoImagemDetalhes[]> {
+    return this.http.get<TipoImagemDetalhes[]>(`${this.apiUrl}/imagens/tipos`);
+  }
+
+  /**
    * Faz upload de uma nova imagem
    */
-  uploadImagem(dados: EmpreendimentoImagemUploadDTO): Observable<EmpreendimentoImagem> {
+  uploadImagem(codigoEmpreendimento: string, dados: EmpreendimentoImagemUploadDTO): Observable<EmpreendimentoImagem> {
     const formData = new FormData();
     formData.append('arquivo', dados.arquivo);
-    formData.append('codigoEmpreendimento', dados.codigoEmpreendimento);
     
     if (dados.ordem !== undefined && dados.ordem !== null) {
       formData.append('ordem', dados.ordem.toString());
@@ -65,11 +73,8 @@ export class EmpreendimentoService {
     if (dados.tipo) {
       formData.append('tipo', dados.tipo);
     }
-    if (dados.descricao) {
-      formData.append('descricao', dados.descricao);
-    }
 
-    return this.http.post<EmpreendimentoImagem>(`${this.apiUrl}/imagens`, formData);
+    return this.http.post<EmpreendimentoImagem>(`${this.apiUrl}/${codigoEmpreendimento}/imagens`, formData);
   }
 
   /**

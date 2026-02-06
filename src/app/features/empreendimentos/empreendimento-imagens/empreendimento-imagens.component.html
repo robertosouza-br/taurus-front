@@ -63,7 +63,7 @@
 
       <!-- Image Preview -->
       <div class="image-preview">
-        <img [src]="imagem.urlTemporaria" [alt]="imagem.descricao || 'Imagem do empreendimento'" />
+        <img [src]="imagem.urlImagem" [alt]="'Imagem do empreendimento'" />
       </div>
 
       <!-- Image Info -->
@@ -79,11 +79,6 @@
             Tipo:
           </span>
           <span class="info-value">{{ getTipoLabel(imagem.tipo) }}</span>
-        </div>
-        
-        <div class="info-row full-width" *ngIf="imagem.descricao">
-          <span class="info-label">Descrição:</span>
-          <span class="info-value">{{ imagem.descricao }}</span>
         </div>
       </div>
 
@@ -207,19 +202,6 @@
       </p-checkbox>
       <label for="upload-principal">Marcar como imagem principal</label>
     </div>
-
-    <!-- Descrição -->
-    <div class="field">
-      <label for="upload-descricao">Descrição</label>
-      <textarea 
-        pInputTextarea 
-        id="upload-descricao"
-        [(ngModel)]="uploadDescricao"
-        rows="3"
-        [disabled]="uploadando"
-        placeholder="Descreva esta imagem...">
-      </textarea>
-    </div>
   </div>
 
   <ng-template pTemplate="footer">
@@ -258,7 +240,7 @@
   <div class="upload-form" *ngIf="imagemEdicao">
     <!-- Preview -->
     <div class="edit-preview">
-      <img [src]="imagemEdicao.urlTemporaria" [alt]="imagemEdicao.descricao || 'Preview'" />
+      <img [src]="imagemEdicao.urlImagem" [alt]="'Preview'" />
     </div>
 
     <!-- Tipo -->
@@ -302,19 +284,6 @@
         [disabled]="uploadando">
       </p-checkbox>
       <label for="edit-principal">Marcar como imagem principal</label>
-    </div>
-
-    <!-- Descrição -->
-    <div class="field">
-      <label for="edit-descricao">Descrição</label>
-      <textarea 
-        pInputTextarea 
-        id="edit-descricao"
-        [(ngModel)]="editDescricao"
-        rows="3"
-        [disabled]="uploadando"
-        placeholder="Descreva esta imagem...">
-      </textarea>
     </div>
   </div>
 

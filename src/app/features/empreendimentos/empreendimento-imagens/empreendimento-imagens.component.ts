@@ -32,16 +32,14 @@ export class EmpreendimentoImagensComponent implements OnInit {
   arquivoSelecionado: File | null = null;
   uploadOrdem = 0;
   uploadPrincipal = false;
-  uploadTipo: string | null = null;
-  uploadDescricao = '';
+  uploadTipo: TipoImagemEmpreendimento | null = null;
   
   // Dialog de edição
   displayEditDialog = false;
   imagemEdicao: EmpreendimentoImagem | null = null;
   editOrdem = 0;
   editPrincipal = false;
-  editTipo: string | null = null;
-  editDescricao = '';
+  editTipo: TipoImagemEmpreendimento | null = null;
   
   // Tipos de imagem
   tiposImagem = Object.entries(TIPO_IMAGEM_LABELS).map(([value, label]) => ({
@@ -141,7 +139,6 @@ export class EmpreendimentoImagensComponent implements OnInit {
     this.uploadOrdem = this.imagens.length;
     this.uploadPrincipal = this.imagens.length === 0;
     this.uploadTipo = null;
-    this.uploadDescricao = '';
   }
 
   onFileSelect(event: any): void {
@@ -184,13 +181,11 @@ export class EmpreendimentoImagensComponent implements OnInit {
     
     this.uploadando = true;
     
-    this.empreendimentoService.uploadImagem({
+    this.empreendimentoService.uploadImagem(this.codigoEmpreendimento, {
       arquivo: this.arquivoSelecionado,
-      codigoEmpreendimento: this.codigoEmpreendimento,
       ordem: this.uploadOrdem,
       principal: this.uploadPrincipal,
-      tipo: this.uploadTipo || undefined,
-      descricao: this.uploadDescricao || undefined
+      tipo: this.uploadTipo || undefined
     })
       .pipe(finalize(() => this.uploadando = false))
       .subscribe({
@@ -228,7 +223,6 @@ export class EmpreendimentoImagensComponent implements OnInit {
     this.editOrdem = imagem.ordem;
     this.editPrincipal = imagem.principal;
     this.editTipo = imagem.tipo;
-    this.editDescricao = imagem.descricao || '';
     this.displayEditDialog = true;
   }
 
@@ -237,11 +231,10 @@ export class EmpreendimentoImagensComponent implements OnInit {
     
     this.uploadando = true;
     
-    this.empreendimentoService.atualizarImagem(this.imagemEdicao.id, {
+    this.empreendimentoService.atualizarImagem(this.imagemEdicao.id!, {
       ordem: this.editOrdem,
       principal: this.editPrincipal,
-      tipo: this.editTipo || undefined,
-      descricao: this.editDescricao || undefined
+      tipo: this.editTipo || undefined
     })
       .pipe(finalize(() => this.uploadando = false))
       .subscribe({
@@ -267,6 +260,7 @@ export class EmpreendimentoImagensComponent implements OnInit {
 
   marcarComoPrincipal(imagem: EmpreendimentoImagem): void {
     if (!this.podeAlterar || imagem.principal) return;
+    if (!imagem.id) return;
     
     this.empreendimentoService.marcarComoPrincipal(imagem.id)
       .subscribe({
@@ -299,6 +293,8 @@ export class EmpreendimentoImagensComponent implements OnInit {
       acceptLabel: 'Sim',
       rejectLabel: 'Não',
       accept: () => {
+        if (!imagem.id) return;
+        
         this.empreendimentoService.inativarImagem(imagem.id)
           .subscribe({
             next: () => {
@@ -332,6 +328,8 @@ export class EmpreendimentoImagensComponent implements OnInit {
       rejectLabel: 'Não',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
+        if (!imagem.id) return;
+        
         this.empreendimentoService.excluirImagem(imagem.id)
           .subscribe({
             next: () => {
@@ -355,8 +353,8 @@ export class EmpreendimentoImagensComponent implements OnInit {
   }
 
   getTipoIcon(tipo: string | null): string {
-    if (!tipo) return TIPO_IMAGEM_ICONS[TipoImagemEmpreendimento.OUTRO];
-    return TIPO_IMAGEM_ICONS[tipo] || TIPO_IMAGEM_ICONS[TipoImagemEmpreendimento.OUTRO];
+    if (!tipo) return TIPO_IMAGEM_ICONS[TipoImagemEmpreendimento.OUTROS];
+    return TIPO_IMAGEM_ICONS[tipo] || TIPO_IMAGEM_ICONS[TipoImagemEmpreendimento.OUTROS];
   }
 
   getTipoLabel(tipo: string | null): string {

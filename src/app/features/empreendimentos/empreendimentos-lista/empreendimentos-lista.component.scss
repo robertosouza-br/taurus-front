@@ -170,11 +170,46 @@
 
     .card-actions {
       margin-top: auto;
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: flex-end !important;
+      align-items: center;
+      background: transparent;
+      text-align: right;
+    }
+  }
+}
 
-      .action-button {
-        width: 100%;
-        justify-content: center;
-        font-weight: 600;
+// Botão de ação - estilos específicos com alta prioridade
+.empreendimento-card {
+  .card-actions {
+    button.action-icon-btn {
+      width: 3rem !important;
+      height: 3rem !important;
+      min-width: 3rem !important;
+      padding: 0 !important;
+      margin-left: auto !important;
+      color: var(--text-color-secondary) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      transition: all 0.3s ease !important;
+
+      &:enabled:hover,
+      &:not(:disabled):hover {
+        transform: scale(1.15) !important;
+        color: var(--primary-color) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      &:focus {
+        box-shadow: none !important;
+      }
+
+      .p-button-icon {
+        font-size: 1.25rem !important;
       }
     }
   }

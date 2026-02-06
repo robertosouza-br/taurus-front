@@ -5,23 +5,49 @@ export interface Empreendimento {
   codColigada: number;
   codEmpreendimento: number;
   nome: string;
-  disponivelPdc: string;
-  imagens?: EmpreendimentoImagem[];
+  disponivel?: string; // 'S' ou 'N' (nova estrutura backend)
+  disponivelPdc?: string; // 'S' ou 'N' (estrutura atual backend - manter compatibilidade)
+  imagemCapa?: string; // URL da imagem principal (nova estrutura backend - quando implementado)
+  imagens?: EmpreendimentoImagem[]; // Array completo (estrutura atual)
 }
 
 /**
  * Interface para representar uma imagem de empreendimento
  */
 export interface EmpreendimentoImagem {
-  id: number;
-  codigoEmpreendimento: string;
-  nomeArquivo: string;
-  urlTemporaria: string | null;
+  id: number | null;
+  codigoEmpreendimento?: string | null;
+  nomeArquivo?: string;
+  urlImagem?: string; // Nova estrutura backend (quando implementado)
+  urlTemporaria?: string; // Estrutura atual backend (manter compatibilidade)
   ordem: number;
   principal: boolean;
-  tipo: string | null;
-  descricao: string | null;
-  ativo: boolean;
+  tipo: TipoImagemEmpreendimento;
+  ativo?: boolean;
+  dataUpload?: string | null;
+  dataCriacao?: string | null;
+  dataAtualizacao?: string | null;
+}
+
+/**
+ * Enum de tipos de imagem de empreendimento
+ */
+export enum TipoImagemEmpreendimento {
+  FACHADA = 'FACHADA',
+  PLANTA = 'PLANTA',
+  AREA_LAZER = 'AREA_LAZER',
+  INTERIOR = 'INTERIOR',
+  LOCALIZACAO = 'LOCALIZACAO',
+  OUTROS = 'OUTROS'
+}
+
+/**
+ * Interface para detalhes de um tipo de imagem
+ */
+export interface TipoImagemDetalhes {
+  nome: TipoImagemEmpreendimento;
+  descricao: string;
+  detalhamento: string;
 }
 
 /**
@@ -29,11 +55,9 @@ export interface EmpreendimentoImagem {
  */
 export interface EmpreendimentoImagemUploadDTO {
   arquivo: File;
-  codigoEmpreendimento: string;
   ordem?: number;
   principal?: boolean;
-  tipo?: string;
-  descricao?: string;
+  tipo?: TipoImagemEmpreendimento;
 }
 
 /**
@@ -42,20 +66,7 @@ export interface EmpreendimentoImagemUploadDTO {
 export interface EmpreendimentoImagemUpdateDTO {
   ordem?: number;
   principal?: boolean;
-  tipo?: string;
-  descricao?: string;
-}
-
-/**
- * Tipos de imagem sugeridos
- */
-export enum TipoImagemEmpreendimento {
-  FACHADA = 'fachada',
-  PLANTA = 'planta',
-  AREA_LAZER = 'area_lazer',
-  INTERIOR = 'interior',
-  LOCALIZACAO = 'localizacao',
-  OUTRO = 'outro'
+  tipo?: TipoImagemEmpreendimento;
 }
 
 /**
@@ -67,7 +78,7 @@ export const TIPO_IMAGEM_LABELS: Record<string, string> = {
   [TipoImagemEmpreendimento.AREA_LAZER]: 'Área de Lazer',
   [TipoImagemEmpreendimento.INTERIOR]: 'Interior',
   [TipoImagemEmpreendimento.LOCALIZACAO]: 'Localização',
-  [TipoImagemEmpreendimento.OUTRO]: 'Outro'
+  [TipoImagemEmpreendimento.OUTROS]: 'Outros'
 };
 
 /**
@@ -79,7 +90,7 @@ export const TIPO_IMAGEM_ICONS: Record<string, string> = {
   [TipoImagemEmpreendimento.AREA_LAZER]: 'pi pi-sun',
   [TipoImagemEmpreendimento.INTERIOR]: 'pi pi-home',
   [TipoImagemEmpreendimento.LOCALIZACAO]: 'pi pi-map-marker',
-  [TipoImagemEmpreendimento.OUTRO]: 'pi pi-image'
+  [TipoImagemEmpreendimento.OUTROS]: 'pi pi-image'
 };
 
 /**

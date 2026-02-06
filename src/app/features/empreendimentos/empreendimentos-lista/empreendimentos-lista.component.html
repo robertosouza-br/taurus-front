@@ -23,6 +23,7 @@
   <app-loading-spinner 
     *ngIf="carregando && empreendimentos.length === 0" 
     [size]="'large'"
+    [overlay]="true"
     [message]="'Carregando empreendimentos...'"
   ></app-loading-spinner>
 
@@ -55,12 +56,6 @@
                 severity="danger">
               </p-tag>
             </div>
-            <div class="overlay-info">
-              <span class="info-badge" *ngIf="getNumeroImagens(emp) > 0">
-                <i class="pi pi-images"></i>
-                {{ getNumeroImagens(emp) }} {{ getNumeroImagens(emp) === 1 ? 'imagem' : 'imagens' }}
-              </span>
-            </div>
           </div>
         </div>
 
@@ -80,13 +75,15 @@
         </div>
 
         <!-- Ações -->
-        <div class="card-actions">
+        <div class="card-actions" style="display: flex; justify-content: flex-end;">
           <button 
             pButton 
             type="button" 
-            label="Gerenciar Imagens" 
-            icon="pi pi-images"
-            class="p-button-primary"
+            icon="pi pi-book"
+            class="p-button-rounded p-button-text p-button-lg action-icon-btn"
+            style="margin-left: auto;"
+            pTooltip="Ver Portfólio"
+            tooltipPosition="top"
             (click)="gerenciarImagens(emp)">
           </button>
         </div>
