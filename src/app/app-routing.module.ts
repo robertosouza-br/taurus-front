@@ -63,10 +63,6 @@ const routes: Routes = [
         loadChildren: () => import('./features/meu-perfil/meu-perfil.module').then(m => m.MeuPerfilModule)
       },
       {
-        path: 'imoveis/empreendimentos',
-        loadChildren: () => import('./features/empreendimentos/empreendimentos.module').then(m => m.EmpreendimentosModule)
-      },
-      {
         path: 'auditoria',
         loadChildren: () => import('./features/auditoria/auditoria.module').then(m => m.AuditoriaModule)
       }
