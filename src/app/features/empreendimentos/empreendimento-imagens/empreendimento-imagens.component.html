@@ -1,0 +1,344 @@
+<app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+<div class="imagens-container">
+  <div class="header">
+    <div class="header-info">
+      <h1 class="title">
+        <i class="pi pi-images"></i>
+        Gerenciar Imagens
+      </h1>
+      <p class="subtitle">Empreendimento: Código {{ codigoEmpreendimento }}</p>
+    </div>
+    <div class="header-actions">
+      <button 
+        pButton 
+        type="button" 
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        class="p-button-outlined p-button-secondary"
+        (click)="voltar()">
+      </button>
+      <button 
+        pButton 
+        type="button" 
+        label="Adicionar Imagem"
+        icon="pi pi-plus"
+        class="p-button-success"
+        (click)="abrirUpload()"
+        *ngIf="podeIncluir">
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="carregando" class="loading-container">
+    <p-progressSpinner></p-progressSpinner>
+    <p>Carregando imagens...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!carregando && imagens.length === 0" class="empty-state">
+    <i class="pi pi-image" style="font-size: 4rem; color: var(--text-color-secondary);"></i>
+    <h3>Nenhuma imagem cadastrada</h3>
+    <p>Adicione a primeira imagem deste empreendimento</p>
+    <button 
+      pButton 
+      type="button" 
+      label="Adicionar Imagem"
+      icon="pi pi-plus"
+      class="p-button-success"
+      (click)="abrirUpload()"
+      *ngIf="podeIncluir">
+    </button>
+  </div>
+
+  <!-- Images Grid -->
+  <div *ngIf="!carregando && imagens.length > 0" class="images-grid">
+    <div *ngFor="let imagem of imagens" class="image-card">
+      <!-- Principal Badge -->
+      <div class="principal-badge" *ngIf="imagem.principal">
+        <i class="pi pi-star-fill"></i>
+        Principal
+      </div>
+
+      <!-- Image Preview -->
+      <div class="image-preview">
+        <img [src]="imagem.urlTemporaria" [alt]="imagem.descricao || 'Imagem do empreendimento'" />
+      </div>
+
+      <!-- Image Info -->
+      <div class="image-info">
+        <div class="info-row">
+          <span class="info-label">Ordem:</span>
+          <span class="info-value">{{ imagem.ordem }}</span>
+        </div>
+        
+        <div class="info-row" *ngIf="imagem.tipo">
+          <span class="info-label">
+            <i [class]="getTipoIcon(imagem.tipo)"></i>
+            Tipo:
+          </span>
+          <span class="info-value">{{ getTipoLabel(imagem.tipo) }}</span>
+        </div>
+        
+        <div class="info-row full-width" *ngIf="imagem.descricao">
+          <span class="info-label">Descrição:</span>
+          <span class="info-value">{{ imagem.descricao }}</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="image-actions">
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-star"
+          class="p-button-rounded p-button-text p-button-warning"
+          pTooltip="Marcar como principal"
+          tooltipPosition="top"
+          (click)="marcarComoPrincipal(imagem)"
+          *ngIf="podeAlterar && !imagem.principal">
+        </button>
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-pencil"
+          class="p-button-rounded p-button-text"
+          pTooltip="Editar"
+          tooltipPosition="top"
+          (click)="abrirEdicao(imagem)"
+          *ngIf="podeAlterar">
+        </button>
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-eye-slash"
+          class="p-button-rounded p-button-text p-button-secondary"
+          pTooltip="Inativar"
+          tooltipPosition="top"
+          (click)="inativar(imagem)"
+          *ngIf="podeExcluir">
+        </button>
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-trash"
+          class="p-button-rounded p-button-text p-button-danger"
+          pTooltip="Excluir permanentemente"
+          tooltipPosition="top"
+          (click)="excluir(imagem)"
+          *ngIf="podeExcluir">
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog de Upload -->
+<p-dialog 
+  [(visible)]="displayUploadDialog" 
+  [modal]="true" 
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '550px'}"
+  header="Adicionar Imagem">
+  
+  <div class="upload-form">
+    <!-- File Upload -->
+    <div class="field">
+      <label>Arquivo *</label>
+      <p-fileUpload 
+        mode="basic" 
+        chooseLabel="Selecionar Arquivo"
+        [auto]="false"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        [maxFileSize]="10485760"
+        (onSelect)="onFileSelect($event)"
+        [disabled]="uploadando">
+      </p-fileUpload>
+      <small *ngIf="arquivoSelecionado" class="file-selected">
+        <i class="pi pi-check-circle"></i>
+        {{ arquivoSelecionado.name }} ({{ (arquivoSelecionado.size / 1024 / 1024).toFixed(2) }} MB)
+      </small>
+      <small class="field-hint">Formatos: JPEG, JPG, PNG, WEBP. Tamanho máximo: 10 MB</small>
+    </div>
+
+    <!-- Tipo -->
+    <div class="field">
+      <label for="upload-tipo">Tipo</label>
+      <p-dropdown 
+        id="upload-tipo"
+        [(ngModel)]="uploadTipo"
+        [options]="tiposImagem"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione o tipo"
+        [disabled]="uploadando"
+        [showClear]="true">
+        <ng-template let-tipo pTemplate="item">
+          <div class="tipo-option">
+            <i [class]="tipo.icon"></i>
+            <span>{{ tipo.label }}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <!-- Ordem -->
+    <div class="field">
+      <label for="upload-ordem">Ordem *</label>
+      <p-inputNumber 
+        id="upload-ordem"
+        [(ngModel)]="uploadOrdem"
+        [min]="0"
+        [disabled]="uploadando">
+      </p-inputNumber>
+      <small class="field-hint">Define a ordem de exibição da imagem</small>
+    </div>
+
+    <!-- Principal -->
+    <div class="field field-checkbox">
+      <p-checkbox 
+        [(ngModel)]="uploadPrincipal"
+        binary="true"
+        inputId="upload-principal"
+        [disabled]="uploadando">
+      </p-checkbox>
+      <label for="upload-principal">Marcar como imagem principal</label>
+    </div>
+
+    <!-- Descrição -->
+    <div class="field">
+      <label for="upload-descricao">Descrição</label>
+      <textarea 
+        pInputTextarea 
+        id="upload-descricao"
+        [(ngModel)]="uploadDescricao"
+        rows="3"
+        [disabled]="uploadando"
+        placeholder="Descreva esta imagem...">
+      </textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button 
+      pButton 
+      type="button" 
+      label="Cancelar" 
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="displayUploadDialog = false"
+      [disabled]="uploadando">
+    </button>
+    <button 
+      pButton 
+      type="button" 
+      label="Enviar" 
+      icon="pi pi-upload"
+      class="p-button-success"
+      (click)="fazerUpload()"
+      [loading]="uploadando"
+      [disabled]="!arquivoSelecionado || uploadando">
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog de Edição -->
+<p-dialog 
+  [(visible)]="displayEditDialog" 
+  [modal]="true" 
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '550px'}"
+  header="Editar Imagem">
+  
+  <div class="upload-form" *ngIf="imagemEdicao">
+    <!-- Preview -->
+    <div class="edit-preview">
+      <img [src]="imagemEdicao.urlTemporaria" [alt]="imagemEdicao.descricao || 'Preview'" />
+    </div>
+
+    <!-- Tipo -->
+    <div class="field">
+      <label for="edit-tipo">Tipo</label>
+      <p-dropdown 
+        id="edit-tipo"
+        [(ngModel)]="editTipo"
+        [options]="tiposImagem"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione o tipo"
+        [disabled]="uploadando"
+        [showClear]="true">
+        <ng-template let-tipo pTemplate="item">
+          <div class="tipo-option">
+            <i [class]="tipo.icon"></i>
+            <span>{{ tipo.label }}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <!-- Ordem -->
+    <div class="field">
+      <label for="edit-ordem">Ordem *</label>
+      <p-inputNumber 
+        id="edit-ordem"
+        [(ngModel)]="editOrdem"
+        [min]="0"
+        [disabled]="uploadando">
+      </p-inputNumber>
+    </div>
+
+    <!-- Principal -->
+    <div class="field field-checkbox">
+      <p-checkbox 
+        [(ngModel)]="editPrincipal"
+        binary="true"
+        inputId="edit-principal"
+        [disabled]="uploadando">
+      </p-checkbox>
+      <label for="edit-principal">Marcar como imagem principal</label>
+    </div>
+
+    <!-- Descrição -->
+    <div class="field">
+      <label for="edit-descricao">Descrição</label>
+      <textarea 
+        pInputTextarea 
+        id="edit-descricao"
+        [(ngModel)]="editDescricao"
+        rows="3"
+        [disabled]="uploadando"
+        placeholder="Descreva esta imagem...">
+      </textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button 
+      pButton 
+      type="button" 
+      label="Cancelar" 
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="displayEditDialog = false"
+      [disabled]="uploadando">
+    </button>
+    <button 
+      pButton 
+      type="button" 
+      label="Salvar" 
+      icon="pi pi-check"
+      (click)="salvarEdicao()"
+      [loading]="uploadando"
+      [disabled]="uploadando">
+    </button>
+  </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

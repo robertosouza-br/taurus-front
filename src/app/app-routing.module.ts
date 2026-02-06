@@ -59,6 +59,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/bancos/bancos.module').then(m => m.BancosModule)
       },
       {
+        path: 'empreendimentos',
+        loadChildren: () => import('./features/empreendimentos/empreendimentos.module').then(m => m.EmpreendimentosModule)
+      },
+      {
         path: 'meu-perfil',
         loadChildren: () => import('./features/meu-perfil/meu-perfil.module').then(m => m.MeuPerfilModule)
       },

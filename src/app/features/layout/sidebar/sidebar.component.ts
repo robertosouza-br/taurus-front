@@ -168,7 +168,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
           {
             label: 'Empreendimentos',
             icon: 'pi pi-building-columns',
-            routerLink: '/imoveis/empreendimentos',
+            routerLink: '/empreendimentos',
             funcionalidade: Funcionalidade.IMOVEL
           }
         ]

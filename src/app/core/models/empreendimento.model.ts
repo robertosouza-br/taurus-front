@@ -1,54 +1,94 @@
-export interface EmpreendimentoDTO {
-  id: string;
+/**
+ * Interface para representar um empreendimento (baseado na API real TOTVS)
+ */
+export interface Empreendimento {
+  codColigada: number;
+  codEmpreendimento: number;
   nome: string;
-  descricao: string;
-  endereco: string;
-  cidade: string;
-  estado: string;
-  cep: string;
-  status: string;
-  totalUnidades: number;
-  unidadesDisponiveis: number;
-  valorMinimo: number;
-  valorMaximo: number;
-  construtora: string;
-  dataPrevistaEntrega: string;
+  disponivelPdc: string;
+  imagens?: EmpreendimentoImagem[];
+}
+
+/**
+ * Interface para representar uma imagem de empreendimento
+ */
+export interface EmpreendimentoImagem {
+  id: number;
+  codigoEmpreendimento: string;
+  nomeArquivo: string;
+  urlTemporaria: string | null;
+  ordem: number;
+  principal: boolean;
+  tipo: string | null;
+  descricao: string | null;
   ativo: boolean;
 }
 
+/**
+ * DTO para upload de nova imagem
+ */
+export interface EmpreendimentoImagemUploadDTO {
+  arquivo: File;
+  codigoEmpreendimento: string;
+  ordem?: number;
+  principal?: boolean;
+  tipo?: string;
+  descricao?: string;
+}
+
+/**
+ * DTO para atualização de dados da imagem
+ */
+export interface EmpreendimentoImagemUpdateDTO {
+  ordem?: number;
+  principal?: boolean;
+  tipo?: string;
+  descricao?: string;
+}
+
+/**
+ * Tipos de imagem sugeridos
+ */
+export enum TipoImagemEmpreendimento {
+  FACHADA = 'fachada',
+  PLANTA = 'planta',
+  AREA_LAZER = 'area_lazer',
+  INTERIOR = 'interior',
+  LOCALIZACAO = 'localizacao',
+  OUTRO = 'outro'
+}
+
+/**
+ * Labels dos tipos de imagem
+ */
+export const TIPO_IMAGEM_LABELS: Record<string, string> = {
+  [TipoImagemEmpreendimento.FACHADA]: 'Fachada',
+  [TipoImagemEmpreendimento.PLANTA]: 'Planta',
+  [TipoImagemEmpreendimento.AREA_LAZER]: 'Área de Lazer',
+  [TipoImagemEmpreendimento.INTERIOR]: 'Interior',
+  [TipoImagemEmpreendimento.LOCALIZACAO]: 'Localização',
+  [TipoImagemEmpreendimento.OUTRO]: 'Outro'
+};
+
+/**
+ * Ícones dos tipos de imagem
+ */
+export const TIPO_IMAGEM_ICONS: Record<string, string> = {
+  [TipoImagemEmpreendimento.FACHADA]: 'pi pi-building',
+  [TipoImagemEmpreendimento.PLANTA]: 'pi pi-map',
+  [TipoImagemEmpreendimento.AREA_LAZER]: 'pi pi-sun',
+  [TipoImagemEmpreendimento.INTERIOR]: 'pi pi-home',
+  [TipoImagemEmpreendimento.LOCALIZACAO]: 'pi pi-map-marker',
+  [TipoImagemEmpreendimento.OUTRO]: 'pi pi-image'
+};
+
+/**
+ * Response paginado do Spring Boot
+ */
 export interface PageResponse<T> {
   content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    sort: {
-      empty: boolean;
-      sorted: boolean;
-      unsorted: boolean;
-    };
-    offset: number;
-    paged: boolean;
-    unpaged: boolean;
-  };
-  last: boolean;
   totalElements: number;
   totalPages: number;
   size: number;
   number: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  first: boolean;
-  numberOfElements: number;
-  empty: boolean;
 }
-
-export const STATUS_EMPREENDIMENTO_COLORS: Record<string, { bg: string; color: string; icon: string }> = {
-  'Lançamento': { bg: '#e3f2fd', color: '#1976d2', icon: 'pi pi-star' },
-  'Em Construção': { bg: '#fff3e0', color: '#f57c00', icon: 'pi pi-wrench' },
-  'Pronto para Morar': { bg: '#e8f5e9', color: '#388e3c', icon: 'pi pi-check-circle' },
-  'Entregue': { bg: '#f3e5f5', color: '#7b1fa2', icon: 'pi pi-home' },
-  'Esgotado': { bg: '#ffebee', color: '#c62828', icon: 'pi pi-times-circle' }
-};

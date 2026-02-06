@@ -1,0 +1,353 @@
+.imagens-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .header-info {
+    flex: 1;
+    min-width: 250px;
+
+    .title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin: 0 0 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-color-secondary);
+      margin: 0;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+
+  p {
+    color: var(--text-color-secondary);
+    margin: 0;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--surface-card);
+  border-radius: 8px;
+  border: 2px dashed var(--surface-border);
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  p {
+    color: var(--text-color-secondary);
+    margin: 0 0 1.5rem 0;
+  }
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.image-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .principal-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #333;
+    padding: 0.35rem 0.75rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    i {
+      font-size: 0.7rem;
+    }
+  }
+
+  .image-preview {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: var(--surface-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &:hover .image-preview img {
+    transform: scale(1.05);
+  }
+
+  .image-info {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+
+      &.full-width {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .info-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-color-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+
+        i {
+          font-size: 0.875rem;
+        }
+      }
+
+      .info-value {
+        font-size: 0.875rem;
+        color: var(--text-color);
+        text-align: right;
+        word-break: break-word;
+      }
+
+      &.full-width .info-value {
+        text-align: left;
+      }
+    }
+  }
+
+  .image-actions {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+// Upload Form
+.upload-form {
+  padding: 0.5rem 0;
+
+  .field {
+    margin-bottom: 1.25rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-color);
+      font-size: 0.875rem;
+    }
+
+    .field-hint {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--text-color-secondary);
+      font-size: 0.75rem;
+    }
+
+    .file-selected {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      color: var(--green-600);
+      font-size: 0.875rem;
+
+      i {
+        font-size: 1rem;
+      }
+    }
+
+    &.field-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      label {
+        margin-bottom: 0;
+        cursor: pointer;
+      }
+    }
+
+    ::ng-deep {
+      .p-fileupload-choose {
+        width: 100%;
+      }
+
+      .p-inputnumber,
+      .p-inputtext,
+      .p-inputtextarea,
+      .p-dropdown {
+        width: 100%;
+      }
+    }
+  }
+
+  .edit-preview {
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-100);
+
+    img {
+      width: 100%;
+      height: auto;
+      max-height: 300px;
+      object-fit: contain;
+    }
+  }
+
+  .tipo-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    i {
+      color: var(--primary-color);
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 1200px) {
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .imagens-container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+
+    .header-actions {
+      width: 100%;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .image-card .image-preview {
+    height: 180px;
+  }
+
+  ::ng-deep .p-dialog {
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .images-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .image-card .image-preview {
+    height: 220px;
+  }
+
+  .header {
+    .title {
+      font-size: 1.5rem;
+    }
+
+    .header-actions {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

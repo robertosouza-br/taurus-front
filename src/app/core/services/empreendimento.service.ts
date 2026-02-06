@@ -2,9 +2,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { EmpreendimentoDTO, PageResponse } from '../models/empreendimento.model';
-import { Unidade } from '../models/unidade.model';
+import {
+  Empreendimento,
+  EmpreendimentoImagem,
+  EmpreendimentoImagemUploadDTO,
+  EmpreendimentoImagemUpdateDTO,
+  PageResponse
+} from '../models/empreendimento.model';
 
+/**
+ * Serviço consolidado para gerenciar empreendimentos e suas imagens
+ * 
+ * Funcionalidade: IMOVEL
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -13,6 +23,8 @@ export class EmpreendimentoService {
 
   constructor(private http: HttpClient) {}
 
+  // ==================== EMPREENDIMENTOS ====================
+
   /**
    * Lista empreendimentos com paginação e busca
    */
@@ -20,7 +32,7 @@ export class EmpreendimentoService {
     page: number = 0,
     size: number = 50,
     search?: string
-  ): Observable<PageResponse<EmpreendimentoDTO>> {
+  ): Observable<PageResponse<Empreendimento>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -29,54 +41,83 @@ export class EmpreendimentoService {
       params = params.set('search', search);
     }
 
-    return this.http.get<PageResponse<EmpreendimentoDTO>>(this.apiUrl, { params });
+    debugger;
+
+    return this.http.get<PageResponse<Empreendimento>>(this.apiUrl, { params });
+  }
+
+  // ==================== IMAGENS ====================
+
+  /**
+   * Faz upload de uma nova imagem
+   */
+  uploadImagem(dados: EmpreendimentoImagemUploadDTO): Observable<EmpreendimentoImagem> {
+    const formData = new FormData();
+    formData.append('arquivo', dados.arquivo);
+    formData.append('codigoEmpreendimento', dados.codigoEmpreendimento);
+    
+    if (dados.ordem !== undefined && dados.ordem !== null) {
+      formData.append('ordem', dados.ordem.toString());
+    }
+    if (dados.principal !== undefined && dados.principal !== null) {
+      formData.append('principal', dados.principal.toString());
+    }
+    if (dados.tipo) {
+      formData.append('tipo', dados.tipo);
+    }
+    if (dados.descricao) {
+      formData.append('descricao', dados.descricao);
+    }
+
+    return this.http.post<EmpreendimentoImagem>(`${this.apiUrl}/imagens`, formData);
   }
 
   /**
-   * Lista unidades de um empreendimento específico
+   * Lista imagens ativas de um empreendimento
    */
-  listarUnidades(empreendimentoId?: string): Observable<Unidade[]> {
-    let params = new HttpParams();
-    if (empreendimentoId) {
-      params = params.set('empreendimentoId', empreendimentoId);
-    }
-    
-    return this.http.get<Unidade[]>(`${this.apiUrl}/unidades`, { params });
+  listarImagensAtivas(codigoEmpreendimento: string): Observable<EmpreendimentoImagem[]> {
+    return this.http.get<EmpreendimentoImagem[]>(`${this.apiUrl}/imagens/${codigoEmpreendimento}`);
   }
 
   /**
-   * Busca unidade específica
+   * Lista todas as imagens (ativas e inativas)
    */
-  buscarUnidade(codigoUnidade: string, empreendimentoId?: string): Observable<Unidade> {
-    let params = new HttpParams();
-    if (empreendimentoId) {
-      params = params.set('empreendimentoId', empreendimentoId);
-    }
-    
-    return this.http.get<Unidade>(`${this.apiUrl}/unidades/${codigoUnidade}`, { params });
+  listarTodasImagens(codigoEmpreendimento: string): Observable<EmpreendimentoImagem[]> {
+    return this.http.get<EmpreendimentoImagem[]>(`${this.apiUrl}/imagens/${codigoEmpreendimento}/todas`);
   }
 
   /**
-   * Filtra unidades por status
+   * Busca a imagem principal
    */
-  filtrarPorStatus(status: string, empreendimentoId?: string): Observable<Unidade[]> {
-    let params = new HttpParams().set('status', status);
-    if (empreendimentoId) {
-      params = params.set('empreendimentoId', empreendimentoId);
-    }
-    
-    return this.http.get<Unidade[]>(`${this.apiUrl}/unidades/filtrar/status`, { params });
+  buscarImagemPrincipal(codigoEmpreendimento: string): Observable<EmpreendimentoImagem> {
+    return this.http.get<EmpreendimentoImagem>(`${this.apiUrl}/imagens/${codigoEmpreendimento}/principal`);
   }
 
   /**
-   * Filtra unidades por tipo
+   * Atualiza metadados da imagem
    */
-  filtrarPorTipo(tipo: string, empreendimentoId?: string): Observable<Unidade[]> {
-    let params = new HttpParams().set('tipo', tipo);
-    if (empreendimentoId) {
-      params = params.set('empreendimentoId', empreendimentoId);
-    }
-    
-    return this.http.get<Unidade[]>(`${this.apiUrl}/unidades/filtrar/tipo`, { params });
+  atualizarImagem(id: number, dados: EmpreendimentoImagemUpdateDTO): Observable<EmpreendimentoImagem> {
+    return this.http.put<EmpreendimentoImagem>(`${this.apiUrl}/imagens/${id}`, dados);
+  }
+
+  /**
+   * Marca uma imagem como principal
+   */
+  marcarComoPrincipal(id: number): Observable<EmpreendimentoImagem> {
+    return this.http.patch<EmpreendimentoImagem>(`${this.apiUrl}/imagens/${id}/marcar-principal`, {});
+  }
+
+  /**
+   * Inativa uma imagem (soft delete)
+   */
+  inativarImagem(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/imagens/${id}/inativar`, {});
+  }
+
+  /**
+   * Exclui permanentemente uma imagem
+   */
+  excluirImagem(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/imagens/${id}`);
   }
 }

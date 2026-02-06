@@ -1,0 +1,71 @@
+.card-paginator-container {
+  margin-top: 2rem;
+  
+  &.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  ::ng-deep .p-paginator {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    
+    .p-paginator-rpp-options {
+      margin-left: 1rem;
+    }
+    
+    .p-paginator-current {
+      color: var(--text-color-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .p-paginator-pages .p-paginator-page {
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 6px;
+      color: var(--text-color);
+      transition: all 0.2s ease;
+      
+      &.p-highlight {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+      
+      &:not(.p-highlight):not(:disabled):hover {
+        background: var(--surface-100);
+      }
+    }
+    
+    button {
+      color: var(--text-color);
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      
+      &:enabled:hover {
+        background: var(--surface-100);
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+
+    // Responsividade
+    @media screen and (max-width: 768px) {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      
+      .p-paginator-current {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+}

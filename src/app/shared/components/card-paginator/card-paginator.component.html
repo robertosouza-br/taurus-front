@@ -1,0 +1,11 @@
+<div class="card-paginator-container" [class.loading]="loading" *ngIf="totalRecords > 0">
+  <p-paginator
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+    [first]="first"
+    [rowsPerPageOptions]="showRowsPerPage ? rowsPerPageOptions : undefined"
+    [showCurrentPageReport]="true"
+    [currentPageReportTemplate]="template"
+    (onPageChange)="handlePageChange($event)">
+  </p-paginator>
+</div>

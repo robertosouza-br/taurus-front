@@ -21,6 +21,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { DividerModule } from 'primeng/divider';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -48,6 +49,8 @@ import { AutocompleteComponent } from './components/autocomplete/autocomplete.co
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { ExportSpeedDialComponent } from './components/export-speed-dial/export-speed-dial.component';
 import { UploadFotoComponent } from './components/upload-foto/upload-foto.component';
+import { CardPaginatorComponent } from './components/card-paginator/card-paginator.component';
+import { SearchFilterComponent } from './components/search-filter/search-filter.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -80,7 +83,9 @@ import { CalendarModule } from 'primeng/calendar';
     AutocompleteComponent,
     LoadingSpinnerComponent,
     ExportSpeedDialComponent,
-    UploadFotoComponent
+    UploadFotoComponent,
+    CardPaginatorComponent,
+    SearchFilterComponent
   ],
   imports: [
     CommonModule,
@@ -104,6 +109,7 @@ import { CalendarModule } from 'primeng/calendar';
     DividerModule,
     ToastModule,
     ConfirmDialogModule,
+    PaginatorModule,
     ImageCropperComponent
   ],
   exports: [
@@ -132,6 +138,8 @@ import { CalendarModule } from 'primeng/calendar';
     LoadingSpinnerComponent,
     UploadFotoComponent,
     ExportSpeedDialComponent,
+    CardPaginatorComponent,
+    SearchFilterComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule,
     SliderModule,
@@ -143,6 +151,7 @@ import { CalendarModule } from 'primeng/calendar';
     TableModule,
     ToastModule,
     ConfirmDialogModule,
+    PaginatorModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

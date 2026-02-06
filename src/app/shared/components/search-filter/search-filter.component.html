@@ -1,0 +1,33 @@
+<div class="search-filter-container">
+  <div class="search-input-wrapper">
+    <span class="p-float-label" *ngIf="!placeholder">
+      <input 
+        id="searchInput"
+        pInputText 
+        type="text" 
+        [(ngModel)]="value"
+        (input)="handleInput(value || '')"
+        (keyup.enter)="handleEnter(value || '')"
+        [disabled]="disabled"
+        class="search-input" />
+      <label for="searchInput">{{ label }}</label>
+    </span>
+    
+    <input 
+      *ngIf="placeholder"
+      pInputText 
+      type="text" 
+      [(ngModel)]="value"
+      [placeholder]="placeholder"
+      (input)="handleInput(value || '')"
+      (keyup.enter)="handleEnter(value || '')"
+      [disabled]="disabled"
+      class="search-input" />
+    
+    <i class="pi pi-times clear-icon" 
+       *ngIf="value && !disabled" 
+       (click)="handleClear()"
+       pTooltip="Limpar busca"
+       tooltipPosition="left"></i>
+  </div>
+</div>

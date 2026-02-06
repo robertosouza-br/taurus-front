@@ -1,0 +1,109 @@
+<div class="lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Empreendimentos"
+    subtitle="Gerencie empreendimentos e suas imagens"
+    icon="pi pi-building-columns"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Filtro de Busca -->
+  <app-search-filter
+    [value]="filtro.search"
+    [label]="'Buscar por nome...'"
+    [debounceTime]="500"
+    (onSearch)="onBuscar($event)"
+    (onClear)="limparBusca()">
+  </app-search-filter>
+
+  <!-- Loading State (apenas primeira carga ou quando não há dados) -->
+  <app-loading-spinner 
+    *ngIf="carregando && empreendimentos.length === 0" 
+    [size]="'large'"
+    [message]="'Carregando empreendimentos...'"
+  ></app-loading-spinner>
+
+  <!-- Empty State -->
+  <div *ngIf="!carregando && empreendimentos.length === 0" class="empty-state">
+    <i class="pi pi-building-columns"></i>
+    <h3>Nenhum empreendimento encontrado</h3>
+    <p>
+      {{ filtro.search ? 'Tente buscar com outros termos' : 'Não há empreendimentos cadastrados no momento' }}
+    </p>
+  </div>
+
+  <!-- Grid de Cards -->
+  <div *ngIf="empreendimentos.length > 0" class="cards-grid" [class.loading-overlay]="carregando">
+    <div *ngFor="let emp of empreendimentos" class="card-wrapper">
+      <div class="empreendimento-card">
+        <!-- Imagem -->
+        <div class="card-image">
+          <img [src]="getImagemPrincipal(emp)" [alt]="emp.nome" />
+          <div class="image-overlay">
+            <div class="overlay-badge">
+              <p-tag 
+                *ngIf="isDisponivel(emp)"
+                value="Disponível"
+                severity="success">
+              </p-tag>
+              <p-tag 
+                *ngIf="!isDisponivel(emp)"
+                value="Indisponível"
+                severity="danger">
+              </p-tag>
+            </div>
+            <div class="overlay-info">
+              <span class="info-badge" *ngIf="getNumeroImagens(emp) > 0">
+                <i class="pi pi-images"></i>
+                {{ getNumeroImagens(emp) }} {{ getNumeroImagens(emp) === 1 ? 'imagem' : 'imagens' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteúdo -->
+        <div class="card-content">
+          <div class="card-header">
+            <h3 class="card-title">{{ emp.nome }}</h3>
+            <span class="card-code">Cód: {{ emp.codEmpreendimento }}</span>
+          </div>
+
+          <div class="card-info">
+            <div class="info-item">
+              <i class="pi pi-building"></i>
+              <span>Coligada: {{ emp.codColigada }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="card-actions">
+          <button 
+            pButton 
+            type="button" 
+            label="Gerenciar Imagens" 
+            icon="pi pi-images"
+            class="p-button-primary"
+            (click)="gerenciarImagens(emp)">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginação -->
+  <app-card-paginator
+    [rows]="filtro.size"
+    [totalRecords]="totalRegistros"
+    [currentPage]="filtro.page"
+    [loading]="carregando"
+    [template]="'Mostrando {first} a {last} de {totalRecords} empreendimentos'"
+    (onPageChange)="onPageChange($event)">
+  </app-card-paginator>
+</div>
+
+<p-toast></p-toast>
+
