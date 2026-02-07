@@ -27,17 +27,17 @@ export class InputTextComponent implements ControlValueAccessor {
   @Input() errorMessage: string = ''; // Mensagem de erro customizada
   @Input() helper: string = ''; // Texto de ajuda abaixo do campo
 
-  value: string = '';
+  value: any = '';
   touched: boolean = false;
   emailInvalido: boolean = false;
-  private onChange: (value: string) => void = () => {};
+  private onChange: (value: any) => void = () => {};
   private onTouched: () => void = () => {};
 
-  writeValue(value: string): void {
-    this.value = value || '';
+  writeValue(value: any): void {
+    this.value = value ?? '';
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (value: any) => void): void {
     this.onChange = fn;
   }
 
@@ -51,7 +51,7 @@ export class InputTextComponent implements ControlValueAccessor {
 
   onInputChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.value = input.value;
+    this.value = this.type === 'number' ? (input.value ? Number(input.value) : null) : input.value;
     this.onChange(this.value);
     
     // Limpa o erro de email enquanto digita
@@ -65,7 +65,7 @@ export class InputTextComponent implements ControlValueAccessor {
     this.onTouched();
     
     // Valida email se o tipo for email
-    if (this.type === 'email' && this.value && this.value.trim().length > 0) {
+    if (this.type === 'email' && this.value && typeof this.value === 'string' && this.value.trim().length > 0) {
       this.emailInvalido = !this.validarEmail(this.value);
     } else {
       this.emailInvalido = false;
@@ -87,12 +87,17 @@ export class InputTextComponent implements ControlValueAccessor {
 
   get isInvalid(): boolean {
     // Valida campo obrigatório vazio (só mostra se showValidation ou se touched)
-    if (this.required && (!this.value || this.value.trim().length === 0)) {
-      return this.showValidation;
+    if (this.required) {
+      if (this.type === 'number') {
+        return this.showValidation && (this.value === null || this.value === undefined || this.value === '');
+      }
+      if (!this.value || (typeof this.value === 'string' && this.value.trim().length === 0)) {
+        return this.showValidation;
+      }
     }
     
     // Valida formato de email se o tipo for email (mostra imediatamente após touched)
-    if (this.type === 'email' && this.value && this.value.trim().length > 0) {
+    if (this.type === 'email' && this.value && typeof this.value === 'string' && this.value.trim().length > 0) {
       return this.touched && this.emailInvalido;
     }
     
@@ -102,11 +107,16 @@ export class InputTextComponent implements ControlValueAccessor {
   get displayErrorMessage(): string {
     if (this.errorMessage) return this.errorMessage;
     
-    if (this.required && (!this.value || this.value.trim().length === 0)) {
-      return `${this.label} é obrigatório`;
+    if (this.required) {
+      if (this.type === 'number' && (this.value === null || this.value === undefined || this.value === '')) {
+        return `${this.label} é obrigatório`;
+      }
+      if (!this.value || (typeof this.value === 'string' && this.value.trim().length === 0)) {
+        return `${this.label} é obrigatório`;
+      }
     }
     
-    if (this.type === 'email' && this.value && !this.validarEmail(this.value)) {
+    if (this.type === 'email' && this.value && typeof this.value === 'string' && !this.validarEmail(this.value)) {
       return 'E-mail inválido';
     }
     

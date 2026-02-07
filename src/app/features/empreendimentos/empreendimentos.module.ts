@@ -21,7 +21,8 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { RippleModule } from 'primeng/ripple';
+import { GalleriaModule } from 'primeng/galleria';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
     InputNumberModule,
     CheckboxModule,
     InputTextareaModule,
-    ConfirmDialogModule
+    RippleModule,
+    GalleriaModule
   ]
 })
 export class EmpreendimentosModule { }

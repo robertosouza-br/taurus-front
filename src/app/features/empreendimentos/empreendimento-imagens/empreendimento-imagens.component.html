@@ -221,7 +221,8 @@
   [resizable]="false"
   [style]="{width: '600px'}"
   styleClass="dialog-imagem"
-  header="Adicionar Nova Imagem">
+  header="Adicionar Nova Imagem"
+  (onHide)="limparFormularioUpload()">
   
   <div class="dialog-content">
     <!-- File Upload -->
@@ -231,6 +232,7 @@
         Selecionar Arquivo *
       </label>
       <p-fileUpload 
+        #fileUploadInput
         mode="basic" 
         chooseLabel="Escolher Imagem"
         chooseIcon="pi pi-upload"
@@ -252,8 +254,11 @@
         </div>
         
         <!-- Preview visual da imagem -->
-        <div *ngIf="arquivoPreviewUrl" class="image-preview-upload">
+        <div class="image-preview-upload" *ngIf="arquivoPreviewUrl">
           <img [src]="arquivoPreviewUrl" [alt]="arquivoSelecionado.name || 'Preview'" />
+        </div>
+        <div *ngIf="!arquivoPreviewUrl" style="padding: 1rem; text-align: center; color: #999;">
+          <i class="pi pi-spin pi-spinner"></i> Carregando preview...
         </div>
       </div>
       
@@ -319,30 +324,22 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="dialog-footer">
-      <button 
-        pButton 
-        pRipple
-        type="button" 
-        label="Cancelar" 
-        icon="pi pi-times"
-        class="p-button-text p-button-secondary"
-        [disabled]="uploadando"
-        (click)="displayUploadDialog = false">
-      </button>
-      
-      <button 
-        pButton 
-        pRipple
-        type="button" 
-        label="Enviar Imagem" 
-        icon="pi pi-upload"
-        class="p-button p-button-success"
-        [disabled]="!arquivoSelecionado || uploadando"
-        (click)="fazerUpload()">
-        <span *ngIf="uploadando" class="pi pi-spinner pi-spin"></span>
-      </button>
-    </div>
+    <app-custom-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="uploadando"
+      (onClick)="cancelarUpload()">
+    </app-custom-button>
+    <app-custom-button
+      label="Enviar Imagem"
+      icon="pi pi-upload"
+      severity="success"
+      [disabled]="!arquivoSelecionado"
+      [loading]="uploadando"
+      (onClick)="fazerUpload()">
+    </app-custom-button>
   </ng-template>
 </p-dialog>
 
@@ -365,7 +362,10 @@
         Visualização
       </label>
       <div class="preview-container">
-        <img [src]="imagemEdicao.urlImagem" [alt]="'Preview da imagem'" />
+        <img 
+          [src]="getImagemUrl(imagemEdicao)" 
+          [alt]="'Preview da imagem'"
+          (error)="onImageError($event)" />
         <div class="preview-overlay">
           <p-tag 
             *ngIf="imagemEdicao.principal" 
@@ -425,32 +425,22 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="dialog-footer">
-      <button 
-        pButton 
-        pRipple
-        type="button" 
-        label="Cancelar" 
-        icon="pi pi-times"
-        class="p-button-text p-button-secondary"
-        [disabled]="uploadando"
-        (click)="displayEditDialog = false">
-      </button>
-      
-      <button 
-        pButton 
-        pRipple
-        type="button" 
-        label="Salvar Alterações" 
-        icon="pi pi-check"
-        class="p-button p-button-primary"
-        [disabled]="uploadando"
-        (click)="salvarEdicao()">
-        <span *ngIf="uploadando" class="pi pi-spinner pi-spin"></span>
-      </button>
-    </div>
+    <app-custom-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="uploadando"
+      (onClick)="cancelarEdicao()">
+    </app-custom-button>
+    <app-custom-button
+      label="Salvar Alterações"
+      icon="pi pi-check"
+      severity="primary"
+      [loading]="uploadando"
+      (onClick)="salvarEdicao()">
+    </app-custom-button>
   </ng-template>
 </p-dialog>
 
 <p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>

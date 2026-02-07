@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MessageService, ConfirmationService as PrimeConfirmationService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { ConfirmationAction } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import {
@@ -25,6 +27,9 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   imagens: EmpreendimentoImagem[] = [];
   carregando = false;
   uploadando = false;
+  
+  // Referência ao componente de file upload
+  @ViewChild('fileUploadInput') fileUploadInput: any;
   
   // Galleria
   private _displayGalleria = false;
@@ -85,7 +90,8 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
     private empreendimentoService: EmpreendimentoService,
     private permissaoService: PermissaoService,
     private messageService: MessageService,
-    private confirmationService: PrimeConfirmationService
+    private confirmationService: ConfirmationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -199,21 +205,39 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Garantir que está limpo antes de abrir
     this.limparFormularioUpload();
     this.displayUploadDialog = true;
   }
 
-  private limparFormularioUpload(): void {
+  limparFormularioUpload(): void {
     this.arquivoSelecionado = null;
     this.arquivoPreviewUrl = null;
     this.uploadOrdem = this.imagens.length;
     this.uploadPrincipal = this.imagens.length === 0;
     this.uploadTipo = null;
     this.tiposFiltrados = [...this.tiposImagem];
+    
+    // Limpar o componente p-fileUpload
+    if (this.fileUploadInput) {
+      this.fileUploadInput.clear();
+    }
+  }
+
+  cancelarUpload(): void {
+    this.displayUploadDialog = false;
+    // A limpeza será feita automaticamente pelo evento (onHide) do dialog
+  }
+
+  cancelarEdicao(): void {
+    this.imagemEdicao = null;
+    this.displayEditDialog = false;
   }
 
   onFileSelect(event: any): void {
     const file = event.files?.[0] || event.target?.files?.[0];
+    
+    console.log('onFileSelect chamado', { event, file });
     
     if (file) {
       const maxSize = 10 * 1024 * 1024;
@@ -236,14 +260,20 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
         return;
       }
       
+      console.log('Arquivo válido, criando preview...');
       this.arquivoSelecionado = file;
       
       // Criar preview da imagem
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.arquivoPreviewUrl = e.target.result;
+        console.log('Preview carregado:', this.arquivoPreviewUrl?.substring(0, 50));
+        // Forçar detecção de mudanças para atualizar o preview
+        this.cdr.detectChanges();
       };
       reader.readAsDataURL(file);
+    } else {
+      console.warn('Nenhum arquivo encontrado no evento');
     }
   }
 
@@ -303,6 +333,7 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
             summary: 'Sucesso',
             detail: 'Imagem enviada com sucesso'
           });
+          this.limparFormularioUpload();
           this.displayUploadDialog = false;
           this.carregar();
         },
@@ -346,7 +377,7 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
     this.empreendimentoService.atualizarImagem(this.imagemEdicao.id!, {
       ordem: this.editOrdem,
       principal: this.editPrincipal,
-      tipo: this.editTipo?.value || undefined // Extrai o value do objeto
+      tipo: this.editTipo?.value || undefined
     })
       .pipe(finalize(() => this.uploadando = false))
       .subscribe({
@@ -399,14 +430,15 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
     if (!this.podeExcluir) return;
     
     this.confirmationService.confirm({
+      action: ConfirmationAction.EXCLUIR,
+      title: 'Confirmar Inativação',
       message: 'Deseja realmente inativar esta imagem?',
-      header: 'Confirmar Inativação',
+      confirmLabel: 'Sim, inativar',
+      cancelLabel: 'Cancelar',
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sim',
-      rejectLabel: 'Não',
-      accept: () => {
-        if (!imagem.id) return;
-        
+      severity: 'warning'
+    }).subscribe(confirmed => {
+      if (confirmed && imagem.id) {
         this.empreendimentoService.inativarImagem(imagem.id)
           .subscribe({
             next: () => {
@@ -433,15 +465,15 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
     if (!this.podeExcluir) return;
     
     this.confirmationService.confirm({
+      action: ConfirmationAction.EXCLUIR,
+      title: 'Confirmar Exclusão Permanente',
       message: 'Deseja realmente excluir permanentemente esta imagem? Esta ação não pode ser desfeita.',
-      header: 'Confirmar Exclusão',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sim',
-      rejectLabel: 'Não',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        if (!imagem.id) return;
-        
+      confirmLabel: 'Sim, excluir',
+      cancelLabel: 'Cancelar',
+      icon: 'pi pi-trash',
+      severity: 'danger'
+    }).subscribe(confirmed => {
+      if (confirmed && imagem.id) {
         this.empreendimentoService.excluirImagem(imagem.id)
           .subscribe({
             next: () => {
@@ -478,7 +510,13 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
    * Retorna a URL da imagem (suporta estrutura atual e futura do backend)
    */
   getImagemUrl(imagem: EmpreendimentoImagem): string {
-    return imagem.urlImagem || imagem.urlTemporaria || this.getPlaceholder();
+    const url = imagem.urlImagem || imagem.urlTemporaria || this.getPlaceholder();
+    console.log('getImagemUrl:', { 
+      urlImagem: imagem.urlImagem, 
+      urlTemporaria: imagem.urlTemporaria,
+      urlFinal: url 
+    });
+    return url;
   }
 
   /**
