@@ -1,9 +1,12 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { finalize } from 'rxjs/operators';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ContatoService } from '../../../core/services/contato.service';
 import { ContatoDTO } from '../../../core/models/contato.model';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { ConfirmationAction } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-contato-publico',
@@ -36,14 +39,15 @@ export class ContatoPublicoComponent extends BaseFormComponent {
     }
 
     this.confirmationService.confirm({
+      action: ConfirmationAction.CUSTOM,
+      title: 'Confirmar Envio',
       message: 'Deseja enviar esta mensagem?',
-      header: 'Confirmar Envio',
+      confirmLabel: 'Sim, Enviar',
+      cancelLabel: 'Cancelar',
       icon: 'pi pi-send',
-      acceptLabel: 'Sim, Enviar',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-success',
-      rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
-      accept: () => {
+      severity: 'success'
+    }).subscribe(confirmed => {
+      if (confirmed) {
         this.enviarMensagem();
       }
     });
@@ -60,39 +64,39 @@ export class ContatoPublicoComponent extends BaseFormComponent {
       mensagem: this.mensagem.trim()
     };
 
-    this.contatoService.enviarPublico(contato).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: 'Mensagem enviada com sucesso! Entraremos em contato em breve.',
-          life: 3000
-        });
-        
-        // Aguarda 3 segundos para o usuário ver o toast e redireciona para o login
-        setTimeout(() => {
-          this.router.navigate(['/auth/login']);
-        }, 3000);
-      },
-      error: (error) => {
-        console.error('Erro ao enviar mensagem:', error);
-        
-        let mensagemErro = 'Erro ao enviar mensagem. Tente novamente.';
-        
-        if (error.status === 400 && error.error?.message) {
-          mensagemErro = error.error.message;
-        }
+    this.contatoService.enviarPublico(contato)
+      .pipe(finalize(() => this.salvando = false))
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Mensagem enviada com sucesso! Entraremos em contato em breve.',
+            life: 5000
+          });
+          
+          // Aguarda 3 segundos para o usuário ver o toast e redireciona para o login
+          setTimeout(() => {
+            this.router.navigate(['/auth/login']);
+          }, 3000);
+        },
+        error: (error) => {
+          console.error('Erro ao enviar mensagem:', error);
+          
+          let mensagemErro = 'Erro ao enviar mensagem. Tente novamente.';
+          
+          if (error.status === 400 && error.error?.message) {
+            mensagemErro = error.error.message;
+          }
 
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: mensagemErro,
-          life: 5000
-        });
-        
-        this.salvando = false;
-      }
-    });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: mensagemErro,
+            life: 5000
+          });
+        }
+      });
   }
 
   limparFormulario(): void {

@@ -95,4 +95,9 @@
   .p-divider {
     margin: 2rem 0;
   }
+
+  // Garante que o toast fique acima do loading
+  .p-toast {
+    z-index: 10000 !important;
+  }
 }

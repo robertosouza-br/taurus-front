@@ -5,7 +5,8 @@ import { ContatosRoutingModule } from './contatos-routing.module';
 import { ContatoPublicoComponent } from './contato-publico/contato-publico.component';
 import { ContatosListaComponent } from './contatos-lista/contatos-lista.component';
 import { ContatoDetalhesComponent } from './contato-detalhes/contato-detalhes.component';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 
 @NgModule({
   declarations: [
@@ -19,8 +20,8 @@ import { ConfirmationService, MessageService } from 'primeng/api';
     ContatosRoutingModule
   ],
   providers: [
-    ConfirmationService,
-    MessageService
+    MessageService,
+    DialogService
   ]
 })
 export class ContatosModule {}

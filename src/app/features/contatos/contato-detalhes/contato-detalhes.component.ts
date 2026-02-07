@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { finalize } from 'rxjs/operators';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ContatoService } from '../../../core/services/contato.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
@@ -8,6 +9,8 @@ import { ContatoDTO, StatusContato, STATUS_CONTATO_LABELS, STATUS_CONTATO_SEVERI
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { ConfirmationService } from '../../../shared/services/confirmation.service';
+import { ConfirmationAction } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-contato-detalhes',
@@ -35,7 +38,8 @@ export class ContatoDetalhesComponent extends BaseFormComponent implements OnIni
     private router: Router,
     private contatoService: ContatoService,
     private permissaoService: PermissaoService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {
     super();
   }
@@ -131,42 +135,59 @@ export class ContatoDetalhesComponent extends BaseFormComponent implements OnIni
       return;
     }
 
-    this.salvando = true;
-
-    this.contatoService.responder(this.contato.id, { resposta: this.resposta.trim() }).subscribe({
-      next: (contatoAtualizado) => {
-        this.contato = contatoAtualizado;
-        this.modoResposta = false;
-        this.resposta = '';
-        this.tentouSalvar = false;
-        this.salvando = false;
-
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: 'Resposta enviada com sucesso! Um email foi enviado para o remetente.',
-          life: 5000
-        });
-      },
-      error: (error) => {
-        console.error('Erro ao enviar resposta:', error);
-        
-        let mensagemErro = 'Erro ao enviar resposta. Tente novamente.';
-        
-        if (error.status === 400 && error.error?.message) {
-          mensagemErro = error.error.message;
-        }
-
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: mensagemErro,
-          life: 5000
-        });
-        
-        this.salvando = false;
+    this.confirmationService.confirm({
+      action: ConfirmationAction.CUSTOM,
+      title: 'Confirmar Envio',
+      message: 'Deseja enviar esta resposta? Um email será enviado automaticamente para o remetente.',
+      confirmLabel: 'Sim, Enviar',
+      cancelLabel: 'Cancelar',
+      icon: 'pi pi-send',
+      severity: 'success'
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.enviarRespostaConfirmada();
       }
     });
+  }
+
+  private enviarRespostaConfirmada(): void {
+    if (!this.contato?.id) return;
+
+    this.salvando = true;
+
+    this.contatoService.responder(this.contato.id, { resposta: this.resposta.trim() })
+      .pipe(finalize(() => this.salvando = false))
+      .subscribe({
+        next: (contatoAtualizado) => {
+          this.contato = contatoAtualizado;
+          this.modoResposta = false;
+          this.resposta = '';
+          this.tentouSalvar = false;
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Resposta enviada com sucesso! Um email foi enviado para o remetente.',
+            life: 5000
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao enviar resposta:', error);
+          
+          let mensagemErro = 'Erro ao enviar resposta. Tente novamente.';
+          
+          if (error.status === 400 && error.error?.message) {
+            mensagemErro = error.error.message;
+          }
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: mensagemErro,
+            life: 5000
+          });
+        }
+      });
   }
 
   voltarParaLista(): void {
