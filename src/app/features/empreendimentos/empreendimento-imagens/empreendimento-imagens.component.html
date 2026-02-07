@@ -1,132 +1,215 @@
-<app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
-
-<div class="imagens-container">
-  <div class="header">
-    <div class="header-info">
-      <h1 class="title">
-        <i class="pi pi-images"></i>
-        Gerenciar Imagens
-      </h1>
-      <p class="subtitle">Empreendimento: Código {{ codigoEmpreendimento }}</p>
-    </div>
-    <div class="header-actions">
+<div class="portfolio-wrapper" [class.galleria-open]="displayGalleria">
+  <!-- Header Elegante e Minimalista -->
+  <div class="portfolio-hero">
+    <div class="hero-content">
+      <!-- Botão voltar flutuante -->
       <button 
         pButton 
         type="button" 
-        label="Voltar"
         icon="pi pi-arrow-left"
-        class="p-button-outlined p-button-secondary"
+        class="p-button-rounded p-button-text back-button-float"
+        pTooltip="Voltar para empreendimentos"
+        tooltipPosition="right"
         (click)="voltar()">
       </button>
-      <button 
-        pButton 
-        type="button" 
-        label="Adicionar Imagem"
-        icon="pi pi-plus"
-        class="p-button-success"
-        (click)="abrirUpload()"
-        *ngIf="podeIncluir">
-      </button>
+
+      <!-- Título principal com animação -->
+      <div class="hero-text">
+        <div class="hero-label">Portfólio</div>
+        <h1 class="hero-title">{{ nomeEmpreendimento || 'Empreendimento ' + codigoEmpreendimento }}</h1>
+        <div class="hero-divider"></div>
+        <p class="hero-subtitle">Galeria de Imagens</p>
+      </div>
+
+      <!-- Ações flutuantes -->
+      <div class="hero-actions">
+        <button 
+          pButton 
+          type="button" 
+          icon="pi pi-plus"
+          class="p-button-rounded action-add"
+          pTooltip="Adicionar imagem"
+          tooltipPosition="left"
+          (click)="abrirUpload()"
+          *ngIf="podeIncluir">
+        </button>
+      </div>
+    </div>
+
+    <!-- Animação de fundo sutil -->
+    <div class="hero-background">
+      <div class="bg-pattern"></div>
     </div>
   </div>
 
+  <div class="portfolio-container">
+
   <!-- Loading State -->
-  <div *ngIf="carregando" class="loading-container">
-    <p-progressSpinner></p-progressSpinner>
-    <p>Carregando imagens...</p>
+  <div *ngIf="carregando" class="loading-elegant">
+    <div class="loading-spinner-elegant">
+      <p-progressSpinner 
+        [style]="{ width: '60px', height: '60px' }" 
+        strokeWidth="2"
+        animationDuration="1s">
+      </p-progressSpinner>
+    </div>
+    <p class="loading-text">Carregando portfólio...</p>
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!carregando && imagens.length === 0" class="empty-state">
-    <i class="pi pi-image" style="font-size: 4rem; color: var(--text-color-secondary);"></i>
-    <h3>Nenhuma imagem cadastrada</h3>
-    <p>Adicione a primeira imagem deste empreendimento</p>
+  <div *ngIf="!carregando && imagens.length === 0" class="empty-elegant">
+    <div class="empty-icon">
+      <i class="pi pi-image"></i>
+    </div>
+    <h2 class="empty-title">Portfólio Vazio</h2>
+    <p class="empty-description">
+      Comece adicionando fotografias de alta qualidade<br/>para criar um portfólio impressionante
+    </p>
     <button 
       pButton 
       type="button" 
-      label="Adicionar Imagem"
+      label="Adicionar Primeira Fotografia"
       icon="pi pi-plus"
-      class="p-button-success"
+      class="p-button-lg btn-elegant-add"
       (click)="abrirUpload()"
       *ngIf="podeIncluir">
     </button>
   </div>
 
-  <!-- Images Grid -->
-  <div *ngIf="!carregando && imagens.length > 0" class="images-grid">
-    <div *ngFor="let imagem of imagens" class="image-card">
-      <!-- Principal Badge -->
-      <div class="principal-badge" *ngIf="imagem.principal">
-        <i class="pi pi-star-fill"></i>
-        Principal
-      </div>
-
-      <!-- Image Preview -->
-      <div class="image-preview">
-        <img [src]="imagem.urlImagem" [alt]="'Imagem do empreendimento'" />
-      </div>
-
-      <!-- Image Info -->
-      <div class="image-info">
-        <div class="info-row">
-          <span class="info-label">Ordem:</span>
-          <span class="info-value">{{ imagem.ordem }}</span>
-        </div>
+  <!-- Portfolio Gallery -->
+  <div *ngIf="!carregando && imagens.length > 0" class="gallery-elegant">
+    <!-- Grid de thumbnails elegante -->
+    <div class="masonry-grid">
+      <div 
+        *ngFor="let imagem of imagens; let i = index" 
+        class="masonry-item"
+        (click)="abrirGalleria(i)">
         
-        <div class="info-row" *ngIf="imagem.tipo">
-          <span class="info-label">
-            <i [class]="getTipoIcon(imagem.tipo)"></i>
-            Tipo:
-          </span>
-          <span class="info-value">{{ getTipoLabel(imagem.tipo) }}</span>
-        </div>
-      </div>
+        <!-- Imagem -->
+        <div class="photo-frame">
+          <div class="photo-inner">
+            <img 
+              [src]="getImagemUrl(imagem)" 
+              [alt]="getTipoLabel(imagem.tipo)"
+              (error)="onImageError($event)" />
+            
+            <!-- Overlay minimalista -->
+            <div class="photo-overlay">
+              <div class="overlay-content">
+                <i class="pi pi-search-plus overlay-icon"></i>
+                <span class="overlay-label">Ampliar</span>
+              </div>
+            </div>
 
-      <!-- Actions -->
-      <div class="image-actions">
-        <button 
-          pButton 
-          type="button" 
-          icon="pi pi-star"
-          class="p-button-rounded p-button-text p-button-warning"
-          pTooltip="Marcar como principal"
-          tooltipPosition="top"
-          (click)="marcarComoPrincipal(imagem)"
-          *ngIf="podeAlterar && !imagem.principal">
-        </button>
-        <button 
-          pButton 
-          type="button" 
-          icon="pi pi-pencil"
-          class="p-button-rounded p-button-text"
-          pTooltip="Editar"
-          tooltipPosition="top"
-          (click)="abrirEdicao(imagem)"
-          *ngIf="podeAlterar">
-        </button>
-        <button 
-          pButton 
-          type="button" 
-          icon="pi pi-eye-slash"
-          class="p-button-rounded p-button-text p-button-secondary"
-          pTooltip="Inativar"
-          tooltipPosition="top"
-          (click)="inativar(imagem)"
-          *ngIf="podeExcluir">
-        </button>
-        <button 
-          pButton 
-          type="button" 
-          icon="pi pi-trash"
-          class="p-button-rounded p-button-text p-button-danger"
-          pTooltip="Excluir permanentemente"
-          tooltipPosition="top"
-          (click)="excluir(imagem)"
-          *ngIf="podeExcluir">
-        </button>
+            <!-- Badge principal elegante -->
+            <div class="principal-star" *ngIf="imagem.principal">
+              <i class="pi pi-star-fill"></i>
+            </div>
+          </div>
+
+          <!-- Info minimalista -->
+          <div class="photo-caption">
+            <div class="caption-main">
+              <span class="caption-type">
+                <i [class]="getTipoIcon(imagem.tipo)"></i>
+                {{ getTipoLabel(imagem.tipo) }}
+              </span>
+            </div>
+
+            <!-- Actions discretas -->
+            <div class="photo-actions" (click)="$event.stopPropagation()">
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-star"
+                class="p-button-rounded p-button-text p-button-sm action-discrete"
+                pTooltip="Definir como principal"
+                tooltipPosition="top"
+                (click)="marcarComoPrincipal(imagem)"
+                *ngIf="podeAlterar && !imagem.principal">
+              </button>
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-text p-button-sm action-discrete"
+                pTooltip="Editar informações"
+                tooltipPosition="top"
+                (click)="abrirEdicao(imagem)"
+                *ngIf="podeAlterar">
+              </button>
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-trash"
+                class="p-button-rounded p-button-text p-button-sm p-button-danger action-discrete"
+                pTooltip="Remover fotografia"
+                tooltipPosition="top"
+                (click)="excluir(imagem)"
+                *ngIf="podeExcluir">
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+</div>
+
+  <!-- PrimeNG Galleria - Movida para FORA do container para funcionar em fullscreen -->
+  <p-galleria 
+    [value]="imagens" 
+    [(visible)]="displayGalleria"
+    [(activeIndex)]="activeIndex"
+    [numVisible]="5"
+    [circular]="true"
+    [fullScreen]="true"
+    [showItemNavigators]="true"
+    [showThumbnails]="true"
+    [showItemNavigatorsOnHover]="false"
+    [showIndicators]="true"
+    [showIndicatorsOnItem]="true"
+    [containerStyle]="{ 'max-width': '95vw' }">
+    
+    <!-- Template para imagem principal (fullscreen) -->
+    <ng-template pTemplate="item" let-imagem>
+      <div class="galleria-item">
+        <img 
+          [src]="getImagemUrl(imagem)" 
+          [alt]="getTipoLabel(imagem.tipo)"
+          (error)="onImageError($event)"
+          style="width: 100%; height: 100%; object-fit: contain; display: block;" />
+        
+        <!-- Info overlay na galeria -->
+        <div class="galleria-info">
+          <div class="info-badges">
+            <p-tag 
+              *ngIf="imagem.principal" 
+              value="Principal" 
+              icon="pi pi-star-fill"
+              severity="warning">
+            </p-tag>
+            <p-tag 
+              *ngIf="imagem.tipo"
+              [value]="getTipoLabel(imagem.tipo)"
+              [icon]="getTipoIcon(imagem.tipo)">
+            </p-tag>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Template para thumbnails -->
+    <ng-template pTemplate="thumbnail" let-imagem>
+      <div class="galleria-thumbnail">
+        <img 
+          [src]="getImagemUrl(imagem)" 
+          [alt]="getTipoLabel(imagem.tipo)"
+          (error)="onImageError($event)" />
+      </div>
+    </ng-template>
+  </p-galleria>
+
 </div>
 
 <!-- Dialog de Upload -->
@@ -136,94 +219,130 @@
   [closable]="true"
   [draggable]="false"
   [resizable]="false"
-  [style]="{width: '550px'}"
-  header="Adicionar Imagem">
+  [style]="{width: '600px'}"
+  styleClass="dialog-imagem"
+  header="Adicionar Nova Imagem">
   
-  <div class="upload-form">
+  <div class="dialog-content">
     <!-- File Upload -->
-    <div class="field">
-      <label>Arquivo *</label>
+    <div class="upload-section">
+      <label class="dialog-label">
+        <i class="pi pi-image"></i>
+        Selecionar Arquivo *
+      </label>
       <p-fileUpload 
         mode="basic" 
-        chooseLabel="Selecionar Arquivo"
+        chooseLabel="Escolher Imagem"
+        chooseIcon="pi pi-upload"
         [auto]="false"
         accept="image/jpeg,image/jpg,image/png,image/webp"
         [maxFileSize]="10485760"
         (onSelect)="onFileSelect($event)"
-        [disabled]="uploadando">
-      </p-fileUpload>
-      <small *ngIf="arquivoSelecionado" class="file-selected">
-        <i class="pi pi-check-circle"></i>
-        {{ arquivoSelecionado.name }} ({{ (arquivoSelecionado.size / 1024 / 1024).toFixed(2) }} MB)
-      </small>
-      <small class="field-hint">Formatos: JPEG, JPG, PNG, WEBP. Tamanho máximo: 10 MB</small>
-    </div>
-
-    <!-- Tipo -->
-    <div class="field">
-      <label for="upload-tipo">Tipo</label>
-      <p-dropdown 
-        id="upload-tipo"
-        [(ngModel)]="uploadTipo"
-        [options]="tiposImagem"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Selecione o tipo"
         [disabled]="uploadando"
-        [showClear]="true">
-        <ng-template let-tipo pTemplate="item">
-          <div class="tipo-option">
-            <i [class]="tipo.icon"></i>
-            <span>{{ tipo.label }}</span>
+        styleClass="upload-button">
+      </p-fileUpload>
+      
+      <div *ngIf="arquivoSelecionado" class="file-preview">
+        <div class="file-info">
+          <i class="pi pi-check-circle text-success"></i>
+          <div class="file-details">
+            <span class="file-name">{{ arquivoSelecionado.name }}</span>
+            <span class="file-size">{{ (arquivoSelecionado.size / 1024 / 1024).toFixed(2) }} MB</span>
           </div>
-        </ng-template>
-      </p-dropdown>
+        </div>
+        
+        <!-- Preview visual da imagem -->
+        <div *ngIf="arquivoPreviewUrl" class="image-preview-upload">
+          <img [src]="arquivoPreviewUrl" [alt]="arquivoSelecionado.name || 'Preview'" />
+        </div>
+      </div>
+      
+      <small class="help-text">
+        <i class="pi pi-info-circle"></i>
+        Formatos aceitos: JPEG, PNG, WEBP (máx. 10 MB)
+      </small>
     </div>
 
-    <!-- Ordem -->
-    <div class="field">
-      <label for="upload-ordem">Ordem *</label>
-      <p-inputNumber 
-        id="upload-ordem"
-        [(ngModel)]="uploadOrdem"
-        [min]="0"
-        [disabled]="uploadando">
-      </p-inputNumber>
-      <small class="field-hint">Define a ordem de exibição da imagem</small>
+    <div class="form-grid">
+      <!-- Tipo -->
+      <div class="form-field">
+        <app-autocomplete
+          id="upload-tipo"
+          label="Tipo de Imagem"
+          [(ngModel)]="uploadTipo"
+          [suggestions]="tiposFiltrados"
+          [field]="'label'"
+          placeholder="Escolha o tipo"
+          [disabled]="uploadando"
+          (completeMethod)="filtrarTipos($event)"
+          (onSelect)="selecionarTipo($event)"
+          [itemTemplate]="tipoTemplate">
+        </app-autocomplete>
+      </div>
+
+      <!-- Ordem -->
+      <div class="form-field">
+        <app-input-text
+          id="upload-ordem"
+          label="Ordem de Exibição"
+          type="number"
+          [(ngModel)]="uploadOrdem"
+          [required]="true"
+          [disabled]="uploadando"
+          placeholder="0"
+          helper="Define a posição da imagem na galeria">
+        </app-input-text>
+      </div>
     </div>
+
+    <!-- Template para itens do autocomplete -->
+    <ng-template #tipoTemplate let-tipo>
+      <div class="tipo-option">
+        <i [class]="tipo.icon"></i>
+        <span>{{ tipo.label }}</span>
+      </div>
+    </ng-template>
 
     <!-- Principal -->
-    <div class="field field-checkbox">
+    <div class="checkbox-field">
       <p-checkbox 
         [(ngModel)]="uploadPrincipal"
         binary="true"
         inputId="upload-principal"
         [disabled]="uploadando">
       </p-checkbox>
-      <label for="upload-principal">Marcar como imagem principal</label>
+      <label for="upload-principal" class="checkbox-label">
+        <i class="pi pi-star-fill"></i>
+        Marcar como imagem principal do empreendimento
+      </label>
     </div>
   </div>
 
   <ng-template pTemplate="footer">
-    <button 
-      pButton 
-      type="button" 
-      label="Cancelar" 
-      icon="pi pi-times"
-      class="p-button-text"
-      (click)="displayUploadDialog = false"
-      [disabled]="uploadando">
-    </button>
-    <button 
-      pButton 
-      type="button" 
-      label="Enviar" 
-      icon="pi pi-upload"
-      class="p-button-success"
-      (click)="fazerUpload()"
-      [loading]="uploadando"
-      [disabled]="!arquivoSelecionado || uploadando">
-    </button>
+    <div class="dialog-footer">
+      <button 
+        pButton 
+        pRipple
+        type="button" 
+        label="Cancelar" 
+        icon="pi pi-times"
+        class="p-button-text p-button-secondary"
+        [disabled]="uploadando"
+        (click)="displayUploadDialog = false">
+      </button>
+      
+      <button 
+        pButton 
+        pRipple
+        type="button" 
+        label="Enviar Imagem" 
+        icon="pi pi-upload"
+        class="p-button p-button-success"
+        [disabled]="!arquivoSelecionado || uploadando"
+        (click)="fazerUpload()">
+        <span *ngIf="uploadando" class="pi pi-spinner pi-spin"></span>
+      </button>
+    </div>
   </ng-template>
 </p-dialog>
 
@@ -234,78 +353,102 @@
   [closable]="true"
   [draggable]="false"
   [resizable]="false"
-  [style]="{width: '550px'}"
-  header="Editar Imagem">
+  [style]="{width: '600px'}"
+  styleClass="dialog-imagem"
+  header="Editar Informações da Imagem">
   
-  <div class="upload-form" *ngIf="imagemEdicao">
-    <!-- Preview -->
-    <div class="edit-preview">
-      <img [src]="imagemEdicao.urlImagem" [alt]="'Preview'" />
+  <div class="dialog-content" *ngIf="imagemEdicao">
+    <!-- Preview da Imagem -->
+    <div class="image-preview-section">
+      <label class="dialog-label">
+        <i class="pi pi-eye"></i>
+        Visualização
+      </label>
+      <div class="preview-container">
+        <img [src]="imagemEdicao.urlImagem" [alt]="'Preview da imagem'" />
+        <div class="preview-overlay">
+          <p-tag 
+            *ngIf="imagemEdicao.principal" 
+            value="Principal" 
+            icon="pi pi-star-fill"
+            severity="warning">
+          </p-tag>
+        </div>
+      </div>
     </div>
 
-    <!-- Tipo -->
-    <div class="field">
-      <label for="edit-tipo">Tipo</label>
-      <p-dropdown 
-        id="edit-tipo"
-        [(ngModel)]="editTipo"
-        [options]="tiposImagem"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Selecione o tipo"
-        [disabled]="uploadando"
-        [showClear]="true">
-        <ng-template let-tipo pTemplate="item">
-          <div class="tipo-option">
-            <i [class]="tipo.icon"></i>
-            <span>{{ tipo.label }}</span>
-          </div>
-        </ng-template>
-      </p-dropdown>
-    </div>
+    <div class="form-grid">
+      <!-- Tipo -->
+      <div class="form-field">
+        <app-autocomplete
+          id="edit-tipo"
+          label="Tipo de Imagem"
+          [(ngModel)]="editTipo"
+          [suggestions]="tiposFiltrados"
+          [field]="'label'"
+          placeholder="Escolha o tipo"
+          [disabled]="uploadando"
+          (completeMethod)="filtrarTipos($event)"
+          (onSelect)="selecionarTipoEdit($event)"
+          [itemTemplate]="tipoTemplate">
+        </app-autocomplete>
+      </div>
 
-    <!-- Ordem -->
-    <div class="field">
-      <label for="edit-ordem">Ordem *</label>
-      <p-inputNumber 
-        id="edit-ordem"
-        [(ngModel)]="editOrdem"
-        [min]="0"
-        [disabled]="uploadando">
-      </p-inputNumber>
+      <!-- Ordem -->
+      <div class="form-field">
+        <app-input-text
+          id="edit-ordem"
+          label="Ordem de Exibição"
+          type="number"
+          [(ngModel)]="editOrdem"
+          [required]="true"
+          [disabled]="uploadando"
+          placeholder="0"
+          helper="Define a posição da imagem na galeria">
+        </app-input-text>
+      </div>
     </div>
 
     <!-- Principal -->
-    <div class="field field-checkbox">
+    <div class="checkbox-field">
       <p-checkbox 
         [(ngModel)]="editPrincipal"
         binary="true"
         inputId="edit-principal"
         [disabled]="uploadando">
       </p-checkbox>
-      <label for="edit-principal">Marcar como imagem principal</label>
+      <label for="edit-principal" class="checkbox-label">
+        <i class="pi pi-star-fill"></i>
+        Marcar como imagem principal do empreendimento
+      </label>
     </div>
   </div>
 
   <ng-template pTemplate="footer">
-    <button 
-      pButton 
-      type="button" 
-      label="Cancelar" 
-      icon="pi pi-times"
-      class="p-button-text"
-      (click)="displayEditDialog = false"
-      [disabled]="uploadando">
-    </button>
-    <button 
-      pButton 
-      type="button" 
-      label="Salvar" 
-      icon="pi pi-check"
-      (click)="salvarEdicao()"
-      [loading]="uploadando"
-      [disabled]="uploadando">
-    </button>
+    <div class="dialog-footer">
+      <button 
+        pButton 
+        pRipple
+        type="button" 
+        label="Cancelar" 
+        icon="pi pi-times"
+        class="p-button-text p-button-secondary"
+        [disabled]="uploadando"
+        (click)="displayEditDialog = false">
+      </button>
+      
+      <button 
+        pButton 
+        pRipple
+        type="button" 
+        label="Salvar Alterações" 
+        icon="pi pi-check"
+        class="p-button p-button-primary"
+        [disabled]="uploadando"
+        (click)="salvarEdicao()">
+        <span *ngIf="uploadando" class="pi pi-spinner pi-spin"></span>
+      </button>
+    </div>
   </ng-template>
 </p-dialog>
 

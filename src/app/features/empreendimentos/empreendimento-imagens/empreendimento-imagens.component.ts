@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService, ConfirmationService as PrimeConfirmationService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
@@ -19,27 +19,46 @@ import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb
   templateUrl: './empreendimento-imagens.component.html',
   styleUrls: ['./empreendimento-imagens.component.scss']
 })
-export class EmpreendimentoImagensComponent implements OnInit {
+export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   codigoEmpreendimento!: string;
+  nomeEmpreendimento: string = '';
   imagens: EmpreendimentoImagem[] = [];
   carregando = false;
   uploadando = false;
+  
+  // Galleria
+  private _displayGalleria = false;
+  get displayGalleria(): boolean {
+    return this._displayGalleria;
+  }
+  set displayGalleria(value: boolean) {
+    this._displayGalleria = value;
+    // Controla classe no body para ajustar z-index do header
+    if (value) {
+      document.body.classList.add('galleria-fullscreen-open');
+    } else {
+      document.body.classList.remove('galleria-fullscreen-open');
+    }
+  }
+  activeIndex = 0;
   
   breadcrumbItems: BreadcrumbItem[] = [];
   
   // Dialog de upload
   displayUploadDialog = false;
   arquivoSelecionado: File | null = null;
+  arquivoPreviewUrl: string | null = null;
   uploadOrdem = 0;
   uploadPrincipal = false;
-  uploadTipo: TipoImagemEmpreendimento | null = null;
+  uploadTipo: any = null; // Objeto completo { value, label, icon }
+  tiposFiltrados: any[] = [];
   
   // Dialog de edição
   displayEditDialog = false;
   imagemEdicao: EmpreendimentoImagem | null = null;
   editOrdem = 0;
   editPrincipal = false;
-  editTipo: TipoImagemEmpreendimento | null = null;
+  editTipo: any = null; // Objeto completo { value, label, icon }
   
   // Tipos de imagem
   tiposImagem = Object.entries(TIPO_IMAGEM_LABELS).map(([value, label]) => ({
@@ -75,6 +94,9 @@ export class EmpreendimentoImagensComponent implements OnInit {
       return;
     }
     
+    // Inicializar tipos filtrados
+    this.tiposFiltrados = [...this.tiposImagem];
+    
     this.codigoEmpreendimento = this.route.snapshot.paramMap.get('codigo') || '';
     
     if (!this.codigoEmpreendimento) {
@@ -95,19 +117,24 @@ export class EmpreendimentoImagensComponent implements OnInit {
     this.breadcrumbItems = [
       { label: 'Imóveis', icon: 'pi pi-building' },
       { label: 'Empreendimentos', url: '/empreendimentos' },
-      { label: `Código ${this.codigoEmpreendimento}` },
-      { label: 'Imagens' }
+      { label: this.nomeEmpreendimento || `Cód. ${this.codigoEmpreendimento}` },
+      { label: 'Portfólio' }
     ];
   }
 
   carregar(): void {
     this.carregando = true;
     
+    // Busca nome do empreendimento e imagens em paralelo
     this.empreendimentoService.listarImagensAtivas(this.codigoEmpreendimento)
       .pipe(finalize(() => this.carregando = false))
       .subscribe({
         next: (imagens: EmpreendimentoImagem[]) => {
           this.imagens = imagens;
+          // Extrai nome do primeiro resultado
+          if (imagens.length > 0) {
+            this.buscarNomeEmpreendimento();
+          }
         },
         error: (error: any) => {
           console.error('Erro ao carregar imagens:', error);
@@ -118,6 +145,48 @@ export class EmpreendimentoImagensComponent implements OnInit {
           });
         }
       });
+  }
+
+  private buscarNomeEmpreendimento(): void {
+    // Tenta buscar da listagem (se vier do router state)
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || window.history.state;
+    
+    if (state?.nomeEmpreendimento) {
+      this.nomeEmpreendimento = state.nomeEmpreendimento;
+      this.configurarBreadcrumb();
+    } else {
+      // Busca na API se não vier do state
+      this.empreendimentoService.listarEmpreendimentos(0, 1000).subscribe({
+        next: (response) => {
+          const emp = response.content.find(e => e.codEmpreendimento.toString() === this.codigoEmpreendimento);
+          if (emp) {
+            this.nomeEmpreendimento = emp.nome;
+            this.configurarBreadcrumb();
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Abre a galeria fullscreen no index especificado
+   */
+  abrirGalleria(index: number): void {
+    this.activeIndex = index;
+    this.displayGalleria = true;
+  }
+
+  /**
+   * Fecha a galeria fullscreen
+   */
+  fecharGalleria(): void {
+    this.displayGalleria = false;
+  }
+
+  ngOnDestroy(): void {
+    // Limpa a classe do body ao sair do componente
+    document.body.classList.remove('galleria-fullscreen-open');
   }
 
   abrirUpload(): void {
@@ -136,9 +205,11 @@ export class EmpreendimentoImagensComponent implements OnInit {
 
   private limparFormularioUpload(): void {
     this.arquivoSelecionado = null;
+    this.arquivoPreviewUrl = null;
     this.uploadOrdem = this.imagens.length;
     this.uploadPrincipal = this.imagens.length === 0;
     this.uploadTipo = null;
+    this.tiposFiltrados = [...this.tiposImagem];
   }
 
   onFileSelect(event: any): void {
@@ -166,7 +237,44 @@ export class EmpreendimentoImagensComponent implements OnInit {
       }
       
       this.arquivoSelecionado = file;
+      
+      // Criar preview da imagem
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.arquivoPreviewUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
+  }
+
+  /**
+   * Filtra tipos de imagem para o autocomplete
+   */
+  filtrarTipos(event: any): void {
+    const query = event.query?.toLowerCase() || '';
+    if (!query) {
+      this.tiposFiltrados = [...this.tiposImagem];
+    } else {
+      this.tiposFiltrados = this.tiposImagem.filter(tipo =>
+        tipo.label.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  /**
+   * Seleciona tipo do autocomplete
+   */
+  selecionarTipo(event: any): void {
+    // Autocomplete já passa o objeto completo
+    this.uploadTipo = event;
+  }
+
+  /**
+   * Seleciona tipo do autocomplete (edição)
+   */
+  selecionarTipoEdit(event: any): void {
+    // Autocomplete já passa o objeto completo
+    this.editTipo = event;
   }
 
   fazerUpload(): void {
@@ -185,7 +293,7 @@ export class EmpreendimentoImagensComponent implements OnInit {
       arquivo: this.arquivoSelecionado,
       ordem: this.uploadOrdem,
       principal: this.uploadPrincipal,
-      tipo: this.uploadTipo || undefined
+      tipo: this.uploadTipo?.value || undefined // Extrai o value do objeto
     })
       .pipe(finalize(() => this.uploadando = false))
       .subscribe({
@@ -222,7 +330,11 @@ export class EmpreendimentoImagensComponent implements OnInit {
     this.imagemEdicao = imagem;
     this.editOrdem = imagem.ordem;
     this.editPrincipal = imagem.principal;
-    this.editTipo = imagem.tipo;
+    
+    // Encontrar o objeto tipo correspondente
+    this.editTipo = this.tiposImagem.find(t => t.value === imagem.tipo) || null;
+    this.tiposFiltrados = [...this.tiposImagem];
+    
     this.displayEditDialog = true;
   }
 
@@ -234,7 +346,7 @@ export class EmpreendimentoImagensComponent implements OnInit {
     this.empreendimentoService.atualizarImagem(this.imagemEdicao.id!, {
       ordem: this.editOrdem,
       principal: this.editPrincipal,
-      tipo: this.editTipo || undefined
+      tipo: this.editTipo?.value || undefined // Extrai o value do objeto
     })
       .pipe(finalize(() => this.uploadando = false))
       .subscribe({
@@ -360,6 +472,28 @@ export class EmpreendimentoImagensComponent implements OnInit {
   getTipoLabel(tipo: string | null): string {
     if (!tipo) return 'Sem categoria';
     return TIPO_IMAGEM_LABELS[tipo] || tipo;
+  }
+
+  /**
+   * Retorna a URL da imagem (suporta estrutura atual e futura do backend)
+   */
+  getImagemUrl(imagem: EmpreendimentoImagem): string {
+    return imagem.urlImagem || imagem.urlTemporaria || this.getPlaceholder();
+  }
+
+  /**
+   * Placeholder SVG para imagens com erro
+   */
+  private getPlaceholder(): string {
+    return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect fill="%23e9ecef" width="400" height="300"/%3E%3Ctext fill="%236c757d" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3EErro ao carregar%3C/text%3E%3C/svg%3E';
+  }
+
+  /**
+   * Tratamento de erro ao carregar imagem
+   */
+  onImageError(event: Event): void {
+    console.warn('Erro ao carregar imagem');
+    (event.target as HTMLImageElement).src = this.getPlaceholder();
   }
 
   voltar(): void {

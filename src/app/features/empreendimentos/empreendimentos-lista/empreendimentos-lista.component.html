@@ -42,7 +42,10 @@
       <div class="empreendimento-card">
         <!-- Imagem -->
         <div class="card-image">
-          <img [src]="getImagemPrincipal(emp)" [alt]="emp.nome" />
+          <img 
+            [src]="getImagemPrincipal(emp)" 
+            [alt]="emp.nome"
+            (error)="onImageError($event, emp)" />
           <div class="image-overlay">
             <div class="overlay-badge">
               <p-tag 

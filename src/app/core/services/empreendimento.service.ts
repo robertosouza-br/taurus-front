@@ -43,8 +43,6 @@ export class EmpreendimentoService {
       params = params.set('search', search);
     }
 
-    debugger;
-
     return this.http.get<PageResponse<Empreendimento>>(this.apiUrl, { params });
   }
 
@@ -81,21 +79,21 @@ export class EmpreendimentoService {
    * Lista imagens ativas de um empreendimento
    */
   listarImagensAtivas(codigoEmpreendimento: string): Observable<EmpreendimentoImagem[]> {
-    return this.http.get<EmpreendimentoImagem[]>(`${this.apiUrl}/imagens/${codigoEmpreendimento}`);
+    return this.http.get<EmpreendimentoImagem[]>(`${this.apiUrl}/${codigoEmpreendimento}/imagens`);
   }
 
   /**
    * Lista todas as imagens (ativas e inativas)
    */
   listarTodasImagens(codigoEmpreendimento: string): Observable<EmpreendimentoImagem[]> {
-    return this.http.get<EmpreendimentoImagem[]>(`${this.apiUrl}/imagens/${codigoEmpreendimento}/todas`);
+    return this.http.get<EmpreendimentoImagem[]>(`${this.apiUrl}/${codigoEmpreendimento}/imagens/todas`);
   }
 
   /**
    * Busca a imagem principal
    */
   buscarImagemPrincipal(codigoEmpreendimento: string): Observable<EmpreendimentoImagem> {
-    return this.http.get<EmpreendimentoImagem>(`${this.apiUrl}/imagens/${codigoEmpreendimento}/principal`);
+    return this.http.get<EmpreendimentoImagem>(`${this.apiUrl}/${codigoEmpreendimento}/imagens/principal`);
   }
 
   /**

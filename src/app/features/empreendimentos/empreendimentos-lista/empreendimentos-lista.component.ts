@@ -24,12 +24,16 @@ interface EmpreendimentoFiltro {
  * Funcionalidade: IMOVEL
  * Permissão requerida: CONSULTAR
  * 
- * IMAGEM DE APRESENTAÇÃO:
- * - Backend retorna automaticamente o campo 'imagemCapa' com a URL da imagem principal
- * - A imagem principal é aquela marcada como 'principal: true' no cadastro
- * - URLs têm validade de 5 minutos (geradas pelo MinIO)
- * - Se não houver imagem principal, backend retorna URL da imagem padrão (sem_empreendimento.png)
- * - Frontend usa placeholder local para evitar requisição à imagem padrão do backend
+ * IMAGEM DE APRESENTAÇÃO (conforme mapa de integração):
+ * - Backend retorna automaticamente o campo 'imagemCapa' no DTO de listagem
+ * - imagemCapa contém a URL da imagem marcada como PRINCIPAL do empreendimento
+ * - URLs MinIO têm validade de 5 minutos (300 segundos)
+ * - Se não houver imagem principal definida, backend retorna URL da imagem padrão:
+ *   taurus/empreendimentos/sem_empreendimento.png
+ * - Frontend deve tratar erro de carregamento (URL expirada) e exibir placeholder
+ * 
+ * COMPATIBILIDADE:
+ * - Mantém suporte à estrutura antiga (disponivelPdc, array imagens) durante transição
  */
 @Component({
   selector: 'app-empreendimentos-lista',
@@ -89,12 +93,6 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
           this.empreendimentos = response.content;
           this.totalRegistros = response.totalElements;
           this.carregando = false;
-          
-          // Debug: verificar se imagemCapa está vindo do backend
-          if (this.empreendimentos.length > 0) {
-            console.log('Exemplo de empreendimento retornado:', this.empreendimentos[0]);
-            console.log('imagemCapa presente?', this.empreendimentos[0].imagemCapa);
-          }
         },
         error: (error: any) => {
           this.carregando = false;
@@ -127,6 +125,18 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
   }
 
   /**
+   * Tratamento de erro ao carregar imagem
+   */
+  onImageError(event: Event, emp: Empreendimento): void {
+    console.warn('Erro ao carregar imagem:', {
+      empreendimento: emp.nome,
+      imagemCapa: emp.imagemCapa,
+      imagens: emp.imagens
+    });
+    (event.target as HTMLImageElement).src = this.getPlaceholderImage();
+  }
+
+  /**
    * Navega para ver o portfólio de imagens
    */
   gerenciarImagens(emp: Empreendimento): void {
@@ -138,50 +148,60 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
       });
       return;
     }
-    this.router.navigate(['/empreendimentos', emp.codEmpreendimento, 'imagens']);
+    this.router.navigate(['/empreendimentos', emp.codEmpreendimento, 'imagens'], {
+      state: { nomeEmpreendimento: emp.nome }
+    });
   }
 
   /**
-   * Retorna a imagem principal ou placeholder
+   * Retorna a URL da imagem de apresentação do empreendimento
    * 
-   * ESTRUTURA ATUAL: Backend retorna array 'imagens' com urlTemporaria
-   * ESTRUTURA FUTURA: Backend retornará campo 'imagemCapa' diretamente
-   * Este método suporta ambas as estruturas
+   * ESTRUTURA OFICIAL (conforme mapa de integração):
+   * - Backend retorna o campo 'imagemCapa' diretamente no DTO de listagem
+   * - imagemCapa já vem com a URL da imagem marcada como PRINCIPAL
+   * - Se não houver imagem principal, vem a URL da imagem padrão (sem_empreendimento.png)
+   * - URLs MinIO têm validade de 5 minutos
+   * 
+   * COMPATIBILIDADE:
+   * - Mantém suporte ao array 'imagens' caso backend ainda não esteja atualizado
+   * - Fallback para placeholder local em último caso
    */
   getImagemPrincipal(emp: Empreendimento): string {
-    // Tenta nova estrutura (quando backend for atualizado)
+    // Estrutura oficial: campo imagemCapa vem diretamente no DTO
     if (emp.imagemCapa) {
       return emp.imagemCapa;
     }
     
-    // Estrutura atual: busca no array de imagens
+    // Compatibilidade: estrutura antiga com array de imagens
     const imagemPrincipal = emp.imagens?.find(img => img.principal);
     if (imagemPrincipal) {
-      // Suporta ambos os campos (urlImagem é o novo, urlTemporaria é o atual)
       return imagemPrincipal.urlImagem || imagemPrincipal.urlTemporaria || this.getPlaceholderImage();
     }
     
-    // Fallback para placeholder local
+    // Fallback: placeholder local SVG
     return this.getPlaceholderImage();
   }
 
   /**
-   * Retorna imagem placeholder local (usado apenas como fallback)
+   * Retorna placeholder SVG local
+   * Usado apenas como fallback quando backend não retorna imagemCapa
+   * ou quando há erro ao carregar a imagem (URL expirada)
    */
   private getPlaceholderImage(): string {
     return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect fill="%23e9ecef" width="400" height="300"/%3E%3Ctext fill="%236c757d" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ESem imagem%3C/text%3E%3C/svg%3E';
   }
 
   /**
-   * Verifica se empreendimento tem imagem real (não padrão)
+   * Verifica se empreendimento possui imagem real (não a imagem padrão)
+   * Útil para exibir badges ou indicadores visuais
    */
   temImagem(emp: Empreendimento): boolean {
-    // Verifica nova estrutura
+    // Verifica se imagemCapa não é a imagem padrão
     if (emp.imagemCapa && !emp.imagemCapa.includes('sem_empreendimento')) {
       return true;
     }
     
-    // Verifica estrutura atual
+    // Compatibilidade: verifica array de imagens
     const imagemPrincipal = emp.imagens?.find(img => img.principal);
     if (!imagemPrincipal) return false;
     
@@ -190,8 +210,10 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
   }
 
   /**
-   * Retorna se empreendimento está disponível
-   * Suporta ambos os campos (disponivel é novo, disponivelPdc é atual)
+   * Verifica se empreendimento está disponível para venda
+   * 
+   * ESTRUTURA OFICIAL: campo 'disponivel' (S/N)
+   * COMPATIBILIDADE: mantém suporte ao campo antigo 'disponivelPdc'
    */
   isDisponivel(emp: Empreendimento): boolean {
     return (emp.disponivel || emp.disponivelPdc) === 'S';

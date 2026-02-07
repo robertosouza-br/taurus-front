@@ -37,6 +37,10 @@
   --primary-800: #1e40af;
   --primary-900: #1e3a8a;
   
+  /* RGB values for rgba() usage */
+  --primary-rgb: 59, 130, 246;
+  --primary-600-rgb: 37, 99, 235;
+  
   --toast-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --toast-shadow: 0 8px 32px 0 rgba(102,126,234,0.18), 0 2px 8px 0 rgba(118,75,162,0.10);
 }
@@ -1314,3 +1318,42 @@ small.info-message,
   }
 }
 
+// ================================================================
+// GALLERIA FULLSCREEN - ESCONDER HEADER E SIDEBAR DA APLICAÇÃO
+// ================================================================
+
+// Quando a galeria PrimeNG está em fullscreen, esconder COMPLETAMENTE
+// todos os elementos fixos da aplicação (header, sidebar, footer)
+body.galleria-fullscreen-open {
+  overflow: hidden !important;
+  
+  .app-header,
+  header.app-header,
+  .header,
+  app-header,
+  .main-layout > app-header,
+  .app-footer,
+  app-footer,
+  .app-sidebar,
+  app-sidebar {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+  }
+  
+  // Garantir que o conteúdo principal não tenha padding/margin
+  .content-area,
+  .content-wrapper,
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  // Garantir que a galeria cubra TUDO
+  .p-galleria-mask,
+  .p-component-overlay {
+    z-index: 99999 !important;
+  }
+}

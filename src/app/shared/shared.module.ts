@@ -22,6 +22,7 @@ import { DividerModule } from 'primeng/divider';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PaginatorModule } from 'primeng/paginator';
+import { GalleriaModule } from 'primeng/galleria';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -110,6 +111,7 @@ import { CalendarModule } from 'primeng/calendar';
     ToastModule,
     ConfirmDialogModule,
     PaginatorModule,
+    GalleriaModule,
     ImageCropperComponent
   ],
   exports: [
@@ -152,6 +154,7 @@ import { CalendarModule } from 'primeng/calendar';
     ToastModule,
     ConfirmDialogModule,
     PaginatorModule,
+    GalleriaModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],
