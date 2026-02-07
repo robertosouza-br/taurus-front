@@ -38,12 +38,6 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
   margin-bottom: 2rem;
-  transition: opacity 0.3s ease;
-
-  &.loading-overlay {
-    opacity: 0.6;
-    pointer-events: none;
-  }
 }
 
 .card-wrapper {

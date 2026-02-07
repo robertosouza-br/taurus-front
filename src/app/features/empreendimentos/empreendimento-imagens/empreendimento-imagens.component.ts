@@ -16,6 +16,38 @@ import {
 } from '../../../core/models/empreendimento.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
+/**
+ * Componente de gerenciamento de imagens de empreendimentos
+ * 
+ * FUNCIONALIDADES:
+ * - Visualizar galeria de imagens (fullscreen)
+ * - Upload de novas imagens (com preview)
+ * - Editar metadados (tipo, ordem, principal)
+ * - Definir imagem principal (capa)
+ * - Excluir imagens permanentemente
+ * - Renovação automática de URLs do MinIO (válidas por 5 minutos)
+ * 
+ * PERMISSÕES (Backend):
+ * - EMPREENDIMENTOS_CONSULTAR (visualizar imagens)
+ * - EMPREENDIMENTOS_IMAGENS_INCLUIR (upload)
+ * - EMPREENDIMENTOS_IMAGENS_ALTERAR (editar e definir principal)
+ * - EMPREENDIMENTOS_IMAGENS_EXCLUIR (excluir permanentemente)
+ * - Administradores têm acesso total
+ * 
+ * MAPEAMENTO FRONTEND → BACKEND:
+ * - Funcionalidade.IMOVEL + Permissao.CONSULTAR → EMPREENDIMENTOS_CONSULTAR
+ * - Funcionalidade.IMOVEL + Permissao.INCLUIR  → EMPREENDIMENTOS_IMAGENS_INCLUIR
+ * - Funcionalidade.IMOVEL + Permissao.ALTERAR  → EMPREENDIMENTOS_IMAGENS_ALTERAR
+ * - Funcionalidade.IMOVEL + Permissao.EXCLUIR  → EMPREENDIMENTOS_IMAGENS_EXCLUIR
+ * 
+ * OBSERVAÇÕES:
+ * - URLs do MinIO expiram em 5 minutos
+ * - Renovação automática a cada 4min30s (antes de expirar)
+ * - Primeira imagem é automaticamente definida como principal
+ * - Apenas uma imagem pode ser principal por empreendimento
+ * - Tamanho máximo: 10MB por arquivo
+ * - Formatos aceitos: JPEG, PNG, WEBP
+ */
 @Component({
   selector: 'app-empreendimento-imagens',
   templateUrl: './empreendimento-imagens.component.html',
@@ -75,6 +107,14 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
     icon: TIPO_IMAGEM_ICONS[value]
   }));
   
+  // ==================== PERMISSÕES ====================
+  // Mapeamento com backend (conforme Mapa de Integração):
+  // - IMOVEL + CONSULTAR → EMPREENDIMENTOS_CONSULTAR
+  // - IMOVEL + INCLUIR   → EMPREENDIMENTOS_IMAGENS_INCLUIR
+  // - IMOVEL + ALTERAR   → EMPREENDIMENTOS_IMAGENS_ALTERAR
+  // - IMOVEL + EXCLUIR   → EMPREENDIMENTOS_IMAGENS_EXCLUIR
+  // Administradores têm acesso total
+  
   get podeIncluir(): boolean {
     return this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.INCLUIR);
   }
@@ -98,6 +138,7 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Verifica permissão de consulta (EMPREENDIMENTOS_CONSULTAR no backend)
     if (!this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.CONSULTAR)) {
       this.router.navigate(['/acesso-negado']);
       return;

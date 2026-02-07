@@ -19,9 +19,9 @@
     (onClear)="limparBusca()">
   </app-search-filter>
 
-  <!-- Loading State (apenas primeira carga ou quando não há dados) -->
+  <!-- Loading State -->
   <app-loading-spinner 
-    *ngIf="carregando && empreendimentos.length === 0" 
+    *ngIf="carregando" 
     [size]="'large'"
     [overlay]="true"
     [message]="'Carregando empreendimentos...'"
@@ -37,7 +37,7 @@
   </div>
 
   <!-- Grid de Cards -->
-  <div *ngIf="empreendimentos.length > 0" class="cards-grid" [class.loading-overlay]="carregando">
+  <div *ngIf="empreendimentos.length > 0" class="cards-grid">
     <div *ngFor="let emp of empreendimentos" class="card-wrapper">
       <div class="empreendimento-card">
         <!-- Imagem -->

@@ -21,16 +21,28 @@ interface EmpreendimentoFiltro {
  * Componente de listagem de empreendimentos
  * Visual moderno com cards destacados
  * 
- * Funcionalidade: IMOVEL
- * Permissão requerida: CONSULTAR
+ * FUNCIONALIDADES:
+ * - Listar empreendimentos em cards visuais
+ * - Pesquisar por nome
+ * - Paginação de resultados
+ * - Visualizar imagem de capa (principal)
+ * - Acessar portfólio de imagens
+ * - Renovação automática de URLs do MinIO (válidas por 5 minutos)
  * 
- * IMAGEM DE APRESENTAÇÃO (conforme mapa de integração):
+ * PERMISSÕES (Backend):
+ * - EMPREENDIMENTOS_CONSULTAR (listar e visualizar)
+ * - Administradores têm acesso total
+ * 
+ * MAPEAMENTO FRONTEND → BACKEND:
+ * - Funcionalidade.IMOVEL + Permissao.CONSULTAR → EMPREENDIMENTOS_CONSULTAR
+ * 
+ * IMAGEM DE CAPA (conforme mapa de integração):
  * - Backend retorna automaticamente o campo 'imagemCapa' no DTO de listagem
  * - imagemCapa contém a URL da imagem marcada como PRINCIPAL do empreendimento
  * - URLs MinIO têm validade de 5 minutos (300 segundos)
  * - Se não houver imagem principal definida, backend retorna URL da imagem padrão:
  *   taurus/empreendimentos/sem_empreendimento.png
- * - Frontend deve tratar erro de carregamento (URL expirada) e exibir placeholder
+ * - Frontend trata erro de carregamento (URL expirada) e exibe placeholder
  * 
  * COMPATIBILIDADE:
  * - Mantém suporte à estrutura antiga (disponivelPdc, array imagens) durante transição
@@ -64,7 +76,7 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
   }
 
   ngOnInit(): void {
-
+    // Verifica permissão de consulta (EMPREENDIMENTOS_CONSULTAR no backend)
     if (!this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.CONSULTAR)) {
       this.router.navigate(['/acesso-negado']);
       return;
@@ -138,7 +150,8 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
   }
 
   /**
-   * Navega para ver o portfólio de imagens
+   * Navega para o portfólio de imagens do empreendimento
+   * Requer: EMPREENDIMENTOS_CONSULTAR (já verificado no ngOnInit)
    */
   gerenciarImagens(emp: Empreendimento): void {
     if (!this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.CONSULTAR)) {
