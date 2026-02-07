@@ -115,9 +115,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
       cpf: cpfSemMascara,
       senha: this.loginForm.value.senha
     };
-
-    console.log('Enviando login:', credentials);
-
     this.authService.login(credentials).subscribe({
       next: () => {
         // Login bem-sucedido, inicia monitoramento de atividade e fecha sidebar
