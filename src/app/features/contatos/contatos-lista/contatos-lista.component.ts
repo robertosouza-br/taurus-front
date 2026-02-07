@@ -26,10 +26,10 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
   rows = 20;
   
   colunas: TableColumn[] = [
-    { field: 'data', header: 'Data', width: '12%', template: 'data' },
-    { field: 'status', header: 'Status', width: '10%', template: 'status' },
-    { field: 'nome', header: 'Nome', width: '20%', template: 'nome' },
-    { field: 'assunto', header: 'Assunto', width: '50%', template: 'assunto' }
+    { field: 'dataCriacao', header: 'Data', width: '15%', template: 'data', align: 'center' },
+    { field: 'status', header: 'Status', width: '15%', template: 'status', align: 'center' },
+    { field: 'nome', header: 'Contato', width: '25%', template: 'nome', align: 'center' },
+    { field: 'assunto', header: 'Mensagem', width: '45%', template: 'assunto' }
   ];
   
   acoes: any[] = [
@@ -80,11 +80,8 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
     const pagina = Math.floor((this.first || 0) / (this.rows || 20));
     const status = this.statusFiltro?.value;
 
-    console.log('Carregando contatos:', { pagina, rows: this.rows, status });
-
     this.contatoService.listar(pagina, this.rows, status).subscribe({
       next: (response) => {
-        console.log('Resposta da API:', response);
         this.contatos = response.content;
         this.totalRegistros = response.totalElements;
         this.carregando = false;
@@ -127,12 +124,8 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
   }
 
   visualizar(contato: ContatoDTO): void {
-    console.log('Visualizar contato:', contato);
     if (contato.id) {
-      console.log('Navegando para:', `/cadastros/contatos/detalhes/${contato.id}`);
       this.router.navigate(['/cadastros/contatos/detalhes', contato.id]);
-    } else {
-      console.error('Contato sem ID:', contato);
     }
   }
 
@@ -149,6 +142,43 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
     });
   }
 
+  /**
+   * Retorna data formatada com tempo relativo
+   */
+  formatarDataComRelativo(data: string | undefined): { completa: string, relativa: string } {
+    if (!data) return { completa: '-', relativa: '' };
+    
+    const date = new Date(data);
+    const agora = new Date();
+    const diffMs = agora.getTime() - date.getTime();
+    const diffMinutos = Math.floor(diffMs / 60000);
+    const diffHoras = Math.floor(diffMs / 3600000);
+    const diffDias = Math.floor(diffMs / 86400000);
+    
+    let relativa = '';
+    if (diffMinutos < 1) {
+      relativa = 'Agora';
+    } else if (diffMinutos < 60) {
+      relativa = `${diffMinutos}min atrás`;
+    } else if (diffHoras < 24) {
+      relativa = `${diffHoras}h atrás`;
+    } else if (diffDias === 1) {
+      relativa = 'Ontem';
+    } else if (diffDias < 7) {
+      relativa = `${diffDias} dias atrás`;
+    }
+    
+    const completa = date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    return { completa, relativa };
+  }
+
   truncarTexto(texto: string | undefined, limite: number = 50): string {
     if (!texto) return '-';
     return texto.length > limite ? texto.substring(0, limite) + '...' : texto;
@@ -160,5 +190,17 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
 
   getStatusSeverity(status: StatusContato): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | undefined {
     return STATUS_CONTATO_SEVERITIES[status] as 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast';
+  }
+
+  /**
+   * Retorna ícone para o status
+   */
+  getStatusIcon(status: StatusContato): string {
+    const icons: Record<StatusContato, string> = {
+      [StatusContato.PENDENTE]: 'pi pi-clock',
+      [StatusContato.LIDO]: 'pi pi-eye',
+      [StatusContato.RESPONDIDO]: 'pi pi-check-circle'
+    };
+    return icons[status];
   }
 }

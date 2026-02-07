@@ -14,11 +14,44 @@
   font-size: 0.875rem;
 }
 
+.text-xs {
+  font-size: 0.75rem;
+}
+
+// Destaque para mensagens pendentes
+.status-pendente-bg {
+  background-color: #fef3c7 !important;
+  padding: 0.75rem !important;
+  margin: -0.75rem !important;
+  border-radius: 4px;
+}
+
+.status-cell {
+  min-height: 60px;
+}
+
 :host ::ng-deep {
   .p-badge.p-badge-lg {
     font-size: 1rem;
     min-width: 2rem;
     height: 2rem;
     line-height: 2rem;
+  }
+
+  // Destaque suave para linhas com status PENDENTE
+  .p-datatable .p-datatable-tbody > tr {
+    transition: all 0.2s ease;
+    
+    // Detecta linhas que contêm a célula de status com borda laranja (PENDENTE)
+    &:has(.status-cell-marker[style*="border-left: 4px solid rgb(245, 158, 11)"]),
+    &:has(.status-cell-marker[style*="border-left:4px solid rgb(245, 158, 11)"]),
+    &:has(.status-cell-marker[style*="border-left: 4px solid #f59e0b"]),
+    &:has(.status-cell-marker[style*="border-left:4px solid #f59e0b"]) {
+      background-color: #fef3c7 !important; // Amarelo mais destacado
+      
+      &:hover {
+        background-color: #fde68a !important; // Amarelo mais forte ao hover
+      }
+    }
   }
 }

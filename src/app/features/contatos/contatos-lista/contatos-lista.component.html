@@ -7,37 +7,23 @@
     title="Mensagens de Contato"
     subtitle="Gerencie as mensagens recebidas através do formulário de contato"
     icon="pi pi-envelope">
-    <div actions>
-      <!-- Contador de Pendentes -->
-      <p-tag 
-        *ngIf="totalPendentes > 0"
-        [value]="totalPendentes.toString()"
-        severity="warning"
-        styleClass="mr-2">
-      </p-tag>
-      <span *ngIf="totalPendentes > 0" class="text-muted mr-3">
-        {{ totalPendentes }} {{ totalPendentes === 1 ? 'mensagem pendente' : 'mensagens pendentes' }}
-      </span>
-    </div>
   </app-page-header>
 
-  <!-- Filtros -->
-  <p-card>
-    <div class="grid">
-      <div class="col-12 md:col-3">
-        <app-autocomplete
-          id="statusFiltro"
-          label="Filtrar por Status"
-          [(ngModel)]="statusFiltro"
-          [suggestions]="statusOptions"
-          field="label"
-          (onSelect)="filtrarPorStatus()"
-          (completeMethod)="buscarStatus($event)"
-          placeholder="Todos">
-        </app-autocomplete>
-      </div>
+  <!-- Filtro -->
+  <div class="flex align-items-center justify-content-end mb-3">
+    <div style="width: 300px;">
+      <app-autocomplete
+        id="statusFiltro"
+        label="Filtrar por Status"
+        [(ngModel)]="statusFiltro"
+        [suggestions]="statusOptions"
+        field="label"
+        (onSelect)="filtrarPorStatus()"
+        (completeMethod)="buscarStatus($event)"
+        placeholder="Todos">
+      </app-autocomplete>
     </div>
-  </p-card>
+  </div>
 
   <!-- Tabela -->
   <app-data-table
@@ -52,30 +38,78 @@
     [emptyMessage]="'Nenhuma mensagem encontrada'">
     
     <!-- Template para Data -->
-    <ng-template dataTableTemplate="data" let-contato>
-      <div class="text-sm">
-        {{ formatarData(contato.dataCriacao) }}
+    <ng-template appTableTemplate="data" let-contato="rowData">
+      <div [style.padding]="'0.5rem'"
+           class="flex flex-column gap-1 align-items-center justify-content-center">
+        <div class="font-medium" 
+             [style.color]="contato.status === 'PENDENTE' ? '#d97706' : '#495057'"
+             [style.font-weight]="'600'">
+          {{ formatarDataComRelativo(contato.dataCriacao).relativa }}
+        </div>
+        <div class="text-xs" [style.color]="'#6c757d'">
+          {{ formatarDataComRelativo(contato.dataCriacao).completa }}
+        </div>
       </div>
     </ng-template>
 
     <!-- Template para Status -->
-    <ng-template dataTableTemplate="status" let-contato>
-      <p-tag 
-        [value]="getStatusLabel(contato.status)" 
-        [severity]="getStatusSeverity(contato.status)">
-      </p-tag>
+    <ng-template appTableTemplate="status" let-contato="rowData">
+      <div [style.padding]="'0.5rem'"
+           [style.border-left]="contato.status === 'PENDENTE' ? '4px solid #f59e0b' : 'none'"
+           class="flex flex-column gap-2 align-items-center justify-content-center status-cell-marker">
+        <div class="flex align-items-center gap-2">
+          <i [class]="getStatusIcon(contato.status)" 
+             [style.font-size]="'1.1rem'"
+             [style.color]="contato.status === 'PENDENTE' ? '#f59e0b' : contato.status === 'RESPONDIDO' ? '#10b981' : '#3b82f6'"></i>
+          <p-tag 
+            [value]="getStatusLabel(contato.status)"
+            [severity]="getStatusSeverity(contato.status)"
+            [style.font-size]="'0.35rem'"
+            [style.padding]="'0.1rem 0.2rem'"
+            [style.font-weight]="'500'">
+          </p-tag>
+        </div>
+        
+        <!-- Informações adicionais baseadas no status -->
+        <div *ngIf="contato.usuarioLeitura && contato.status !== 'PENDENTE'"
+             [style.font-size]="'0.7rem'"
+             [style.color]="'#6c757d'">
+          <i class="pi pi-user" [style.font-size]="'0.65rem'"></i> 
+          {{ contato.usuarioLeitura.split('@')[0] }}
+        </div>
+      </div>
     </ng-template>
 
     <!-- Template para Nome -->
-    <ng-template dataTableTemplate="nome" let-contato>
-      <div class="font-semibold">{{ contato.nome }}</div>
-      <div class="text-sm text-muted">{{ contato.email }}</div>
+    <ng-template appTableTemplate="nome" let-contato="rowData">
+      <div [style.padding]="'0.5rem'"
+           class="flex flex-column gap-1 align-items-center justify-content-center">
+        <div [style.font-weight]="'600'">{{ contato.nome }}</div>
+        <div [style.font-size]="'0.875rem'" 
+             [style.color]="'#6c757d'"
+             class="flex align-items-center gap-1">
+          <i class="pi pi-envelope" [style.font-size]="'0.75rem'"></i>
+          {{ contato.email }}
+        </div>
+        <div *ngIf="contato.telefone"
+             [style.font-size]="'0.875rem'" 
+             [style.color]="'#6c757d'"
+             class="flex align-items-center gap-1">
+          <i class="pi pi-phone" [style.font-size]="'0.75rem'"></i>
+          {{ contato.telefone }}
+        </div>
+      </div>
     </ng-template>
 
     <!-- Template para Assunto -->
-    <ng-template dataTableTemplate="assunto" let-contato>
-      <div class="font-medium">{{ contato.assunto }}</div>
-      <div class="text-sm text-muted">{{ truncarTexto(contato.mensagem, 80) }}</div>
+    <ng-template appTableTemplate="assunto" let-contato="rowData">
+      <div [style.padding]="'0.5rem'"
+           class="flex flex-column gap-1">
+        <div [style.font-weight]="'600'">{{ contato.assunto }}</div>
+        <div [style.font-size]="'0.875rem'" [style.color]="'#6c757d'">
+          {{ truncarTexto(contato.mensagem, 80) }}
+        </div>
+      </div>
     </ng-template>
   </app-data-table>
 </div>

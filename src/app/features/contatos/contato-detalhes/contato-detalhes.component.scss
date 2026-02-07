@@ -5,7 +5,7 @@
     display: block;
     font-weight: 600;
     color: #495057;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -14,7 +14,8 @@
   .value {
     font-size: 1rem;
     color: #212529;
-    line-height: 1.5;
+    line-height: 1.7;
+    padding-top: 0.25rem;
   }
 }
 
@@ -22,11 +23,12 @@
   background: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 8px;
-  padding: 1.25rem;
+  padding: 1.5rem;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.7;
   white-space: pre-wrap;
   word-wrap: break-word;
+  margin-top: 0.5rem;
 }
 
 .response-content {
@@ -62,12 +64,13 @@
 
 .help-text {
   display: block;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   color: #6c757d;
   font-size: 0.875rem;
+  line-height: 1.5;
 
   i {
-    margin-right: 0.25rem;
+    margin-right: 0.5rem;
   }
 }
 
@@ -75,7 +78,9 @@
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
 
   @media (max-width: 576px) {
     flex-direction: column;
@@ -88,6 +93,6 @@
 
 :host ::ng-deep {
   .p-divider {
-    margin: 1.5rem 0;
+    margin: 2rem 0;
   }
 }
