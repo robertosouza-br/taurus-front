@@ -124,7 +124,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.loading = false;
-        debugger
         this.tratarErro(error);
       }
     });

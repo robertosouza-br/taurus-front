@@ -141,10 +141,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.corretorService.buscarPorCodigo(this.codcfoCorretor).subscribe({
       next: (corretor) => {
         this.corretor = corretor;
-        debugger
         this.preencherFormulario(corretor);
         this.carregando = false;
-        debugger
       },
       error: (error) => {
         this.carregando = false;
