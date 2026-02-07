@@ -28,6 +28,9 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   carregando = false;
   uploadando = false;
   
+  // Timer para renovação automática de URLs do MinIO
+  private refreshTimer: any = null;
+  
   // Referência ao componente de file upload
   @ViewChild('fileUploadInput') fileUploadInput: any;
   
@@ -141,6 +144,8 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
           if (imagens.length > 0) {
             this.buscarNomeEmpreendimento();
           }
+          // Agenda renovação automática das URLs do MinIO (expiram em 5 minutos)
+          this.agendarRenovacaoUrls();
         },
         error: (error: any) => {
           console.error('Erro ao carregar imagens:', error);
@@ -193,6 +198,12 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Limpa a classe do body ao sair do componente
     document.body.classList.remove('galleria-fullscreen-open');
+    
+    // Limpa o timer de renovação de URLs
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
   }
 
   abrirUpload(): void {
@@ -237,8 +248,6 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   onFileSelect(event: any): void {
     const file = event.files?.[0] || event.target?.files?.[0];
     
-    console.log('onFileSelect chamado', { event, file });
-    
     if (file) {
       const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
@@ -260,20 +269,16 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
         return;
       }
       
-      console.log('Arquivo válido, criando preview...');
       this.arquivoSelecionado = file;
       
       // Criar preview da imagem
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.arquivoPreviewUrl = e.target.result;
-        console.log('Preview carregado:', this.arquivoPreviewUrl?.substring(0, 50));
         // Forçar detecção de mudanças para atualizar o preview
         this.cdr.detectChanges();
       };
       reader.readAsDataURL(file);
-    } else {
-      console.warn('Nenhum arquivo encontrado no evento');
     }
   }
 
@@ -510,13 +515,7 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
    * Retorna a URL da imagem (suporta estrutura atual e futura do backend)
    */
   getImagemUrl(imagem: EmpreendimentoImagem): string {
-    const url = imagem.urlImagem || imagem.urlTemporaria || this.getPlaceholder();
-    console.log('getImagemUrl:', { 
-      urlImagem: imagem.urlImagem, 
-      urlTemporaria: imagem.urlTemporaria,
-      urlFinal: url 
-    });
-    return url;
+    return imagem.urlImagem || imagem.urlTemporaria || this.getPlaceholder();
   }
 
   /**
@@ -530,11 +529,78 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
    * Tratamento de erro ao carregar imagem
    */
   onImageError(event: Event): void {
-    console.warn('Erro ao carregar imagem');
     (event.target as HTMLImageElement).src = this.getPlaceholder();
   }
 
   voltar(): void {
     this.router.navigate(['/empreendimentos']);
+  }
+
+  /**
+   * Agenda renovação automática das URLs do MinIO
+   * URLs do MinIO expiram em 5 minutos (300s)
+   * Renova 30 segundos antes de expirar (270s = 4min30s)
+   */
+  private agendarRenovacaoUrls(): void {
+    // Limpa timer anterior se existir
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
+    // URLs do MinIO expiram em 5 minutos = 300 segundos
+    // Renovar 30 segundos antes = 270 segundos
+    const tempoParaRenovar = 270 * 1000; // 4min30s em milissegundos
+
+    this.refreshTimer = setTimeout(() => {
+      this.renovarUrls();
+    }, tempoParaRenovar);
+  }
+
+  /**
+   * Renova as URLs das imagens (chamada silenciosa, sem loading)
+   * Usa o endpoint de listagem que já retorna URLs assinadas novas do MinIO
+   */
+  private renovarUrls(): void {
+    // Usa listarImagensAtivas que já retorna URLs renovadas do MinIO
+    this.empreendimentoService.listarImagensAtivas(this.codigoEmpreendimento)
+      .subscribe({
+        next: (imagensAtualizadas: EmpreendimentoImagem[]) => {
+          // Atualiza apenas as URLs, mantendo outras propriedades
+          this.imagens = this.imagens.map(imagemAtual => {
+            const imagemAtualizada = imagensAtualizadas.find(img => img.id === imagemAtual.id);
+            if (imagemAtualizada) {
+              return {
+                ...imagemAtual,
+                urlImagem: imagemAtualizada.urlImagem,
+                urlTemporaria: imagemAtualizada.urlTemporaria
+              };
+            }
+            return imagemAtual;
+          });
+
+          // Se o dialog de edição estiver aberto, atualiza a imagem sendo editada
+          if (this.displayEditDialog && this.imagemEdicao) {
+            const imagemAtualizadaEdit = imagensAtualizadas.find(img => img.id === this.imagemEdicao!.id);
+            if (imagemAtualizadaEdit) {
+              this.imagemEdicao = {
+                ...this.imagemEdicao,
+                urlImagem: imagemAtualizadaEdit.urlImagem,
+                urlTemporaria: imagemAtualizadaEdit.urlTemporaria
+              };
+            }
+          }
+          
+          // Agenda próxima renovação
+          this.agendarRenovacaoUrls();
+          
+          // Força atualização da view
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('[EmpreendimentoImagens] Erro ao renovar URLs:', error);
+          // Em caso de erro, tenta novamente em 30 segundos
+          this.refreshTimer = setTimeout(() => this.renovarUrls(), 30000);
+        }
+      });
   }
 }

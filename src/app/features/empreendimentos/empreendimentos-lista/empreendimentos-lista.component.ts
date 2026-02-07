@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
@@ -40,13 +40,16 @@ interface EmpreendimentoFiltro {
   templateUrl: './empreendimentos-lista.component.html',
   styleUrls: ['./empreendimentos-lista.component.scss']
 })
-export class EmpreendimentosListaComponent extends BaseListComponent implements OnInit {
+export class EmpreendimentosListaComponent extends BaseListComponent implements OnInit, OnDestroy {
   empreendimentos: Empreendimento[] = [];
   
   filtro: EmpreendimentoFiltro = {
     page: 0,
     size: 12
   };
+  
+  // Timer para renovação automática de URLs do MinIO
+  private refreshTimer: any = null;
   
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
@@ -93,6 +96,9 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
           this.empreendimentos = response.content;
           this.totalRegistros = response.totalElements;
           this.carregando = false;
+          
+          // Agenda renovação automática das URLs do MinIO (expiram em 5 minutos)
+          this.agendarRenovacaoUrls();
         },
         error: (error: any) => {
           this.carregando = false;
@@ -128,11 +134,6 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
    * Tratamento de erro ao carregar imagem
    */
   onImageError(event: Event, emp: Empreendimento): void {
-    console.warn('Erro ao carregar imagem:', {
-      empreendimento: emp.nome,
-      imagemCapa: emp.imagemCapa,
-      imagens: emp.imagens
-    });
     (event.target as HTMLImageElement).src = this.getPlaceholderImage();
   }
 
@@ -217,5 +218,67 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
    */
   isDisponivel(emp: Empreendimento): boolean {
     return (emp.disponivel || emp.disponivelPdc) === 'S';
+  }
+
+  ngOnDestroy(): void {
+    // Limpa o timer de renovação de URLs
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
+  /**
+   * Agenda renovação automática das URLs do MinIO
+   * URLs do MinIO expiram em 5 minutos (300s)
+   * Renova 30 segundos antes de expirar (270s = 4min30s)
+   */
+  private agendarRenovacaoUrls(): void {
+    // Limpa timer anterior se existir
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
+    // URLs do MinIO expiram em 5 minutos = 300 segundos
+    // Renovar 30 segundos antes = 270 segundos
+    const tempoParaRenovar = 270 * 1000; // 4min30s em milissegundos
+
+    this.refreshTimer = setTimeout(() => {
+      this.renovarUrls();
+    }, tempoParaRenovar);
+  }
+
+  /**
+   * Renova as URLs das imagens (chamada silenciosa, sem loading)
+   * Usa o endpoint de listagem que já retorna URLs assinadas novas do MinIO
+   */
+  private renovarUrls(): void {
+    // Usa o mesmo endpoint de listagem que já retorna URLs renovadas do MinIO
+    this.empreendimentoService
+      .listarEmpreendimentos(this.filtro.page, this.filtro.size, this.filtro.search)
+      .subscribe({
+        next: (response) => {
+          // Atualiza apenas as URLs das imagens, mantendo outras propriedades
+          this.empreendimentos = this.empreendimentos.map(empAtual => {
+            const empAtualizado = response.content.find(e => e.codEmpreendimento === empAtual.codEmpreendimento);
+            if (empAtualizado) {
+              return {
+                ...empAtual,
+                imagemCapa: empAtualizado.imagemCapa,
+                imagens: empAtualizado.imagens // Atualiza array completo de imagens
+              };
+            }
+            return empAtual;
+          });
+          
+          // Agenda próxima renovação
+          this.agendarRenovacaoUrls();
+        },
+        error: (error: any) => {
+          console.error('[EmpreendimentosLista] Erro ao renovar URLs:', error);
+          // Em caso de erro, tenta novamente em 30 segundos
+          this.refreshTimer = setTimeout(() => this.renovarUrls(), 30000);
+        }
+      });
   }
 }
