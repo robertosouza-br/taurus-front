@@ -137,20 +137,48 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Inicia atualização periódica das notificações do header.
+   * Inicia atualização periódica do contador de notificações do header.
+   * Usa endpoint leve (apenas contador) para otimizar performance.
    */
   private iniciarPollingNotificacoes(): void {
+    // Primeira carga: busca notificações completas para popular menu
     this.subscriptions.add(
-      timer(0, this.NOTIFICATIONS_POLLING_INTERVAL)
+      this.dashboardService.getNotificacoes()
         .pipe(
-          switchMap(() => this.dashboardService.getNotificacoes()),
           catchError(error => {
-            console.error('Erro ao carregar notificações do header:', error);
-            return of(this.notificacoes);
+            console.error('Erro ao carregar notificações iniciais:', error);
+            return of([]);
           })
         )
         .subscribe(notificacoes => {
           this.atualizarNotificacoes(notificacoes);
+        })
+    );
+
+    // Polling: usa endpoint leve (só contador) para economizar recursos
+    this.subscriptions.add(
+      timer(this.NOTIFICATIONS_POLLING_INTERVAL, this.NOTIFICATIONS_POLLING_INTERVAL)
+        .pipe(
+          switchMap(() => this.dashboardService.getNotificacoesCount()),
+          catchError(error => {
+            console.error('Erro ao atualizar contador de notificações:', error);
+            return of(this.notificacoesCount);
+          })
+        )
+        .subscribe(count => {
+          this.notificacoesCount = count;
+          console.log(`Contador de notificações atualizado: ${count}`);
+          
+          // Se contador mudou, busca notificações completas para atualizar menu
+          if (count !== this.notificacoes.length) {
+            this.dashboardService.getNotificacoes()
+              .pipe(
+                catchError(() => of(this.notificacoes))
+              )
+              .subscribe(notificacoes => {
+                this.atualizarNotificacoes(notificacoes);
+              });
+          }
         })
     );
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { interval, Subscription, EMPTY } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
@@ -30,8 +30,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   mostrarWelcomeCard = true;
 
   private pollingSubscription?: Subscription;
-  private readonly POLLING_INTERVAL = 15000; // 15 segundos
+  private readonly POLLING_INTERVAL = 60000; // 60 segundos (otimizado para produção)
   private readonly WELCOME_CARD_SESSION_KEY = 'dashboard_welcome_card_hidden';
+  private isPageVisible = true;
   private readonly NOTIFICACAO_LINK_MAP: Record<string, string> = {
     '/contatos': '/cadastros/contatos/lista',
     '/cadastros/contatos': '/cadastros/contatos/lista'
@@ -52,6 +53,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     console.log('Dashboard destruído - parando polling');
     this.pararPolling();
+  }
+
+  /**
+   * Detecta quando a aba/janela perde ou ganha foco
+   * Para economizar recursos quando usuário não está visualizando
+   */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    this.isPageVisible = !document.hidden;
+    
+    if (this.isPageVisible) {
+      console.log('Dashboard voltou a ficar visível - retomando polling');
+      // Atualiza imediatamente ao voltar
+      this.carregarDashboard();
+      // Reinicia polling se estava parado
+      if (!this.pollingSubscription || this.pollingSubscription.closed) {
+        this.iniciarPolling();
+      }
+    } else {
+      console.log('Dashboard ficou invisível - pausando polling');
+      this.pararPolling();
+    }
   }
 
   /**
@@ -80,12 +103,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   /**
    * Inicia o polling para atualizar o dashboard completo (notificações e estatísticas)
+   * Polling é pausado automaticamente quando a página não está visível
    */
   private iniciarPolling(): void {
     console.log(`Polling iniciado - intervalo: ${this.POLLING_INTERVAL / 1000}s`);
     this.pollingSubscription = interval(this.POLLING_INTERVAL)
       .pipe(
         switchMap(() => {
+          // Só faz requisição se página estiver visível
+          if (!this.isPageVisible) {
+            console.log('Página invisível - pulando atualização');
+            return EMPTY;
+          }
+          
           console.log('Atualizando dashboard via polling...');
           return this.dashboardService.getDashboard().pipe(
             catchError(error => {
