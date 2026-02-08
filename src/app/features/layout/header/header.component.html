@@ -15,16 +15,29 @@
 
   <div class="header-right">
     <!-- Notificações -->
-    <button 
-      pButton 
-      type="button" 
-      icon="pi pi-bell" 
-      class="p-button-text p-button-rounded"
-      pTooltip="Notificações"
-      tooltipPosition="bottom"
-      pBadge="3"
-      badgeClass="p-badge-danger"
-    ></button>
+    <div class="notifications-menu">
+      <button 
+        pButton 
+        type="button" 
+        icon="pi pi-bell" 
+        class="p-button-text p-button-rounded notification-button"
+        pTooltip="Notificações"
+        tooltipPosition="bottom"
+        (click)="toggleNotificationsMenu($event)"
+      >
+        <span *ngIf="notificacoesCount > 0" class="notification-badge">{{ badgeNotificacoes }}</span>
+      </button>
+
+      <p-menu
+        #notificationsMenu
+        [model]="notificacoesMenuItems"
+        [popup]="true"
+        appendTo="body"
+        [baseZIndex]="11000"
+        styleClass="notifications-menu-overlay"
+        [style]="{ 'margin-top': '0.5rem', width: '340px' }">
+      </p-menu>
+    </div>
 
     <!-- Menu do Usuário -->
     <div class="user-menu">

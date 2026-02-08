@@ -97,20 +97,6 @@
         ></p-button>
       </div>
 
-      <!-- Botão Suporte (aparece quando bloqueado) -->
-      <div class="suporte-wrapper" *ngIf="mostrarBotaoSuporte">
-        <div class="form-actions">
-          <p-button 
-            type="button"
-            label="Falar com Suporte" 
-            icon="pi pi-phone"
-            severity="danger"
-            styleClass="w-full p-button-lg"
-            (onClick)="falarComSuporte()"
-          ></p-button>
-        </div>
-      </div>
-
       <!-- Links adicionais -->
       <div class="form-footer">
         <a routerLink="/auth/recuperar-senha" class="forgot-password">Esqueceu sua senha?</a>

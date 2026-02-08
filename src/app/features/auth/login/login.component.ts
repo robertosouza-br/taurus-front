@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   submitted = false;
   errorMessage = '';
   tipoErro: 'credenciais' | 'bloqueado' | 'generico' | 'inatividade' | null = null;
-  mostrarBotaoSuporte = true; // TESTE: sempre true para ver a animação
+  mostrarBotaoSuporte = false;
   returnUrl = '/dashboard';
   hidePassword = true;
 
@@ -241,14 +241,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
       this.tipoErro = 'generico';
       this.errorMessage = mensagem || 'Erro ao realizar login. Tente novamente mais tarde.';
     }
-  }
-
-  /**
-   * Abre contato com suporte
-   */
-  falarComSuporte(): void {
-    // Implementar lógica para contato com suporte
-    window.location.href = 'mailto:suporte@taurus.com.br?subject=Problema de Acesso - Sistema Taurus';
   }
 
   /**

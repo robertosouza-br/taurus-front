@@ -74,6 +74,32 @@
   align-items: center;
   gap: 1rem;
 
+  .notifications-menu {
+    position: relative;
+  }
+
+  .notification-button {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: -0.3rem;
+    right: -0.25rem;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.15rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+  }
+
   ::ng-deep {
     .p-button {
       &.p-button-text {
@@ -107,6 +133,74 @@
       height: 1.2rem;
       line-height: 1.2rem;
     }
+  }
+}
+
+::ng-deep .notifications-menu-overlay {
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16) !important;
+  border: 1px solid #e5e7eb !important;
+  padding: 0.5rem 0 !important;
+
+  .p-menu-list {
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  .p-menuitem {
+    margin: 0.25rem 0 !important;
+
+    .p-menuitem-link {
+      padding: 0.75rem 1rem !important;
+      margin: 0 0.5rem !important;
+      border-radius: 8px !important;
+      gap: 0.625rem !important;
+      align-items: center !important;
+
+      .p-menuitem-icon {
+        color: #667eea !important;
+        font-size: 0.95rem !important;
+      }
+
+      .p-menuitem-text {
+        color: #374151 !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        line-height: 1.35 !important;
+      }
+
+      &:hover {
+        background: #f3f4f6 !important;
+      }
+    }
+
+    &.notification-empty-item .p-menuitem-link {
+      cursor: default !important;
+      background: #f9fafb !important;
+
+      .p-menuitem-icon {
+        color: #10b981 !important;
+      }
+
+      .p-menuitem-text {
+        color: #6b7280 !important;
+      }
+    }
+
+    &.notification-see-all .p-menuitem-link {
+      .p-menuitem-icon {
+        color: #2563eb !important;
+      }
+
+      .p-menuitem-text {
+        color: #1d4ed8 !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+
+  .p-menu-separator {
+    margin: 0.5rem 1rem !important;
   }
 }
 
