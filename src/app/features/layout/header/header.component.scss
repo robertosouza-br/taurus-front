@@ -82,16 +82,45 @@
   .notification-button {
     position: relative !important;
     overflow: visible !important;
-    
-    .pi {
-      font-size: 1.4rem;
+  }
+
+  @keyframes bell-wiggle {
+    0%, 75%, 100% {
+      transform: rotate(0deg);
+    }
+    80% {
+      transform: rotate(-12deg);
+    }
+    85% {
+      transform: rotate(12deg);
+    }
+    90% {
+      transform: rotate(-8deg);
+    }
+    95% {
+      transform: rotate(8deg);
+    }
+  }
+
+  @keyframes badge-pulse {
+    0%, 76%, 100% {
+      transform: scale(1);
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+    }
+    84% {
+      transform: scale(1.16);
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+    }
+    92% {
+      transform: scale(1.06);
+      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.4);
     }
   }
 
   .notification-badge {
     position: absolute;
-    top: -0.15rem;
-    right: -0.15rem;
+    top: 0.16rem;
+    right: 0.16rem;
     min-width: 1.15rem;
     height: 1.15rem;
     padding: 0 0.25rem;
@@ -106,6 +135,23 @@
   }
 
   ::ng-deep {
+    .notification-button.p-button {
+      width: 2.65rem !important;
+      height: 2.65rem !important;
+      min-width: 2.65rem !important;
+    }
+
+    .notification-button .p-button-icon {
+      font-size: 1.4rem !important;
+      line-height: 1 !important;
+    }
+
+    .notification-button.has-notifications .p-button-icon {
+      display: inline-block;
+      transform-origin: 50% 15%;
+      animation: bell-wiggle 2.8s ease-in-out infinite;
+    }
+
     .p-button {
       &.p-button-text {
         color: #666;
@@ -118,8 +164,8 @@
       }
 
       &.p-button-rounded {
-        width: 2.75rem;
-        height: 2.75rem;
+        width: 2.95rem;
+        height: 2.95rem;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
@@ -137,6 +183,17 @@
       min-width: 1.2rem;
       height: 1.2rem;
       line-height: 1.2rem;
+    }
+  }
+
+  .notification-button.has-notifications .notification-badge {
+    animation: badge-pulse 2.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .notification-button.has-notifications .notification-badge,
+    ::ng-deep .notification-button.has-notifications .p-button-icon {
+      animation: none !important;
     }
   }
 }

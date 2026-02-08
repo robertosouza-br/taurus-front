@@ -21,6 +21,7 @@
         type="button" 
         icon="pi pi-bell" 
         class="p-button-text p-button-rounded notification-button"
+        [class.has-notifications]="notificacoesCount > 0"
         pTooltip="Notificações"
         tooltipPosition="bottom"
         (click)="toggleNotificationsMenu($event)"
