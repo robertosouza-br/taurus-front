@@ -32,6 +32,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private pollingSubscription?: Subscription;
   private readonly POLLING_INTERVAL = 30000; // 30 segundos
   private readonly WELCOME_CARD_SESSION_KEY = 'dashboard_welcome_card_hidden';
+  private readonly NOTIFICACAO_LINK_MAP: Record<string, string> = {
+    '/contatos': '/cadastros/contatos/lista',
+    '/cadastros/contatos': '/cadastros/contatos/lista'
+  };
 
   constructor(
     private dashboardService: DashboardService,
@@ -58,9 +62,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.dashboardService.getDashboard().subscribe({
       next: (data) => {
         this.dashboard = data;
-        this.notificacoes = data.notificacoes;
+        this.atualizarNotificacoes(data.notificacoes);
         this.estatisticas = data.estatisticas;
-        this.notificacoesCount = data.notificacoes.length;
         this.carregando = false;
       },
       error: (error) => {
@@ -73,19 +76,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Inicia o polling para atualizar o contador de notificações
+   * Inicia o polling para atualizar a lista de notificações e o contador
    */
   private iniciarPolling(): void {
     this.pollingSubscription = interval(this.POLLING_INTERVAL)
       .pipe(
-        switchMap(() => this.dashboardService.getNotificacoesCount()),
+        switchMap(() => this.dashboardService.getNotificacoes()),
         catchError(error => {
-          console.error('Erro ao atualizar contador de notificações:', error);
-          return of(0);
+          console.error('Erro ao atualizar notificações:', error);
+          return of(this.notificacoes);
         })
       )
-      .subscribe(count => {
-        this.notificacoesCount = count;
+      .subscribe(notificacoes => {
+        this.atualizarNotificacoes(notificacoes);
       });
   }
 
@@ -110,8 +113,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       empreendimentosDisponiveis: 0,
       acessosHoje: 0
     };
-    this.notificacoes = [];
-    this.notificacoesCount = 0;
+    this.atualizarNotificacoes([]);
   }
 
   /**
@@ -126,7 +128,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
    */
   navegarParaNotificacao(notificacao: NotificacaoDTO): void {
     if (notificacao.link) {
-      this.router.navigate([notificacao.link]);
+      const linkNormalizado = this.normalizarLinkNotificacao(notificacao.link);
+      this.router.navigateByUrl(linkNormalizado);
     }
   }
 
@@ -174,5 +177,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
   fecharWelcomeCard(): void {
     this.mostrarWelcomeCard = false;
     sessionStorage.setItem(this.WELCOME_CARD_SESSION_KEY, 'true');
+  }
+
+  /**
+   * Mantém lista e contador sincronizados com a mesma fonte de dados.
+   */
+  private atualizarNotificacoes(notificacoes: NotificacaoDTO[]): void {
+    this.notificacoes = notificacoes ?? [];
+    this.notificacoesCount = this.notificacoes.length;
+  }
+
+  /**
+   * Converte links legados recebidos da API para rotas válidas do front-end.
+   */
+  private normalizarLinkNotificacao(link: string): string {
+    const bruto = (link ?? '').trim();
+
+    if (!bruto) {
+      return '/dashboard';
+    }
+
+    const comBarra = bruto.startsWith('/') ? bruto : `/${bruto}`;
+    const [pathComQuery, hashPart = ''] = comBarra.split('#', 2);
+    const [pathPart, queryPart = ''] = pathComQuery.split('?', 2);
+    const pathSemBarraFinal = pathPart.replace(/\/+$/, '') || '/';
+    const pathMapeado = this.NOTIFICACAO_LINK_MAP[pathSemBarraFinal] ?? pathSemBarraFinal;
+
+    const query = queryPart ? `?${queryPart}` : '';
+    const hash = hashPart ? `#${hashPart}` : '';
+
+    return `${pathMapeado}${query}${hash}`;
   }
 }
