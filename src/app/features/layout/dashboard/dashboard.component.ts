@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { interval, Subscription } from 'rxjs';
+import { interval, Subscription, EMPTY } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { DashboardService } from '../../../core/services/dashboard.service';
@@ -30,7 +30,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   mostrarWelcomeCard = true;
 
   private pollingSubscription?: Subscription;
-  private readonly POLLING_INTERVAL = 30000; // 30 segundos
+  private readonly POLLING_INTERVAL = 15000; // 15 segundos
   private readonly WELCOME_CARD_SESSION_KEY = 'dashboard_welcome_card_hidden';
   private readonly NOTIFICACAO_LINK_MAP: Record<string, string> = {
     '/contatos': '/cadastros/contatos/lista',
@@ -43,12 +43,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('Dashboard inicializado');
     this.verificarWelcomeCardVisibility();
     this.carregarDashboard();
     this.iniciarPolling();
   }
 
   ngOnDestroy(): void {
+    console.log('Dashboard destruído - parando polling');
     this.pararPolling();
   }
 
@@ -61,9 +63,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.dashboardService.getDashboard().subscribe({
       next: (data) => {
+        console.log('Dashboard carregado:', data);
         this.dashboard = data;
-        this.atualizarNotificacoes(data.notificacoes);
-        this.estatisticas = data.estatisticas;
+        this.atualizarNotificacoes(data?.notificacoes || []);
+        this.estatisticas = data?.estatisticas || null;
         this.carregando = false;
       },
       error: (error) => {
@@ -76,19 +79,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Inicia o polling para atualizar a lista de notificações e o contador
+   * Inicia o polling para atualizar o dashboard completo (notificações e estatísticas)
    */
   private iniciarPolling(): void {
+    console.log(`Polling iniciado - intervalo: ${this.POLLING_INTERVAL / 1000}s`);
     this.pollingSubscription = interval(this.POLLING_INTERVAL)
       .pipe(
-        switchMap(() => this.dashboardService.getNotificacoes()),
-        catchError(error => {
-          console.error('Erro ao atualizar notificações:', error);
-          return of(this.notificacoes);
+        switchMap(() => {
+          console.log('Atualizando dashboard via polling...');
+          return this.dashboardService.getDashboard().pipe(
+            catchError(error => {
+              console.error('Erro ao atualizar dashboard:', error);
+              // Retorna EMPTY para não emitir nada e continuar o polling
+              return EMPTY;
+            })
+          );
         })
       )
-      .subscribe(notificacoes => {
-        this.atualizarNotificacoes(notificacoes);
+      .subscribe(data => {
+        // Sempre atualiza quando recebe dados
+        console.log('Dashboard atualizado via polling:', data);
+        this.dashboard = data;
+        this.atualizarNotificacoes(data?.notificacoes || []);
+        this.estatisticas = data?.estatisticas || null;
       });
   }
 
@@ -97,6 +110,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
    */
   private pararPolling(): void {
     if (this.pollingSubscription) {
+      console.log('Parando polling do dashboard');
       this.pollingSubscription.unsubscribe();
     }
   }
@@ -185,6 +199,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private atualizarNotificacoes(notificacoes: NotificacaoDTO[]): void {
     this.notificacoes = notificacoes ?? [];
     this.notificacoesCount = this.notificacoes.length;
+    console.log(`Notificações atualizadas: ${this.notificacoesCount} notificação(ões)`);
   }
 
   /**
