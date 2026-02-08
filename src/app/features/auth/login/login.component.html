@@ -98,16 +98,17 @@
       </div>
 
       <!-- Botão Suporte (aparece quando bloqueado) -->
-      <div class="form-actions" *ngIf="mostrarBotaoSuporte">
-        <p-button 
-          type="button"
-          label="Falar com Suporte" 
-          icon="pi pi-phone"
-          severity="secondary"
-          [outlined]="true"
-          styleClass="w-full"
-          (onClick)="falarComSuporte()"
-        ></p-button>
+      <div class="suporte-wrapper" *ngIf="mostrarBotaoSuporte">
+        <div class="form-actions">
+          <p-button 
+            type="button"
+            label="Falar com Suporte" 
+            icon="pi pi-phone"
+            severity="danger"
+            styleClass="w-full p-button-lg"
+            (onClick)="falarComSuporte()"
+          ></p-button>
+        </div>
       </div>
 
       <!-- Links adicionais -->

@@ -13,3 +13,4 @@ export * from './corretor.service';
 export * from './corretor-publico.service';
 export * from './auditoria.service';
 export * from './contato.service';
+export * from './dashboard.service';

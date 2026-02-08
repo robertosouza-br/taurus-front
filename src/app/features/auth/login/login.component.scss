@@ -51,6 +51,45 @@
   }
 }
 
+@keyframes pulse-suporte {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9);
+  }
+  
+  25% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.5);
+  }
+  
+  50% {
+    transform: scale(1);
+    box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+  }
+  
+  75% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.5);
+  }
+  
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes shake-icon {
+  0%, 100% { 
+    transform: rotate(0deg); 
+  }
+  10%, 30%, 50%, 70%, 90% { 
+    transform: rotate(-20deg); 
+  }
+  20%, 40%, 60%, 80% { 
+    transform: rotate(20deg); 
+  }
+}
+
 .login-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -348,6 +387,32 @@
 
       &:active {
         transform: translateY(0);
+      }
+    }
+  }
+
+  // Wrapper do botão de suporte com animação PULSANTE
+  .suporte-wrapper {
+    margin-top: 2rem;
+    animation: pulse-suporte 1s ease-in-out infinite;
+    border-radius: 8px;
+    display: block;
+
+    .form-actions {
+      margin-top: 0;
+    }
+
+    ::ng-deep .p-button {
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+      
+      .p-button-icon {
+        animation: shake-icon 0.5s ease-in-out infinite;
+        font-size: 1.2rem;
+        display: inline-block;
+      }
+
+      &:hover {
+        box-shadow: 0 8px 30px rgba(239, 68, 68, 0.6);
       }
     }
   }

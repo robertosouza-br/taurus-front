@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   submitted = false;
   errorMessage = '';
   tipoErro: 'credenciais' | 'bloqueado' | 'generico' | 'inatividade' | null = null;
-  mostrarBotaoSuporte = false;
+  mostrarBotaoSuporte = true; // TESTE: sempre true para ver a animação
   returnUrl = '/dashboard';
   hidePassword = true;
 

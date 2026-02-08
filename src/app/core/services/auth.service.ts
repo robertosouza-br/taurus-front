@@ -317,6 +317,9 @@ export class AuthService {
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.USUARIO_LOGADO_KEY);
     
+    // Limpa preferências de sessão do dashboard
+    sessionStorage.clear();
+    
     // Limpa o BehaviorSubject
     this.currentUserSubject.next(null);
     this.usuarioLogadoSubject.next(null);
