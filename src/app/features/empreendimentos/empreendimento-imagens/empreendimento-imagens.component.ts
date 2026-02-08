@@ -35,10 +35,14 @@ import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb
  * - Administradores têm acesso total
  * 
  * MAPEAMENTO FRONTEND → BACKEND:
- * - Funcionalidade.IMOVEL + Permissao.CONSULTAR → EMPREENDIMENTOS_CONSULTAR
- * - Funcionalidade.IMOVEL + Permissao.INCLUIR  → EMPREENDIMENTOS_IMAGENS_INCLUIR
- * - Funcionalidade.IMOVEL + Permissao.ALTERAR  → EMPREENDIMENTOS_IMAGENS_ALTERAR
- * - Funcionalidade.IMOVEL + Permissao.EXCLUIR  → EMPREENDIMENTOS_IMAGENS_EXCLUIR
+ * - Funcionalidade.EMPREENDIMENTO + Permissao.CONSULTAR → EMPREENDIMENTOS_CONSULTAR (visualizar empreendimentos)
+ * - Funcionalidade.EMPREENDIMENTO_IMAGEM + Permissao.INCLUIR  → EMPREENDIMENTOS_IMAGENS_INCLUIR
+ * - Funcionalidade.EMPREENDIMENTO_IMAGEM + Permissao.ALTERAR  → EMPREENDIMENTOS_IMAGENS_ALTERAR
+ * - Funcionalidade.EMPREENDIMENTO_IMAGEM + Permissao.EXCLUIR  → EMPREENDIMENTOS_IMAGENS_EXCLUIR
+ * 
+ * CONTROLE GRANULAR:
+ * - EMPREENDIMENTO: apenas visualizar lista e acessar detalhes
+ * - EMPREENDIMENTO_IMAGEM: operações específicas de gerenciamento de imagens
  * 
  * OBSERVAÇÕES:
  * - URLs do MinIO expiram em 5 minutos
@@ -109,22 +113,23 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   
   // ==================== PERMISSÕES ====================
   // Mapeamento com backend (conforme Mapa de Integração):
-  // - IMOVEL + CONSULTAR → EMPREENDIMENTOS_CONSULTAR
-  // - IMOVEL + INCLUIR   → EMPREENDIMENTOS_IMAGENS_INCLUIR
-  // - IMOVEL + ALTERAR   → EMPREENDIMENTOS_IMAGENS_ALTERAR
-  // - IMOVEL + EXCLUIR   → EMPREENDIMENTOS_IMAGENS_EXCLUIR
+  // - EMPREENDIMENTO + CONSULTAR → EMPREENDIMENTOS_CONSULTAR (visualizar)
+  // - EMPREENDIMENTO_IMAGEM + INCLUIR   → EMPREENDIMENTOS_IMAGENS_INCLUIR
+  // - EMPREENDIMENTO_IMAGEM + ALTERAR   → EMPREENDIMENTOS_IMAGENS_ALTERAR
+  // - EMPREENDIMENTO_IMAGEM + EXCLUIR   → EMPREENDIMENTOS_IMAGENS_EXCLUIR
+  // OBS: Verifica APENAS EMPREENDIMENTO_IMAGEM para operações de imagens (controle granular)
   // Administradores têm acesso total
   
   get podeIncluir(): boolean {
-    return this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.INCLUIR);
+    return this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO_IMAGEM, Permissao.INCLUIR);
   }
   
   get podeAlterar(): boolean {
-    return this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.ALTERAR);
+    return this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO_IMAGEM, Permissao.ALTERAR);
   }
   
   get podeExcluir(): boolean {
-    return this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.EXCLUIR);
+    return this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO_IMAGEM, Permissao.EXCLUIR);
   }
 
   constructor(
@@ -139,7 +144,7 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Verifica permissão de consulta (EMPREENDIMENTOS_CONSULTAR no backend)
-    if (!this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.CONSULTAR)) {
+    if (!this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO, Permissao.CONSULTAR)) {
       this.router.navigate(['/acesso-negado']);
       return;
     }

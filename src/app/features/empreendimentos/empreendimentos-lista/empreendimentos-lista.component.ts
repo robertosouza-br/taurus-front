@@ -34,7 +34,7 @@ interface EmpreendimentoFiltro {
  * - Administradores têm acesso total
  * 
  * MAPEAMENTO FRONTEND → BACKEND:
- * - Funcionalidade.IMOVEL + Permissao.CONSULTAR → EMPREENDIMENTOS_CONSULTAR
+ * - Funcionalidade.EMPREENDIMENTO + Permissao.CONSULTAR → EMPREENDIMENTOS_CONSULTAR
  * 
  * IMAGEM DE CAPA (conforme mapa de integração):
  * - Backend retorna automaticamente o campo 'imagemCapa' no DTO de listagem
@@ -77,7 +77,7 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
 
   ngOnInit(): void {
     // Verifica permissão de consulta (EMPREENDIMENTOS_CONSULTAR no backend)
-    if (!this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.CONSULTAR)) {
+    if (!this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO, Permissao.CONSULTAR)) {
       this.router.navigate(['/acesso-negado']);
       return;
     }
@@ -154,7 +154,7 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
    * Requer: EMPREENDIMENTOS_CONSULTAR (já verificado no ngOnInit)
    */
   gerenciarImagens(emp: Empreendimento): void {
-    if (!this.permissaoService.temPermissao(Funcionalidade.IMOVEL, Permissao.CONSULTAR)) {
+    if (!this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO, Permissao.CONSULTAR)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Acesso Negado',

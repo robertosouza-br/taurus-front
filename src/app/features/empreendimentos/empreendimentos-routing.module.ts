@@ -13,7 +13,7 @@ const routes: Routes = [
     component: EmpreendimentosListaComponent,
     canActivate: [AuthGuard, PermissaoGuard],
     data: {
-      funcionalidade: Funcionalidade.IMOVEL,
+      funcionalidade: Funcionalidade.EMPREENDIMENTO,
       permissoes: [Permissao.CONSULTAR]
     }
   },
@@ -22,7 +22,7 @@ const routes: Routes = [
     component: EmpreendimentoImagensComponent,
     canActivate: [AuthGuard, PermissaoGuard],
     data: {
-      funcionalidade: Funcionalidade.IMOVEL,
+      funcionalidade: Funcionalidade.EMPREENDIMENTO,
       permissoes: [Permissao.CONSULTAR]
     }
   }
