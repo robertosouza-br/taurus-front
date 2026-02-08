@@ -51,6 +51,15 @@
   }
 }
 
+@keyframes pulse-alert-card {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
 @keyframes pulse-suporte {
   0% {
     transform: scale(1);
@@ -134,6 +143,8 @@
       padding: 1rem 1.25rem;
       border-radius: 12px;
       border: 2px solid;
+      transform-origin: center;
+      animation: pulse-alert-card 1.8s ease-in-out infinite;
       
       &.alert-warning {
         background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -247,6 +258,12 @@
           font-size: 0.9rem;
           line-height: 1.4;
         }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .error-alert {
+        animation: none;
       }
     }
   }

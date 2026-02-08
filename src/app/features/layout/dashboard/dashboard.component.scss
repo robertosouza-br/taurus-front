@@ -360,6 +360,35 @@
     }
   }
 
+  @keyframes pulse-notification-card {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.2);
+    }
+    50% {
+      transform: scale(1.02);
+      box-shadow: 0 14px 28px rgba(239, 68, 68, 0.35);
+    }
+  }
+
+  @keyframes pulse-notification-glow {
+    0%, 100% {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    50% {
+      box-shadow: 0 10px 22px rgba(59, 130, 246, 0.18);
+    }
+  }
+
+  @keyframes pulse-notification-icon {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.12);
+    }
+  }
+
   .notification-modern-card {
     position: relative;
     background: #ffffff;
@@ -370,7 +399,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     overflow: hidden;
-    animation: slideInCard 0.4s ease-out backwards;
+    animation: slideInCard 0.4s ease-out backwards, pulse-notification-glow 2.2s ease-in-out infinite;
 
     @for $i from 1 through 10 {
       &:nth-child(#{$i}) {
@@ -402,9 +431,14 @@
     // Borda colorida por prioridade
     &.priority-high {
       border-left-color: #ef4444;
+      animation: slideInCard 0.4s ease-out backwards, pulse-notification-card 1.6s ease-in-out infinite;
       
       &:hover {
         box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+      }
+
+      .notification-icon-circle {
+        animation: pulse-notification-icon 1.6s ease-in-out infinite;
       }
     }
 
@@ -598,6 +632,16 @@
     }
     50% {
       transform: scale(1.05);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .notification-modern-card,
+    .notification-modern-card.priority-high,
+    .notification-modern-card .notification-icon-circle,
+    .notification-badge-corner {
+      animation: none !important;
+      transition: none !important;
     }
   }
 
