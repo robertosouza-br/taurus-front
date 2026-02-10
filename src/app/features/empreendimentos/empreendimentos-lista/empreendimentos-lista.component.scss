@@ -53,6 +53,8 @@
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
+  position: relative;
 
   &:hover {
     transform: translateY(-8px);
@@ -236,27 +238,43 @@
     .card-header::after {
       width: 100px;
     }
+    
+    .portfolio-floating-btn {
+      transform: scale(1.05) !important;
+    }
   }
 }
 
-// Estilos do botão portfolio com alta especificidade
-:host ::ng-deep .portfolio-elegant-btn {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-  
-  .p-button-icon {
-    margin-right: 0 !important;
-  }
+// Botão Portfolio Flutuante sobre a Imagem
+:host ::ng-deep .portfolio-floating-btn {
+  position: absolute !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  z-index: 10 !important;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  transition: all 0.3s ease !important;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4) !important;
+  border: 2px solid #f59e0b !important;
   
   &:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    border-width: 2px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #f59e0b !important;
+    transform: scale(1.15) rotate(5deg) !important;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
   }
   
   &:active {
-    transform: translateY(0) !important;
+    transform: scale(1.05) !important;
+  }
+  
+  .p-button-icon {
+    font-size: 1.25rem !important;
   }
 }
 

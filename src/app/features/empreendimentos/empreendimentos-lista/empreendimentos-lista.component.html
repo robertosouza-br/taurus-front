@@ -39,7 +39,7 @@
   <!-- Grid de Cards -->
   <div *ngIf="empreendimentos.length > 0" class="cards-grid">
     <div *ngFor="let emp of empreendimentos" class="card-wrapper">
-      <div class="empreendimento-card">
+      <div class="empreendimento-card" (click)="visualizarUnidades(emp)">
         <!-- Imagem -->
         <div class="card-image">
           <img 
@@ -60,6 +60,15 @@
               </p-tag>
             </div>
           </div>
+          
+          <!-- Botão Portfólio Flutuante -->
+          <button 
+            pButton 
+            type="button" 
+            icon="pi pi-images"
+            class="p-button-rounded p-button-sm portfolio-floating-btn"
+            (click)="gerenciarImagens(emp); $event.stopPropagation()">
+          </button>
         </div>
 
         <!-- Conteúdo -->
@@ -75,28 +84,6 @@
               <span>Coligada: {{ emp.codColigada }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- Ações -->
-        <div style="margin-top: auto; padding: 1.25rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap;">
-          <button 
-            pButton 
-            type="button" 
-            label="Ver Portfólio"
-            icon="pi pi-images"
-            class="p-button-sm p-button-outlined portfolio-elegant-btn"
-            style="padding: 0.625rem 1.25rem; font-size: 0.875rem; border-radius: 8px; font-weight: 600; gap: 0.5rem; transition: all 0.3s ease;"
-            (click)="gerenciarImagens(emp)">
-          </button>
-          <button 
-            pButton 
-            type="button" 
-            label="Ver Unidades"
-            icon="pi pi-home"
-            class="p-button-sm p-button-outlined"
-            style="padding: 0.625rem 1.25rem; font-size: 0.875rem; border-radius: 8px; font-weight: 600; gap: 0.5rem; transition: all 0.3s ease;"
-            (click)="visualizarUnidades(emp)">
-          </button>
         </div>
       </div>
     </div>
