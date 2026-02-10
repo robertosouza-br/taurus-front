@@ -1,0 +1,336 @@
+<div class="unidades-page">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Header -->
+  <app-page-header
+    [title]="nomeEmpreendimento || 'Empreendimento ' + codigoEmpreendimento"
+    subtitle="Mapa Visual de Unidades"
+    icon="pi pi-th-large">
+    <div header-actions class="flex gap-2 flex-wrap">
+      <!-- Toggle de Visualização -->
+      <div class="view-toggle-group">
+        <p-button 
+          icon="pi pi-th-large" 
+          [outlined]="visualizacao !== 'grid'"
+          [text]="visualizacao !== 'grid'"
+          pTooltip="Visualização em Grade"
+          tooltipPosition="bottom"
+          (onClick)="visualizacao = 'grid'">
+        </p-button>
+        <p-button 
+          icon="pi pi-list" 
+          [outlined]="visualizacao !== 'list'"
+          [text]="visualizacao !== 'list'"
+          pTooltip="Visualização em Lista"
+          tooltipPosition="bottom"
+          (onClick)="visualizacao = 'list'">
+        </p-button>
+      </div>
+      
+      <app-custom-button
+        label="Legenda"
+        icon="pi pi-info-circle"
+        styleClass="p-button-outlined"
+        (onClick)="displayLegenda = true">
+      </app-custom-button>
+      
+      <app-custom-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        styleClass="p-button-outlined"
+        (onClick)="voltar()">
+      </app-custom-button>
+      
+      <app-custom-button
+        label="Atualizar"
+        icon="pi pi-refresh"
+        styleClass="p-button-outlined"
+        [loading]="carregando"
+        (onClick)="carregar()">
+      </app-custom-button>
+    </div>
+  </app-page-header>
+
+  <!-- Loading -->
+  <app-loading-spinner 
+    *ngIf="carregando" 
+    [size]="'large'"
+    [overlay]="true"
+    [message]="'Carregando mapa de unidades...'">
+  </app-loading-spinner>
+
+  <!-- Empty State -->
+  <div *ngIf="!carregando && unidades.length === 0" class="empty-state">
+    <div class="empty-state-icon">
+      <i class="pi pi-home"></i>
+    </div>
+    <h3>Nenhuma unidade encontrada</h3>
+    <p>Este empreendimento não possui unidades cadastradas no momento</p>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <div *ngIf="!carregando && unidades.length > 0" class="unidades-mapa-container">
+    
+    <!-- Indicador de Filtro Ativo -->
+    <div *ngIf="statusFiltroSelecionado !== 'TODOS'" class="filtro-ativo-banner">
+      <div class="filtro-info">
+        <i class="pi pi-filter"></i>
+        <span>Filtro ativo: <strong>{{ getStatusLabel(statusFiltroSelecionado) }}</strong></span>
+        <span class="filtro-count">({{ getTotalUnidadesFiltradas() }} unidade{{ getTotalUnidadesFiltradas() !== 1 ? 's' : '' }})</span>
+      </div>
+      <app-custom-button
+        label="Limpar Filtro"
+        icon="pi pi-times"
+        styleClass="p-button-text p-button-sm"
+        (onClick)="limparFiltros()">
+      </app-custom-button>
+    </div>
+    
+    <!-- Empty State de Filtro -->
+    <div *ngIf="blocos.length === 0" class="empty-state">
+      <div class="empty-state-icon">
+        <i class="pi pi-filter-slash"></i>
+      </div>
+      <h3>Nenhuma unidade encontrada</h3>
+      <p>Não há unidades com o status selecionado</p>
+      <app-custom-button
+        label="Limpar Filtro"
+        icon="pi pi-times"
+        styleClass="p-button-outlined"
+        (onClick)="limparFiltros()">
+      </app-custom-button>
+    </div>
+    
+    <!-- Visualização em Grid -->
+    <div *ngIf="visualizacao === 'grid' && blocos.length > 0" class="blocos-container">
+      <div *ngFor="let bloco of blocos" class="bloco-section">
+        
+        <!-- Cabeçalho do Bloco -->
+        <div class="bloco-header">
+          <div class="bloco-titulo-area">
+            <div class="bloco-icon-wrapper">
+              <i class="pi pi-building"></i>
+            </div>
+            <div class="bloco-info">
+              <h2 class="bloco-titulo">{{ bloco.nome }}</h2>
+              <p class="bloco-subtitulo">
+                {{ bloco.totalUnidades }} unidade{{ bloco.totalUnidades !== 1 ? 's' : '' }}
+              </p>
+            </div>
+          </div>
+          
+          <!-- Resumo Rápido -->
+          <div class="bloco-resumo-rapido">
+            <div class="resumo-stat" *ngFor="let resumo of bloco.resumoPorStatus">
+              <span class="stat-label">{{ getStatusLabelCurto(resumo.status) }}</span>
+              <span class="stat-valor">{{ resumo.quantidade }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de Cards de Unidades -->
+        <div class="unidades-grid-cards">
+          <div 
+            *ngFor="let unidade of bloco.unidades; let i = index" 
+            class="unidade-card"
+            [style.animation-delay]="(i * 0.02) + 's'"
+            (click)="abrirDetalhes(unidade)">
+            
+            <!-- Corpo do Card -->
+            <div class="card-content" 
+                 [style.background]="getStatusColor(unidade.statusUnidade).bg"
+                 [style.border-color]="getStatusColor(unidade.statusUnidade).border">
+              
+              <!-- Badge de Status -->
+              <div class="status-badge"
+                   [style.background]="getStatusColor(unidade.statusUnidade).border"
+                   [pTooltip]="getStatusLabel(unidade.statusUnidade)"
+                   tooltipPosition="top">
+                <i class="pi pi-circle-fill"></i>
+              </div>
+              
+              <!-- Ícone do Tipo -->
+              <div class="tipo-icon" [style.color]="getStatusColor(unidade.statusUnidade).border">
+                <i class="pi {{ getIconePorTipo(unidade.tipo, unidade.sigla) }}"></i>
+              </div>
+              
+              <!-- Número da Unidade -->
+              <div class="unidade-numero" [style.color]="getStatusColor(unidade.statusUnidade).text">
+                {{ unidade.unidade }}
+              </div>
+              
+              <!-- Sigla/Tipo -->
+              <div class="unidade-tipo" [style.color]="getStatusColor(unidade.statusUnidade).text">
+                {{ unidade.sigla || formatarTipoCompacto(unidade.tipo) }}
+              </div>
+              
+              <!-- Info Overlay (aparece no hover) -->
+              <div class="info-overlay">
+                <div class="info-title">{{ unidade.tipologia || 'Tipologia não informada' }}</div>
+                <div class="info-subtitle">{{ formatarTipoCompleto(unidade.tipo) }}</div>
+                <div class="info-footer">
+                  <i class="pi pi-map-marker"></i>
+                  {{ unidade.localizacao || unidade.bloco }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumo Detalhado do Bloco -->
+        <div class="bloco-footer">
+          <div class="footer-resumo">
+            <div class="resumo-item" *ngFor="let resumo of bloco.resumoPorStatus">
+              <div class="resumo-cor" 
+                   [style.background-color]="getStatusColor(resumo.status).bg"
+                   [style.border-color]="getStatusColor(resumo.status).border">
+              </div>
+              <span class="resumo-texto">
+                {{ getStatusLabel(resumo.status) }}: <strong>{{ resumo.quantidade }}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog de Filtros -->
+<p-dialog 
+  [(visible)]="displayFiltros"
+  [header]="'Filtrar Unidades'"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '500px'}"
+  [breakpoints]="{'960px': '70vw', '640px': '95vw'}">
+  
+  <div class="filtros-dialog-content">
+    <div class="field">
+      <label for="filtroStatus" class="filtro-label">
+        <i class="pi pi-tag"></i>
+        Filtrar por Status
+      </label>
+      <p-dropdown 
+        id="filtroStatus"
+        [(ngModel)]="statusFiltroSelecionado"
+        [options]="[
+          { label: 'Todos os Status', value: 'TODOS' },
+          { label: 'Disponível', value: 'DISPONIVEL' },
+          { label: 'Reservada', value: 'RESERVADA' },
+          { label: 'Vendida', value: 'VENDIDA' },
+          { label: 'Em Negociação', value: 'EM_NEGOCIACAO' },
+          { label: 'Indisponível', value: 'INDISPONIVEL' },
+          { label: 'Em Construção', value: 'EM_CONSTRUCAO' }
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione um status"
+        [style]="{'width': '100%'}">
+      </p-dropdown>
+    </div>
+    
+    <div class="filtros-resumo" *ngIf="statusFiltroSelecionado !== 'TODOS'">
+      <i class="pi pi-info-circle"></i>
+      <span>Mostrando apenas unidades com status: <strong>{{ getStatusLabel(statusFiltroSelecionado) }}</strong></span>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <app-custom-button
+      label="Limpar Filtros"
+      icon="pi pi-filter-slash"
+      styleClass="p-button-text"
+      (onClick)="limparFiltros()">
+    </app-custom-button>
+    <app-custom-button
+      label="Aplicar"
+      icon="pi pi-check"
+      (onClick)="aplicarFiltros()">
+    </app-custom-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog de Detalhes -->
+<app-unidade-detalhes-dialog
+  [(visible)]="displayDetalhesUnidade"
+  [unidade]="unidadeSelecionada"
+  (visibleChange)="onDialogClose($event)">
+</app-unidade-detalhes-dialog>
+
+<!-- Dialog de Legenda -->
+<p-dialog 
+  [(visible)]="displayLegenda"
+  [header]="'Legenda de Status'"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '550px'}"
+  [breakpoints]="{'960px': '75vw', '640px': '95vw'}">
+  
+  <div class="legenda-dialog-content">
+    <p class="legenda-descricao">
+      <i class="pi pi-info-circle"></i>
+      As cores indicam o status atual de cada unidade no empreendimento.
+    </p>
+    
+    <div class="legenda-items-dialog">
+      <div class="legenda-item-dialog" *ngFor="let status of statusDisponiveis">
+        <div class="legenda-cor-dialog" 
+             [style.background-color]="getStatusColor(status).bg" 
+             [style.border-color]="getStatusColor(status).border">
+          <i class="pi pi-circle-fill" [style.color]="getStatusColor(status).border"></i>
+        </div>
+        <div class="legenda-info">
+          <span class="legenda-label-dialog">{{ getStatusLabel(status) }}</span>
+          <span class="legenda-count-dialog">
+            {{ getCountByStatus(status) }} unidade{{ getCountByStatus(status) !== 1 ? 's' : '' }}
+            <span class="legenda-percent">({{ getPercentByStatus(status) }}%)</span>
+          </span>
+        </div>
+        <div class="legenda-progress">
+          <p-progressBar 
+            [value]="getPercentByStatus(status)" 
+            [showValue]="false"
+            [style]="{'height': '6px', 'background': '#e9ecef'}"
+            [color]="getStatusColor(status).border">
+          </p-progressBar>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <app-custom-button
+      label="Fechar"
+      icon="pi pi-times"
+      styleClass="p-button-outlined"
+      (onClick)="displayLegenda = false">
+    </app-custom-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Speed Dial de Filtros Flutuante -->
+<p-speedDial 
+  *ngIf="!carregando && unidades.length > 0"
+  [model]="filtrosMenuItems" 
+  direction="up"
+  [transitionDelay]="80"
+  showIcon="pi pi-filter"
+  hideIcon="pi pi-times"
+  buttonClassName="p-button-info p-button-lg"
+  [style]="{'position': 'fixed', 'bottom': '2rem', 'right': '2rem', 'z-index': 1000}">
+</p-speedDial>
+
+<!-- Label de Última Atualização -->
+<div class="ultima-atualizacao-badge" 
+     *ngIf="!carregando && unidades.length > 0 && ultimaAtualizacao"
+     pTooltip="Última atualização dos dados"
+     tooltipPosition="left">
+  <i class="pi pi-clock"></i>
+  <span>{{ ultimaAtualizacao }}</span>
+</div>
+
+<p-toast></p-toast>

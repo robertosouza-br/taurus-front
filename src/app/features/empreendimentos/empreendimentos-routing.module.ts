@@ -6,6 +6,7 @@ import { Funcionalidade } from '../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../core/enums/permissao.enum';
 import { EmpreendimentosListaComponent } from './empreendimentos-lista/empreendimentos-lista.component';
 import { EmpreendimentoImagensComponent } from './empreendimento-imagens/empreendimento-imagens.component';
+import { EmpreendimentoUnidadesComponent } from './empreendimento-unidades/empreendimento-unidades.component';
 
 const routes: Routes = [
   {
@@ -20,6 +21,15 @@ const routes: Routes = [
   {
     path: ':codigo/imagens',
     component: EmpreendimentoImagensComponent,
+    canActivate: [AuthGuard, PermissaoGuard],
+    data: {
+      funcionalidade: Funcionalidade.EMPREENDIMENTO,
+      permissoes: [Permissao.CONSULTAR]
+    }
+  },
+  {
+    path: ':codigo/unidades',
+    component: EmpreendimentoUnidadesComponent,
     canActivate: [AuthGuard, PermissaoGuard],
     data: {
       funcionalidade: Funcionalidade.EMPREENDIMENTO,

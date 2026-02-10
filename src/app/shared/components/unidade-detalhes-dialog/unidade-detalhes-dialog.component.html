@@ -1,0 +1,141 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="'Detalhes da Unidade ' + (unidade?.unidade || '')"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{width: '800px'}"
+  [breakpoints]="{'960px': '90vw', '640px': '95vw'}"
+  styleClass="unidade-detalhes-dialog">
+
+  <ng-container *ngIf="unidade">
+    <!-- Seção Principal -->
+    <div class="grid">
+      <!-- Coluna Esquerda -->
+      <div class="col-12 md:col-6">
+        <!-- Empreendimento e Localização -->
+        <div class="detail-card mb-3">
+          <div class="detail-header">
+            <i class="pi pi-building"></i>
+            <h3>Empreendimento</h3>
+          </div>
+          <div class="detail-body">
+            <div class="detail-item">
+              <span class="detail-label">Nome:</span>
+              <span class="detail-value">{{ unidade.empreendimento }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Bloco:</span>
+              <span class="detail-value">{{ unidade.bloco }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Código:</span>
+              <span class="detail-value">{{ unidade.unidade }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Características -->
+        <div class="detail-card mb-3">
+          <div class="detail-header">
+            <i class="pi pi-info-circle"></i>
+            <h3>Características</h3>
+          </div>
+          <div class="detail-body">
+            <div class="detail-item">
+              <span class="detail-label">Tipo:</span>
+              <span class="detail-value">{{ unidade.tipo }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Tipologia:</span>
+              <span class="detail-value">{{ unidade.tipologia }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Sigla:</span>
+              <span class="detail-value">{{ unidade.sigla }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Fração Ideal:</span>
+              <span class="detail-value">{{ formatarFracaoIdeal(unidade.fracaoIdeal) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna Direita -->
+      <div class="col-12 md:col-6">
+        <!-- Status e Preço -->
+        <div class="detail-card mb-3">
+          <div class="detail-header">
+            <i class="pi pi-dollar"></i>
+            <h3>Comercial</h3>
+          </div>
+          <div class="detail-body">
+            <div class="detail-item">
+              <span class="detail-label">Status:</span>
+              <p-tag 
+                [value]="unidade.statusUnidade"
+                [severity]="getStatusSeverity(unidade.statusUnidade)"
+                styleClass="w-full">
+              </p-tag>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Preço:</span>
+              <span class="detail-value price">{{ formatarPreco(unidade.preco) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalhes de Localização -->
+        <div class="detail-card mb-3">
+          <div class="detail-header">
+            <i class="pi pi-map-marker"></i>
+            <h3>Localização e Vista</h3>
+          </div>
+          <div class="detail-body">
+            <div class="detail-item">
+              <span class="detail-label">Localização:</span>
+              <span class="detail-value">{{ unidade.localizacao }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Posição Sol:</span>
+              <span class="detail-value">{{ unidade.posicaoSol }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Fachada:</span>
+              <span class="detail-value">{{ unidade.fachada }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Garagem -->
+        <div class="detail-card">
+          <div class="detail-header">
+            <i class="pi pi-car"></i>
+            <h3>Garagem</h3>
+          </div>
+          <div class="detail-body">
+            <div class="detail-item">
+              <span class="detail-label">Vagas:</span>
+              <span class="detail-value">{{ unidade.garagem }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end">
+      <button 
+        pButton 
+        type="button" 
+        label="Fechar" 
+        icon="pi pi-times"
+        class="p-button-text"
+        (click)="fechar()">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

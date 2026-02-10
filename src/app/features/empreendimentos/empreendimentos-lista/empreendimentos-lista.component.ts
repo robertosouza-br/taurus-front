@@ -168,6 +168,24 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
   }
 
   /**
+   * Navega para a listagem de unidades do empreendimento
+   * Requer: EMPREENDIMENTOS_CONSULTAR (já verificado no ngOnInit)
+   */
+  visualizarUnidades(emp: Empreendimento): void {
+    if (!this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO, Permissao.CONSULTAR)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Acesso Negado',
+        detail: 'Você não tem permissão para visualizar as unidades'
+      });
+      return;
+    }
+    this.router.navigate(['/empreendimentos', emp.codEmpreendimento, 'unidades'], {
+      state: { nomeEmpreendimento: emp.nome }
+    });
+  }
+
+  /**
    * Retorna a URL da imagem de apresentação do empreendimento
    * 
    * ESTRUTURA OFICIAL (conforme mapa de integração):

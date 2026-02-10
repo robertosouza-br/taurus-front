@@ -5,6 +5,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { EmpreendimentosRoutingModule } from './empreendimentos-routing.module';
 import { EmpreendimentosListaComponent } from './empreendimentos-lista/empreendimentos-lista.component';
 import { EmpreendimentoImagensComponent } from './empreendimento-imagens/empreendimento-imagens.component';
+import { EmpreendimentoUnidadesComponent } from './empreendimento-unidades/empreendimento-unidades.component';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -23,11 +24,16 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { RippleModule } from 'primeng/ripple';
 import { GalleriaModule } from 'primeng/galleria';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TableModule } from 'primeng/table';
+import { SpeedDialModule } from 'primeng/speeddial';
 
 @NgModule({
   declarations: [
     EmpreendimentosListaComponent,
-    EmpreendimentoImagensComponent
+    EmpreendimentoImagensComponent,
+    EmpreendimentoUnidadesComponent
   ],
   imports: [
     CommonModule,
@@ -50,7 +56,11 @@ import { GalleriaModule } from 'primeng/galleria';
     CheckboxModule,
     InputTextareaModule,
     RippleModule,
-    GalleriaModule
+    GalleriaModule,
+    MultiSelectModule,
+    ProgressBarModule,
+    TableModule,
+    SpeedDialModule
   ]
 })
 export class EmpreendimentosModule { }

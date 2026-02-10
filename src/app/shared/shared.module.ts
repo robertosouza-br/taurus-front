@@ -23,6 +23,8 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PaginatorModule } from 'primeng/paginator';
 import { GalleriaModule } from 'primeng/galleria';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -52,6 +54,7 @@ import { ExportSpeedDialComponent } from './components/export-speed-dial/export-
 import { UploadFotoComponent } from './components/upload-foto/upload-foto.component';
 import { CardPaginatorComponent } from './components/card-paginator/card-paginator.component';
 import { SearchFilterComponent } from './components/search-filter/search-filter.component';
+import { UnidadeDetalhesDialogComponent } from './components/unidade-detalhes-dialog/unidade-detalhes-dialog.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -86,7 +89,8 @@ import { CalendarModule } from 'primeng/calendar';
     ExportSpeedDialComponent,
     UploadFotoComponent,
     CardPaginatorComponent,
-    SearchFilterComponent
+    SearchFilterComponent,
+    UnidadeDetalhesDialogComponent
   ],
   imports: [
     CommonModule,
@@ -112,6 +116,8 @@ import { CalendarModule } from 'primeng/calendar';
     ConfirmDialogModule,
     PaginatorModule,
     GalleriaModule,
+    MultiSelectModule,
+    ProgressBarModule,
     ImageCropperComponent
   ],
   exports: [
@@ -142,6 +148,7 @@ import { CalendarModule } from 'primeng/calendar';
     ExportSpeedDialComponent,
     CardPaginatorComponent,
     SearchFilterComponent,
+    UnidadeDetalhesDialogComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule,
     SliderModule,
@@ -155,6 +162,8 @@ import { CalendarModule } from 'primeng/calendar';
     ConfirmDialogModule,
     PaginatorModule,
     GalleriaModule,
+    MultiSelectModule,
+    ProgressBarModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

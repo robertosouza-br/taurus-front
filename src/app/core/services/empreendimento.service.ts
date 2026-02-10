@@ -11,6 +11,7 @@ import {
   TipoImagemDetalhes,
   PageResponse
 } from '../models/empreendimento.model';
+import { Unidade } from '../models/unidade.model';
 
 /**
  * Serviço consolidado para gerenciar empreendimentos e suas imagens
@@ -122,5 +123,38 @@ export class EmpreendimentoService {
    */
   excluirImagem(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/imagens/${id}`);
+  }
+
+  // ==================== UNIDADES ====================
+
+  /**
+   * Lista todas as unidades de um ou todos os empreendimentos
+   * @param empreendimentoId - ID do empreendimento (opcional)
+   * @returns Observable<Unidade[]>
+   */
+  listarUnidades(empreendimentoId?: string): Observable<Unidade[]> {
+    let params = new HttpParams();
+    
+    if (empreendimentoId) {
+      params = params.set('empreendimentoId', empreendimentoId);
+    }
+    
+    return this.http.get<Unidade[]>(`${this.apiUrl}/unidades`, { params });
+  }
+
+  /**
+   * Busca uma unidade específica por código
+   * @param codigoUnidade - Código da unidade
+   * @param empreendimentoId - ID do empreendimento (opcional, recomendado)
+   * @returns Observable<Unidade>
+   */
+  buscarUnidade(codigoUnidade: string, empreendimentoId?: string): Observable<Unidade> {
+    let params = new HttpParams();
+    
+    if (empreendimentoId) {
+      params = params.set('empreendimentoId', empreendimentoId);
+    }
+    
+    return this.http.get<Unidade>(`${this.apiUrl}/unidades/${codigoUnidade}`, { params });
   }
 }
