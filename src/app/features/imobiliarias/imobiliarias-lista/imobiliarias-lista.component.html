@@ -1,0 +1,25 @@
+<div class="lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Imobiliárias"
+    subtitle="Gerencie as imobiliárias cadastradas no sistema"
+    icon="pi pi-building"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <!-- Tabela -->
+  <app-data-table
+    [data]="imobiliarias"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRegistros"
+    [loading]="carregando"
+    [lazy]="true"
+    [rows]="50"
+    (onLazyLoad)="onLazyLoad($event)"
+    (onSearch)="onBuscar($event)">
+  </app-data-table>
+</div>

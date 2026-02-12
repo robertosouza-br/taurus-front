@@ -1,0 +1,32 @@
+<div class="p-field multi-select-field">
+  <span class="p-float-label">
+    <p-multiSelect
+      [id]="inputId"
+      [(ngModel)]="value"
+      [options]="options"
+      [optionLabel]="optionLabel"
+      [optionValue]="optionValue"
+      [dataKey]="optionValue"
+      [filter]="filter"
+      [filterBy]="filterByField"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [emptyMessage]="emptyMessage"
+      [emptyFilterMessage]="emptyFilterMessage"
+      [display]="display"
+      [showClear]="showClear"
+      [maxSelectedLabels]="maxSelectedLabels"
+      [selectedItemsLabel]="selectedItemsLabel"
+      (onChange)="onValueChange($event)"
+      (onFocus)="onFocus()"
+      (onBlur)="onBlur()"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-dirty]="showValidation"
+      [styleClass]="'w-full'">
+    </p-multiSelect>
+    <label [for]="inputId" [class.p-label-active]="shouldShowLabel">{{ displayLabel }}</label>
+  </span>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
+</div>

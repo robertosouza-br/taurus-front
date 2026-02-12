@@ -1,0 +1,87 @@
+<div class="upload-arquivos-container">
+  <!-- Label -->
+  <label *ngIf="label" [for]="inputId" class="upload-label">
+    {{ displayLabel }}
+  </label>
+
+  <!-- Área de Drop Zone -->
+  <div 
+    class="upload-dropzone"
+    [class.dragging]="isDragging"
+    [class.disabled]="disabled"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="!disabled && fileInput.click()">
+    
+    <input 
+      #fileInput
+      type="file"
+      [id]="inputId"
+      [accept]="accept"
+      [multiple]="multiple"
+      [disabled]="disabled"
+      (change)="onFileSelect($event)"
+      style="display: none;">
+
+    <div class="dropzone-content">
+      <i [class]="chooseIcon" class="dropzone-icon"></i>
+      <p class="dropzone-text">{{ placeholder }}</p>
+      <small class="dropzone-info">
+        <i class="pi pi-info-circle"></i>
+        {{ acceptInfo }} - Máx: {{ formatarTamanho(maxFileSize) }}
+      </small>
+    </div>
+  </div>
+
+  <!-- Lista de Arquivos Selecionados -->
+  <div *ngIf="showPreview && arquivos.length > 0" class="arquivos-lista">
+    <div class="lista-header">
+      <span class="lista-titulo">
+        <i class="pi pi-paperclip"></i>
+        Arquivos Selecionados ({{ arquivos.length }})
+      </span>
+      <button 
+        *ngIf="!disabled"
+        type="button"
+        class="limpar-btn"
+        (click)="limparArquivos()"
+        pTooltip="Remover todos">
+        <i class="pi pi-trash"></i>
+      </button>
+    </div>
+
+    <div class="arquivo-item" *ngFor="let arquivo of arquivos">
+      <div class="arquivo-info">
+        <i [class]="getIconeArquivo(arquivo.nome)" class="arquivo-icone"></i>
+        <div class="arquivo-detalhes">
+          <span class="arquivo-nome" [pTooltip]="arquivo.nome">{{ arquivo.nome }}</span>
+          <span class="arquivo-tamanho">{{ formatarTamanho(arquivo.tamanho) }}</span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div *ngIf="arquivo.uploading" class="arquivo-progress">
+        <p-progressBar [value]="arquivo.progress || 0" [showValue]="false"></p-progressBar>
+      </div>
+
+      <!-- Botão de remover -->
+      <button 
+        *ngIf="!disabled && !arquivo.uploading"
+        type="button"
+        class="remover-btn"
+        (click)="removerArquivo(arquivo)"
+        pTooltip="Remover arquivo">
+        <i class="pi pi-times"></i>
+      </button>
+
+      <!-- Indicador de upload concluído -->
+      <i *ngIf="arquivo.url && !arquivo.uploading" class="pi pi-check-circle upload-success"></i>
+    </div>
+  </div>
+
+  <!-- Mensagem de erro -->
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
+</div>

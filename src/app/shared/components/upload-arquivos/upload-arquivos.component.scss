@@ -1,0 +1,281 @@
+.upload-arquivos-container {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+
+  .upload-label {
+    display: block;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .upload-dropzone {
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+
+    &:hover:not(.disabled) {
+      border-color: var(--primary-color);
+      background: #f0f7ff;
+
+      .dropzone-icon {
+        color: var(--primary-color);
+        transform: scale(1.1);
+      }
+    }
+
+    &.dragging {
+      border-color: var(--primary-color);
+      background: #e3f2fd;
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+
+      .dropzone-icon {
+        color: var(--primary-color);
+        animation: bounce 0.5s ease infinite;
+      }
+    }
+
+    &.disabled {
+      background: #ebebeb;
+      cursor: not-allowed;
+      opacity: 0.6;
+
+      .dropzone-content {
+        pointer-events: none;
+      }
+    }
+
+    .dropzone-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+
+      .dropzone-icon {
+        font-size: 3rem;
+        color: #999;
+        transition: all 0.3s ease;
+      }
+
+      .dropzone-text {
+        margin: 0;
+        color: #666;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      .dropzone-info {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: #999;
+        font-size: 0.875rem;
+
+        i {
+          font-size: 0.875rem;
+        }
+      }
+    }
+  }
+
+  .arquivos-lista {
+    margin-top: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+
+    .lista-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e0e0e0;
+
+      .lista-titulo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.875rem;
+
+        i {
+          color: var(--primary-color);
+        }
+      }
+
+      .limpar-btn {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: var(--red-500);
+          background: rgba(255, 0, 0, 0.1);
+        }
+
+        i {
+          font-size: 0.875rem;
+        }
+      }
+    }
+
+    .arquivo-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e0e0e0;
+      transition: background 0.2s ease;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #fafafa;
+      }
+
+      .arquivo-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        min-width: 0;
+
+        .arquivo-icone {
+          font-size: 1.5rem;
+          color: var(--primary-color);
+          flex-shrink: 0;
+        }
+
+        .arquivo-detalhes {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          min-width: 0;
+          flex: 1;
+
+          .arquivo-nome {
+            font-weight: 500;
+            color: #333;
+            font-size: 0.875rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .arquivo-tamanho {
+            font-size: 0.75rem;
+            color: #999;
+          }
+        }
+      }
+
+      .arquivo-progress {
+        flex: 1;
+        max-width: 200px;
+        margin: 0 1rem;
+
+        ::ng-deep .p-progressbar {
+          height: 0.5rem;
+
+          .p-progressbar-value {
+            background: var(--primary-color);
+          }
+        }
+      }
+
+      .remover-btn {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover {
+          color: var(--red-500);
+          background: rgba(255, 0, 0, 0.1);
+        }
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      .upload-success {
+        color: var(--green-500);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .p-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--red-500);
+    min-height: 1.25rem;
+  }
+}
+
+// Animação de bounce para drag
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .upload-arquivos-container {
+    .upload-dropzone {
+      padding: 1.5rem 1rem;
+
+      .dropzone-content {
+        .dropzone-icon {
+          font-size: 2.5rem;
+        }
+
+        .dropzone-text {
+          font-size: 0.875rem;
+        }
+      }
+    }
+
+    .arquivos-lista {
+      .arquivo-item {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+
+        .arquivo-info {
+          flex: 1 1 100%;
+        }
+
+        .arquivo-progress {
+          flex: 1 1 100%;
+          max-width: 100%;
+          margin: 0;
+        }
+      }
+    }
+  }
+}

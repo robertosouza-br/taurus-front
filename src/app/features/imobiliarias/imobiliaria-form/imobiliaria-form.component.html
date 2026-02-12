@@ -1,0 +1,471 @@
+<div class="form-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    [title]="modoEdicao ? 'Editar Imobiliária' : 'Nova Imobiliária'"
+    [subtitle]="modoEdicao ? 'Atualize os dados da imobiliária' : 'Cadastre uma nova imobiliária no sistema'"
+    icon="pi pi-building">
+  </app-page-header>
+
+  <!-- Loading Carregamento -->
+  <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados..."></app-loading-spinner>
+
+  <!-- Loading Salvamento -->
+  <app-loading-spinner *ngIf="salvando" [overlay]="true" message="Salvando imobiliária..."></app-loading-spinner>
+
+  <!-- Formulário -->
+  <div *ngIf="!carregando" class="imobiliaria-form">
+    <!-- Seção: Dados Principais -->
+    <p-card header="Dados Principais">
+      <div class="grid">
+        <!-- Razão Social -->
+        <div class="col-12 md:col-6">
+          <app-input-text
+            id="razaoSocial"
+            label="Razão Social"
+            [(ngModel)]="razaoSocial"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: Imobiliária XYZ Ltda"
+            [maxlength]="200">
+          </app-input-text>
+        </div>
+
+        <!-- Nome Fantasia -->
+        <div class="col-12 md:col-6">
+          <app-input-text
+            id="nomeFantasia"
+            label="Nome Fantasia"
+            [(ngModel)]="nomeFantasia"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: Imobiliária XYZ"
+            [maxlength]="200">
+          </app-input-text>
+        </div>
+
+        <!-- Alias -->
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="alias"
+            label="Alias"
+            [(ngModel)]="alias"
+            [required]="false"
+            placeholder="Ex: XYZ Imóveis"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+
+        <!-- CNPJ -->
+        <div class="col-12 md:col-3">
+          <app-input-cnpj
+            id="cnpj"
+            label="CNPJ"
+            [(ngModel)]="cnpj"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="00.000.000/0000-00">
+          </app-input-cnpj>
+        </div>
+
+        <!-- Tipo de Imobiliária -->
+        <div class="col-12 md:col-3">
+          <app-autocomplete
+            id="tipoImobiliaria"
+            label="Tipo de Imobiliária"
+            [(ngModel)]="tipoImobiliariaSelecionada"
+            [suggestions]="tiposImobiliariaFiltrados"
+            (completeMethod)="filtrarTiposImobiliaria($event)"
+            (onSelect)="onTipoImobiliariaSelecionada($event)"
+            (onDropdownClick)="carregarTodosTiposImobiliaria()"
+            field="label"
+            placeholder="Selecione"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            emptyMessage="Nenhum tipo encontrado">
+          </app-autocomplete>
+        </div>
+
+        <!-- Percentual de Comissão -->
+        <div class="col-12 md:col-2">
+          <app-input-text
+            id="percentualComissao"
+            label="Percentual de Comissão (%)"
+            [(ngModel)]="percentualComissao"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            type="number"
+            placeholder="Ex: 5.00">
+          </app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Seção: Endereço -->
+    <p-card header="Endereço" class="mt-3">
+      <div class="grid">
+        <!-- CEP -->
+        <div class="col-12 md:col-3">
+          <app-input-cep
+            id="cep"
+            label="CEP"
+            [(ngModel)]="cep"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="00000-000">
+          </app-input-cep>
+        </div>
+
+        <!-- UF -->
+        <div class="col-12 md:col-2">
+          <app-autocomplete
+            id="uf"
+            label="UF"
+            [(ngModel)]="ufSelecionada"
+            [suggestions]="ufsFiltradas"
+            (completeMethod)="filtrarUfs($event)"
+            (onSelect)="onUfSelecionada($event)"
+            (onDropdownClick)="carregarTodasUfs()"
+            field="label"
+            placeholder="Selecione"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-autocomplete>
+        </div>
+
+        <!-- Cidade -->
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="cidade"
+            label="Cidade"
+            [(ngModel)]="cidade"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: Rio de Janeiro"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+
+        <!-- Bairro -->
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="bairro"
+            label="Bairro"
+            [(ngModel)]="bairro"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: Centro"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+
+        <!-- Logradouro -->
+        <div class="col-12 md:col-8">
+          <app-input-text
+            id="logradouro"
+            label="Logradouro"
+            [(ngModel)]="logradouro"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Ex: Rua das Flores"
+            [maxlength]="200">
+          </app-input-text>
+        </div>
+
+        <!-- Número -->
+        <div class="col-12 md:col-2">
+          <app-input-text
+            id="numeroImovel"
+            label="Número"
+            [(ngModel)]="numeroImovel"
+            [required]="false"
+            placeholder="Ex: 123"
+            [maxlength]="10">
+          </app-input-text>
+        </div>
+
+        <!-- Complemento -->
+        <div class="col-12 md:col-2">
+          <app-input-text
+            id="complemento"
+            label="Complemento"
+            [(ngModel)]="complemento"
+            [required]="false"
+            placeholder="Ex: Sala 101"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Seção: Contato -->
+    <p-card header="Contato" class="mt-3">
+      <div class="grid">
+        <!-- E-mail -->
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="emailContato"
+            label="E-mail"
+            [(ngModel)]="emailContato"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            type="email"
+            placeholder="contato@imobiliaria.com.br"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+
+        <!-- Telefone -->
+        <div class="col-12 md:col-3">
+          <app-input-telefone
+            id="telefone"
+            label="Telefone"
+            [(ngModel)]="telefone"
+            [required]="false"
+            placeholder="(00) 0000-0000">
+          </app-input-telefone>
+        </div>
+
+        <!-- Responsável -->
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="responsavel"
+            label="Responsável"
+            [(ngModel)]="responsavel"
+            [required]="false"
+            placeholder="Ex: João Silva"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+
+        <!-- Website -->
+        <div class="col-12 md:col-2">
+          <app-input-text
+            id="website"
+            label="Website"
+            [(ngModel)]="website"
+            [required]="false"
+            placeholder="www.site.com.br"
+            [maxlength]="200">
+          </app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Seção: Dados Bancários -->
+    <p-card header="Dados Bancários" class="mt-3">
+      <div class="grid">
+        <!-- Banco -->
+        <div class="col-12 md:col-6">
+          <app-autocomplete
+            id="banco"
+            label="Banco"
+            [(ngModel)]="bancoSelecionado"
+            [suggestions]="bancosFiltrados"
+            (completeMethod)="filtrarBancos($event)"
+            (onSelect)="onBancoSelecionado($event)"
+            (onDropdownClick)="carregarTodosBancos()"
+            field="label"
+            placeholder="Selecione um banco"
+            [required]="false"
+            emptyMessage="Nenhum banco encontrado">
+          </app-autocomplete>
+        </div>
+
+        <!-- Tipo de Conta -->
+        <div class="col-12 md:col-3">
+          <app-autocomplete
+            id="tipoConta"
+            label="Tipo de Conta"
+            [(ngModel)]="tipoContaSelecionada"
+            [suggestions]="tiposContaFiltrados"
+            (completeMethod)="filtrarTiposConta($event)"
+            (onSelect)="onTipoContaSelecionada($event)"
+            (onDropdownClick)="carregarTodosTiposConta()"
+            field="label"
+            placeholder="Selecione"
+            [required]="false"
+            emptyMessage="Nenhum tipo de conta encontrado">
+          </app-autocomplete>
+        </div>
+
+        <!-- Agência -->
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="numeroAgencia"
+            label="Agência"
+            [(ngModel)]="numeroAgencia"
+            [required]="false"
+            placeholder="Ex: 0001"
+            [maxlength]="10">
+          </app-input-text>
+        </div>
+
+        <!-- Conta Corrente -->
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="numeroContaCorrente"
+            label="Conta Corrente"
+            [(ngModel)]="numeroContaCorrente"
+            [required]="false"
+            placeholder="Ex: 12345-6"
+            [maxlength]="20">
+          </app-input-text>
+        </div>
+
+        <!-- Tipo de Chave PIX -->
+        <div class="col-12 md:col-3">
+          <app-autocomplete
+            id="tipoChavePix"
+            label="Tipo de Chave PIX"
+            [(ngModel)]="tipoChavePixSelecionada"
+            [suggestions]="tiposChavePixFiltrados"
+            (completeMethod)="filtrarTiposChavePix($event)"
+            (onSelect)="onTipoChavePixSelecionada($event)"
+            (onDropdownClick)="carregarTodosTiposChavePix()"
+            field="label"
+            placeholder="Selecione"
+            [required]="false"
+            emptyMessage="Nenhum tipo de chave PIX encontrado">
+          </app-autocomplete>
+        </div>
+
+        <!-- Chave PIX -->
+        <div class="col-12 md:col-6">
+          <app-input-text
+            id="chavePix"
+            label="Chave PIX"
+            [(ngModel)]="chavePix"
+            [required]="false"
+            placeholder="Digite a chave PIX"
+            [maxlength]="100">
+          </app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Seção: Empreendimentos -->
+    <p-card header="Empreendimentos Vinculados" class="mt-3">
+      <div class="grid">
+        <div class="col-12">
+          <app-multi-select
+            id="empreendimentos"
+            label="Empreendimentos"
+            [(ngModel)]="empreendimentosSelecionados"
+            [options]="empreendimentosOptions"
+            optionLabel="nome"
+            optionValue="codEmpreendimento"
+            placeholder="Selecione os empreendimentos"
+            [filter]="true"
+            filterBy="nome"
+            [showClear]="true"
+            display="chip"
+            [maxSelectedLabels]="3"
+            selectedItemsLabel="{0} empreendimentos selecionados"
+            (onChange)="onEmpreendimentosChange($event)">
+          </app-multi-select>
+          <small class="block mt-2 text-color-secondary">
+            <i class="pi pi-info-circle"></i>
+            Selecione os empreendimentos que esta imobiliária representa
+          </small>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Seção: Documentos -->
+    <p-card header="Documentos" class="mt-3">
+      <div class="grid">
+        <div class="col-12">
+          <div *ngIf="!modoEdicao" class="info-message">
+            <i class="pi pi-info-circle"></i>
+            <div class="info-content">
+              <p>Salve a imobiliária primeiro para poder adicionar documentos</p>
+            </div>
+          </div>
+
+          <app-upload-arquivos
+            id="documentos"
+            label="Adicionar Documentos"
+            placeholder="Clique para selecionar ou arraste arquivos aqui"
+            [multiple]="true"
+            [accept]="'.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png'"
+            [maxFileSize]="10485760"
+            [disabled]="!modoEdicao"
+            [showPreview]="false"
+            (onSelect)="onDocumentosSelecionados($event)">
+          </app-upload-arquivos>
+
+          <!-- Documentos Existentes -->
+          <div *ngIf="modoEdicao" class="documentos-existentes mt-3">
+            <div class="lista-header">
+              <span class="lista-titulo">
+                <i class="pi pi-paperclip"></i>
+                Documentos Anexados ({{ documentos.length }})
+              </span>
+            </div>
+
+            <div *ngIf="documentos.length === 0" class="sem-documentos">
+              <i class="pi pi-inbox"></i>
+              <p>Nenhum documento anexado ainda</p>
+            </div>
+
+            <div class="documento-item" *ngFor="let doc of documentos">
+              <div class="documento-info">
+                <i class="pi pi-file documento-icone"></i>
+                <span class="documento-nome" [pTooltip]="getNomeDocumento(doc)">
+                  {{ getNomeDocumento(doc) }}
+                </span>
+              </div>
+
+              <div class="documento-acoes">
+                <button
+                  type="button"
+                  class="acao-btn visualizar-btn"
+                  (click)="visualizarDocumento(doc)"
+                  pTooltip="Visualizar">
+                  <i class="pi pi-eye"></i>
+                </button>
+                <button
+                  type="button"
+                  class="acao-btn baixar-btn"
+                  (click)="baixarDocumento(doc)"
+                  pTooltip="Baixar">
+                  <i class="pi pi-download"></i>
+                </button>
+                <button
+                  *ngIf="!enviandoDocumento"
+                  type="button"
+                  class="acao-btn remover-btn"
+                  (click)="removerDocumento(doc)"
+                  pTooltip="Remover">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Botões de Ação -->
+    <div class="form-actions mt-3">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        actionType="cancel"
+        (onClick)="voltar()">
+      </app-custom-button>
+      <app-custom-button
+        label="Salvar"
+        icon="pi pi-save"
+        severity="success"
+        actionType="none"
+        [loading]="salvando"
+        (onClick)="salvar()">
+      </app-custom-button>
+    </div>
+  </div>
+</div>

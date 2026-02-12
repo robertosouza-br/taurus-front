@@ -59,6 +59,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/bancos/bancos.module').then(m => m.BancosModule)
       },
       {
+        path: 'imobiliarias',
+        loadChildren: () => import('./features/imobiliarias/imobiliarias.module').then(m => m.ImobiliariasModule)
+      },
+      {
         path: 'empreendimentos',
         loadChildren: () => import('./features/empreendimentos/empreendimentos.module').then(m => m.EmpreendimentosModule)
       },

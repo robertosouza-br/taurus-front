@@ -157,6 +157,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
             icon: 'pi pi-briefcase',
             routerLink: '/cadastros/corretores',
             funcionalidade: Funcionalidade.CORRETOR
+          },
+          {
+            label: 'Imobiliárias',
+            icon: 'pi pi-building',
+            routerLink: '/imobiliarias',
+            funcionalidade: Funcionalidade.IMOBILIARIA
           }
         ]
       },

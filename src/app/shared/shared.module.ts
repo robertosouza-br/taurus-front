@@ -25,6 +25,8 @@ import { PaginatorModule } from 'primeng/paginator';
 import { GalleriaModule } from 'primeng/galleria';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { FileUploadModule } from 'primeng/fileupload';
+import { MessageModule } from 'primeng/message';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -32,6 +34,8 @@ import { ImageCropperComponent } from 'ngx-image-cropper';
 import { HasRoleDirective, HasPermissionDirective, TemPermissaoDirective } from './directives';
 import { TelefonePipe } from './pipes/telefone.pipe';
 import { CpfPipe } from './pipes/cpf.pipe';
+import { CnpjPipe } from './pipes/cnpj.pipe';
+import { CepPipe } from './pipes/cep.pipe';
 import { DataBrPipe } from './pipes/data-br.pipe';
 import { DataTableComponent } from './components/data-table/data-table.component';
 import { DataTableTemplateDirective } from './components/data-table/data-table-template.directive';
@@ -42,6 +46,8 @@ import { CustomButtonComponent } from './components/custom-button/custom-button.
 import { InputTextComponent } from './components/input-text/input-text.component';
 import { InputTextareaComponent } from './components/input-textarea/input-textarea.component';
 import { InputCpfComponent } from './components/input-cpf/input-cpf.component';
+import { InputCnpjComponent } from './components/input-cnpj/input-cnpj.component';
+import { InputCepComponent } from './components/input-cep/input-cep.component';
 import { InputTelefoneComponent } from './components/input-telefone/input-telefone.component';
 import { InputPasswordComponent } from './components/input-password/input-password.component';
 import { InputDateComponent } from './components/input-date/input-date.component';
@@ -55,6 +61,8 @@ import { UploadFotoComponent } from './components/upload-foto/upload-foto.compon
 import { CardPaginatorComponent } from './components/card-paginator/card-paginator.component';
 import { SearchFilterComponent } from './components/search-filter/search-filter.component';
 import { UnidadeDetalhesDialogComponent } from './components/unidade-detalhes-dialog/unidade-detalhes-dialog.component';
+import { MultiSelectComponent } from './components/multi-select/multi-select.component';
+import { UploadArquivosComponent } from './components/upload-arquivos/upload-arquivos.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -69,6 +77,8 @@ import { CalendarModule } from 'primeng/calendar';
     TemPermissaoDirective,
     TelefonePipe,
     CpfPipe,
+    CnpjPipe,
+    CepPipe,
     DataBrPipe,
     DataTableComponent,
     PageHeaderComponent,
@@ -79,6 +89,8 @@ import { CalendarModule } from 'primeng/calendar';
     InputTextComponent,
     InputTextareaComponent,
     InputCpfComponent,
+    InputCnpjComponent,
+    InputCepComponent,
     InputTelefoneComponent,
     InputPasswordComponent,
     InputDateComponent,
@@ -90,7 +102,9 @@ import { CalendarModule } from 'primeng/calendar';
     UploadFotoComponent,
     CardPaginatorComponent,
     SearchFilterComponent,
-    UnidadeDetalhesDialogComponent
+    UnidadeDetalhesDialogComponent,
+    MultiSelectComponent,
+    UploadArquivosComponent
   ],
   imports: [
     CommonModule,
@@ -118,6 +132,8 @@ import { CalendarModule } from 'primeng/calendar';
     GalleriaModule,
     MultiSelectModule,
     ProgressBarModule,
+    FileUploadModule,
+    MessageModule,
     ImageCropperComponent
   ],
   exports: [
@@ -125,6 +141,8 @@ import { CalendarModule } from 'primeng/calendar';
     FormsModule,
     TelefonePipe,
     CpfPipe,
+    CnpjPipe,
+    CepPipe,
     DataBrPipe,
     HasRoleDirective,
     HasPermissionDirective,
@@ -138,6 +156,8 @@ import { CalendarModule } from 'primeng/calendar';
     InputTextComponent,
     InputTextareaComponent,
     InputCpfComponent,
+    InputCnpjComponent,
+    InputCepComponent,
     InputTelefoneComponent,
     InputPasswordComponent,
     InputDateComponent,
@@ -149,6 +169,8 @@ import { CalendarModule } from 'primeng/calendar';
     CardPaginatorComponent,
     SearchFilterComponent,
     UnidadeDetalhesDialogComponent,
+    MultiSelectComponent,
+    UploadArquivosComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule,
     SliderModule,
@@ -164,6 +186,8 @@ import { CalendarModule } from 'primeng/calendar';
     GalleriaModule,
     MultiSelectModule,
     ProgressBarModule,
+    FileUploadModule,
+    MessageModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

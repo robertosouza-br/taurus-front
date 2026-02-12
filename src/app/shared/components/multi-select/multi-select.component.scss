@@ -1,0 +1,130 @@
+.multi-select-field {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+
+  ::ng-deep {
+    .p-float-label {
+      display: block;
+      width: 100%;
+
+      .p-multiselect {
+        width: 100%;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+
+        &:not(.p-disabled):hover {
+          border-color: var(--primary-color);
+        }
+
+        &:not(.p-disabled).p-focus {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+
+        &.ng-invalid.ng-dirty {
+          border-color: var(--red-500);
+        }
+
+        .p-multiselect-label {
+          padding: 1.25rem 1rem 0.5rem 1rem;
+          font-size: 1rem;
+
+          &.p-placeholder {
+            color: transparent;
+          }
+        }
+
+        .p-multiselect-trigger {
+          width: 2.5rem;
+        }
+      }
+
+      label {
+        font-weight: 500;
+        color: #666;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        padding: 0 0.25rem;
+        transition: all 0.2s ease;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .p-multiselect.p-filled ~ label,
+      label.p-label-active {
+        top: 0;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: #666;
+      }
+
+      .p-multiselect.p-focus ~ label {
+        top: 0;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: var(--primary-color);
+      }
+    }
+
+    .p-multiselect-panel {
+      .p-multiselect-header {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .p-multiselect-items {
+        padding: 0.5rem 0;
+
+        .p-multiselect-item {
+          padding: 0.75rem 1rem;
+          margin: 0;
+          border: 0;
+          color: var(--text-color);
+          background: transparent;
+          transition: background-color 0.2s;
+          border-radius: 0;
+
+          &:hover {
+            background: var(--surface-hover);
+          }
+
+          &.p-highlight {
+            color: var(--primary-color-text);
+            background: var(--primary-color);
+          }
+
+          .p-checkbox {
+            margin-right: 0.5rem;
+          }
+        }
+      }
+    }
+
+    .p-multiselect-token {
+      padding: 0.25rem 0.5rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.25rem;
+      background: var(--primary-color);
+      color: var(--primary-color-text);
+      border-radius: 3px;
+      font-size: 0.875rem;
+
+      .p-multiselect-token-icon {
+        margin-left: 0.5rem;
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .p-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--red-500);
+    min-height: 1.25rem;
+  }
+}
