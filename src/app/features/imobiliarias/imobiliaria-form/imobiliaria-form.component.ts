@@ -9,6 +9,7 @@ import {
   ImobiliariaFormDTO,
   Imobiliaria,
   DocumentoImobiliaria,
+  ImagemImobiliaria,
   TipoImobiliaria,
   TipoConta,
   TipoChavePixImobiliaria,
@@ -79,6 +80,26 @@ export class ImobiliariaFormComponent extends BaseFormComponent implements OnIni
   documentosParaUpload: File[] = [];
   enviandoDocumento = false;
 
+  // Portfólio de imagens
+  imagensPortfolio: ImagemImobiliaria[] = [];
+  enviandoImagem = false;
+  carregandoImagens = false;
+  descricaoImagem = '';
+  tipoImagem = '';
+  ordemImagem: number | null = null;
+  tipoImagemSelecionada: { label: string; value: string } | null = null;
+  tiposImagemOptions: { label: string; value: string }[] = [
+    { label: 'Portfolio', value: 'portfolio' },
+    { label: 'Logo', value: 'logo' },
+    { label: 'Fachada', value: 'fachada' },
+    { label: 'Escritório', value: 'escritorio' },
+    { label: 'Equipe', value: 'equipe' },
+    { label: 'Outros', value: 'outros' }
+  ];
+  tiposImagemFiltrados: { label: string; value: string }[] = [];
+  private uploadsImagemPendentes = 0;
+  private refreshPortfolioTimer: any = null;
+
   // Opções para dropdowns
   tiposImobiliariaOptions: { label: string; value: TipoImobiliaria }[] = [];
   tiposImobiliariaFiltrados: { label: string; value: TipoImobiliaria }[] = [];
@@ -112,9 +133,15 @@ export class ImobiliariaFormComponent extends BaseFormComponent implements OnIni
     this.verificarModo();
     this.configurarBreadcrumb();
     this.carregarOpcoes();
+    this.tiposImagemFiltrados = [...this.tiposImagemOptions];
   }
 
   ngOnDestroy(): void {
+    if (this.refreshPortfolioTimer) {
+      clearTimeout(this.refreshPortfolioTimer);
+      this.refreshPortfolioTimer = null;
+    }
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -222,6 +249,7 @@ export class ImobiliariaFormComponent extends BaseFormComponent implements OnIni
         next: (imobiliaria) => {
           console.log('Imobiliária carregada da API:', imobiliaria);
           this.preencherFormulario(imobiliaria);
+          this.carregarImagensPortfolio();
           this.carregando = false;
         },
         error: (error) => {
@@ -391,6 +419,224 @@ export class ImobiliariaFormComponent extends BaseFormComponent implements OnIni
 
   onEmpreendimentosChange(event: any): void {
     this.empreendimentosSelecionados = event.value;
+  }
+
+  filtrarTiposImagem(event: any): void {
+    const query = event.query?.toLowerCase() || '';
+    this.tiposImagemFiltrados = this.tiposImagemOptions.filter(tipo =>
+      tipo.label.toLowerCase().includes(query)
+    );
+  }
+
+  carregarTodosTiposImagem(): void {
+    this.tiposImagemFiltrados = [...this.tiposImagemOptions];
+  }
+
+  onTipoImagemSelecionada(event: any): void {
+    if (event?.value) {
+      this.tipoImagem = event.value;
+    }
+  }
+
+  onImagensSelecionadas(arquivos: File[]): void {
+    if (!this.imobiliariaId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Aviso',
+        detail: 'Salve a imobiliária primeiro para adicionar imagens'
+      });
+      return;
+    }
+
+    if (!arquivos || arquivos.length === 0) {
+      return;
+    }
+
+    const ordemInicial = this.ordemImagem ?? this.imagensPortfolio.length;
+    this.uploadsImagemPendentes = arquivos.length;
+    this.enviandoImagem = true;
+
+    arquivos.forEach((arquivo, index) => {
+      this.enviarImagem(arquivo, ordemInicial + index);
+    });
+  }
+
+  private enviarImagem(arquivo: File, ordem: number): void {
+    if (!this.imobiliariaId) {
+      return;
+    }
+
+    const principal = this.imagensPortfolio.length === 0;
+
+    this.imobiliariaService.adicionarImagem(
+      this.imobiliariaId,
+      arquivo,
+      this.descricaoImagem || undefined,
+      this.tipoImagem || undefined,
+      ordem,
+      principal
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.finalizarUploadImagem(true, arquivo.name);
+        },
+        error: (error) => {
+          this.finalizarUploadImagem(false, arquivo.name, error.error?.message);
+        }
+      });
+  }
+
+  private finalizarUploadImagem(sucesso: boolean, nomeArquivo: string, mensagemErro?: string): void {
+    this.uploadsImagemPendentes -= 1;
+
+    if (sucesso) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: `Imagem "${nomeArquivo}" enviada com sucesso`
+      });
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: mensagemErro || `Erro ao enviar imagem "${nomeArquivo}"`
+      });
+    }
+
+    if (this.uploadsImagemPendentes <= 0) {
+      this.enviandoImagem = false;
+      this.ordemImagem = null;
+      this.tipoImagem = '';
+      this.descricaoImagem = '';
+      this.tipoImagemSelecionada = null;
+      this.carregarImagensPortfolio();
+    }
+  }
+
+  carregarImagensPortfolio(silencioso = false): void {
+    if (!this.imobiliariaId) {
+      return;
+    }
+
+    if (!silencioso) {
+      this.carregandoImagens = true;
+    }
+
+    this.imobiliariaService.listarImagens(this.imobiliariaId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (imagens) => {
+          this.imagensPortfolio = this.ordenarImagensPortfolio(imagens || []);
+          this.carregandoImagens = false;
+          this.agendarRenovacaoUrlsPortfolio();
+        },
+        error: () => {
+          this.carregandoImagens = false;
+          if (!silencioso) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Aviso',
+              detail: 'Não foi possível carregar as imagens do portfólio'
+            });
+          }
+          this.refreshPortfolioTimer = setTimeout(() => this.carregarImagensPortfolio(true), 30000);
+        }
+      });
+  }
+
+  private ordenarImagensPortfolio(imagens: ImagemImobiliaria[]): ImagemImobiliaria[] {
+    return [...imagens].sort((imagemA, imagemB) => {
+      if (imagemA.principal && !imagemB.principal) return -1;
+      if (!imagemA.principal && imagemB.principal) return 1;
+
+      const ordemA = imagemA.ordem ?? 9999;
+      const ordemB = imagemB.ordem ?? 9999;
+      return ordemA - ordemB;
+    });
+  }
+
+  definirImagemPrincipal(imagem: ImagemImobiliaria): void {
+    if (!imagem.id || imagem.principal) {
+      return;
+    }
+
+    this.imobiliariaService.definirImagemPrincipal(imagem.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Imagem definida como principal'
+          });
+          this.carregarImagensPortfolio();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: error.error?.message || 'Erro ao definir imagem principal'
+          });
+        }
+      });
+  }
+
+  confirmarRemocaoImagem(imagem: ImagemImobiliaria): void {
+    if (!imagem.id) {
+      return;
+    }
+
+    this.confirmationService.confirmCustom(
+      'Confirmar Exclusão de Imagem',
+      'Tem certeza que deseja excluir esta imagem do portfólio? Esta ação não pode ser desfeita.',
+      {
+        confirmLabel: 'Sim, excluir',
+        cancelLabel: 'Cancelar',
+        severity: 'danger',
+        icon: 'pi pi-trash'
+      }
+    ).subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.removerImagem(imagem.id!);
+    });
+  }
+
+  private removerImagem(imagemId: number): void {
+    this.imobiliariaService.removerImagem(imagemId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Imagem removida com sucesso'
+          });
+          this.carregarImagensPortfolio();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: error.error?.message || 'Erro ao remover imagem'
+          });
+        }
+      });
+  }
+
+  onImagemError(event: Event): void {
+    (event.target as HTMLImageElement).src =
+      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240"%3E%3Crect width="400" height="240" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%236b7280" font-size="16" font-family="Arial"%3EImagem indispon%C3%ADvel%3C/text%3E%3C/svg%3E';
+  }
+
+  private agendarRenovacaoUrlsPortfolio(): void {
+    if (this.refreshPortfolioTimer) {
+      clearTimeout(this.refreshPortfolioTimer);
+    }
+
+    this.refreshPortfolioTimer = setTimeout(() => {
+      this.carregarImagensPortfolio(true);
+    }, 240000);
   }
 
   onDocumentosSelecionados(arquivos: File[]): void {

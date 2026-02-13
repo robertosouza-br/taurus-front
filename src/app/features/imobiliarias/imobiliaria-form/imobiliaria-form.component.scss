@@ -195,6 +195,126 @@
   }
 }
 
+.portfolio-existente {
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  overflow: hidden;
+
+  .lista-header {
+    padding: 0.75rem 1rem;
+    background: var(--surface-100);
+    border-bottom: 1px solid var(--surface-border);
+
+    .lista-titulo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .sem-portfolio {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-color-secondary);
+
+    i {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .portfolio-card {
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface-card);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .portfolio-preview {
+      position: relative;
+      height: 180px;
+      background: var(--surface-100);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      p-tag {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+      }
+    }
+
+    .portfolio-info {
+      padding: 0.75rem;
+      flex: 1;
+
+      .portfolio-titulo {
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .portfolio-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--text-color-secondary);
+      }
+    }
+
+    .portfolio-acoes {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-top: 1px solid var(--surface-border);
+
+      .acao-btn {
+        flex: 1;
+        border: 1px solid var(--surface-border);
+        background: transparent;
+        border-radius: 6px;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+
+      .principal-btn {
+        color: var(--yellow-600);
+      }
+
+      .remover-btn {
+        color: var(--red-500);
+      }
+    }
+  }
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .form-actions {

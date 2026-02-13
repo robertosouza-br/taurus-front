@@ -449,6 +449,136 @@
       </div>
     </p-card>
 
+    <!-- Seção: Portfólio de Imagens -->
+    <p-card header="Portfólio de Imagens" class="mt-3">
+      <div class="grid">
+        <div class="col-12">
+          <div *ngIf="!modoEdicao" class="info-message">
+            <i class="pi pi-info-circle"></i>
+            <div class="info-content">
+              <p>Salve a imobiliária primeiro para poder adicionar imagens ao portfólio</p>
+            </div>
+          </div>
+
+          <div class="grid mb-2" *ngIf="modoEdicao">
+            <div class="col-12 md:col-3">
+              <app-autocomplete
+                id="tipoImagem"
+                label="Tipo da Imagem"
+                [(ngModel)]="tipoImagemSelecionada"
+                [suggestions]="tiposImagemFiltrados"
+                (completeMethod)="filtrarTiposImagem($event)"
+                (onSelect)="onTipoImagemSelecionada($event)"
+                (onDropdownClick)="carregarTodosTiposImagem()"
+                field="label"
+                placeholder="Selecione"
+                [required]="false"
+                emptyMessage="Nenhum tipo encontrado">
+              </app-autocomplete>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <app-input-text
+                id="descricaoImagem"
+                label="Descrição"
+                [(ngModel)]="descricaoImagem"
+                [required]="false"
+                placeholder="Ex: Fachada principal"
+                [maxlength]="200">
+              </app-input-text>
+            </div>
+
+            <div class="col-12 md:col-3">
+              <app-input-text
+                id="ordemImagem"
+                label="Ordem Inicial"
+                [(ngModel)]="ordemImagem"
+                [required]="false"
+                type="number"
+                placeholder="Ex: 1">
+              </app-input-text>
+            </div>
+          </div>
+
+          <app-upload-arquivos
+            id="portfolioImagens"
+            label="Adicionar Imagens"
+            placeholder="Clique para selecionar ou arraste imagens aqui"
+            [multiple]="true"
+            [accept]="'.jpg,.jpeg,.png,.gif,.webp'"
+            [maxFileSize]="10485760"
+            [disabled]="!modoEdicao || enviandoImagem"
+            [showPreview]="false"
+            (onSelect)="onImagensSelecionadas($event)">
+          </app-upload-arquivos>
+
+          <small class="block mt-2 text-color-secondary" *ngIf="modoEdicao">
+            <i class="pi pi-info-circle"></i>
+            URLs das imagens são temporárias e renovadas automaticamente enquanto a tela estiver aberta.
+          </small>
+
+          <div *ngIf="modoEdicao" class="portfolio-existente mt-3">
+            <div class="lista-header">
+              <span class="lista-titulo">
+                <i class="pi pi-images"></i>
+                Imagens do Portfólio ({{ imagensPortfolio.length }})
+              </span>
+            </div>
+
+            <div *ngIf="carregandoImagens" class="sem-portfolio">
+              <i class="pi pi-spin pi-spinner"></i>
+              <p>Carregando imagens...</p>
+            </div>
+
+            <div *ngIf="!carregandoImagens && imagensPortfolio.length === 0" class="sem-portfolio">
+              <i class="pi pi-image"></i>
+              <p>Nenhuma imagem adicionada ainda</p>
+            </div>
+
+            <div class="grid p-3" *ngIf="!carregandoImagens && imagensPortfolio.length > 0">
+              <div class="col-12 md:col-6 lg:col-4 xl:col-3" *ngFor="let imagem of imagensPortfolio">
+                <div class="portfolio-card">
+                  <div class="portfolio-preview">
+                    <img
+                      [src]="imagem.url"
+                      [alt]="imagem.descricao || imagem.nomeArquivo"
+                      (error)="onImagemError($event)">
+                    <p-tag *ngIf="imagem.principal" value="Principal" icon="pi pi-star-fill" severity="warning"></p-tag>
+                  </div>
+
+                  <div class="portfolio-info">
+                    <div class="portfolio-titulo">{{ imagem.descricao || imagem.nomeArquivo }}</div>
+                    <div class="portfolio-meta">
+                      <span>{{ imagem.tipoImagem || 'Sem tipo' }}</span>
+                      <span>Ordem: {{ imagem.ordem ?? '-' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="portfolio-acoes">
+                    <button
+                      type="button"
+                      class="acao-btn principal-btn"
+                      pTooltip="Definir como principal"
+                      (click)="definirImagemPrincipal(imagem)"
+                      [disabled]="imagem.principal">
+                      <i class="pi pi-star"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="acao-btn remover-btn"
+                      pTooltip="Excluir imagem"
+                      (click)="confirmarRemocaoImagem(imagem)">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
     <!-- Botões de Ação -->
     <div class="form-actions mt-3">
       <app-custom-button
