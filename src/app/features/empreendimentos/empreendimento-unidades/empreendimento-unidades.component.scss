@@ -1280,3 +1280,47 @@
     }
   }
 }
+
+// ========================================
+// DROPDOWN COM INDICADOR DE COR
+// ========================================
+.dropdown-item-com-cor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  
+  .cor-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  span:last-child {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Ajuste para o dropdown do PrimeNG
+::ng-deep {
+  .p-dropdown-items {
+    .p-dropdown-item {
+      padding: 0.75rem 1rem !important;
+      
+      &:hover {
+        background: rgba(59, 130, 246, 0.08) !important;
+      }
+    }
+  }
+  
+  .p-dropdown-label {
+    display: flex;
+    align-items: center;
+    min-height: 20px;
+  }
+}

@@ -51,6 +51,21 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   statusDisponiveis: string[] = [];
   carregando = false;
   
+  // Lista completa de todos os status possíveis do sistema
+  readonly todosStatusPossiveis: string[] = [
+    'Não Vendida / Estoque',
+    'Em Negociação',
+    'Reservada/ Assinatura dos instrumentos aquisitivos',
+    'Assinado, com Sinal a creditar e documentos na imobiliária',
+    'Sinal Creditado, mas com todos os documentos na imobiliária',
+    'Sinal a Creditar, mas com todos os documentos entregue na Calper',
+    'Sinal Creditado, mas com pendência de documentos',
+    'Sinal Creditado e sem pendência de documentos',
+    'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA',
+    'Sinal creditado, mas cliente pediu distrato',
+    'Fora de venda'
+  ];
+  
   // Visualização
   visualizacao: 'grid' | 'list' = 'grid';
   
@@ -144,7 +159,8 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
 
   carregar(silencioso: boolean = false): void {
     // Salva posição do scroll antes de atualizar (apenas em modo silencioso)
-    const scrollPosition = silencioso ? window.scrollY : 0;
+    const scrollX = silencioso ? window.scrollX : 0;
+    const scrollY = silencioso ? window.scrollY : 0;
     
     // Só mostra loading se não for refresh silencioso
     if (!silencioso) {
@@ -180,9 +196,14 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
           this.atualizarHorario();
           
           // Restaura posição do scroll após atualização (apenas em modo silencioso)
-          if (silencioso) {
+          if (silencioso && (scrollX > 0 || scrollY > 0)) {
+            // Usa setTimeout para garantir que o DOM foi completamente renderizado
             setTimeout(() => {
-              window.scrollTo(0, scrollPosition);
+              window.scrollTo({
+                left: scrollX,
+                top: scrollY,
+                behavior: 'auto'
+              });
             }, 0);
           }
         },
@@ -207,6 +228,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   private inicializarMenuFiltros(): void {
     const iconesPorStatus: Record<string, string> = {
       'Não Vendida / Estoque': 'pi-box',
+      'Em Negociação': 'pi-comments',
       'Reservada/ Assinatura dos instrumentos aquisitivos': 'pi-file-edit',
       'Assinado, com Sinal a creditar e documentos na imobiliária': 'pi-file',
       'Sinal Creditado, mas com todos os documentos na imobiliária': 'pi-folder',
@@ -220,12 +242,13 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
 
     const coresPorStatus: Record<string, string> = {
       'Não Vendida / Estoque': '#d1d5db',
-      'Reservada/ Assinatura dos instrumentos aquisitivos': '#ef4444',
-      'Assinado, com Sinal a creditar e documentos na imobiliária': '#f97316',
-      'Sinal Creditado, mas com todos os documentos na imobiliária': '#f59e0b',
-      'Sinal a Creditar, mas com todos os documentos entregue na Calper': '#facc15',
-      'Sinal Creditado, mas com pendência de documentos': '#86efac',
-      'Sinal Creditado e sem pendência de documentos': '#22c55e',
+      'Em Negociação': '#0ea5e9',
+      'Reservada/ Assinatura dos instrumentos aquisitivos': '#dc2626',
+      'Assinado, com Sinal a creditar e documentos na imobiliária': '#ea580c',
+      'Sinal Creditado, mas com todos os documentos na imobiliária': '#f97316',
+      'Sinal a Creditar, mas com todos os documentos entregue na Calper': '#eab308',
+      'Sinal Creditado, mas com pendência de documentos': '#22c55e',
+      'Sinal Creditado e sem pendência de documentos': '#16a34a',
       'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': '#3b82f6',
       'Sinal creditado, mas cliente pediu distrato': '#a855f7',
       'Fora de venda': '#9ca3af'
@@ -369,34 +392,34 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
         text: '#4b5563'
       },
       'Reservada/ Assinatura dos instrumentos aquisitivos': {
-        bg: '#fee2e2',
-        border: '#ef4444',
-        text: '#991b1b'
+        bg: '#fca5a5',
+        border: '#dc2626',
+        text: '#7f1d1d'
       },
       'Assinado, com Sinal a creditar e documentos na imobiliária': {
-        bg: '#ffedd5',
+        bg: '#fb923c',
+        border: '#ea580c',
+        text: '#7c2d12'
+      },
+      'Sinal Creditado, mas com todos os documentos na imobiliária': {
+        bg: '#fdba74',
         border: '#f97316',
         text: '#9a3412'
       },
-      'Sinal Creditado, mas com todos os documentos na imobiliária': {
-        bg: '#fef3c7',
-        border: '#f59e0b',
-        text: '#92400e'
-      },
       'Sinal a Creditar, mas com todos os documentos entregue na Calper': {
-        bg: '#fef9c3',
-        border: '#facc15',
-        text: '#854d0e'
+        bg: '#fde047',
+        border: '#eab308',
+        text: '#713f12'
       },
       'Sinal Creditado, mas com pendência de documentos': {
-        bg: '#dcfce7',
-        border: '#86efac',
-        text: '#166534'
+        bg: '#86efac',
+        border: '#22c55e',
+        text: '#14532d'
       },
       'Sinal Creditado e sem pendência de documentos': {
-        bg: '#d1fae5',
-        border: '#22c55e',
-        text: '#065f46'
+        bg: '#4ade80',
+        border: '#16a34a',
+        text: '#14532d'
       },
       'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': {
         bg: '#dbeafe',
@@ -413,6 +436,11 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
         border: '#6b7280',
         text: '#1f2937'
       },
+      'Em Negociação': {
+        bg: '#bae6fd',
+        border: '#0ea5e9',
+        text: '#0c4a6e'
+      },
       // Status antigos do banco (mapeamento)
       'Disponível para Venda': {
         bg: '#ffffff',
@@ -420,9 +448,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
         text: '#6b7280'
       },
       'Reservado para Venda': {
-        bg: '#fee2e2',
-        border: '#ef4444',
-        text: '#991b1b'
+        bg: '#fca5a5',
+        border: '#dc2626',
+        text: '#7f1d1d'
       },
       'Sinal Creditado/ Cont.Finaliza': {
         bg: '#dbeafe',
@@ -430,14 +458,14 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
         text: '#1e40af'
       },
       'Sinal a Creditar/Cont.Andament': {
-        bg: '#fef9c3',
-        border: '#facc15',
-        text: '#854d0e'
+        bg: '#fde047',
+        border: '#eab308',
+        text: '#713f12'
       },
       'Sinal Creditado/Cont.Andamento': {
-        bg: '#fef3c7',
-        border: '#f59e0b',
-        text: '#92400e'
+        bg: '#fdba74',
+        border: '#f97316',
+        text: '#9a3412'
       }
     };
     
@@ -446,6 +474,27 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       border: '#9ca3af',
       text: '#374151'
     };
+  }
+
+  /**
+   * Retorna opções do dropdown de filtro com cores
+   */
+  get opcoesDropdownFiltro(): Array<{ label: string; value: string; cor: string }> {
+    const opcoes = [
+      { label: 'Todos os Status', value: 'TODOS', cor: '#6b7280' }
+    ];
+
+    // Adiciona status disponíveis com suas cores
+    this.statusDisponiveis.forEach(status => {
+      const cores = this.getStatusColor(status);
+      opcoes.push({
+        label: status,
+        value: status,
+        cor: cores.border // Usa a cor da borda que é mais vibrante
+      });
+    });
+
+    return opcoes;
   }
 
   /**
@@ -462,6 +511,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   getStatusLabelCurto(status: string): string {
     const labels: Record<string, string> = {
       'Não Vendida / Estoque': 'Estoque',
+      'Em Negociação': 'Negociação',
       'Reservada/ Assinatura dos instrumentos aquisitivos': 'Reservada',
       'Assinado, com Sinal a creditar e documentos na imobiliária': 'Assinado',
       'Sinal Creditado, mas com todos os documentos na imobiliária': 'Creditado',
@@ -473,6 +523,13 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       'Fora de venda': 'Fora'
     };
     return labels[status] || status?.substring(0, 7) || 'N/A';
+  }
+
+  /**
+   * Conta unidades por status em um bloco específico
+   */
+  getCountByStatusNoBloco(bloco: BlocoUnidades, status: string): number {
+    return bloco.unidades.filter(u => u.statusUnidade === status).length;
   }
 
   /**
@@ -683,5 +740,19 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    */
   get autoRefreshAtivo(): boolean {
     return this.autoRefreshInterval !== null;
+  }
+
+  /**
+   * TrackBy function para otimização de *ngFor de status
+   */
+  trackByStatus(_index: number, status: string): string {
+    return status;
+  }
+
+  /**
+   * TrackBy function para otimização de *ngFor de resumo por status
+   */
+  trackByResumoStatus(_index: number, resumo: { status: string; quantidade: number }): string {
+    return resumo.status;
   }
 }

@@ -122,9 +122,24 @@
           
           <!-- Resumo Rápido -->
           <div class="bloco-resumo-rapido">
-            <div class="resumo-stat" *ngFor="let resumo of bloco.resumoPorStatus">
+            <div class="resumo-stat" *ngFor="let resumo of bloco.resumoPorStatus; trackBy: trackByResumoStatus">
               <span class="stat-label">{{ getStatusLabelCurto(resumo.status) }}</span>
               <span class="stat-valor">{{ resumo.quantidade }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legenda Detalhada do Bloco -->
+        <div class="bloco-footer">
+          <div class="footer-resumo">
+            <div class="resumo-item" *ngFor="let resumo of bloco.resumoPorStatus; trackBy: trackByResumoStatus">
+              <div class="resumo-cor" 
+                   [style.background-color]="getStatusColor(resumo.status).bg"
+                   [style.border-color]="getStatusColor(resumo.status).border">
+              </div>
+              <span class="resumo-texto">
+                {{ getStatusLabel(resumo.status) }}: <strong>{{ resumo.quantidade }}</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -187,21 +202,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Resumo Detalhado do Bloco -->
-        <div class="bloco-footer">
-          <div class="footer-resumo">
-            <div class="resumo-item" *ngFor="let resumo of bloco.resumoPorStatus">
-              <div class="resumo-cor" 
-                   [style.background-color]="getStatusColor(resumo.status).bg"
-                   [style.border-color]="getStatusColor(resumo.status).border">
-              </div>
-              <span class="resumo-texto">
-                {{ getStatusLabel(resumo.status) }}: <strong>{{ resumo.quantidade }}</strong>
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -226,19 +226,33 @@
       <p-dropdown 
         id="filtroStatus"
         [(ngModel)]="statusFiltroSelecionado"
-        [options]="[
-          { label: 'Todos os Status', value: 'TODOS' },
-          { label: 'Disponível', value: 'DISPONIVEL' },
-          { label: 'Reservada', value: 'RESERVADA' },
-          { label: 'Vendida', value: 'VENDIDA' },
-          { label: 'Em Negociação', value: 'EM_NEGOCIACAO' },
-          { label: 'Indisponível', value: 'INDISPONIVEL' },
-          { label: 'Em Construção', value: 'EM_CONSTRUCAO' }
-        ]"
+        [options]="opcoesDropdownFiltro"
         optionLabel="label"
         optionValue="value"
         placeholder="Selecione um status"
         [style]="{'width': '100%'}">
+        
+        <!-- Template customizado para exibir cor no dropdown -->
+        <ng-template let-opcao pTemplate="item">
+          <div class="dropdown-item-com-cor">
+            <span 
+              class="cor-indicator" 
+              [style.background-color]="opcao.cor">
+            </span>
+            <span>{{ opcao.label }}</span>
+          </div>
+        </ng-template>
+        
+        <!-- Template para o item selecionado -->
+        <ng-template let-opcao pTemplate="selectedItem">
+          <div class="dropdown-item-com-cor" *ngIf="opcao">
+            <span 
+              class="cor-indicator" 
+              [style.background-color]="opcao.cor">
+            </span>
+            <span>{{ opcao.label }}</span>
+          </div>
+        </ng-template>
       </p-dropdown>
     </div>
     
@@ -287,7 +301,7 @@
     </p>
     
     <div class="legenda-items-dialog">
-      <div class="legenda-item-dialog" *ngFor="let status of statusDisponiveis">
+      <div class="legenda-item-dialog" *ngFor="let status of statusDisponiveis; trackBy: trackByStatus">
         <div class="legenda-cor-dialog" 
              [style.background-color]="getStatusColor(status).bg" 
              [style.border-color]="getStatusColor(status).border">
