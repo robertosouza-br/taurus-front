@@ -81,7 +81,10 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   
   // Auto-refresh
   private autoRefreshInterval: any = null;
+  private speedDialObserver: MutationObserver | null = null;
+  private speedDialColorFramePending = false;
   ultimaAtualizacao: string = '';
+  exibirBotaoVoltarTopo = false;
   
   breadcrumbItems: BreadcrumbItem[] = [];
 
@@ -119,14 +122,36 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     if (state?.nomeEmpreendimento) {
       this.nomeEmpreendimento = state.nomeEmpreendimento;
     }
+
+    // Sempre inicia a tela no topo
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     
     this.configurarBreadcrumb();
     this.carregar();
     this.iniciarAutoRefresh();
+    this.iniciarObservadorSpeedDial();
+    window.addEventListener('scroll', this.atualizarVisibilidadeBotaoTopo, { passive: true });
+    this.atualizarVisibilidadeBotaoTopo();
   }
   
   ngOnDestroy(): void {
     this.pararAutoRefresh();
+    window.removeEventListener('scroll', this.atualizarVisibilidadeBotaoTopo);
+    if (this.speedDialObserver) {
+      this.speedDialObserver.disconnect();
+      this.speedDialObserver = null;
+    }
+  }
+
+  private atualizarVisibilidadeBotaoTopo = (): void => {
+    this.exibirBotaoVoltarTopo = window.scrollY > 350;
+  };
+
+  voltarAoTopo(): void {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
   
   /**
@@ -240,40 +265,97 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       'Fora de venda': 'pi-ban'
     };
 
-    const coresPorStatus: Record<string, string> = {
-      'Não Vendida / Estoque': '#d1d5db',
-      'Em Negociação': '#0ea5e9',
-      'Reservada/ Assinatura dos instrumentos aquisitivos': '#dc2626',
-      'Assinado, com Sinal a creditar e documentos na imobiliária': '#ea580c',
-      'Sinal Creditado, mas com todos os documentos na imobiliária': '#f97316',
-      'Sinal a Creditar, mas com todos os documentos entregue na Calper': '#eab308',
-      'Sinal Creditado, mas com pendência de documentos': '#22c55e',
-      'Sinal Creditado e sem pendência de documentos': '#16a34a',
-      'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': '#3b82f6',
-      'Sinal creditado, mas cliente pediu distrato': '#a855f7',
-      'Fora de venda': '#9ca3af'
-    };
-
     this.filtrosMenuItems = [
       {
         icon: 'pi pi-circle-fill',
+        cor: '#6b7280',
         command: () => this.aplicarFiltroStatus('TODOS'),
         tooltipOptions: {
           tooltipLabel: 'Todos os Status',
           tooltipPosition: 'left'
         },
-        style: { 'background-color': '#6b7280' }
+        styleClass: this.getClasseCorFiltro('TODOS')
       },
       ...this.statusDisponiveis.map(status => ({
         icon: `pi ${iconesPorStatus[status] || 'pi-tag'}`,
+        cor: this.getCorPorStatus(status),
         command: () => this.aplicarFiltroStatus(status),
         tooltipOptions: {
           tooltipLabel: status,
           tooltipPosition: 'left'
         },
-        style: { 'background-color': coresPorStatus[status] || '#6366f1' }
+        styleClass: this.getClasseCorFiltro(status)
       }))
     ];
+
+    this.agendarAplicacaoCoresSpeedDial();
+  }
+
+  private iniciarObservadorSpeedDial(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    this.speedDialObserver = new MutationObserver(() => {
+      this.agendarAplicacaoCoresSpeedDial();
+    });
+
+    this.speedDialObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+
+    this.agendarAplicacaoCoresSpeedDial();
+  }
+
+  private agendarAplicacaoCoresSpeedDial(): void {
+    if (this.speedDialColorFramePending) {
+      return;
+    }
+
+    this.speedDialColorFramePending = true;
+    requestAnimationFrame(() => {
+      this.speedDialColorFramePending = false;
+      this.aplicarCoresNosBotoesSpeedDial();
+    });
+  }
+
+  private aplicarCoresNosBotoesSpeedDial(): void {
+    const botoes = Array.from(
+      document.querySelectorAll('.p-speeddial .p-speeddial-item .p-speeddial-action')
+    ) as HTMLElement[];
+
+    if (!botoes.length) {
+      return;
+    }
+
+    botoes.forEach((botao, index) => {
+      const item = this.filtrosMenuItems[index];
+      const cor = item?.cor || '#64748b';
+      botao.style.setProperty('background', cor, 'important');
+      botao.style.setProperty('border', '2px solid rgba(255, 255, 255, 0.85)', 'important');
+    });
+  }
+
+  private getClasseCorFiltro(status: string): string {
+    const classesPorStatus: Record<string, string> = {
+      'TODOS': 'filtro-cor-todos',
+      'Não Vendida / Estoque': 'filtro-cor-estoque',
+      'Em Negociação': 'filtro-cor-negociacao',
+      'Reservada/ Assinatura dos instrumentos aquisitivos': 'filtro-cor-reservada',
+      'Assinado, com Sinal a creditar e documentos na imobiliária': 'filtro-cor-assinado',
+      'Sinal Creditado, mas com todos os documentos na imobiliária': 'filtro-cor-creditado',
+      'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'filtro-cor-acreditar',
+      'Sinal Creditado, mas com pendência de documentos': 'filtro-cor-pendencia',
+      'Sinal Creditado e sem pendência de documentos': 'filtro-cor-ok',
+      'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': 'filtro-cor-finalizado',
+      'Sinal creditado, mas cliente pediu distrato': 'filtro-cor-distrato',
+      'Fora de venda': 'filtro-cor-fora'
+    };
+
+    return classesPorStatus[status] || 'filtro-cor-default';
   }
 
   /**
@@ -384,6 +466,18 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    * Retorna configuração de cor para um status
    */
   getStatusColor(status: string): { bg: string; border: string; text: string } {
+    const statusNormalizado = (status || '').trim();
+
+    // Suporte aos códigos de status do enum (DISPONIVEL, RESERVADA, etc.)
+    const statusEnum = STATUS_COLORS[statusNormalizado as keyof typeof STATUS_COLORS];
+    if (statusEnum) {
+      return {
+        bg: statusEnum.bg,
+        border: statusEnum.border,
+        text: statusEnum.text
+      };
+    }
+
     const coresPorStatus: Record<string, { bg: string; border: string; text: string }> = {
       // Status da tabela de cores
       'Não Vendida / Estoque': {
@@ -469,7 +563,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       }
     };
     
-    return coresPorStatus[status] || {
+    return coresPorStatus[statusNormalizado] || {
       bg: '#f3f4f6',
       border: '#9ca3af',
       text: '#374151'
@@ -486,11 +580,10 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
 
     // Adiciona status disponíveis com suas cores
     this.statusDisponiveis.forEach(status => {
-      const cores = this.getStatusColor(status);
       opcoes.push({
         label: status,
         value: status,
-        cor: cores.border // Usa a cor da borda que é mais vibrante
+        cor: this.getCorPorStatus(status)
       });
     });
 
@@ -498,9 +591,93 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Resolve cor da opção do dropdown para item/selectedItem
+   */
+  getCorDaOpcaoFiltro(opcao: any): string {
+    if (!opcao) {
+      return '#9ca3af';
+    }
+
+    if (typeof opcao === 'string') {
+      return this.getCorPorStatus(opcao);
+    }
+
+    if (opcao.cor) {
+      return opcao.cor;
+    }
+
+    return this.getCorPorStatus(opcao.value || opcao.label || '');
+  }
+
+  /**
+   * Resolve label da opção do dropdown para item/selectedItem
+   */
+  getLabelDaOpcaoFiltro(opcao: any): string {
+    if (!opcao) {
+      return 'Selecione um status';
+    }
+
+    if (typeof opcao === 'string') {
+      return this.getStatusLabel(opcao);
+    }
+
+    return opcao.label || this.getStatusLabel(opcao.value || '');
+  }
+
+  /**
+   * Retorna cor de um status específico (para o dropdown)
+   */
+  getCorPorStatus(status: string): string {
+    const statusNormalizado = (status || '').trim();
+
+    if (statusNormalizado === 'TODOS') {
+      return '#6b7280';
+    }
+
+    // 1) Tenta pela regra principal de status do card
+    const corPrincipal = this.getStatusColor(statusNormalizado).border;
+    if (corPrincipal && corPrincipal !== '#9ca3af') {
+      return corPrincipal;
+    }
+
+    // 2) Fallback por normalização textual (variações de acento, espaço e formatação)
+    const chave = this.normalizarStatus(statusNormalizado);
+
+    if (chave.includes('negoci')) return '#0ea5e9';
+    if (chave.includes('reserv')) return '#dc2626';
+    if (chave.includes('assinad')) return '#ea580c';
+    if (chave.includes('acreditar') || chave.includes('a creditar')) return '#eab308';
+    if (chave.includes('creditado') && chave.includes('pendenc')) return '#22c55e';
+    if (chave.includes('creditado') && chave.includes('sem pendenc')) return '#16a34a';
+    if (chave.includes('finaliz') || chave.includes('escritura')) return '#3b82f6';
+    if (chave.includes('distrat')) return '#a855f7';
+    if (chave.includes('fora') && chave.includes('venda')) return '#6b7280';
+    if (chave.includes('estoque') || chave.includes('nao vendida')) return '#d1d5db';
+    if (chave.includes('disponivel')) return '#10b981';
+    if (chave.includes('vendida')) return '#6366f1';
+    if (chave.includes('indisponivel')) return '#9ca3af';
+    if (chave.includes('construcao') || chave.includes('construcao')) return '#3b82f6';
+
+    return '#6366f1';
+  }
+
+  private normalizarStatus(status: string): string {
+    return (status || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[_/]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
    * Retorna label amigável para status
    */
   getStatusLabel(status: string): string {
+    if (status === 'TODOS') {
+      return 'Todos os Status';
+    }
     // Como os status já vêm em português do banco, retorna direto
     return status || 'Status não informado';
   }
@@ -553,6 +730,24 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     if (this.unidades.length === 0) return 0;
     const count = this.getCountByStatus(status);
     return Math.round((count / this.unidades.length) * 100);
+  }
+
+  /**
+   * Remove zeros à esquerda do número da unidade (somente para exibição)
+   */
+  formatarNumeroUnidade(unidade: string): string {
+    const valor = (unidade || '').toString().trim();
+
+    if (!valor) {
+      return '';
+    }
+
+    if (/^\d+$/.test(valor)) {
+      return valor.replace(/^0+/, '') || '0';
+    }
+
+    const semZerosNoInicio = valor.replace(/^0+(?=\d)/, '');
+    return semZerosNoInicio || valor;
   }
 
   /**

@@ -119,14 +119,6 @@
               </p>
             </div>
           </div>
-          
-          <!-- Resumo Rápido -->
-          <div class="bloco-resumo-rapido">
-            <div class="resumo-stat" *ngFor="let resumo of bloco.resumoPorStatus; trackBy: trackByResumoStatus">
-              <span class="stat-label">{{ getStatusLabelCurto(resumo.status) }}</span>
-              <span class="stat-valor">{{ resumo.quantidade }}</span>
-            </div>
-          </div>
         </div>
 
         <!-- Legenda Detalhada do Bloco -->
@@ -182,7 +174,7 @@
               
               <!-- Número da Unidade -->
               <div class="unidade-numero" [style.color]="getStatusColor(unidade.statusUnidade).text">
-                {{ unidade.unidade }}
+                {{ formatarNumeroUnidade(unidade.unidade) }}
               </div>
               
               <!-- Sigla/Tipo -->
@@ -233,24 +225,24 @@
         [style]="{'width': '100%'}">
         
         <!-- Template customizado para exibir cor no dropdown -->
-        <ng-template let-opcao pTemplate="item">
+        <ng-template let-option pTemplate="item">
           <div class="dropdown-item-com-cor">
             <span 
               class="cor-indicator" 
-              [style.background-color]="opcao.cor">
+              [ngStyle]="{ 'background-color': getCorDaOpcaoFiltro(option), 'display': 'inline-block' }">
             </span>
-            <span>{{ opcao.label }}</span>
+            <span>{{ getLabelDaOpcaoFiltro(option) }}</span>
           </div>
         </ng-template>
         
         <!-- Template para o item selecionado -->
-        <ng-template let-opcao pTemplate="selectedItem">
-          <div class="dropdown-item-com-cor" *ngIf="opcao">
+        <ng-template let-value pTemplate="selectedItem">
+          <div class="dropdown-item-com-cor">
             <span 
               class="cor-indicator" 
-              [style.background-color]="opcao.cor">
+              [ngStyle]="{ 'background-color': getCorDaOpcaoFiltro(value), 'display': 'inline-block' }">
             </span>
-            <span>{{ opcao.label }}</span>
+            <span>{{ getLabelDaOpcaoFiltro(value) }}</span>
           </div>
         </ng-template>
       </p-dropdown>
@@ -347,6 +339,18 @@
   buttonClassName="p-button-info p-button-lg"
   [style]="{'position': 'fixed', 'bottom': '2rem', 'right': '2rem', 'z-index': 1000}">
 </p-speedDial>
+
+<!-- Botão Flutuante Voltar ao Topo -->
+<button
+  *ngIf="!carregando && unidades.length > 0 && exibirBotaoVoltarTopo"
+  pButton
+  type="button"
+  icon="pi pi-arrow-up"
+  class="p-button-rounded p-button-primary voltar-topo-btn"
+  pTooltip="Voltar ao topo"
+  tooltipPosition="left"
+  (click)="voltarAoTopo()">
+</button>
 
 <!-- Label de Última Atualização -->
 <div class="ultima-atualizacao-badge" 

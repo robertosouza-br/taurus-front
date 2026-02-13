@@ -1208,6 +1208,8 @@
     width: 3rem !important;
     height: 3rem !important;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    background: #6b7280 !important;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
     
     &:hover {
       transform: scale(1.15);
@@ -1218,6 +1220,87 @@
       font-size: 1.2rem !important;
       color: white !important;
     }
+
+    &.filtro-cor-todos { background: #6b7280 !important; }
+    &.filtro-cor-estoque { background: #9ca3af !important; }
+    &.filtro-cor-negociacao { background: #0ea5e9 !important; }
+    &.filtro-cor-reservada { background: #dc2626 !important; }
+    &.filtro-cor-assinado { background: #ea580c !important; }
+    &.filtro-cor-creditado { background: #f97316 !important; }
+    &.filtro-cor-acreditar { background: #eab308 !important; }
+    &.filtro-cor-pendencia { background: #22c55e !important; }
+    &.filtro-cor-ok { background: #16a34a !important; }
+    &.filtro-cor-finalizado { background: #3b82f6 !important; }
+    &.filtro-cor-distrato { background: #a855f7 !important; }
+    &.filtro-cor-fora { background: #6b7280 !important; }
+    &.filtro-cor-default { background: #64748b !important; }
+  }
+
+  // Fallback: quando o PrimeNG aplica a classe no item pai (li) e não no botão
+  .filtro-cor-todos .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-todos { background: #6b7280 !important; }
+
+  .filtro-cor-estoque .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-estoque { background: #9ca3af !important; }
+
+  .filtro-cor-negociacao .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-negociacao { background: #0ea5e9 !important; }
+
+  .filtro-cor-reservada .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-reservada { background: #dc2626 !important; }
+
+  .filtro-cor-assinado .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-assinado { background: #ea580c !important; }
+
+  .filtro-cor-creditado .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-creditado { background: #f97316 !important; }
+
+  .filtro-cor-acreditar .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-acreditar { background: #eab308 !important; }
+
+  .filtro-cor-pendencia .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-pendencia { background: #22c55e !important; }
+
+  .filtro-cor-ok .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-ok { background: #16a34a !important; }
+
+  .filtro-cor-finalizado .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-finalizado { background: #3b82f6 !important; }
+
+  .filtro-cor-distrato .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-distrato { background: #a855f7 !important; }
+
+  .filtro-cor-fora .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-fora { background: #6b7280 !important; }
+
+  .filtro-cor-default .p-speeddial-action,
+  .p-speeddial-action.filtro-cor-default { background: #64748b !important; }
+}
+
+// ========================================
+// BOTÃO FLUTUANTE VOLTAR AO TOPO
+// ========================================
+.voltar-topo-btn {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3.2rem !important;
+  height: 3.2rem !important;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35) !important;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45) !important;
+  }
+
+  @media (max-width: 768px) {
+    left: 50%;
+    bottom: 6.5rem;
+    width: 3rem !important;
+    height: 3rem !important;
   }
 }
 
@@ -1284,30 +1367,30 @@
 // ========================================
 // DROPDOWN COM INDICADOR DE COR
 // ========================================
-.dropdown-item-com-cor {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  
-  .cor-indicator {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.5);
-  }
-  
-  span:last-child {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-// Ajuste para o dropdown do PrimeNG
 ::ng-deep {
+  .dropdown-item-com-cor {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    .cor-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+      border: 2px solid rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    span:last-child {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  // Ajuste para o dropdown do PrimeNG
   .p-dropdown-items {
     .p-dropdown-item {
       padding: 0.75rem 1rem !important;
@@ -1322,5 +1405,9 @@
     display: flex;
     align-items: center;
     min-height: 20px;
+    
+    .dropdown-item-com-cor {
+      width: 100%;
+    }
   }
 }
