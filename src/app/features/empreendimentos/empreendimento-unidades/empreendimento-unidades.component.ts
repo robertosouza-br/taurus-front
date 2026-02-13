@@ -617,6 +617,18 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Navega para tela de reserva da unidade
+   */
+  irParaReserva(unidade: Unidade): void {
+    // TODO: Implementar navegação para tela de reserva
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Reserva',
+      detail: `Navegação para reserva da unidade ${unidade.unidade} em desenvolvimento`
+    });
+  }
+
+  /**
    * Callback quando o dialog fecha
    */
   onDialogClose(visible: boolean): void {

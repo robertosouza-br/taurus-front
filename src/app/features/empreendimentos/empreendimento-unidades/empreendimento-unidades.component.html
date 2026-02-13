@@ -135,12 +135,22 @@
             *ngFor="let unidade of bloco.unidades; let i = index" 
             class="unidade-card"
             [style.animation-delay]="(i * 0.02) + 's'"
-            (click)="abrirDetalhes(unidade)">
+            (click)="irParaReserva(unidade)">
             
             <!-- Corpo do Card -->
             <div class="card-content" 
                  [style.background]="getStatusColor(unidade.statusUnidade).bg"
                  [style.border-color]="getStatusColor(unidade.statusUnidade).border">
+
+              <!-- Botão de informações -->
+              <button
+                type="button"
+                class="info-unidade-btn"
+                (click)="$event.stopPropagation(); abrirDetalhes(unidade)"
+                pTooltip="Ver detalhes da unidade"
+                tooltipPosition="top">
+                <i class="pi pi-info-circle"></i>
+              </button>
               
               <!-- Badge de Status -->
               <div class="status-badge"
