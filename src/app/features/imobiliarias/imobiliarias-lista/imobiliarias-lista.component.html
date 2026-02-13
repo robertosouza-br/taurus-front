@@ -21,5 +21,20 @@
     [rows]="50"
     (onLazyLoad)="onLazyLoad($event)"
     (onSearch)="onBuscar($event)">
+    
+    <!-- Template para Status -->
+    <ng-template appTableTemplate="status" let-imobiliaria="rowData">
+      <p-tag 
+        [value]="imobiliaria.ativo ? 'Ativo' : 'Inativo'" 
+        [severity]="imobiliaria.ativo ? 'success' : 'danger'">
+      </p-tag>
+    </ng-template>
   </app-data-table>
 </div>
+
+<!-- Floating Speed Dial para Exportação -->
+<app-export-speed-dial
+  [loading]="exportando"
+  [options]="exportOptions"
+  (onExport)="exportarRelatorio($event)">
+</app-export-speed-dial>

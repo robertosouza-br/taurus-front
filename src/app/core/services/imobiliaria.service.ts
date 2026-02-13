@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Imobiliaria, ImobiliariaFormDTO, ImobiliariaFiltroDTO, ImagemImobiliaria } from '../models/imobiliaria.model';
+import { Imobiliaria, ImobiliariaFormDTO, ImobiliariaFiltroDTO, ImagemImobiliaria, TipoRelatorioImobiliaria } from '../models/imobiliaria.model';
 import { Page } from '../models/page.model';
 
 /**
@@ -45,6 +45,29 @@ export class ImobiliariaService {
   }
 
   /**
+   * Exporta relatório de imobiliárias
+   * @param filtro Filtros para aplicar no relatório
+   * @param tipoRelatorio Tipo do relatório (PDF, XLSX, CSV, TXT)
+   */
+  exportarRelatorio(
+    filtro: ImobiliariaFiltroDTO = {},
+    tipoRelatorio: TipoRelatorioImobiliaria = TipoRelatorioImobiliaria.PDF
+  ): Observable<Blob> {
+    let params = new HttpParams();
+
+    if (filtro.search && filtro.search.trim()) {
+      params = params.set('search', filtro.search.trim());
+    }
+
+    params = params.set('tipoRelatorio', tipoRelatorio);
+
+    return this.http.get(`${this.baseUrl}/relatorio`, {
+      params,
+      responseType: 'blob'
+    });
+  }
+
+  /**
    * Busca imobiliária por ID
    * @param id ID da imobiliária
    */
@@ -83,6 +106,15 @@ export class ImobiliariaService {
    */
   inativar(id: number): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/${id}/inativar`, {});
+  }
+
+  /**
+   * Exclui permanentemente uma imobiliária e todos os seus documentos
+   * ATENÇÃO: Esta ação é irreversível!
+   * @param id ID da imobiliária
+   */
+  excluir(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
   /**

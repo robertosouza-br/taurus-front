@@ -146,6 +146,26 @@ export interface ImobiliariaFiltroDTO {
 }
 
 /**
+ * Enum de tipos de relatório
+ */
+export enum TipoRelatorioImobiliaria {
+  PDF = 'PDF',
+  XLSX = 'XLSX',
+  CSV = 'CSV',
+  TXT = 'TXT'
+}
+
+/**
+ * Mapeamento de ícones por tipo de relatório
+ */
+export const TIPO_RELATORIO_IMOBILIARIA_ICONS: Record<TipoRelatorioImobiliaria, string> = {
+  [TipoRelatorioImobiliaria.PDF]: 'pi pi-file-pdf',
+  [TipoRelatorioImobiliaria.XLSX]: 'pi pi-file-excel',
+  [TipoRelatorioImobiliaria.CSV]: 'pi pi-file',
+  [TipoRelatorioImobiliaria.TXT]: 'pi pi-file-edit'
+};
+
+/**
  * Labels para os tipos de imobiliária
  */
 export const TIPO_IMOBILIARIA_LABELS: Record<TipoImobiliaria, string> = {

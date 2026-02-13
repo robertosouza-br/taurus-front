@@ -5,11 +5,18 @@ import { PermissaoService } from '../../../core/services/permissao.service';
 import { MessageService } from 'primeng/api';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
-import { Imobiliaria, ImobiliariaFiltroDTO, TIPO_IMOBILIARIA_LABELS } from '../../../core/models/imobiliaria.model';
+import {
+  Imobiliaria,
+  ImobiliariaFiltroDTO,
+  TIPO_IMOBILIARIA_LABELS,
+  TipoRelatorioImobiliaria,
+  TIPO_RELATORIO_IMOBILIARIA_ICONS
+} from '../../../core/models/imobiliaria.model';
 import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
+import { ExportOption } from '../../../shared/components/export-speed-dial/export-speed-dial.component';
 
 /**
  * Componente de listagem de imobiliárias
@@ -36,6 +43,9 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
   // Header actions
   headerActions: any[] = [];
 
+  // Opções de exportação
+  exportOptions: ExportOption[] = [];
+
   // Colunas da tabela
   colunas: TableColumn[] = [];
 
@@ -61,6 +71,7 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
     this.configurarBreadcrumb();
     this.configurarHeaderActions();
     this.configurarTabela();
+    this.inicializarExportOptions();
   }
 
   private configurarBreadcrumb(): void {
@@ -95,7 +106,7 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
         header: 'Status', 
         width: '8%', 
         align: 'center',
-        type: 'boolean'
+        template: 'status'
       }
     ];
 
@@ -120,6 +131,42 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
         severity: 'warning',
         visible: (row: Imobiliaria) => row.ativo && this.temPermissao(Permissao.ALTERAR),
         action: (row: Imobiliaria) => this.confirmarInativacao(row)
+      },
+      {
+        icon: 'pi pi-trash',
+        tooltip: 'Excluir Permanentemente',
+        severity: 'danger',
+        visible: () => this.temPermissao(Permissao.EXCLUIR),
+        action: (row: Imobiliaria) => this.confirmarExclusao(row)
+      }
+    ];
+  }
+
+  private inicializarExportOptions(): void {
+    this.exportOptions = [
+      {
+        icon: TIPO_RELATORIO_IMOBILIARIA_ICONS[TipoRelatorioImobiliaria.PDF],
+        label: 'PDF',
+        format: TipoRelatorioImobiliaria.PDF,
+        tooltipLabel: 'Exportar PDF'
+      },
+      {
+        icon: TIPO_RELATORIO_IMOBILIARIA_ICONS[TipoRelatorioImobiliaria.XLSX],
+        label: 'Excel',
+        format: TipoRelatorioImobiliaria.XLSX,
+        tooltipLabel: 'Exportar Excel'
+      },
+      {
+        icon: TIPO_RELATORIO_IMOBILIARIA_ICONS[TipoRelatorioImobiliaria.CSV],
+        label: 'CSV',
+        format: TipoRelatorioImobiliaria.CSV,
+        tooltipLabel: 'Exportar CSV'
+      },
+      {
+        icon: TIPO_RELATORIO_IMOBILIARIA_ICONS[TipoRelatorioImobiliaria.TXT],
+        label: 'TXT',
+        format: TipoRelatorioImobiliaria.TXT,
+        tooltipLabel: 'Exportar TXT'
       }
     ];
   }
@@ -179,11 +226,19 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
   }
 
   confirmarInativacao(imobiliaria: Imobiliaria): void {
-    this.confirmationService.confirmDelete(`a imobiliária "${imobiliaria.nomeFantasia}"`)
-      .subscribe(confirmed => {
-        if (!confirmed) return;
-        this.inativar(imobiliaria.id);
-      });
+    this.confirmationService.confirmCustom(
+      'Confirmar Inativação',
+      `Tem certeza que deseja inativar a imobiliária "${imobiliaria.nomeFantasia}"? Ela não aparecerá mais em seleções, mas poderá ser reativada posteriormente.`,
+      {
+        confirmLabel: 'Sim, inativar',
+        cancelLabel: 'Cancelar',
+        severity: 'warning',
+        icon: 'pi pi-exclamation-triangle'
+      }
+    ).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.inativar(imobiliaria.id);
+    });
   }
 
   inativar(id: number): void {
@@ -222,6 +277,88 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
           summary: 'Erro',
           detail: error.error?.message || 'Erro ao ativar imobiliária'
         });
+      }
+    });
+  }
+
+  confirmarExclusao(imobiliaria: Imobiliaria): void {
+    this.confirmationService.confirmCustom(
+      'Confirmar Exclusão Permanente',
+      `Tem certeza que deseja EXCLUIR PERMANENTEMENTE a imobiliária "${imobiliaria.nomeFantasia}"? Todos os documentos serão removidos e esta ação NÃO PODE SER DESFEITA!`,
+      {
+        confirmLabel: 'Sim, excluir permanentemente',
+        cancelLabel: 'Cancelar',
+        severity: 'danger',
+        icon: 'pi pi-exclamation-triangle'
+      }
+    ).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.excluir(imobiliaria.id);
+    });
+  }
+
+  excluir(id: number): void {
+    this.imobiliariaService.excluir(id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Excluída',
+          detail: 'Imobiliária excluída permanentemente com sucesso'
+        });
+        this.carregar();
+      },
+      error: (error) => {
+        let mensagem = 'Erro ao excluir imobiliária';
+        
+        if (error.status === 404) {
+          mensagem = 'Imobiliária não encontrada';
+        } else if (error.status === 403) {
+          mensagem = 'Você não tem permissão para excluir imobiliárias';
+        } else if (error.error?.message) {
+          mensagem = error.error.message;
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: mensagem
+        });
+      }
+    });
+  }
+
+  exportarRelatorio(tipoRelatorio: string): void {
+    this.exportando = true;
+
+    const filtroExportacao = { ...this.filtro };
+    delete filtroExportacao.page;
+    delete filtroExportacao.size;
+
+    this.imobiliariaService.exportarRelatorio(
+      filtroExportacao,
+      tipoRelatorio as TipoRelatorioImobiliaria
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const timestamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').split('.')[0];
+        const extensao = tipoRelatorio.toLowerCase();
+        link.download = `imobiliarias_${timestamp}.${extensao}`;
+
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        this.exportando = false;
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao gerar relatório'
+        });
+        this.exportando = false;
       }
     });
   }
