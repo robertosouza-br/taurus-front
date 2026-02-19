@@ -3,7 +3,8 @@
  */
 export enum TipoImobiliaria {
   PRINCIPAL = 'PRINCIPAL',
-  PARCEIRO = 'PARCEIRO'
+  PARCEIRO = 'PARCEIRO',
+  SECUNDARIA = 'SECUNDARIA'
 }
 
 export enum TipoConta {
@@ -106,6 +107,15 @@ export interface Imobiliaria {
   ativo: boolean;
 }
 
+export interface ImobiliariaComboDTO {
+  id: number;
+  razaoSocial: string;
+  nomeFantasia: string;
+  alias?: string;
+  tipoImobiliaria: TipoImobiliaria | string;
+  ativo: boolean;
+}
+
 /**
  * DTO para criação e edição de imobiliária
  */
@@ -170,7 +180,8 @@ export const TIPO_RELATORIO_IMOBILIARIA_ICONS: Record<TipoRelatorioImobiliaria, 
  */
 export const TIPO_IMOBILIARIA_LABELS: Record<TipoImobiliaria, string> = {
   [TipoImobiliaria.PRINCIPAL]: 'Principal',
-  [TipoImobiliaria.PARCEIRO]: 'Parceiro'
+  [TipoImobiliaria.PARCEIRO]: 'Parceiro',
+  [TipoImobiliaria.SECUNDARIA]: 'Secundária'
 };
 
 /**

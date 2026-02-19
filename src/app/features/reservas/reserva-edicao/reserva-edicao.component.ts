@@ -16,10 +16,12 @@ import {
   StatusReserva,
   TipoProfissional,
   TipoContato,
+  TipoRelacionamentoSecundaria,
   FormaPagamento,
   STATUS_RESERVA_LABELS,
   TIPO_PROFISSIONAL_LABELS,
   TIPO_CONTATO_LABELS,
+  TIPO_RELACIONAMENTO_SECUNDARIA_LABELS,
   FORMA_PAGAMENTO_LABELS,
   ProfissionalReservaDTO
 } from '../../../core/models/reserva.model';
@@ -32,9 +34,9 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 interface ProfissionalForm {
   tipoProfissional: { label: string; value: TipoProfissional } | null;
   corretor: CorretorSaidaDTO | null;
+  corretorCpfBusca: string;
   corretorNomeManual: string;
   corretorCpfManual: string;
-  corretorSugestoes: CorretorSaidaDTO[];
   corretorBuscando: boolean;
 }
 
@@ -60,6 +62,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   // ─── Dados do cliente ─────────────────────────────────────────────────────
   cpfCnpjCliente = '';
+  passaporteCliente = '';
   nomeCliente = '';
   clienteEstrangeiro = false;
   formaPagamento: { label: string; value: FormaPagamento } | null = null;
@@ -71,6 +74,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   // ─── Imobiliária Principal ─────────────────────────────────────────────────
   imobiliariaPrincipalSelecionada: Imobiliaria | null = null;
   imobiliariaPrincipalSugestoes: Imobiliaria[] = [];
+  private imobiliariasCombo: Imobiliaria[] = [];
   tipoContatoPrincipalSelecionado: { label: string; value: TipoContato } | null = null;
   contatoPrincipal = '';
   profissionaisPrincipal: ProfissionalForm[] = [];
@@ -79,6 +83,8 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   exibirSecundaria = false;
   imobiliariaSecundariaSelecionada: Imobiliaria | null = null;
   imobiliariaSecundariaSugestoes: Imobiliaria[] = [];
+  tipoRelacionamentoSecundariaSelecionado: { label: string; value: TipoRelacionamentoSecundaria } | null = null;
+  tiposRelacionamentoSecundariaOptions: { label: string; value: TipoRelacionamentoSecundaria }[] = [];
   tipoContatoSecundarioSelecionado: { label: string; value: TipoContato } | null = null;
   contatoSecundario = '';
   profissionaisSecundaria: ProfissionalForm[] = [];
@@ -104,6 +110,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   statusSugestoes: { label: string; value: StatusReserva }[] = [];
   formaPagamentoSugestoes: { label: string; value: FormaPagamento }[] = [];
   tipoContatoPrincipalSugestoes: { label: string; value: TipoContato }[] = [];
+  tipoRelacionamentoSecundariaSugestoes: { label: string; value: TipoRelacionamentoSecundaria }[] = [];
   tipoContatoSecundarioSugestoes: { label: string; value: TipoContato }[] = [];
   tiposProfissionalSugestoes: { label: string; value: TipoProfissional }[] = [];
 
@@ -135,6 +142,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
     this.reservaId = Number(this.route.snapshot.paramMap.get('id'));
     this.configurarOpcoes();
+    this.carregarCombos();
     this.carregarReserva();
   }
 
@@ -153,6 +161,11 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
     this.tiposContatoOptions = Object.values(TipoContato).map(v => ({
       label: TIPO_CONTATO_LABELS[v],
+      value: v
+    }));
+
+    this.tiposRelacionamentoSecundariaOptions = Object.values(TipoRelacionamentoSecundaria).map(v => ({
+      label: TIPO_RELACIONAMENTO_SECUNDARIA_LABELS[v],
       value: v
     }));
 
@@ -187,6 +200,34 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       });
   }
 
+  private carregarCombos(): void {
+    this.imobiliariaService.listarCombo()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (lista) => {
+          this.imobiliariasCombo = (lista || []).map((i) => ({
+            id: i.id,
+            razaoSocial: i.razaoSocial,
+            nomeFantasia: i.nomeFantasia,
+            alias: i.alias,
+            tipoImobiliaria: i.tipoImobiliaria as any,
+            cnpj: '',
+            cep: '',
+            logradouro: '',
+            bairro: '',
+            cidade: '',
+            uf: '' as any,
+            emailContato: '',
+            ativo: i.ativo
+          }));
+        },
+        error: () => {
+          this.imobiliariasCombo = [];
+        }
+      });
+
+  }
+
   private preencherFormulario(r: ReservaDTO): void {
     // Dados da unidade
     this.codEmpreendimento = r.codEmpreendimento;
@@ -198,7 +239,8 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     this.tipologia = r.tipologia;
 
     // Dados do cliente
-    this.cpfCnpjCliente = r.cpfCnpjCliente;
+    this.cpfCnpjCliente = r.cpfCnpjCliente || '';
+    this.passaporteCliente = r.passaporteCliente || '';
     this.nomeCliente = r.nomeCliente;
     this.clienteEstrangeiro = r.clienteEstrangeiro;
     this.formaPagamento = r.formaPagamento
@@ -224,9 +266,9 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     this.profissionaisPrincipal = (r.profissionaisPrincipal || []).map(p => ({
       tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === p.tipoProfissional) || null,
       corretor: null,
+      corretorCpfBusca: p.cpfCorretor || '',
       corretorNomeManual: p.nomeCorretor,
-      corretorCpfManual: p.cpfCorretor,
-      corretorSugestoes: [],
+      corretorCpfManual: p.cpfCorretor || '',
       corretorBuscando: false
     }));
 
@@ -246,14 +288,17 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       this.tipoContatoSecundarioSelecionado = r.tipoContatoSecundario
         ? this.tiposContatoOptions.find(o => o.value === r.tipoContatoSecundario) || null
         : null;
+      this.tipoRelacionamentoSecundariaSelecionado = r.tipoRelacionamentoSecundaria
+        ? this.tiposRelacionamentoSecundariaOptions.find(o => o.value === r.tipoRelacionamentoSecundaria) || null
+        : null;
       this.contatoSecundario = r.contatoSecundario || '';
 
       this.profissionaisSecundaria = (r.profissionaisSecundaria || []).map(p => ({
         tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === p.tipoProfissional) || null,
         corretor: null,
+        corretorCpfBusca: p.cpfCorretor || '',
         corretorNomeManual: p.nomeCorretor,
-        corretorCpfManual: p.cpfCorretor,
-        corretorSugestoes: [],
+        corretorCpfManual: p.cpfCorretor || '',
         corretorBuscando: false
       }));
     }
@@ -281,9 +326,9 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     const novo: ProfissionalForm = {
       tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === TipoProfissional.CORRETOR) || null,
       corretor: null,
+      corretorCpfBusca: '',
       corretorNomeManual: '',
       corretorCpfManual: '',
-      corretorSugestoes: [],
       corretorBuscando: false
     };
     if (tipo === 'principal') {
@@ -301,77 +346,83 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     }
   }
 
-  buscarCorretores(event: any, profForm: ProfissionalForm): void {
-    const query = event.query?.toString() || '';
-    if (query.length < 2) {
-      profForm.corretorSugestoes = [];
+  buscarCorretorPorCpf(profForm: ProfissionalForm): void {
+    const cpf = (profForm.corretorCpfBusca || '').replace(/\D/g, '');
+
+    if (cpf.length !== 11) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'CPF inválido',
+        detail: 'Informe um CPF válido com 11 dígitos para buscar o corretor.'
+      });
       return;
     }
-    profForm.corretorBuscando = true;
-    this.corretorService.listar(0, 20, query)
-      .pipe(finalize(() => (profForm.corretorBuscando = false)))
-      .subscribe({
-        next: (page) => (profForm.corretorSugestoes = page.content),
-        error: () => (profForm.corretorSugestoes = [])
-      });
-  }
 
-  onDropdownClickCorretor(profForm: ProfissionalForm): void {
     profForm.corretorBuscando = true;
-    this.corretorService.listar(0, 50, '')
+    this.corretorService.buscarPorCpfReserva(cpf)
       .pipe(finalize(() => (profForm.corretorBuscando = false)))
       .subscribe({
-        next: (page) => {
-          profForm.corretorSugestoes = page.content;
+        next: (corretor) => {
+          profForm.corretor = corretor;
+          profForm.corretorNomeManual = corretor?.nome || '';
+          profForm.corretorCpfManual = corretor?.cpf || '';
+          profForm.corretorCpfBusca = corretor?.cpf || cpf;
         },
-        error: () => {
-          profForm.corretorSugestoes = [];
+        error: (err) => {
+          profForm.corretor = null;
+          if (err?.status === 404) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Corretor não encontrado',
+              detail: 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
+            });
+            this.abrirCadastroRapidoComCpf(cpf);
+            return;
+          }
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro na busca',
+            detail: err?.error?.message || 'Não foi possível buscar o corretor por CPF.'
+          });
         }
       });
   }
 
-  onCorretorSelecionado(event: any, prof: ProfissionalForm): void {
-    const corretor: CorretorSaidaDTO = event?.value ?? event;
-    prof.corretor = corretor;
-    prof.corretorNomeManual = corretor?.nome || '';
-    prof.corretorCpfManual = corretor?.cpf || '';
+  limparCorretorSelecionado(profForm: ProfissionalForm): void {
+    profForm.corretor = null;
+    profForm.corretorNomeManual = '';
+    profForm.corretorCpfManual = '';
+  }
+
+  abrirCadastroRapidoComCpf(cpf: string): void {
+    this.abrirCadastroRapido();
+    this.cadastroRapidoCpf = cpf;
   }
 
   // ─── Autocomplete Imobiliária ─────────────────────────────────────────────
 
   buscarImobiliarias(event: any, tipo: 'principal' | 'secundaria'): void {
-    const query = (event.query || '').toString().toLowerCase();
-    this.imobiliariaService.listarTodas().subscribe({
-      next: (lista) => {
-        const filtradas = lista.filter(i =>
-          i.nomeFantasia?.toLowerCase().includes(query) ||
-          i.razaoSocial?.toLowerCase().includes(query)
-        );
-        if (tipo === 'principal') {
-          this.imobiliariaPrincipalSugestoes = filtradas;
-        } else {
-          this.imobiliariaSecundariaSugestoes = filtradas;
-        }
-      }
-    });
+    const query = (event.query || '').toString().toLowerCase().trim();
+    const filtradas = (this.imobiliariasCombo || []).filter(i =>
+      (i.nomeFantasia || '').toLowerCase().includes(query) ||
+      (i.razaoSocial || '').toLowerCase().includes(query) ||
+      (i.alias || '').toLowerCase().includes(query)
+    );
+
+    if (tipo === 'principal') {
+      this.imobiliariaPrincipalSugestoes = filtradas;
+    } else {
+      this.imobiliariaSecundariaSugestoes = filtradas;
+    }
   }
 
   onDropdownClickImobiliariaPrincipal(): void {
-    this.imobiliariaService.listarTodas()
-      .subscribe({
-        next: (lista) => {
-          this.imobiliariaPrincipalSugestoes = lista;
-        }
-      });
+    this.imobiliariaPrincipalSugestoes = this.imobiliariasCombo || [];
   }
 
   onDropdownClickImobiliariaSecundaria(): void {
-    this.imobiliariaService.listarTodas()
-      .subscribe({
-        next: (lista) => {
-          this.imobiliariaSecundariaSugestoes = lista;
-        }
-      });
+    this.imobiliariaSecundariaSugestoes = this.imobiliariasCombo || [];
   }
 
   getNomeImobiliaria(i: Imobiliaria): string {
@@ -424,6 +475,17 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     }
   }
 
+  filtrarTipoRelacionamentoSecundaria(event: any): void {
+    const query = (event.query || '').toString().toLowerCase();
+    if (!query) {
+      this.tipoRelacionamentoSecundariaSugestoes = this.tiposRelacionamentoSecundariaOptions;
+    } else {
+      this.tipoRelacionamentoSecundariaSugestoes = this.tiposRelacionamentoSecundariaOptions.filter(opt =>
+        opt.label.toLowerCase().includes(query)
+      );
+    }
+  }
+
   filtrarTiposProfissional(event: any): void {
     const query = (event.query || '').toString().toLowerCase();
     if (!query) {
@@ -447,12 +509,32 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     this.tipoContatoPrincipalSugestoes = this.tiposContatoOptions;
   }
 
+  onTipoContatoPrincipalAlterado(): void {
+    this.contatoPrincipal = '';
+  }
+
   onDropdownClickTipoContatoSecundario(): void {
     this.tipoContatoSecundarioSugestoes = this.tiposContatoOptions;
   }
 
+  onTipoContatoSecundarioAlterado(): void {
+    this.contatoSecundario = '';
+  }
+
+  onDropdownClickTipoRelacionamentoSecundaria(): void {
+    this.tipoRelacionamentoSecundariaSugestoes = this.tiposRelacionamentoSecundariaOptions;
+  }
+
   onDropdownClickTiposProfissional(): void {
     this.tiposProfissionalSugestoes = this.tiposProfissionalOptions;
+  }
+
+  isContatoTelefoneOuWhatsapp(tipo?: TipoContato | null): boolean {
+    return tipo === TipoContato.TELEFONE || tipo === TipoContato.WHATSAPP;
+  }
+
+  isContatoEmail(tipo?: TipoContato | null): boolean {
+    return tipo === TipoContato.EMAIL;
   }
 
   // ─── Cadastro Rápido ──────────────────────────────────────────────────────
@@ -588,12 +670,26 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   // ─── Validação e Salvamento ───────────────────────────────────────────────
 
   protected getCamposObrigatorios() {
-    return [
+    const campos = [
       { id: 'cpfCnpjCliente', valor: this.cpfCnpjCliente, label: 'CPF / CNPJ do Cliente' },
       { id: 'nomeCliente', valor: this.nomeCliente, label: 'Nome do Cliente' },
       { id: 'imobiliariaPrincipal', valor: this.imobiliariaPrincipalSelecionada, label: 'Imobiliária Principal' },
       { id: 'dataReserva', valor: this.dataReserva, label: 'Data da Reserva' }
     ];
+
+    if (this.clienteEstrangeiro) {
+      campos[0] = { id: 'passaporteCliente', valor: this.passaporteCliente, label: 'Passaporte do Cliente' };
+    }
+
+    if (this.imobiliariaSecundariaSelecionada) {
+      campos.push({
+        id: 'tipoRelacionamentoSecundaria',
+        valor: this.tipoRelacionamentoSecundariaSelecionado?.value || '',
+        label: 'Relacionamento da Imobiliária Secundária'
+      });
+    }
+
+    return campos;
   }
 
   salvar(): void {
@@ -611,6 +707,28 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   private validarProfissionaisObrigatorios(): boolean {
+    if (this.clienteEstrangeiro) {
+      this.cpfCnpjCliente = '';
+      if (!this.passaporteCliente?.trim()) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Passaporte obrigatório',
+          detail: 'Para cliente estrangeiro, informe o passaporte.'
+        });
+        return false;
+      }
+    } else {
+      this.passaporteCliente = '';
+      if (!this.cpfCnpjCliente?.trim()) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'CPF/CNPJ obrigatório',
+          detail: 'Para cliente brasileiro, informe CPF/CNPJ.'
+        });
+        return false;
+      }
+    }
+
     const possuiProfissionalPrincipal = this.profissionaisPrincipal.some(
       (prof) => prof.tipoProfissional !== null && (prof.corretor !== null || !!prof.corretorNomeManual)
     );
@@ -680,11 +798,8 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     return profs
       .filter(p => p.tipoProfissional !== null && (p.corretor !== null || p.corretorNomeManual))
       .map(p => ({
-        imobiliariaId: imobiliaria?.id || 0,
-        nomeImobiliaria: this.getNomeImobiliaria(imobiliaria!),
         tipoProfissional: p.tipoProfissional!.value,
         corretorId: Number(p.corretor?.idExterno) || 0,
-        cpfCorretor: p.corretor?.cpf || p.corretorCpfManual || '',
         nomeCorretor: p.corretor?.nome || p.corretorNomeManual || ''
       }));
   }
@@ -699,7 +814,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       tipoUnidade: this.tipoUnidade,
       tipologia: this.tipologia,
       status: this.statusSelecionado?.value,
+      cpfCnpjCliente: this.clienteEstrangeiro ? null : this.cpfCnpjCliente,
+      passaporteCliente: this.clienteEstrangeiro ? this.passaporteCliente : null,
       imobiliariaPrincipalId: this.imobiliariaPrincipalSelecionada!.id,
+      nomeImobiliariaPrincipal: this.getNomeImobiliaria(this.imobiliariaPrincipalSelecionada!),
       tipoContatoPrincipal: this.tipoContatoPrincipalSelecionado?.value,
       contatoPrincipal: this.contatoPrincipal || undefined,
       profissionaisPrincipal: this.montarProfissionaisPayload(
@@ -707,12 +825,15 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
         this.imobiliariaPrincipalSelecionada
       ),
       imobiliariaSecundariaId: this.imobiliariaSecundariaSelecionada?.id || null,
+      nomeImobiliariaSecundaria: this.imobiliariaSecundariaSelecionada ? this.getNomeImobiliaria(this.imobiliariaSecundariaSelecionada) : null,
+      tipoRelacionamentoSecundaria: this.imobiliariaSecundariaSelecionada
+        ? (this.tipoRelacionamentoSecundariaSelecionado?.value || null)
+        : null,
       tipoContatoSecundario: this.tipoContatoSecundarioSelecionado?.value || null,
       contatoSecundario: this.contatoSecundario || null,
       profissionaisSecundaria: this.imobiliariaSecundariaSelecionada
         ? this.montarProfissionaisPayload(this.profissionaisSecundaria, this.imobiliariaSecundariaSelecionada)
         : [],
-      cpfCnpjCliente: this.cpfCnpjCliente.replace(/\D/g, ''),
       nomeCliente: this.nomeCliente,
       clienteEstrangeiro: this.clienteEstrangeiro,
       formaPagamento: this.formaPagamento?.value || undefined,
@@ -730,11 +851,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     this.preencherFormulario(this.reservaOriginal);
     this.resetarFormulario();
 
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Formulário restaurado',
-      detail: 'Os dados foram restaurados para o último estado salvo.'
-    });
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }
 
   voltar(): void {

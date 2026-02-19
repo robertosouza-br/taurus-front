@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CorretorDTO, CorretorSaidaDTO } from '../models/corretor.model';
+import { CorretorCargo, CorretorComboDTO, CorretorDTO, CorretorSaidaDTO } from '../models/corretor.model';
 import { Page } from '../models/page.model';
 
 /**
@@ -47,6 +48,37 @@ export class CorretorService {
     return this.http.get<Page<CorretorSaidaDTO>>(this.baseUrl, { params });
   }
 
+  listarCombo(): Observable<CorretorSaidaDTO[]> {
+    return this.http.get<CorretorComboDTO[]>(`${this.baseUrl}/combo`).pipe(
+      map((lista) =>
+        lista.map((c) => ({
+          idExterno: c.codigo,
+          nome: c.nome,
+          cpf: c.cpf,
+          cargo: CorretorCargo.CORRETOR,
+          ativo: true
+        }))
+      )
+    );
+  }
+
+  buscarPorCpfReserva(cpf: string): Observable<CorretorSaidaDTO> {
+    const cpfSanitizado = (cpf || '').replace(/\D/g, '');
+    return this.http.get<any>(`${this.baseUrl}/buscar-para-reserva/${cpfSanitizado}`).pipe(
+      map((c) => ({
+        idExterno: c.codigo || c.idExterno || (c.id ? String(c.id) : ''),
+        nome: c.nome,
+        cpf: c.cpf,
+        email: c.email,
+        telefone: c.telefone,
+        numeroCreci: c.numeroCreci,
+        cargo: c.cargo || CorretorCargo.CORRETOR,
+        ativo: c.ativo ?? true,
+        nomeGuerra: c.nomeGuerra
+      }))
+    );
+  }
+
   /**
    * Busca corretor por ID
    * @param id ID do corretor
@@ -79,7 +111,7 @@ export class CorretorService {
    * @param payload Dados mínimos: cpf, nome e opcionalmente email e telefone
    */
   cadastroRapido(payload: { cpf: string; nome: string; email?: string; telefone?: string }): Observable<CorretorSaidaDTO> {
-    return this.http.post<CorretorSaidaDTO>(`${this.baseUrl}/cadastro-rapido`, payload);
+    return this.http.post<CorretorSaidaDTO>(`${this.baseUrl}/rapido`, payload);
   }
 
   /**

@@ -88,14 +88,27 @@
         </div>
 
         <!-- CPF / CNPJ -->
-        <div class="col-12 md:col-4">
+        <div class="col-12 md:col-4" *ngIf="!clienteEstrangeiro">
           <app-input-cpf
             id="cpfCnpjCliente"
             label="CPF / CNPJ do Cliente"
             [(ngModel)]="cpfCnpjCliente"
+            documentType="cpfCnpj"
             [required]="true"
             [showValidation]="tentouSalvar">
           </app-input-cpf>
+        </div>
+
+        <!-- Passaporte -->
+        <div class="col-12 md:col-4" *ngIf="clienteEstrangeiro">
+          <app-input-text
+            id="passaporteCliente"
+            label="Passaporte do Cliente"
+            [(ngModel)]="passaporteCliente"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Informe o passaporte">
+          </app-input-text>
         </div>
 
         <!-- Nome do cliente -->
@@ -199,6 +212,7 @@
             id="tipoContatoPrincipal"
             label="Tipo de Contato"
             [(ngModel)]="tipoContatoPrincipalSelecionado"
+            (ngModelChange)="onTipoContatoPrincipalAlterado()"
             [required]="false"
             [suggestions]="tipoContatoPrincipalSugestoes"
             field="label"
@@ -210,13 +224,23 @@
 
         <!-- Contato -->
         <div class="col-12 md:col-3">
-          <app-input-text
+          <app-input-telefone
+            *ngIf="isContatoTelefoneOuWhatsapp(tipoContatoPrincipalSelecionado?.value); else contatoPrincipalTexto"
             id="contatoPrincipal"
             label="Contato"
             [(ngModel)]="contatoPrincipal"
-            [required]="false"
-            placeholder="E-mail, fone ou WhatsApp">
-          </app-input-text>
+            [required]="false">
+          </app-input-telefone>
+          <ng-template #contatoPrincipalTexto>
+            <app-input-text
+              id="contatoPrincipal"
+              label="Contato"
+              [(ngModel)]="contatoPrincipal"
+              [type]="isContatoEmail(tipoContatoPrincipalSelecionado?.value) ? 'email' : 'text'"
+              [required]="false"
+              [placeholder]="isContatoEmail(tipoContatoPrincipalSelecionado?.value) ? 'email@exemplo.com' : 'E-mail, fone ou WhatsApp'">
+            </app-input-text>
+          </ng-template>
         </div>
 
         <!-- Profissionais -->
@@ -266,24 +290,34 @@
               </app-autocomplete>
             </div>
 
-            <!-- Corretor (autocomplete) -->
+            <!-- Corretor (busca por CPF) -->
             <div class="prof-field corretor">
-              <app-autocomplete
-                id="corretorPrincipal_{{ i }}"
-                label="Corretor / Profissional"
-                [(ngModel)]="prof.corretor"
-                [suggestions]="prof.corretorSugestoes"
-                field="nome"
-                placeholder="Buscar pelo nome ou CPF"
-                (completeMethod)="buscarCorretores($event, prof)"
-                (onDropdownClick)="onDropdownClickCorretor(prof)">
-                <ng-template let-c pTemplate="item">
-                  <div class="corretor-sugestao">
-                    <strong>{{ c.nome }}</strong>
-                    <small>{{ c.cpf }}</small>
-                  </div>
-                </ng-template>
-              </app-autocomplete>
+              <div class="corretor-busca-row">
+                <div class="corretor-cpf-field">
+                  <app-input-cpf
+                    id="cpfCorretorPrincipal_{{ i }}"
+                    label="CPF do Corretor"
+                    [(ngModel)]="prof.corretorCpfBusca"
+                    [required]="false"
+                    (ngModelChange)="limparCorretorSelecionado(prof)">
+                  </app-input-cpf>
+                </div>
+                <div class="corretor-busca-acao">
+                  <app-custom-button
+                    label="Buscar"
+                    icon="pi pi-search"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    [loading]="prof.corretorBuscando"
+                    (onClick)="buscarCorretorPorCpf(prof)">
+                  </app-custom-button>
+                </div>
+              </div>
+              <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && prof.corretor?.nome">
+                <span class="corretor-encontrado-label">Corretor:</span>
+                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome }}</span>
+              </div>
             </div>
 
             <!-- Remover -->
@@ -340,12 +374,29 @@
           </app-autocomplete>
         </div>
 
+        <div class="col-12 md:col-6" *ngIf="imobiliariaSecundariaSelecionada">
+          <app-autocomplete
+            id="tipoRelacionamentoSecundaria"
+            label="Relacionamento com a Imobiliária Principal"
+            [(ngModel)]="tipoRelacionamentoSecundariaSelecionado"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            [suggestions]="tipoRelacionamentoSecundariaSugestoes"
+            field="label"
+            placeholder="Selecione o relacionamento"
+            (completeMethod)="filtrarTipoRelacionamentoSecundaria($event)"
+            (onDropdownClick)="onDropdownClickTipoRelacionamentoSecundaria()"
+            errorMessage="Relacionamento é obrigatório quando houver imobiliária secundária">
+          </app-autocomplete>
+        </div>
+
         <!-- Tipo de Contato Secundário -->
         <div class="col-12 md:col-3">
           <app-autocomplete
             id="tipoContatoSecundario"
             label="Tipo de Contato"
             [(ngModel)]="tipoContatoSecundarioSelecionado"
+            (ngModelChange)="onTipoContatoSecundarioAlterado()"
             [required]="false"
             [suggestions]="tipoContatoSecundarioSugestoes"
             field="label"
@@ -357,13 +408,23 @@
 
         <!-- Contato Secundário -->
         <div class="col-12 md:col-3">
-          <app-input-text
+          <app-input-telefone
+            *ngIf="isContatoTelefoneOuWhatsapp(tipoContatoSecundarioSelecionado?.value); else contatoSecundarioTexto"
             id="contatoSecundario"
             label="Contato"
             [(ngModel)]="contatoSecundario"
-            [required]="false"
-            placeholder="E-mail, fone ou WhatsApp">
-          </app-input-text>
+            [required]="false">
+          </app-input-telefone>
+          <ng-template #contatoSecundarioTexto>
+            <app-input-text
+              id="contatoSecundario"
+              label="Contato"
+              [(ngModel)]="contatoSecundario"
+              [type]="isContatoEmail(tipoContatoSecundarioSelecionado?.value) ? 'email' : 'text'"
+              [required]="false"
+              [placeholder]="isContatoEmail(tipoContatoSecundarioSelecionado?.value) ? 'email@exemplo.com' : 'E-mail, fone ou WhatsApp'">
+            </app-input-text>
+          </ng-template>
         </div>
 
         <!-- Profissionais Secundária -->
@@ -399,22 +460,32 @@
               </app-autocomplete>
             </div>
             <div class="prof-field corretor">
-              <app-autocomplete
-                id="corretorSecundaria_{{ i }}"
-                label="Corretor / Profissional"
-                [(ngModel)]="prof.corretor"
-                [suggestions]="prof.corretorSugestoes"
-                field="nome"
-                placeholder="Buscar pelo nome ou CPF"
-                (completeMethod)="buscarCorretores($event, prof)"
-                (onDropdownClick)="onDropdownClickCorretor(prof)">
-                <ng-template let-c pTemplate="item">
-                  <div class="corretor-sugestao">
-                    <strong>{{ c.nome }}</strong>
-                    <small>{{ c.cpf }}</small>
-                  </div>
-                </ng-template>
-              </app-autocomplete>
+              <div class="corretor-busca-row">
+                <div class="corretor-cpf-field">
+                  <app-input-cpf
+                    id="cpfCorretorSecundaria_{{ i }}"
+                    label="CPF do Corretor"
+                    [(ngModel)]="prof.corretorCpfBusca"
+                    [required]="false"
+                    (ngModelChange)="limparCorretorSelecionado(prof)">
+                  </app-input-cpf>
+                </div>
+                <div class="corretor-busca-acao">
+                  <app-custom-button
+                    label="Buscar"
+                    icon="pi pi-search"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    [loading]="prof.corretorBuscando"
+                    (onClick)="buscarCorretorPorCpf(prof)">
+                  </app-custom-button>
+                </div>
+              </div>
+              <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && prof.corretor?.nome">
+                <span class="corretor-encontrado-label">Corretor:</span>
+                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome }}</span>
+              </div>
             </div>
             <button
               type="button"

@@ -44,6 +44,12 @@ export interface CorretorSaidaDTO extends CorretorDTO {
   idExterno: string; // ID do sistema externo RMS
 }
 
+export interface CorretorComboDTO {
+  codigo: string;
+  nome: string;
+  cpf: string;
+}
+
 /**
  * Interface para exibição de corretor na tabela
  */

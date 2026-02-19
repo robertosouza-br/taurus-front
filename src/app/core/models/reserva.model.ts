@@ -5,13 +5,13 @@ export enum StatusReserva {
   NAO_VENDIDA = 'NAO_VENDIDA',
   EM_NEGOCIACAO = 'EM_NEGOCIACAO',
   RESERVADA = 'RESERVADA',
-  ASSINADO_SINAL_A_CREDITAR = 'ASSINADO_SINAL_A_CREDITAR',
-  SINAL_CREDITADO_DOC_IMOBILIARIA = 'SINAL_CREDITADO_DOC_IMOBILIARIA',
-  SINAL_A_CREDITAR_DOC_CALPER = 'SINAL_A_CREDITAR_DOC_CALPER',
-  SINAL_CREDITADO_PENDENCIA_DOC = 'SINAL_CREDITADO_PENDENCIA_DOC',
+  ASSINADO_SINAL_A_CREDITAR = 'ASSINADO_SINAL_A_CREDITAR_DOCS_IMOBILIARIA',
+  SINAL_CREDITADO_DOC_IMOBILIARIA = 'SINAL_CREDITADO_DOCS_IMOBILIARIA',
+  SINAL_A_CREDITAR_DOC_CALPER = 'SINAL_A_CREDITAR_DOCS_CALPER',
+  SINAL_CREDITADO_PENDENCIA_DOC = 'SINAL_CREDITADO_PENDENCIA_DOCS',
   SINAL_CREDITADO_SEM_PENDENCIA = 'SINAL_CREDITADO_SEM_PENDENCIA',
   PROCESSO_FINALIZADO = 'PROCESSO_FINALIZADO',
-  DISTRATO = 'DISTRATO',
+  DISTRATO = 'SINAL_CREDITADO_DISTRATO',
   FORA_DE_VENDA = 'FORA_DE_VENDA'
 }
 
@@ -38,6 +38,7 @@ export enum TipoContato {
  * Formas de pagamento disponíveis
  */
 export enum FormaPagamento {
+  FINANCIAMENTO = 'FINANCIAMENTO',
   PIX = 'PIX',
   SWIFT = 'SWIFT',
   CARTAO_CREDITO = 'CARTAO_CREDITO',
@@ -45,6 +46,14 @@ export enum FormaPagamento {
   DOC = 'DOC',
   TED = 'TED',
   TRANSFERENCIA = 'TRANSFERENCIA'
+}
+
+/**
+ * Tipo de relacionamento da imobiliária secundária
+ */
+export enum TipoRelacionamentoSecundaria {
+  PARCEIRO = 'PARCEIRO',
+  AUTONOMO = 'AUTONOMO'
 }
 
 /**
@@ -87,6 +96,7 @@ export const TIPO_CONTATO_LABELS: Record<TipoContato, string> = {
  * Labels das formas de pagamento
  */
 export const FORMA_PAGAMENTO_LABELS: Record<FormaPagamento, string> = {
+  [FormaPagamento.FINANCIAMENTO]: 'Financiamento',
   [FormaPagamento.PIX]: 'Pix',
   [FormaPagamento.SWIFT]: 'Swift',
   [FormaPagamento.CARTAO_CREDITO]: 'Cartão de Crédito',
@@ -97,16 +107,24 @@ export const FORMA_PAGAMENTO_LABELS: Record<FormaPagamento, string> = {
 };
 
 /**
+ * Labels do tipo de relacionamento da imobiliária secundária
+ */
+export const TIPO_RELACIONAMENTO_SECUNDARIA_LABELS: Record<TipoRelacionamentoSecundaria, string> = {
+  [TipoRelacionamentoSecundaria.PARCEIRO]: 'Parceiro',
+  [TipoRelacionamentoSecundaria.AUTONOMO]: 'Autônomo'
+};
+
+/**
  * DTO de profissional na resposta da API
  */
 export interface ProfissionalReservaDTO {
   id?: number;
-  imobiliariaId: number;
-  nomeImobiliaria: string;
   tipoProfissional: TipoProfissional;
   corretorId: number;
-  cpfCorretor: string;
+  cpfCorretor?: string;
   nomeCorretor: string;
+  imobiliariaId?: number;
+  nomeImobiliaria?: string;
 }
 
 /**
@@ -122,7 +140,8 @@ export interface ReservaDTO {
   tipoUnidade: string;
   tipologia: string;
   status: StatusReserva;
-  cpfCnpjCliente: string;
+  cpfCnpjCliente: string | null;
+  passaporteCliente: string | null;
   nomeCliente: string;
   clienteEstrangeiro: boolean;
   formaPagamento: FormaPagamento | null;
@@ -136,6 +155,7 @@ export interface ReservaDTO {
   profissionaisPrincipal: ProfissionalReservaDTO[];
   imobiliariaSecundariaId: number | null;
   nomeImobiliariaSecundaria: string | null;
+  tipoRelacionamentoSecundaria: TipoRelacionamentoSecundaria | null;
   tipoContatoSecundario: TipoContato | null;
   contatoSecundario: string | null;
   profissionaisSecundaria: ProfissionalReservaDTO[];
@@ -157,15 +177,19 @@ export interface ReservaCreateDTO {
   tipoUnidade?: string;
   tipologia?: string;
   status?: StatusReserva;
+  cpfCnpjCliente?: string | null;
+  passaporteCliente?: string | null;
   imobiliariaPrincipalId: number;
+  nomeImobiliariaPrincipal?: string;
   tipoContatoPrincipal?: TipoContato;
   contatoPrincipal?: string;
   profissionaisPrincipal?: Omit<ProfissionalReservaDTO, 'id'>[];
   imobiliariaSecundariaId?: number | null;
+  nomeImobiliariaSecundaria?: string | null;
+  tipoRelacionamentoSecundaria?: TipoRelacionamentoSecundaria | null;
   tipoContatoSecundario?: TipoContato | null;
   contatoSecundario?: string | null;
   profissionaisSecundaria?: Omit<ProfissionalReservaDTO, 'id'>[];
-  cpfCnpjCliente: string;
   nomeCliente: string;
   clienteEstrangeiro?: boolean;
   formaPagamento?: FormaPagamento;

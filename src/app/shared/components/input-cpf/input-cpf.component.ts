@@ -23,6 +23,7 @@ export class InputCpfComponent implements ControlValueAccessor {
   @Input() styleClass: string = '';
   @Input() showValidation: boolean = false;
   @Input() errorMessage: string = '';
+  @Input() documentType: 'cpf' | 'cnpj' | 'cpfCnpj' = 'cpf';
 
   value: string = '';
   touched: boolean = false;
@@ -30,7 +31,7 @@ export class InputCpfComponent implements ControlValueAccessor {
   private onTouched: () => void = () => {};
 
   writeValue(value: string): void {
-    this.value = this.formatarCPF(value || '');
+    this.value = this.formatarDocumento(value || '');
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -48,7 +49,7 @@ export class InputCpfComponent implements ControlValueAccessor {
   onInputChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const valorSemFormatacao = input.value.replace(/\D/g, '');
-    this.value = this.formatarCPF(valorSemFormatacao);
+    this.value = this.formatarDocumento(valorSemFormatacao);
     this.onChange(valorSemFormatacao); // Envia valor sem formatação para o modelo
   }
 
@@ -57,8 +58,24 @@ export class InputCpfComponent implements ControlValueAccessor {
     this.onTouched();
   }
 
+  private formatarDocumento(valor: string): string {
+    valor = valor.replace(/\D/g, '');
+
+    if (this.documentType === 'cnpj') {
+      return this.formatarCNPJ(valor);
+    }
+
+    if (this.documentType === 'cpfCnpj') {
+      if (valor.length <= 11) {
+        return this.formatarCPF(valor);
+      }
+      return this.formatarCNPJ(valor);
+    }
+
+    return this.formatarCPF(valor);
+  }
+
   private formatarCPF(valor: string): string {
-    // Remove tudo que não é dígito
     valor = valor.replace(/\D/g, '');
     
     // Limita a 11 dígitos
@@ -75,6 +92,26 @@ export class InputCpfComponent implements ControlValueAccessor {
       valor = valor.replace(/(\d{3})(\d{0,3})/, '$1.$2');
     }
     
+    return valor;
+  }
+
+  private formatarCNPJ(valor: string): string {
+    valor = valor.replace(/\D/g, '');
+
+    if (valor.length > 14) {
+      valor = valor.substring(0, 14);
+    }
+
+    if (valor.length > 12) {
+      valor = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, '$1.$2.$3/$4-$5');
+    } else if (valor.length > 8) {
+      valor = valor.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4');
+    } else if (valor.length > 5) {
+      valor = valor.replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    } else if (valor.length > 2) {
+      valor = valor.replace(/(\d{2})(\d{0,3})/, '$1.$2');
+    }
+
     return valor;
   }
 
@@ -107,6 +144,42 @@ export class InputCpfComponent implements ControlValueAccessor {
     return true;
   }
 
+  private validarCNPJ(cnpj: string): boolean {
+    cnpj = cnpj.replace(/\D/g, '');
+
+    if (cnpj.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    const digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+
+    for (let i = tamanho; i >= 1; i--) {
+      soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+      if (pos < 2) pos = 9;
+    }
+
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0), 10)) return false;
+
+    tamanho = tamanho + 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+
+    for (let i = tamanho; i >= 1; i--) {
+      soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--;
+      if (pos < 2) pos = 9;
+    }
+
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(1), 10)) return false;
+
+    return true;
+  }
+
   get inputId(): string {
     return this.id || `input-cpf-${Math.random().toString(36).substr(2, 9)}`;
   }
@@ -119,32 +192,62 @@ export class InputCpfComponent implements ControlValueAccessor {
     // Mostra validação se showValidation está ativo OU se o campo foi tocado
     if (!this.showValidation && !this.touched) return false;
     
-    const cpfSemFormatacao = this.value.replace(/\D/g, '');
+    const documentoSemFormatacao = this.value.replace(/\D/g, '');
     
-    if (this.required && (!cpfSemFormatacao || cpfSemFormatacao.length === 0)) {
+    if (this.required && (!documentoSemFormatacao || documentoSemFormatacao.length === 0)) {
       return true;
     }
-    
-    if (cpfSemFormatacao.length > 0 && !this.validarCPF(cpfSemFormatacao)) {
-      return true;
+
+    if (!documentoSemFormatacao) {
+      return false;
     }
-    
-    return false;
+
+    if (this.documentType === 'cnpj') {
+      return !this.validarCNPJ(documentoSemFormatacao);
+    }
+
+    if (this.documentType === 'cpfCnpj') {
+      if (documentoSemFormatacao.length <= 11) {
+        return !this.validarCPF(documentoSemFormatacao);
+      }
+      return !this.validarCNPJ(documentoSemFormatacao);
+    }
+
+    return !this.validarCPF(documentoSemFormatacao);
   }
 
   get displayErrorMessage(): string {
     if (this.errorMessage) return this.errorMessage;
     
-    const cpfSemFormatacao = this.value.replace(/\D/g, '');
+    const documentoSemFormatacao = this.value.replace(/\D/g, '');
     
-    if (this.required && (!cpfSemFormatacao || cpfSemFormatacao.length === 0)) {
+    if (this.required && (!documentoSemFormatacao || documentoSemFormatacao.length === 0)) {
       return `${this.label} é obrigatório`;
     }
-    
-    if (cpfSemFormatacao.length > 0 && !this.validarCPF(cpfSemFormatacao)) {
+
+    if (!documentoSemFormatacao) {
+      return '';
+    }
+
+    if (this.documentType === 'cnpj') {
+      return this.validarCNPJ(documentoSemFormatacao) ? '' : 'CNPJ inválido';
+    }
+
+    if (this.documentType === 'cpfCnpj') {
+      if (documentoSemFormatacao.length <= 11) {
+        return this.validarCPF(documentoSemFormatacao) ? '' : 'CPF/CNPJ inválido';
+      }
+      return this.validarCNPJ(documentoSemFormatacao) ? '' : 'CPF/CNPJ inválido';
+    }
+
+    if (!this.validarCPF(documentoSemFormatacao)) {
       return 'CPF inválido';
     }
-    
+
     return '';
+  }
+
+  get inputMaxLength(): number {
+    return this.documentType === 'cpf' ? 14 : 18;
   }
 }

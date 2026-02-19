@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Imobiliaria, ImobiliariaFormDTO, ImobiliariaFiltroDTO, ImagemImobiliaria, TipoRelatorioImobiliaria } from '../models/imobiliaria.model';
+import { Imobiliaria, ImobiliariaComboDTO, ImobiliariaFormDTO, ImobiliariaFiltroDTO, ImagemImobiliaria, TipoRelatorioImobiliaria } from '../models/imobiliaria.model';
 import { Page } from '../models/page.model';
 
 /**
@@ -22,6 +22,10 @@ export class ImobiliariaService {
    */
   listarTodas(): Observable<Imobiliaria[]> {
     return this.http.get<Imobiliaria[]>(`${this.baseUrl}/todos`);
+  }
+
+  listarCombo(): Observable<ImobiliariaComboDTO[]> {
+    return this.http.get<ImobiliariaComboDTO[]>(`${this.baseUrl}/combo`);
   }
 
   /**
