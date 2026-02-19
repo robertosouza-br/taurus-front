@@ -59,6 +59,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   unidade = '';
   tipoUnidade = '';
   tipologia = '';
+  precoUnidade: number | null = null;
 
   // ─── Dados do cliente ─────────────────────────────────────────────────────
   cpfCnpjCliente = '';
@@ -139,6 +140,9 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     }
 
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+    const state = window.history.state;
+    this.precoUnidade = Number(state?.preco ?? state?.precoUnidade) || null;
 
     this.reservaId = Number(this.route.snapshot.paramMap.get('id'));
     this.configurarOpcoes();
@@ -867,5 +871,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   temPermissaoExcluir(): boolean {
     return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.EXCLUIR);
+  }
+
+  formatarPreco(preco: number | null): string {
+    if (!preco) return '—';
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(preco);
   }
 }

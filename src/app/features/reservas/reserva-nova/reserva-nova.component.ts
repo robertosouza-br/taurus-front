@@ -276,7 +276,13 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
             // Carrega o status real da reserva existente
             this.statusSelecionado = this.statusOptions.find(o => o.value === reserva.status) || null;
 
-            this.router.navigate(['/reservas', reserva.id, 'editar'], { replaceUrl: true });
+            this.router.navigate(['/reservas', reserva.id, 'editar'], {
+              replaceUrl: true,
+              state: {
+                nomeEmpreendimento: this.nomeEmpreendimento,
+                preco: this.precoUnidade
+              }
+            });
           }
         },
         error: () => {
@@ -727,7 +733,12 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
             summary: 'Reserva criada!',
             detail: `Reserva da unidade ${this.bloco}/${this.unidade} criada com sucesso.`
           });
-          this.router.navigate(['/reservas', reserva.id, 'editar']);
+          this.router.navigate(['/reservas', reserva.id, 'editar'], {
+            state: {
+              nomeEmpreendimento: this.nomeEmpreendimento,
+              preco: this.precoUnidade
+            }
+          });
         },
         error: (err) => {
           const msg = err?.error?.message || 'Não foi possível criar a reserva.';

@@ -71,6 +71,10 @@
           <span class="info-label">Tipologia</span>
           <span class="info-valor">{{ tipologia }}</span>
         </div>
+        <div class="unidade-info-item" *ngIf="precoUnidade">
+          <span class="info-label">Preço</span>
+          <span class="info-valor preco">{{ formatarPreco(precoUnidade) }}</span>
+        </div>
         <div class="unidade-info-item" *ngIf="reservaOriginal?.dataCriacao">
           <span class="info-label">Criada em</span>
           <span class="info-valor">{{ reservaOriginal?.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</span>
