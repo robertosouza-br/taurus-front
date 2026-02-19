@@ -2,6 +2,72 @@
   display: block;
   width: 100%;
 
+  ::ng-deep {
+    .p-float-label {
+      position: relative;
+
+      .p-calendar {
+        width: 100%;
+
+        .p-inputtext {
+          width: 100%;
+          padding: 1.25rem 1rem 0.5rem 1rem !important;
+          font-size: 1rem !important;
+          border: 2px solid #e0e0e0 !important;
+          border-radius: 8px !important;
+          transition: all 0.3s ease !important;
+          height: auto !important;
+
+          &:enabled:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+          }
+
+          &:disabled {
+            background-color: #f5f5f5 !important;
+            cursor: not-allowed !important;
+          }
+        }
+
+        .p-datepicker-trigger {
+          position: absolute;
+          right: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #666;
+          z-index: 1;
+          
+          &:hover {
+            color: var(--primary-color);
+          }
+        }
+      }
+
+      > label {
+        position: absolute;
+        font-weight: 500;
+        color: #666;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        padding: 0 0.25rem;
+        transition: all 0.2s ease;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      // Label sobe quando tem foco ou valor
+      &.p-input-filled > label,
+      .p-calendar .p-inputtext:focus ~ label {
+        top: 0;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: var(--primary-color);
+      }
+    }
+  }
+
   small.p-error {
     display: block;
     margin-top: 0.25rem;

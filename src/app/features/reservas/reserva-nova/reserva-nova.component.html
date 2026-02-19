@@ -1,0 +1,544 @@
+<div class="reserva-nova-page">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Header -->
+  <app-page-header
+    title="Nova Reserva"
+    [subtitle]="bloco && unidade ? 'Bloco ' + bloco + ' · Unidade ' + unidade : 'Preencha os dados abaixo'"
+    icon="pi pi-bookmark">
+    <div header-actions class="flex gap-2 flex-wrap">
+      <app-custom-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="voltar()">
+      </app-custom-button>
+      <app-custom-button
+        label="Salvar Reserva"
+        icon="pi pi-save"
+        severity="success"
+        [loading]="salvando"
+        [disabled]="verificandoReserva"
+        (onClick)="salvar()">
+      </app-custom-button>
+    </div>
+  </app-page-header>
+
+  <!-- Alerta: verificando reserva existente -->
+  <div *ngIf="verificandoReserva" class="verificando-banner">
+    <p-progressSpinner [style]="{'width':'20px','height':'20px'}" strokeWidth="4"></p-progressSpinner>
+    <span>Verificando reservas existentes para esta unidade...</span>
+  </div>
+
+  <!-- Formulário -->
+  <div class="reserva-form-container">
+
+    <!-- ─── BANNER DA UNIDADE ──────────────────────────────────────────── -->
+    <div class="unidade-banner" *ngIf="codEmpreendimento">
+      <div class="unidade-banner-grid">
+        <div class="unidade-info-item">
+          <span class="info-label">Empreendimento</span>
+          <span class="info-valor">{{ nomeEmpreendimento || ('Cód. ' + codEmpreendimento) }}</span>
+        </div>
+        <div class="unidade-info-item">
+          <span class="info-label">Bloco</span>
+          <span class="info-valor destaque">{{ bloco }}</span>
+        </div>
+        <div class="unidade-info-item">
+          <span class="info-label">Unidade</span>
+          <span class="info-valor destaque">{{ unidade }}</span>
+        </div>
+        <div class="unidade-info-item" *ngIf="tipoUnidade">
+          <span class="info-label">Tipo</span>
+          <span class="info-valor">{{ tipoUnidade }}</span>
+        </div>
+        <div class="unidade-info-item" *ngIf="tipologia">
+          <span class="info-label">Tipologia</span>
+          <span class="info-valor">{{ tipologia }}</span>
+        </div>
+        <div class="unidade-info-item" *ngIf="precoUnidade">
+          <span class="info-label">Preço</span>
+          <span class="info-valor preco">{{ formatarPreco(precoUnidade) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CARD 1: DADOS DO CLIENTE ──────────────────────────────────── -->
+    <p-card class="reserva-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-user"></i>
+          <span>Dados do Cliente</span>
+        </div>
+      </ng-template>
+
+      <div class="grid">
+        <!-- Cliente Estrangeiro -->
+        <div class="col-12">
+          <div class="checkbox-field">
+            <p-checkbox
+              inputId="clienteEstrangeiro"
+              [(ngModel)]="clienteEstrangeiro"
+              [binary]="true">
+            </p-checkbox>
+            <label for="clienteEstrangeiro" class="ml-2">Cliente Estrangeiro</label>
+          </div>
+        </div>
+
+        <!-- CPF / CNPJ -->
+        <div class="col-12 md:col-4">
+          <app-input-cpf
+            id="cpfCnpjCliente"
+            label="CPF / CNPJ do Cliente"
+            [(ngModel)]="cpfCnpjCliente"
+            [required]="true"
+            [showValidation]="tentouSalvar">
+          </app-input-cpf>
+        </div>
+
+        <!-- Nome do cliente -->
+        <div class="col-12 md:col-8">
+          <app-input-text
+            id="nomeCliente"
+            label="Nome Completo do Cliente"
+            [(ngModel)]="nomeCliente"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="Digite o nome completo">
+          </app-input-text>
+        </div>
+
+        <!-- Status da Reserva -->
+        <div class="col-12 md:col-8">
+          <app-autocomplete
+            id="statusReserva"
+            label="Status da Reserva"
+            [(ngModel)]="statusSelecionado"
+            [required]="false"
+            [suggestions]="statusSugestoes"
+            field="label"
+            placeholder="Selecione o status"
+            (completeMethod)="filtrarStatus($event)"
+            (onDropdownClick)="onDropdownClickStatus()">
+          </app-autocomplete>
+        </div>
+
+        <!-- Forma de Pagamento -->
+        <div class="col-12 md:col-4">
+          <app-autocomplete
+            id="formaPagamento"
+            label="Forma de Pagamento"
+            [(ngModel)]="formaPagamento"
+            [required]="false"
+            [suggestions]="formaPagamentoSugestoes"
+            field="label"
+            placeholder="Selecione a forma de pagamento"
+            (completeMethod)="filtrarFormaPagamento($event)"
+            (onDropdownClick)="onDropdownClickFormaPagamento()">
+          </app-autocomplete>
+        </div>
+
+        <!-- Data da Reserva -->
+        <div class="col-12 md:col-3">
+          <app-input-date
+            id="dataReservaField"
+            label="Data da Reserva"
+            [(ngModel)]="dataReserva"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            placeholder="dd/mm/aaaa">
+          </app-input-date>
+        </div>
+
+        <!-- Data da Venda -->
+        <div class="col-12 md:col-3">
+          <app-input-date
+            id="dataVendaField"
+            label="Data da Venda"
+            [(ngModel)]="dataVenda"
+            [required]="false"
+            [showValidation]="false"
+            placeholder="dd/mm/aaaa">
+          </app-input-date>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- ─── CARD 2: IMOBILIÁRIA PRINCIPAL ─────────────────────────────── -->
+    <p-card class="reserva-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-building"></i>
+          <span>Imobiliária Principal</span>
+        </div>
+      </ng-template>
+
+      <div class="grid">
+        <!-- Imobiliária -->
+        <div class="col-12 md:col-6">
+          <app-autocomplete
+            id="imobiliariaPrincipal"
+            label="Imobiliária"
+            [(ngModel)]="imobiliariaPrincipalSelecionada"
+            [required]="true"
+            [showValidation]="tentouSalvar"
+            [suggestions]="imobiliariaPrincipalSugestoes"
+            field="nomeFantasia"
+            placeholder="Buscar imobiliária..."
+            (completeMethod)="buscarImobiliarias($event, 'principal')"
+            (onDropdownClick)="onDropdownClickImobiliariaPrincipal()"
+            errorMessage="Imobiliária principal é obrigatória">
+          </app-autocomplete>
+        </div>
+
+        <!-- Tipo de Contato -->
+        <div class="col-12 md:col-3">
+          <app-autocomplete
+            id="tipoContatoPrincipal"
+            label="Tipo de Contato"
+            [(ngModel)]="tipoContatoPrincipalSelecionado"
+            [required]="false"
+            [suggestions]="tipoContatoPrincipalSugestoes"
+            field="label"
+            placeholder="Tipo"
+            (completeMethod)="filtrarTipoContatoPrincipal($event)"
+            (onDropdownClick)="onDropdownClickTipoContatoPrincipal()">
+          </app-autocomplete>
+        </div>
+
+        <!-- Contato -->
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="contatoPrincipal"
+            label="Contato"
+            [(ngModel)]="contatoPrincipal"
+            [required]="false"
+            placeholder="E-mail, fone ou WhatsApp">
+          </app-input-text>
+        </div>
+
+        <!-- Profissionais -->
+        <div class="col-12">
+          <div class="profissionais-header">
+            <span class="profissionais-label">
+              <i class="pi pi-users"></i> Profissionais
+            </span>
+            <div class="flex gap-2 flex-wrap">
+              <app-custom-button
+                label="Novo Corretor"
+                icon="pi pi-user-plus"
+                severity="secondary"
+                [outlined]="true"
+                size="small"
+                tooltip="Cadastro rápido de corretor"
+                tooltipPosition="left"
+                (onClick)="abrirCadastroRapido()">
+              </app-custom-button>
+              <app-custom-button
+                label="Adicionar"
+                icon="pi pi-plus"
+                severity="secondary"
+                [outlined]="true"
+                size="small"
+                (onClick)="adicionarProfissional('principal')">
+              </app-custom-button>
+            </div>
+          </div>
+
+          <div
+            *ngFor="let prof of profissionaisPrincipal; let i = index"
+            class="profissional-row">
+
+            <!-- Tipo -->
+            <div class="prof-field tipo">
+              <app-autocomplete
+                id="tipoProfissional_{{ i }}"
+                label="Tipo"
+                [(ngModel)]="prof.tipoProfissional"
+                [required]="false"
+                [suggestions]="tiposProfissionalSugestoes"
+                field="label"
+                placeholder="Tipo"
+                (completeMethod)="filtrarTiposProfissional($event)"
+                (onDropdownClick)="onDropdownClickTiposProfissional()">
+              </app-autocomplete>
+            </div>
+
+            <!-- Corretor (autocomplete) -->
+            <div class="prof-field corretor">
+              <app-autocomplete
+                id="corretorPrincipal_{{ i }}"
+                label="Corretor / Profissional"
+                [(ngModel)]="prof.corretor"
+                [suggestions]="prof.corretorSugestoes"
+                field="nome"
+                placeholder="Buscar pelo nome ou CPF"
+                (completeMethod)="buscarCorretores($event, prof)"
+                (onDropdownClick)="onDropdownClickCorretor(prof)">
+                <ng-template let-c pTemplate="item">
+                  <div class="corretor-sugestao">
+                    <strong>{{ c.nome }}</strong>
+                    <small>{{ c.cpf }}</small>
+                  </div>
+                </ng-template>
+              </app-autocomplete>
+            </div>
+
+            <!-- Remover -->
+            <button
+              type="button"
+              class="btn-remover-prof-icon"
+              pTooltip="Remover profissional"
+              tooltipPosition="top"
+              (click)="removerProfissional(i, 'principal')">
+              <i class="pi pi-trash"></i>
+            </button>
+          </div>
+
+          <div *ngIf="profissionaisPrincipal.length === 0" class="prof-vazio">
+            Nenhum profissional adicionado. Clique em "Adicionar" para incluir corretores.
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- ─── CARD 3: IMOBILIÁRIA SECUNDÁRIA ────────────────────────────── -->
+    <p-card class="reserva-card">
+      <ng-template pTemplate="header">
+        <div
+          class="card-gradient-header toggle"
+          (click)="exibirSecundaria = !exibirSecundaria"
+          style="cursor: pointer;">
+          <i class="pi pi-building"></i>
+          <span>Imobiliária Secundária</span>
+          <span class="badge-opcional">Opcional</span>
+          <i class="pi toggle-icon ml-auto"
+             [ngClass]="exibirSecundaria ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+        </div>
+      </ng-template>
+
+      <div *ngIf="!exibirSecundaria" class="secundaria-placeholder">
+        <i class="pi pi-info-circle"></i>
+        Clique no cabeçalho para informar uma imobiliária parceira
+      </div>
+
+      <div *ngIf="exibirSecundaria" class="grid">
+        <!-- Imobiliária Secundária -->
+        <div class="col-12 md:col-6">
+          <app-autocomplete
+            id="imobiliariaSecundaria"
+            label="Imobiliária Parceira"
+            [(ngModel)]="imobiliariaSecundariaSelecionada"
+            [required]="false"
+            [suggestions]="imobiliariaSecundariaSugestoes"
+            field="nomeFantasia"
+            placeholder="Buscar imobiliária parceira..."
+            (completeMethod)="buscarImobiliarias($event, 'secundaria')"
+            (onDropdownClick)="onDropdownClickImobiliariaSecundaria()">
+          </app-autocomplete>
+        </div>
+
+        <!-- Tipo de Contato Secundário -->
+        <div class="col-12 md:col-3">
+          <app-autocomplete
+            id="tipoContatoSecundario"
+            label="Tipo de Contato"
+            [(ngModel)]="tipoContatoSecundarioSelecionado"
+            [required]="false"
+            [suggestions]="tipoContatoSecundarioSugestoes"
+            field="label"
+            placeholder="Tipo"
+            (completeMethod)="filtrarTipoContatoSecundario($event)"
+            (onDropdownClick)="onDropdownClickTipoContatoSecundario()">
+          </app-autocomplete>
+        </div>
+
+        <!-- Contato Secundário -->
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="contatoSecundario"
+            label="Contato"
+            [(ngModel)]="contatoSecundario"
+            [required]="false"
+            placeholder="E-mail, fone ou WhatsApp">
+          </app-input-text>
+        </div>
+
+        <!-- Profissionais Secundária -->
+        <div class="col-12" *ngIf="imobiliariaSecundariaSelecionada">
+          <div class="profissionais-header">
+            <span class="profissionais-label">
+              <i class="pi pi-users"></i> Profissionais da Imobiliária Parceira
+            </span>
+            <app-custom-button
+              label="Adicionar"
+              icon="pi pi-plus"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (onClick)="adicionarProfissional('secundaria')">
+            </app-custom-button>
+          </div>
+
+          <div
+            *ngFor="let prof of profissionaisSecundaria; let i = index"
+            class="profissional-row">
+            <div class="prof-field tipo">
+              <app-autocomplete
+                id="tipoProfissionalSecundaria_{{ i }}"
+                label="Tipo"
+                [(ngModel)]="prof.tipoProfissional"
+                [required]="false"
+                [suggestions]="tiposProfissionalSugestoes"
+                field="label"
+                placeholder="Tipo"
+                (completeMethod)="filtrarTiposProfissional($event)"
+                (onDropdownClick)="onDropdownClickTiposProfissional()">
+              </app-autocomplete>
+            </div>
+            <div class="prof-field corretor">
+              <app-autocomplete
+                id="corretorSecundaria_{{ i }}"
+                label="Corretor / Profissional"
+                [(ngModel)]="prof.corretor"
+                [suggestions]="prof.corretorSugestoes"
+                field="nome"
+                placeholder="Buscar pelo nome ou CPF"
+                (completeMethod)="buscarCorretores($event, prof)"
+                (onDropdownClick)="onDropdownClickCorretor(prof)">
+                <ng-template let-c pTemplate="item">
+                  <div class="corretor-sugestao">
+                    <strong>{{ c.nome }}</strong>
+                    <small>{{ c.cpf }}</small>
+                  </div>
+                </ng-template>
+              </app-autocomplete>
+            </div>
+            <button
+              type="button"
+              class="btn-remover-prof-icon"
+              pTooltip="Remover profissional"
+              tooltipPosition="top"
+              (click)="removerProfissional(i, 'secundaria')">
+              <i class="pi pi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- ─── CARD 4: OBSERVAÇÕES ───────────────────────────────────────── -->
+    <p-card class="reserva-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-file-edit"></i>
+          <span>Observações</span>
+        </div>
+      </ng-template>
+
+      <div class="grid">
+        <div class="col-12">
+          <app-input-textarea
+            id="observacoes"
+            label="Observações"
+            [(ngModel)]="observacoes"
+            [required]="false"
+            placeholder="Informações adicionais sobre a reserva"
+            [rows]="4">
+          </app-input-textarea>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- ─── BOTÕES DE AÇÃO ─────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        actionType="cancel"
+        (onClick)="voltar()">
+      </app-custom-button>
+      <app-custom-button
+        label="Salvar Reserva"
+        icon="pi pi-save"
+        severity="success"
+        [loading]="salvando"
+        [disabled]="verificandoReserva"
+        (onClick)="salvar()">
+      </app-custom-button>
+    </div>
+  </div>
+
+  <!-- ─── DIALOG: CADASTRO RÁPIDO DE CORRETOR ──────────────────────── -->
+  <p-dialog
+    header="Cadastro Rápido de Corretor"
+    [(visible)]="displayCadastroRapido"
+    [modal]="true"
+    [style]="{'width': '480px'}"
+    [breakpoints]="{'960px': '75vw', '640px': '95vw'}"
+    [closable]="!salvandoCadastroRapido">
+
+    <div class="grid" *ngIf="displayCadastroRapido">
+      <div class="col-12">
+        <app-input-cpf
+          id="cadastroRapidoCpf"
+          label="CPF do Corretor"
+          [(ngModel)]="cadastroRapidoCpf"
+          [required]="true"
+          [showValidation]="false">
+        </app-input-cpf>
+        <small *ngIf="cpfCadastroRapidoJaCadastrado" class="p-error">
+          Este CPF já possui cadastro no sistema.
+        </small>
+      </div>
+      <div class="col-12">
+        <app-input-text
+          id="cadastroRapidoNome"
+          label="Nome Completo"
+          [(ngModel)]="cadastroRapidoNome"
+          [required]="true"
+          [showValidation]="false"
+          placeholder="Nome completo do corretor">
+        </app-input-text>
+      </div>
+      <div class="col-12 md:col-6">
+        <app-input-text
+          id="cadastroRapidoEmail"
+          label="E-mail"
+          [(ngModel)]="cadastroRapidoEmail"
+          [required]="false"
+          placeholder="email@exemplo.com">
+        </app-input-text>
+      </div>
+      <div class="col-12 md:col-6">
+        <app-input-telefone
+          id="cadastroRapidoTelefone"
+          label="Telefone"
+          [(ngModel)]="cadastroRapidoTelefone"
+          [required]="false">
+        </app-input-telefone>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="warning"
+        [outlined]="true"
+        [disabled]="salvandoCadastroRapido"
+        (onClick)="displayCadastroRapido = false">
+      </app-custom-button>
+      <app-custom-button
+        label="Cadastrar Corretor"
+        icon="pi pi-save"
+        severity="success"
+        [loading]="salvandoCadastroRapido"
+        (onClick)="salvarCadastroRapido()">
+      </app-custom-button>
+    </ng-template>
+  </p-dialog>
+</div>

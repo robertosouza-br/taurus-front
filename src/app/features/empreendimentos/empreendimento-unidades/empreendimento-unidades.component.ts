@@ -46,6 +46,7 @@ interface BlocoUnidades {
 export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   codigoEmpreendimento!: string;
   nomeEmpreendimento: string = '';
+  codColigadaEmpreendimento: number = 0;
   unidades: Unidade[] = [];
   blocos: BlocoUnidades[] = [];
   statusDisponiveis: string[] = [];
@@ -53,9 +54,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   
   // Lista completa de todos os status possíveis do sistema
   readonly todosStatusPossiveis: string[] = [
-    'Não Vendida / Estoque',
+    'Não Vendida',
     'Em Negociação',
-    'Reservada/ Assinatura dos instrumentos aquisitivos',
+    'Reservada / Assinatura dos instrumentos aquisitivos',
     'Assinado, com Sinal a creditar e documentos na imobiliária',
     'Sinal Creditado, mas com todos os documentos na imobiliária',
     'Sinal a Creditar, mas com todos os documentos entregue na Calper',
@@ -121,6 +122,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     
     if (state?.nomeEmpreendimento) {
       this.nomeEmpreendimento = state.nomeEmpreendimento;
+    }
+    if (state?.codColigada) {
+      this.codColigadaEmpreendimento = Number(state.codColigada);
     }
 
     // Sempre inicia a tela no topo
@@ -252,9 +256,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    */
   private inicializarMenuFiltros(): void {
     const iconesPorStatus: Record<string, string> = {
-      'Não Vendida / Estoque': 'pi-box',
+      'Não Vendida': 'pi-box',
       'Em Negociação': 'pi-comments',
-      'Reservada/ Assinatura dos instrumentos aquisitivos': 'pi-file-edit',
+      'Reservada / Assinatura dos instrumentos aquisitivos': 'pi-file-edit',
       'Assinado, com Sinal a creditar e documentos na imobiliária': 'pi-file',
       'Sinal Creditado, mas com todos os documentos na imobiliária': 'pi-folder',
       'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'pi-folder-open',
@@ -342,9 +346,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   private getClasseCorFiltro(status: string): string {
     const classesPorStatus: Record<string, string> = {
       'TODOS': 'filtro-cor-todos',
-      'Não Vendida / Estoque': 'filtro-cor-estoque',
+      'Não Vendida': 'filtro-cor-estoque',
       'Em Negociação': 'filtro-cor-negociacao',
-      'Reservada/ Assinatura dos instrumentos aquisitivos': 'filtro-cor-reservada',
+      'Reservada / Assinatura dos instrumentos aquisitivos': 'filtro-cor-reservada',
       'Assinado, com Sinal a creditar e documentos na imobiliária': 'filtro-cor-assinado',
       'Sinal Creditado, mas com todos os documentos na imobiliária': 'filtro-cor-creditado',
       'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'filtro-cor-acreditar',
@@ -390,7 +394,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     // Filtro por status
     if (this.statusFiltroSelecionado !== 'TODOS') {
       unidadesFiltradas = unidadesFiltradas.filter(u => {
-        return u.statusUnidade === this.statusFiltroSelecionado;
+        // Converte status legado antes de comparar
+        const statusConvertido = this.converterStatusLegado(u.statusUnidade);
+        return statusConvertido === this.statusFiltroSelecionado;
       });
     }
 
@@ -444,8 +450,10 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     const statusMap = new Map<string, number>();
     
     unidades.forEach(unidade => {
-      const count = statusMap.get(unidade.statusUnidade) || 0;
-      statusMap.set(unidade.statusUnidade, count + 1);
+      // Converte status legado antes de contar
+      const statusConvertido = this.converterStatusLegado(unidade.statusUnidade);
+      const count = statusMap.get(statusConvertido) || 0;
+      statusMap.set(statusConvertido, count + 1);
     });
     
     return Array.from(statusMap.entries())
@@ -458,18 +466,41 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    */
   private extrairStatusDisponiveis(): void {
     const statusSet = new Set<string>();
-    this.unidades.forEach(unidade => statusSet.add(unidade.statusUnidade));
+    // Converte status legados para novos antes de adicionar ao Set
+    this.unidades.forEach(unidade => {
+      const statusConvertido = this.converterStatusLegado(unidade.statusUnidade);
+      statusSet.add(statusConvertido);
+    });
     this.statusDisponiveis = Array.from(statusSet).sort();
+  }
+
+  /**
+   * Converte status legado do banco para os novos labels do sistema
+   */
+  private converterStatusLegado(statusLegado: string): string {
+    const mapeamentoLegado: Record<string, string> = {
+      // Status antigos → Status novos (alinhados com STATUS_RESERVA_LABELS)
+      'Disponível para Venda': 'Não Vendida',
+      'Reservado para Venda': 'Reservada / Assinatura dos instrumentos aquisitivos',
+      'Sinal Creditado/ Cont.Finaliza': 'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA',
+      'Sinal a Creditar/Cont.Andament': 'Sinal a Creditar, mas com todos os documentos entregue na Calper',
+      'Sinal Creditado/Cont.Andamento': 'Sinal Creditado, mas com todos os documentos na imobiliária'
+    };
+
+    return mapeamentoLegado[statusLegado] || statusLegado;
   }
 
   /**
    * Retorna configuração de cor para um status
    */
   getStatusColor(status: string): { bg: string; border: string; text: string } {
-    const statusNormalizado = (status || '').trim();
+    const statusOriginal = (status || '').trim();
+    
+    // Converte status legado para novo formato
+    const statusConvertido = this.converterStatusLegado(statusOriginal);
 
     // Suporte aos códigos de status do enum (DISPONIVEL, RESERVADA, etc.)
-    const statusEnum = STATUS_COLORS[statusNormalizado as keyof typeof STATUS_COLORS];
+    const statusEnum = STATUS_COLORS[statusConvertido as keyof typeof STATUS_COLORS];
     if (statusEnum) {
       return {
         bg: statusEnum.bg,
@@ -479,13 +510,13 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     }
 
     const coresPorStatus: Record<string, { bg: string; border: string; text: string }> = {
-      // Status da tabela de cores
-      'Não Vendida / Estoque': {
+      // Status padronizados (alinhados com STATUS_RESERVA_LABELS)
+      'Não Vendida': {
         bg: '#f3f4f6',
         border: '#d1d5db',
         text: '#4b5563'
       },
-      'Reservada/ Assinatura dos instrumentos aquisitivos': {
+      'Reservada / Assinatura dos instrumentos aquisitivos': {
         bg: '#fca5a5',
         border: '#dc2626',
         text: '#7f1d1d'
@@ -534,36 +565,10 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
         bg: '#bae6fd',
         border: '#0ea5e9',
         text: '#0c4a6e'
-      },
-      // Status antigos do banco (mapeamento)
-      'Disponível para Venda': {
-        bg: '#ffffff',
-        border: '#e5e7eb',
-        text: '#6b7280'
-      },
-      'Reservado para Venda': {
-        bg: '#fca5a5',
-        border: '#dc2626',
-        text: '#7f1d1d'
-      },
-      'Sinal Creditado/ Cont.Finaliza': {
-        bg: '#dbeafe',
-        border: '#3b82f6',
-        text: '#1e40af'
-      },
-      'Sinal a Creditar/Cont.Andament': {
-        bg: '#fde047',
-        border: '#eab308',
-        text: '#713f12'
-      },
-      'Sinal Creditado/Cont.Andamento': {
-        bg: '#fdba74',
-        border: '#f97316',
-        text: '#9a3412'
       }
     };
     
-    return coresPorStatus[statusNormalizado] || {
+    return coresPorStatus[statusConvertido] || {
       bg: '#f3f4f6',
       border: '#9ca3af',
       text: '#374151'
@@ -678,18 +683,22 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     if (status === 'TODOS') {
       return 'Todos os Status';
     }
-    // Como os status já vêm em português do banco, retorna direto
-    return status || 'Status não informado';
+    // Converte status legado para novo formato antes de exibir
+    const statusConvertido = this.converterStatusLegado(status);
+    return statusConvertido || 'Status não informado';
   }
 
   /**
    * Retorna label curta para status (para resumos)
    */
   getStatusLabelCurto(status: string): string {
+    // Converte status legado antes de buscar label curto
+    const statusConvertido = this.converterStatusLegado(status);
+    
     const labels: Record<string, string> = {
-      'Não Vendida / Estoque': 'Estoque',
+      'Não Vendida': 'Estoque',
       'Em Negociação': 'Negociação',
-      'Reservada/ Assinatura dos instrumentos aquisitivos': 'Reservada',
+      'Reservada / Assinatura dos instrumentos aquisitivos': 'Reservada',
       'Assinado, com Sinal a creditar e documentos na imobiliária': 'Assinado',
       'Sinal Creditado, mas com todos os documentos na imobiliária': 'Creditado',
       'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'A Creditar',
@@ -699,21 +708,27 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       'Sinal creditado, mas cliente pediu distrato': 'Distrato',
       'Fora de venda': 'Fora'
     };
-    return labels[status] || status?.substring(0, 7) || 'N/A';
+    return labels[statusConvertido] || statusConvertido?.substring(0, 7) || 'N/A';
   }
 
   /**
    * Conta unidades por status em um bloco específico
    */
   getCountByStatusNoBloco(bloco: BlocoUnidades, status: string): number {
-    return bloco.unidades.filter(u => u.statusUnidade === status).length;
+    return bloco.unidades.filter(u => {
+      const statusConvertido = this.converterStatusLegado(u.statusUnidade);
+      return statusConvertido === status;
+    }).length;
   }
 
   /**
    * Conta unidades por status
    */
   getCountByStatus(status: string): number {
-    return this.unidades.filter(u => u.statusUnidade === status).length;
+    return this.unidades.filter(u => {
+      const statusConvertido = this.converterStatusLegado(u.statusUnidade);
+      return statusConvertido === status;
+    }).length;
   }
   
   /**
@@ -872,12 +887,21 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    * Navega para tela de reserva da unidade
    */
   irParaReserva(unidade: Unidade): void {
-    // TODO: Implementar navegação para tela de reserva
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Reserva',
-      detail: `Navegação para reserva da unidade ${unidade.unidade} em desenvolvimento`
-    });
+    this.router.navigate(
+      ['/reservas/empreendimento', this.codigoEmpreendimento,
+       'bloco', unidade.bloco,
+       'unidade', unidade.unidade, 'nova'],
+      {
+        state: {
+          nomeEmpreendimento: this.nomeEmpreendimento,
+          codColigadaEmpreendimento: this.codColigadaEmpreendimento,
+          statusUnidade: unidade.statusUnidade,
+          tipoUnidade: unidade.sigla || unidade.tipo,
+          tipologia: unidade.tipologia,
+          preco: unidade.preco
+        }
+      }
+    );
   }
 
   /**

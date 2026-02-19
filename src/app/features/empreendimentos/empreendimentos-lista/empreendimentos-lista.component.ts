@@ -181,7 +181,7 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
       return;
     }
     this.router.navigate(['/empreendimentos', emp.codEmpreendimento, 'unidades'], {
-      state: { nomeEmpreendimento: emp.nome }
+      state: { nomeEmpreendimento: emp.nome, codColigada: emp.codColigada }
     });
   }
 

@@ -73,6 +73,10 @@ const routes: Routes = [
       {
         path: 'auditoria',
         loadChildren: () => import('./features/auditoria/auditoria.module').then(m => m.AuditoriaModule)
+      },
+      {
+        path: 'reservas',
+        loadChildren: () => import('./features/reservas/reservas.module').then(m => m.ReservasModule)
       }
     ]
   },

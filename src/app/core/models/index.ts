@@ -9,3 +9,4 @@ export * from './unidade.model';
 export * from './contato.model';
 export * from './dashboard.model';
 export * from './imobiliaria.model';
+export * from './reserva.model';

@@ -74,6 +74,15 @@ export class CorretorService {
   }
 
   /**
+   * Cadastro rápido de corretor a partir da tela de reserva
+   * POST /api/v1/corretores/cadastro-rapido
+   * @param payload Dados mínimos: cpf, nome e opcionalmente email e telefone
+   */
+  cadastroRapido(payload: { cpf: string; nome: string; email?: string; telefone?: string }): Observable<CorretorSaidaDTO> {
+    return this.http.post<CorretorSaidaDTO>(`${this.baseUrl}/cadastro-rapido`, payload);
+  }
+
+  /**
    * Cadastra novo corretor (uso interno administrativo)
    * POST /api/v1/corretores
    * Endpoint público - cria corretor E usuário local automaticamente

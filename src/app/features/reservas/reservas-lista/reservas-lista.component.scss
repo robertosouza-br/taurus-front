@@ -1,0 +1,122 @@
+.reservas-lista-page {
+  padding: 0 1rem 2rem;
+
+  .lista-card {
+    margin-top: 1.5rem;
+
+    ::ng-deep .p-card-header {
+      padding: 0;
+    }
+
+    ::ng-deep .p-card-body {
+      padding: 0;
+    }
+
+    ::ng-deep .p-card-content {
+      padding: 0;
+    }
+  }
+
+  .card-gradient-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 6px 6px 0 0;
+    font-weight: 600;
+    font-size: 1rem;
+
+    i {
+      font-size: 1.1rem;
+    }
+
+    .header-badge {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 0.2rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+
+    .empty-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+
+  .bloco-unidade {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #374151;
+  }
+
+  .cliente-info {
+    display: flex;
+    flex-direction: column;
+
+    .cliente-nome {
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    .cliente-cpf {
+      color: #6b7280;
+      font-size: 0.775rem;
+    }
+  }
+
+  .tipologia-texto {
+    color: #6b7280;
+    font-size: 0.8rem;
+  }
+
+  .acoes-btn-group {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .col-acoes {
+    width: 100px;
+    text-align: center;
+  }
+
+  ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 0.75rem 1rem;
+  }
+
+  ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.6rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  ::ng-deep .p-datatable .p-datatable-tbody > tr:hover > td {
+    background: #f5f3ff;
+  }
+
+  ::ng-deep .p-tag {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    white-space: normal;
+    line-height: 1.3;
+  }
+}

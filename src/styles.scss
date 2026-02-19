@@ -784,6 +784,8 @@ small.info-message,
 
 /* Estilos do painel dropdown do autocomplete */
 .p-autocomplete-panel {
+  z-index: 9999 !important; // Garante que fique sobre os cards
+  
   .p-autocomplete-items {
     .p-autocomplete-item {
       padding: 0.75rem 1rem !important;
@@ -818,6 +820,25 @@ small.info-message,
       text-align: center;
     }
   }
+}
+
+/* Overlay global do autocomplete (renderizado no body) */
+.app-autocomplete-panel,
+body > .p-autocomplete-panel {
+  z-index: 11000 !important;
+}
+
+.app-autocomplete-panel .p-autocomplete-items .p-autocomplete-item,
+body > .p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: initial !important;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.app-autocomplete-panel .p-autocomplete-items .p-autocomplete-item * {
+  white-space: normal !important;
 }
 
 /* Ícone de chevron para abrir dropdown (usado em autocomplete customizado) */
