@@ -462,6 +462,15 @@
         (onClick)="voltar()">
       </app-custom-button>
       <app-custom-button
+        label="Limpar"
+        icon="pi pi-refresh"
+        severity="info"
+        [outlined]="true"
+        actionType="clear"
+        [disabled]="salvando || verificandoReserva"
+        (onClick)="limparTela()">
+      </app-custom-button>
+      <app-custom-button
         label="Salvar Reserva"
         icon="pi pi-save"
         severity="success"

@@ -722,6 +722,21 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     };
   }
 
+  limparTela(): void {
+    if (!this.reservaOriginal) {
+      return;
+    }
+
+    this.preencherFormulario(this.reservaOriginal);
+    this.resetarFormulario();
+
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Formulário restaurado',
+      detail: 'Os dados foram restaurados para o último estado salvo.'
+    });
+  }
+
   voltar(): void {
     if (this.codEmpreendimento) {
       this.router.navigate(

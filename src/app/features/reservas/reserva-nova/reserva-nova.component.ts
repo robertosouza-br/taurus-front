@@ -698,6 +698,35 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     return true;
   }
 
+  limparTela(): void {
+    this.resetarFormulario();
+
+    this.cpfCnpjCliente = '';
+    this.nomeCliente = '';
+    this.clienteEstrangeiro = false;
+    this.formaPagamento = null;
+    this.dataReserva = new Date();
+    this.dataVenda = null;
+
+    const statusMapeado = this.mapearStatusUnidadeParaReserva(this.statusUnidadeOrigem);
+    const statusInicial = statusMapeado || StatusReserva.RESERVADA;
+    this.statusSelecionado = this.statusOptions.find(o => o.value === statusInicial) || null;
+
+    this.imobiliariaPrincipalSelecionada = null;
+    this.tipoContatoPrincipalSelecionado = null;
+    this.contatoPrincipal = '';
+    this.profissionaisPrincipal = [];
+    this.adicionarProfissional('principal');
+
+    this.exibirSecundaria = false;
+    this.imobiliariaSecundariaSelecionada = null;
+    this.tipoContatoSecundarioSelecionado = null;
+    this.contatoSecundario = '';
+    this.profissionaisSecundaria = [];
+
+    this.observacoes = '';
+  }
+
   voltar(): void {
     if (this.codEmpreendimento) {
       this.router.navigate(
