@@ -15,7 +15,14 @@
     <div class="grid">
       <!-- Dados Pessoais -->
       <div class="col-12 lg:col-8">
-        <p-card header="Dados Pessoais">
+        <p-card class="meus-dados-card">
+          <ng-template pTemplate="header">
+            <div class="card-gradient-header">
+              <i class="pi pi-user"></i>
+              <span>Dados Pessoais</span>
+            </div>
+          </ng-template>
+
           <div class="p-fluid">
             <div class="p-field">
               <app-input-text
@@ -96,7 +103,14 @@
         </p-card>
 
         <!-- Segurança -->
-        <p-card header="Segurança" styleClass="mt-3">
+        <p-card class="meus-dados-card mt-3">
+          <ng-template pTemplate="header">
+            <div class="card-gradient-header">
+              <i class="pi pi-shield"></i>
+              <span>Segurança</span>
+            </div>
+          </ng-template>
+
           <div class="security-section">
             <div class="security-info">
               <i class="pi pi-shield security-icon"></i>
@@ -118,7 +132,14 @@
 
       <!-- Informações do Perfil -->
       <div class="col-12 lg:col-4">
-        <p-card header="Informações da Conta" styleClass="info-card">
+        <p-card class="meus-dados-card info-card">
+          <ng-template pTemplate="header">
+            <div class="card-gradient-header">
+              <i class="pi pi-id-card"></i>
+              <span>Informações da Conta</span>
+            </div>
+          </ng-template>
+
           <div class="profile-info">
             <!-- Foto do Perfil -->
             <div class="profile-photo-section">
