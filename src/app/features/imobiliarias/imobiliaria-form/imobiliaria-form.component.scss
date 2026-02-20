@@ -5,14 +5,49 @@
 .imobiliaria-form {
   max-width: 1400px;
 
+  .imobiliaria-card {
+    display: block;
+
+    ::ng-deep .p-card {
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    ::ng-deep .p-card-header {
+      padding: 0;
+    }
+
+    ::ng-deep .p-card-body {
+      padding: 1.5rem;
+    }
+
+    ::ng-deep .p-card-content {
+      padding: 0;
+    }
+  }
+
+  .imobiliaria-card + .imobiliaria-card {
+    margin-top: 1rem;
+  }
+
+  .card-gradient-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.875rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    i {
+      font-size: 1rem;
+    }
+  }
+
   ::ng-deep {
     .p-card {
-      margin-bottom: 1.5rem;
-
-      .p-card-content {
-        padding-top: 1.5rem;
-      }
-
       .grid {
         padding-top: 0.5rem;
       }

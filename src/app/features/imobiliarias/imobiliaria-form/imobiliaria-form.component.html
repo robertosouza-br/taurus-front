@@ -18,7 +18,14 @@
   <!-- Formulário -->
   <div *ngIf="!carregando" class="imobiliaria-form">
     <!-- Seção: Dados Principais -->
-    <p-card header="Dados Principais">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-building"></i>
+          <span>Dados Principais</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <!-- Razão Social -->
         <div class="col-12 md:col-6">
@@ -104,7 +111,14 @@
     </p-card>
 
     <!-- Seção: Endereço -->
-    <p-card header="Endereço" class="mt-3">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-map-marker"></i>
+          <span>Endereço</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <!-- CEP -->
         <div class="col-12 md:col-3">
@@ -201,7 +215,14 @@
     </p-card>
 
     <!-- Seção: Contato -->
-    <p-card header="Contato" class="mt-3">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-phone"></i>
+          <span>Contato</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <!-- E-mail -->
         <div class="col-12 md:col-4">
@@ -255,7 +276,14 @@
     </p-card>
 
     <!-- Seção: Dados Bancários -->
-    <p-card header="Dados Bancários" class="mt-3">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-credit-card"></i>
+          <span>Dados Bancários</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <!-- Banco -->
         <div class="col-12 md:col-6">
@@ -347,7 +375,14 @@
     </p-card>
 
     <!-- Seção: Empreendimentos -->
-    <p-card header="Empreendimentos Vinculados" class="mt-3">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-home"></i>
+          <span>Empreendimentos Vinculados</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <div class="col-12">
           <app-multi-select
@@ -375,7 +410,14 @@
     </p-card>
 
     <!-- Seção: Documentos -->
-    <p-card header="Documentos" class="mt-3">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-file"></i>
+          <span>Documentos</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <div class="col-12">
           <div *ngIf="!modoEdicao" class="info-message">
@@ -450,7 +492,14 @@
     </p-card>
 
     <!-- Seção: Portfólio de Imagens -->
-    <p-card header="Portfólio de Imagens" class="mt-3">
+    <p-card class="imobiliaria-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-images"></i>
+          <span>Portfólio de Imagens</span>
+        </div>
+      </ng-template>
+
       <div class="grid">
         <div class="col-12">
           <div *ngIf="!modoEdicao" class="info-message">

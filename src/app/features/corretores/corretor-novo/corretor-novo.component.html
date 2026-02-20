@@ -14,7 +14,14 @@
 
   <div class="corretor-form">
     <!-- Dados Pessoais -->
-    <p-card header="Dados Pessoais">
+    <p-card class="corretor-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-user"></i>
+          <span>Dados Pessoais</span>
+        </div>
+      </ng-template>
+
       <div class="p-fluid">
         <br>
         <!-- CPF em PRIMEIRO LUGAR -->
@@ -140,7 +147,14 @@
     </p-card>
 
     <!-- Dados Bancários -->
-    <p-card header="Dados Bancários (Opcional)">
+    <p-card class="corretor-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-credit-card"></i>
+          <span>Dados Bancários (Opcional)</span>
+        </div>
+      </ng-template>
+
       <div class="p-fluid">
         <br>
         <div class="p-field">
@@ -198,7 +212,14 @@
     </p-card>
 
     <!-- Dados PIX -->
-    <p-card header="Dados PIX (Opcional)">
+    <p-card class="corretor-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-qrcode"></i>
+          <span>Dados PIX (Opcional)</span>
+        </div>
+      </ng-template>
+
       <div class="p-fluid">
         <br>
         <div class="p-field">

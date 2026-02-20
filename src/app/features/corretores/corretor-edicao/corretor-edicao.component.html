@@ -48,7 +48,14 @@
   <!-- Formulário -->
   <div *ngIf="!carregando && corretor" class="corretor-form">
     <!-- Dados Pessoais -->
-    <p-card header="Dados Pessoais">
+    <p-card class="corretor-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-user"></i>
+          <span>Dados Pessoais</span>
+        </div>
+      </ng-template>
+
       <div class="p-fluid">
         <br>
         <div class="p-field">
@@ -138,7 +145,14 @@
     </p-card>
 
     <!-- Dados Bancários -->
-    <p-card header="Dados Bancários (Opcional)">
+    <p-card class="corretor-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-credit-card"></i>
+          <span>Dados Bancários (Opcional)</span>
+        </div>
+      </ng-template>
+
       <div class="p-fluid">
         <br>
         <div class="p-field">
@@ -192,7 +206,14 @@
     </p-card>
 
     <!-- Dados PIX -->
-    <p-card header="Dados PIX (Opcional)">
+    <p-card class="corretor-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-qrcode"></i>
+          <span>Dados PIX (Opcional)</span>
+        </div>
+      </ng-template>
+
       <div class="p-fluid">
         <br>
         <div class="p-field">
@@ -225,7 +246,14 @@
     </p-card>
 
     <!-- Informações do Sistema -->
-    <p-card *ngIf="corretor.id" styleClass="info-card">
+    <p-card *ngIf="corretor.id" class="corretor-card info-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-info-circle"></i>
+          <span>Informações do Sistema</span>
+        </div>
+      </ng-template>
+
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <i class="pi pi-info-circle" style="color: #3b82f6; font-size: 1.5rem;"></i>
         <div>
