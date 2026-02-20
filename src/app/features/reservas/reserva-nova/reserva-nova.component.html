@@ -65,6 +65,32 @@
       </div>
     </div>
 
+    <!-- ─── CARD: STATUS DA RESERVA ───────────────────────────────────── -->
+    <p-card class="reserva-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-flag"></i>
+          <span>Status da Reserva</span>
+        </div>
+      </ng-template>
+
+      <div class="grid">
+        <div class="col-12 md:col-8">
+          <app-autocomplete
+            id="statusReserva"
+            label="Status da Reserva"
+            [(ngModel)]="statusSelecionado"
+            [required]="false"
+            [suggestions]="statusSugestoes"
+            field="label"
+            placeholder="Selecione o status"
+            (completeMethod)="filtrarStatus($event)"
+            (onDropdownClick)="onDropdownClickStatus()">
+          </app-autocomplete>
+        </div>
+      </div>
+    </p-card>
+
     <!-- ─── CARD 1: DADOS DO CLIENTE ──────────────────────────────────── -->
     <p-card class="reserva-card">
       <ng-template pTemplate="header">
@@ -121,21 +147,6 @@
             [showValidation]="tentouSalvar"
             placeholder="Digite o nome completo">
           </app-input-text>
-        </div>
-
-        <!-- Status da Reserva -->
-        <div class="col-12 md:col-8">
-          <app-autocomplete
-            id="statusReserva"
-            label="Status da Reserva"
-            [(ngModel)]="statusSelecionado"
-            [required]="false"
-            [suggestions]="statusSugestoes"
-            field="label"
-            placeholder="Selecione o status"
-            (completeMethod)="filtrarStatus($event)"
-            (onDropdownClick)="onDropdownClickStatus()">
-          </app-autocomplete>
         </div>
 
         <!-- Forma de Pagamento -->
