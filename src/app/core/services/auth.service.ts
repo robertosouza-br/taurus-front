@@ -8,6 +8,7 @@ import { User, LoginCredentials, AuthResponse, JwtPayload, LoginResponse, Usuari
 import { Funcionalidade } from '../enums/funcionalidade.enum';
 import { Permissao } from '../enums/permissao.enum';
 import { environment } from '../../../environments/environment';
+import { FotoUsuarioService } from './foto-usuario.service';
 
 /**
  * Serviço de autenticação
@@ -37,7 +38,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private fotoUsuarioService: FotoUsuarioService
   ) {
     this.jwtHelper = new JwtHelperService();
     
@@ -146,6 +148,9 @@ export class AuthService {
     };
     this.setUser(userCompat);
     this.currentUserSubject.next(userCompat);
+
+    // Garante que a foto seja do usuário recém autenticado
+    this.fotoUsuarioService.recarregarFotoUsuarioAtual();
   }
 
   /**
@@ -323,6 +328,9 @@ export class AuthService {
     // Limpa o BehaviorSubject
     this.currentUserSubject.next(null);
     this.usuarioLogadoSubject.next(null);
+
+    // Limpa cache da foto para evitar exibir foto do usuário anterior
+    this.fotoUsuarioService.limparFoto();
     
     // Redireciona para login com mensagem se houver
     if (motivo) {

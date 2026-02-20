@@ -57,6 +57,27 @@ export class FotoUsuarioService implements OnDestroy {
   }
 
   /**
+   * Limpa foto e timers em memória (usado no logout/troca de usuário)
+   */
+  limparFoto(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+
+    this.carregando = false;
+    this.fotoUrl$.next(null);
+  }
+
+  /**
+   * Força recarga da foto do usuário autenticado atual
+   */
+  recarregarFotoUsuarioAtual(): void {
+    this.limparFoto();
+    this.carregarFoto(false);
+  }
+
+  /**
    * Agenda refresh automático antes da URL expirar
    */
   private agendarRefresh(expiracaoSegundos: number): void {
