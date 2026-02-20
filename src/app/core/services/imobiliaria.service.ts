@@ -44,6 +44,9 @@ export class ImobiliariaService {
     if (filtro.search) {
       params = params.set('search', filtro.search);
     }
+    if (filtro.sort) {
+      params = params.set('sort', filtro.sort);
+    }
 
     return this.http.get<Page<Imobiliaria>>(this.baseUrl, { params });
   }

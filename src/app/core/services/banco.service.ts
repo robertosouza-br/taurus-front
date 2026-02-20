@@ -41,6 +41,9 @@ export class BancoService {
     if (filtro.search) {
       params = params.set('search', filtro.search);
     }
+    if (filtro.sort) {
+      params = params.set('sort', filtro.sort);
+    }
 
     return this.http.get<Page<Banco>>(this.baseUrl, { params });
   }

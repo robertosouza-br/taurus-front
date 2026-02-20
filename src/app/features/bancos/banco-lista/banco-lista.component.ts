@@ -28,7 +28,8 @@ export class BancoListaComponent extends BaseListComponent implements OnInit {
 
   filtro: BancoFiltroDTO = {
     page: 0,
-    size: 50
+    size: 50,
+    sort: 'codigo,ASC'
   };
 
   // Breadcrumb
@@ -90,8 +91,8 @@ export class BancoListaComponent extends BaseListComponent implements OnInit {
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'codigo', header: 'Código', width: '15%', align: 'center' },
-      { field: 'nome', header: 'Nome do Banco', width: '70%', align: 'left' }
+      { field: 'codigo', header: 'Código', width: '15%', align: 'center', sortable: true },
+      { field: 'nome', header: 'Nome do Banco', width: '70%', align: 'left', sortable: true }
     ];
 
     this.acoes = [
@@ -164,8 +165,18 @@ export class BancoListaComponent extends BaseListComponent implements OnInit {
     this.handleLazyLoad(event, (page, size) => {
       this.filtro.page = page;
       this.filtro.size = size;
+      this.filtro.sort = this.buildSortParam(event?.sortField, event?.sortOrder);
       this.carregar();
     });
+  }
+
+  private buildSortParam(sortField?: string, sortOrder?: number): string | undefined {
+    if (!sortField || !sortOrder) {
+      return undefined;
+    }
+
+    const direction = sortOrder === -1 ? 'DESC' : 'ASC';
+    return `${sortField},${direction}`;
   }
 
   onBuscar(termo: string): void {

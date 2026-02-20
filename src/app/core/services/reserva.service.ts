@@ -29,8 +29,15 @@ export class ReservaService {
    * Lista todas as reservas com paginação
    * @param page Número da página (base 0)
    */
-  listar(page: number = 0): Observable<Page<ReservaDTO>> {
-    const params = new HttpParams().set('page', page.toString());
+  listar(page: number = 0, size: number = 50, sort?: string): Observable<Page<ReservaDTO>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (sort) {
+      params = params.set('sort', sort);
+    }
+
     return this.http.get<Page<ReservaDTO>>(this.baseUrl, { params });
   }
 

@@ -95,17 +95,18 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'razaoSocial', header: 'Razão Social', width: '22%', align: 'left' },
-      { field: 'nomeFantasia', header: 'Nome Fantasia', width: '18%', align: 'left' },
-      { field: 'tipoImobiliaria', header: 'Tipo', width: '10%', align: 'center' },
-      { field: 'cnpj', header: 'CNPJ', width: '13%', align: 'center' },
-      { field: 'responsavel', header: 'Responsável', width: '13%', align: 'left' },
-      { field: 'telefone', header: 'Telefone', width: '11%', align: 'center' },
+      { field: 'razaoSocial', header: 'Razão Social', width: '22%', align: 'left', sortable: true },
+      { field: 'nomeFantasia', header: 'Nome Fantasia', width: '18%', align: 'left', sortable: true },
+      { field: 'tipoImobiliaria', header: 'Tipo', width: '10%', align: 'center', sortable: true },
+      { field: 'cnpj', header: 'CNPJ', width: '13%', align: 'center', sortable: true },
+      { field: 'responsavel', header: 'Responsável', width: '13%', align: 'left', sortable: true },
+      { field: 'telefone', header: 'Telefone', width: '11%', align: 'center', sortable: true },
       { 
         field: 'ativo', 
         header: 'Status', 
         width: '8%', 
         align: 'center',
+        sortable: true,
         template: 'status'
       }
     ];
@@ -194,8 +195,18 @@ export class ImobiliariasListaComponent extends BaseListComponent implements OnI
     this.handleLazyLoad(event, (page, size) => {
       this.filtro.page = page;
       this.filtro.size = size;
+      this.filtro.sort = this.buildSortParam(event?.sortField, event?.sortOrder);
       this.carregar();
     });
+  }
+
+  private buildSortParam(sortField?: string, sortOrder?: number): string | undefined {
+    if (!sortField || !sortOrder) {
+      return undefined;
+    }
+
+    const direction = sortOrder === -1 ? 'DESC' : 'ASC';
+    return `${sortField},${direction}`;
   }
 
   onBuscar(termo: string): void {

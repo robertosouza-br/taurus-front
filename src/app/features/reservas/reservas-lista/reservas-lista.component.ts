@@ -9,6 +9,7 @@ import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb
 import { BaseListComponent } from '../../../shared/base/base-list.component';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
+import { TableColumn, TableAction } from '../../../shared/components/data-table/data-table.component';
 
 @Component({
   selector: 'app-reservas-lista',
@@ -18,8 +19,13 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 export class ReservasListaComponent extends BaseListComponent implements OnInit {
   reservas: ReservaDTO[] = [];
   paginaAtual = 0;
+  tamanhoPagina = 50;
+  ordenacao?: string;
 
   breadcrumbItems: BreadcrumbItem[] = [];
+  headerActions: any[] = [];
+  colunas: TableColumn[] = [];
+  acoes: TableAction[] = [];
 
   constructor(
     private reservaService: ReservaService,
@@ -40,12 +46,56 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
       { label: 'Reservas', icon: 'pi pi-bookmark' },
       { label: 'Listagem' }
     ];
+
+    this.configurarHeaderActions();
+    this.configurarTabela();
     this.carregar();
+  }
+
+  private configurarHeaderActions(): void {
+    if (this.temPermissaoIncluir()) {
+      this.headerActions = [
+        {
+          label: 'Nova Reserva',
+          icon: 'pi pi-plus',
+          command: () => this.nova()
+        }
+      ];
+    }
+  }
+
+  private configurarTabela(): void {
+    this.colunas = [
+      { field: 'nomeEmpreendimento', header: 'Empreendimento', width: '20%', align: 'left', sortable: true },
+      { field: 'bloco', header: 'Bloco / Unidade', width: '12%', align: 'center', sortable: true, template: 'blocoUnidade' },
+      { field: 'tipologia', header: 'Tipologia', width: '11%', align: 'left', sortable: true, template: 'tipologia' },
+      { field: 'nomeCliente', header: 'Cliente', width: '19%', align: 'left', sortable: true, template: 'cliente' },
+      { field: 'nomeImobiliariaPrincipal', header: 'Imobiliária', width: '16%', align: 'left', sortable: true, template: 'imobiliaria' },
+      { field: 'dataReserva', header: 'Data Reserva', width: '10%', align: 'center', sortable: true, pipe: 'date', pipeFormat: 'dd/MM/yyyy' },
+      { field: 'status', header: 'Status', width: '12%', align: 'center', sortable: true, template: 'status' }
+    ];
+
+    this.acoes = [
+      {
+        icon: 'pi pi-pencil',
+        tooltip: 'Editar',
+        severity: 'info',
+        visible: () => this.temPermissaoAlterar(),
+        action: (row: ReservaDTO) => this.editar(row)
+      },
+      {
+        icon: 'pi pi-trash',
+        tooltip: 'Excluir',
+        severity: 'danger',
+        visible: () => this.temPermissaoExcluir(),
+        action: (row: ReservaDTO) => this.excluir(row)
+      }
+    ];
   }
 
   carregar(): void {
     this.carregando = true;
-    this.reservaService.listar(this.paginaAtual)
+    this.reservaService.listar(this.paginaAtual, this.tamanhoPagina, this.ordenacao)
       .pipe(finalize(() => (this.carregando = false)))
       .subscribe({
         next: (page) => {
@@ -62,10 +112,22 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
       });
   }
 
-  onPageChange(event: any): void {
-    this.paginaAtual = event.page;
-    this.carregar();
-    this.scrollToTop();
+  onLazyLoad(event: any): void {
+    this.handleLazyLoad(event, (page, size) => {
+      this.paginaAtual = page;
+      this.tamanhoPagina = size;
+      this.ordenacao = this.buildSortParam(event?.sortField, event?.sortOrder);
+      this.carregar();
+    });
+  }
+
+  private buildSortParam(sortField?: string, sortOrder?: number): string | undefined {
+    if (!sortField || !sortOrder) {
+      return undefined;
+    }
+
+    const direction = sortOrder === -1 ? 'DESC' : 'ASC';
+    return `${sortField},${direction}`;
   }
 
   nova(): void {

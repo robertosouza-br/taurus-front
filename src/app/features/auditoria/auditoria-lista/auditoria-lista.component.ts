@@ -94,12 +94,12 @@ export class AuditoriaListaComponent extends BaseListComponent implements OnInit
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'dataHora', header: 'Data/Hora', width: '15%', template: 'dataHora', align: 'center' },
-      { field: 'usuarioNome', header: 'Usuário', width: '20%', align: 'left' },
-      { field: 'usuarioCpf', header: 'CPF', width: '13%', template: 'usuarioCpf', align: 'center' },
-      { field: 'entidade', header: 'Entidade', width: '15%', align: 'center' },
-      { field: 'tipoOperacao', header: 'Operação', width: '12%', template: 'tipoOperacao', align: 'center' },
-      { field: 'ipCliente', header: 'IP', width: '13%', align: 'center' }
+      { field: 'dataHora', header: 'Data/Hora', width: '15%', sortable: true, template: 'dataHora', align: 'center' },
+      { field: 'usuarioNome', header: 'Usuário', width: '20%', sortable: true, align: 'left' },
+      { field: 'usuarioCpf', header: 'CPF', width: '13%', sortable: true, template: 'usuarioCpf', align: 'center' },
+      { field: 'entidade', header: 'Entidade', width: '15%', sortable: true, align: 'center' },
+      { field: 'tipoOperacao', header: 'Operação', width: '12%', sortable: true, template: 'tipoOperacao', align: 'center' },
+      { field: 'ipCliente', header: 'IP', width: '13%', sortable: true, align: 'center' }
     ];
 
     this.acoes = [
@@ -149,7 +149,17 @@ export class AuditoriaListaComponent extends BaseListComponent implements OnInit
   onLazyLoad(event: any): void {
     this.filtro.page = event.first / event.rows;
     this.filtro.size = event.rows;
+    this.filtro.sort = this.buildSortParam(event?.sortField, event?.sortOrder) || 'dataHora,DESC';
     this.carregar();
+  }
+
+  private buildSortParam(sortField?: string, sortOrder?: number): string | undefined {
+    if (!sortField || !sortOrder) {
+      return undefined;
+    }
+
+    const direction = sortOrder === -1 ? 'DESC' : 'ASC';
+    return `${sortField},${direction}`;
   }
 
   filtrar(): void {

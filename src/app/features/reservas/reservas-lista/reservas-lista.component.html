@@ -1,4 +1,4 @@
-<div class="reservas-lista-page">
+<div class="lista-container">
   <!-- Breadcrumb -->
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
@@ -6,119 +6,50 @@
   <app-page-header
     title="Reservas"
     subtitle="Gerencie todas as reservas de unidades"
-    icon="pi pi-bookmark">
-    <div header-actions class="flex gap-2 flex-wrap">
-      <app-custom-button
-        *ngIf="temPermissaoIncluir()"
-        label="Nova Reserva"
-        icon="pi pi-plus"
-        (onClick)="nova()">
-      </app-custom-button>
-    </div>
+    icon="pi pi-bookmark"
+    [actions]="headerActions">
   </app-page-header>
-
-  <!-- Loading -->
-  <app-loading-spinner
-    *ngIf="carregando"
-    [overlay]="true"
-    message="Carregando reservas...">
-  </app-loading-spinner>
 
   <!-- Confirmação de exclusão -->
   <p-confirmDialog></p-confirmDialog>
 
   <!-- Tabela -->
-  <p-card class="lista-card">
-    <ng-template pTemplate="header">
-      <div class="card-gradient-header">
-        <i class="pi pi-list"></i>
-        <span>Lista de Reservas</span>
-        <span class="header-badge">{{ totalRegistros }} registro{{ totalRegistros !== 1 ? 's' : '' }}</span>
+  <app-data-table
+    [data]="reservas"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRegistros"
+    [loading]="carregando"
+    [lazy]="true"
+    [rows]="50"
+    (onLazyLoad)="onLazyLoad($event)">
+
+    <ng-template appTableTemplate="blocoUnidade" let-reserva="rowData">
+      <span class="bloco-unidade">
+        <strong>{{ reserva.bloco }}</strong> / {{ reserva.unidade }}
+      </span>
+    </ng-template>
+
+    <ng-template appTableTemplate="tipologia" let-reserva="rowData">
+      <small class="tipologia-texto">{{ reserva.tipologia || reserva.tipoUnidade || '—' }}</small>
+    </ng-template>
+
+    <ng-template appTableTemplate="cliente" let-reserva="rowData">
+      <div class="cliente-info">
+        <span class="cliente-nome">{{ reserva.nomeCliente }}</span>
+        <small class="cliente-cpf">{{ reserva.cpfCnpjCliente }}</small>
       </div>
     </ng-template>
 
-    <div *ngIf="!carregando && reservas.length === 0" class="empty-state">
-      <i class="pi pi-bookmark empty-icon"></i>
-      <p>Nenhuma reserva encontrada.</p>
-    </div>
+    <ng-template appTableTemplate="imobiliaria" let-reserva="rowData">
+      {{ reserva.nomeImobiliariaPrincipal || '—' }}
+    </ng-template>
 
-    <p-table
-      *ngIf="reservas.length > 0"
-      [value]="reservas"
-      [scrollable]="true"
-      scrollHeight="flex"
-      styleClass="p-datatable-sm p-datatable-gridlines"
-      [rows]="50"
-      [paginator]="totalRegistros > 50"
-      [totalRecords]="totalRegistros"
-      [lazy]="true"
-      (onPage)="onPageChange($event)">
-
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Empreendimento</th>
-          <th>Bloco / Unidade</th>
-          <th>Tipologia</th>
-          <th>Cliente</th>
-          <th>Imobiliária</th>
-          <th>Data Reserva</th>
-          <th>Status</th>
-          <th class="col-acoes">Ações</th>
-        </tr>
-      </ng-template>
-
-      <ng-template pTemplate="body" let-r>
-        <tr>
-          <td>{{ r.nomeEmpreendimento }}</td>
-          <td>
-            <span class="bloco-unidade">
-              <strong>{{ r.bloco }}</strong> / {{ r.unidade }}
-            </span>
-          </td>
-          <td>
-            <small class="tipologia-texto">{{ r.tipologia || r.tipoUnidade || '—' }}</small>
-          </td>
-          <td>
-            <div class="cliente-info">
-              <span class="cliente-nome">{{ r.nomeCliente }}</span>
-              <small class="cliente-cpf">{{ r.cpfCnpjCliente }}</small>
-            </div>
-          </td>
-          <td>{{ r.nomeImobiliariaPrincipal || '—' }}</td>
-          <td>{{ formatarData(r.dataReserva) }}</td>
-          <td>
-            <p-tag
-              [value]="getStatusLabel(r.status)"
-              [severity]="getStatusSeverity(r.status)"
-              [style]="{'max-width': '180px', 'white-space': 'normal', 'text-align': 'center'}">
-            </p-tag>
-          </td>
-          <td>
-            <div class="acoes-btn-group">
-              <button
-                pButton
-                pRipple
-                type="button"
-                icon="pi pi-pencil"
-                class="p-button-rounded p-button-text p-button-info"
-                pTooltip="Editar"
-                *ngIf="temPermissaoAlterar()"
-                (click)="editar(r)">
-              </button>
-              <button
-                pButton
-                pRipple
-                type="button"
-                icon="pi pi-trash"
-                class="p-button-rounded p-button-text p-button-danger"
-                pTooltip="Excluir"
-                *ngIf="temPermissaoExcluir()"
-                (click)="excluir(r)">
-              </button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
+    <ng-template appTableTemplate="status" let-reserva="rowData">
+      <p-tag
+        [value]="getStatusLabel(reserva.status)"
+        [severity]="getStatusSeverity(reserva.status)">
+      </p-tag>
+    </ng-template>
+  </app-data-table>
 </div>
