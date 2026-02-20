@@ -23,7 +23,7 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
   
   // Propriedades de paginação (não override porque não existem na base)
   first = 0;
-  rows = 20;
+  rows = 50;
   
   colunas: TableColumn[] = [
     { field: 'dataCriacao', header: 'Data', width: '15%', template: 'data', align: 'center' },
@@ -77,7 +77,7 @@ export class ContatosListaComponent extends BaseListComponent implements OnInit 
 
   carregarContatos(): void {
     this.carregando = true;
-    const pagina = Math.floor((this.first || 0) / (this.rows || 20));
+    const pagina = Math.floor((this.first || 0) / (this.rows || 50));
     const status = this.statusFiltro?.value;
 
     this.contatoService.listar(pagina, this.rows, status).subscribe({
