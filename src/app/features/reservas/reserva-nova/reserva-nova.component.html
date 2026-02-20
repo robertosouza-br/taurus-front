@@ -240,7 +240,8 @@
             id="contatoPrincipal"
             label="Contato"
             [(ngModel)]="contatoPrincipal"
-            [required]="false">
+            [required]="false"
+            [showValidation]="tentouSalvar">
           </app-input-telefone>
           <ng-template #contatoPrincipalTexto>
             <app-input-text
@@ -260,25 +261,23 @@
             <span class="profissionais-label">
               <i class="pi pi-users"></i> Profissionais
             </span>
-            <div class="flex gap-2 flex-wrap">
-              <app-custom-button
-                label="Novo Corretor"
-                icon="pi pi-user-plus"
-                severity="secondary"
-                [outlined]="true"
-                size="small"
-                tooltip="Cadastro rápido de corretor"
+            <div class="flex gap-2 align-items-center">
+              <button
+                type="button"
+                class="btn-adicionar-prof-icon"
+                pTooltip="Adicionar profissional"
                 tooltipPosition="left"
-                (onClick)="abrirCadastroRapido()">
-              </app-custom-button>
-              <app-custom-button
-                label="Adicionar"
-                icon="pi pi-plus"
-                severity="secondary"
-                [outlined]="true"
-                size="small"
-                (onClick)="adicionarProfissional('principal')">
-              </app-custom-button>
+                (click)="adicionarProfissional('principal')">
+                <i class="pi pi-plus"></i>
+              </button>
+              <button
+                type="button"
+                class="btn-novo-corretor-icon"
+                pTooltip="Cadastro rápido de corretor"
+                tooltipPosition="left"
+                (click)="abrirCadastroRapido()">
+                <i class="pi pi-user-plus"></i>
+              </button>
             </div>
           </div>
 
@@ -310,20 +309,21 @@
                     label="CPF do Corretor"
                     [(ngModel)]="prof.corretorCpfBusca"
                     [required]="false"
-                    (ngModelChange)="limparCorretorSelecionado(prof)">
+                    (ngModelChange)="onCpfCorretorAlterado(prof)"
+                    (onBlur)="onCpfCorretorBlur(prof)">
                   </app-input-cpf>
                 </div>
-                <div class="corretor-busca-acao">
-                  <app-custom-button
-                    label="Buscar"
-                    icon="pi pi-search"
-                    severity="secondary"
-                    [outlined]="true"
-                    size="small"
-                    [loading]="prof.corretorBuscando"
-                    (onClick)="buscarCorretorPorCpf(prof)">
-                  </app-custom-button>
-                </div>
+              </div>
+              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Buscando corretor...</span>
+              </div>
+              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>Corretor não encontrado para este CPF.</span>
+                <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
+                  Usar cadastro rápido
+                </button>
               </div>
               <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && prof.corretor?.nome">
                 <span class="corretor-encontrado-label">Corretor:</span>
@@ -401,6 +401,19 @@
           </app-autocomplete>
         </div>
 
+        <div class="col-12" *ngIf="imobiliariaSecundariaSelecionada">
+          <div class="flex justify-content-end">
+            <app-custom-button
+              label="Remover Imobiliária Secundária"
+              icon="pi pi-trash"
+              severity="danger"
+              [outlined]="true"
+              size="small"
+              (onClick)="removerImobiliariaSecundaria()">
+            </app-custom-button>
+          </div>
+        </div>
+
         <!-- Tipo de Contato Secundário -->
         <div class="col-12 md:col-3">
           <app-autocomplete
@@ -424,7 +437,8 @@
             id="contatoSecundario"
             label="Contato"
             [(ngModel)]="contatoSecundario"
-            [required]="false">
+            [required]="false"
+            [showValidation]="tentouSalvar">
           </app-input-telefone>
           <ng-template #contatoSecundarioTexto>
             <app-input-text
@@ -444,14 +458,24 @@
             <span class="profissionais-label">
               <i class="pi pi-users"></i> Profissionais da Imobiliária Parceira
             </span>
-            <app-custom-button
-              label="Adicionar"
-              icon="pi pi-plus"
-              severity="secondary"
-              [outlined]="true"
-              size="small"
-              (onClick)="adicionarProfissional('secundaria')">
-            </app-custom-button>
+            <div class="flex gap-2 align-items-center">
+              <button
+                type="button"
+                class="btn-adicionar-prof-icon"
+                pTooltip="Adicionar profissional"
+                tooltipPosition="left"
+                (click)="adicionarProfissional('secundaria')">
+                <i class="pi pi-plus"></i>
+              </button>
+              <button
+                type="button"
+                class="btn-novo-corretor-icon"
+                pTooltip="Cadastro rápido de corretor"
+                tooltipPosition="left"
+                (click)="abrirCadastroRapido()">
+                <i class="pi pi-user-plus"></i>
+              </button>
+            </div>
           </div>
 
           <div
@@ -478,20 +502,21 @@
                     label="CPF do Corretor"
                     [(ngModel)]="prof.corretorCpfBusca"
                     [required]="false"
-                    (ngModelChange)="limparCorretorSelecionado(prof)">
+                    (ngModelChange)="onCpfCorretorAlterado(prof)"
+                    (onBlur)="onCpfCorretorBlur(prof)">
                   </app-input-cpf>
                 </div>
-                <div class="corretor-busca-acao">
-                  <app-custom-button
-                    label="Buscar"
-                    icon="pi pi-search"
-                    severity="secondary"
-                    [outlined]="true"
-                    size="small"
-                    [loading]="prof.corretorBuscando"
-                    (onClick)="buscarCorretorPorCpf(prof)">
-                  </app-custom-button>
-                </div>
+              </div>
+              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Buscando corretor...</span>
+              </div>
+              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>Corretor não encontrado para este CPF.</span>
+                <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
+                  Usar cadastro rápido
+                </button>
               </div>
               <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && prof.corretor?.nome">
                 <span class="corretor-encontrado-label">Corretor:</span>
@@ -578,11 +603,17 @@
           id="cadastroRapidoCpf"
           label="CPF do Corretor"
           [(ngModel)]="cadastroRapidoCpf"
+          (ngModelChange)="onCadastroRapidoCpfChange()"
           [required]="true"
-          [showValidation]="false">
+          [showValidation]="true">
         </app-input-cpf>
-        <small *ngIf="cpfCadastroRapidoJaCadastrado" class="p-error">
-          Este CPF já possui cadastro no sistema.
+        <small *ngIf="validandoCpfCadastroRapido" class="p-text-secondary">
+          Validando CPF...
+        </small>
+        <small
+          *ngIf="mensagemValidacaoCpfCadastroRapido && !validandoCpfCadastroRapido"
+          [class]="cpfCadastroRapidoJaCadastrado || cpfCadastroRapidoInvalido ? 'p-error' : 'p-text-success'">
+          {{ mensagemValidacaoCpfCadastroRapido }}
         </small>
       </div>
       <div class="col-12">
@@ -591,6 +622,7 @@
           label="Nome Completo"
           [(ngModel)]="cadastroRapidoNome"
           [required]="true"
+          [disabled]="!camposCadastroRapidoHabilitados"
           [showValidation]="false"
           placeholder="Nome completo do corretor">
         </app-input-text>
@@ -600,6 +632,7 @@
           id="cadastroRapidoEmail"
           label="E-mail"
           [(ngModel)]="cadastroRapidoEmail"
+          [disabled]="!camposCadastroRapidoHabilitados"
           [required]="false"
           placeholder="email@exemplo.com">
         </app-input-text>
@@ -609,27 +642,39 @@
           id="cadastroRapidoTelefone"
           label="Telefone"
           [(ngModel)]="cadastroRapidoTelefone"
+          [disabled]="!camposCadastroRapidoHabilitados"
           [required]="false">
         </app-input-telefone>
       </div>
     </div>
 
     <ng-template pTemplate="footer">
-      <app-custom-button
-        label="Cancelar"
-        icon="pi pi-times"
-        severity="warning"
-        [outlined]="true"
-        [disabled]="salvandoCadastroRapido"
-        (onClick)="displayCadastroRapido = false">
-      </app-custom-button>
-      <app-custom-button
-        label="Cadastrar Corretor"
-        icon="pi pi-save"
-        severity="success"
-        [loading]="salvandoCadastroRapido"
-        (onClick)="salvarCadastroRapido()">
-      </app-custom-button>
+      <div class="flex gap-2 justify-content-end">
+        <app-custom-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="warning"
+          [outlined]="true"
+          [disabled]="salvandoCadastroRapido"
+          (onClick)="displayCadastroRapido = false">
+        </app-custom-button>
+        <app-custom-button
+          label="Cadastrar Corretor"
+          icon="pi pi-save"
+          severity="success"
+          [loading]="salvandoCadastroRapido"
+          [disabled]="
+            salvandoCadastroRapido ||
+            validandoCpfCadastroRapido ||
+            !cadastroRapidoCpf ||
+            !cadastroRapidoNome ||
+            cpfCadastroRapidoJaCadastrado ||
+            cpfCadastroRapidoInvalido ||
+            !cpfCadastroRapidoPodeCadastrar
+          "
+          (onClick)="salvarCadastroRapido()">
+        </app-custom-button>
+      </div>
     </ng-template>
   </p-dialog>
 </div>

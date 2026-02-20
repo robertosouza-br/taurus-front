@@ -96,14 +96,16 @@ export class InputTelefoneComponent implements ControlValueAccessor {
   }
 
   get isInvalid(): boolean {
+    const deveExibirValidacao = this.showValidation || this.touched;
+
     if (this.required && (!this.value || this.value.trim().length === 0)) {
-      return this.showValidation;
+      return deveExibirValidacao;
     }
     
     // Valida se tem pelo menos 10 dígitos (telefone fixo)
     if (this.value && this.value.trim().length > 0) {
       const numbers = this.value.replace(/\D/g, '');
-      return this.showValidation && numbers.length < 10;
+      return deveExibirValidacao && (numbers.length < 10 || numbers.length > 11);
     }
     
     return false;
@@ -118,7 +120,7 @@ export class InputTelefoneComponent implements ControlValueAccessor {
     
     if (this.value && this.value.trim().length > 0) {
       const numbers = this.value.replace(/\D/g, '');
-      if (numbers.length < 10) {
+      if (numbers.length < 10 || numbers.length > 11) {
         return 'Telefone inválido';
       }
     }

@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -24,6 +24,7 @@ export class InputCpfComponent implements ControlValueAccessor {
   @Input() showValidation: boolean = false;
   @Input() errorMessage: string = '';
   @Input() documentType: 'cpf' | 'cnpj' | 'cpfCnpj' = 'cpf';
+  @Output() onBlur = new EventEmitter<void>();
 
   value: string = '';
   touched: boolean = false;
@@ -53,9 +54,26 @@ export class InputCpfComponent implements ControlValueAccessor {
     this.onChange(valorSemFormatacao); // Envia valor sem formatação para o modelo
   }
 
-  onBlur(): void {
+  onKeyDown(event: KeyboardEvent): void {
+    const teclasPermitidas = [
+      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+      'Home', 'End'
+    ];
+
+    if (teclasPermitidas.includes(event.key) || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    if (!/^\d$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  handleBlur(): void {
     this.touched = true;
     this.onTouched();
+    this.onBlur.emit();
   }
 
   private formatarDocumento(valor: string): string {

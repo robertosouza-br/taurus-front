@@ -3,10 +3,13 @@
     <input 
       [id]="inputId"
       type="text"
+      inputmode="numeric"
+      pattern="[0-9]*"
       pInputText
       [value]="value"
+      (keydown)="onKeyDown($event)"
       (input)="onInputChange($event)"
-      (blur)="onBlur()"
+      (blur)="handleBlur()"
       [placeholder]="placeholder"
       [disabled]="disabled"
       [readonly]="readonly"

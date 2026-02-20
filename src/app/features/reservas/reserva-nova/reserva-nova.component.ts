@@ -10,6 +10,7 @@ import { ReservaService } from '../../../core/services/reserva.service';
 import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
+import { UsuarioService } from '../../../core/services/usuario.service';
 import {
   ReservaCreateDTO,
   StatusReserva,
@@ -37,6 +38,8 @@ interface ProfissionalForm {
   corretorCpfBusca: string;
   corretorSugestoes: CorretorSaidaDTO[];
   corretorBuscando: boolean;
+  ultimoCpfBuscado: string;
+  corretorNaoEncontrado: boolean;
 }
 
 @Component({
@@ -97,6 +100,12 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   cadastroRapidoTelefone = '';
   salvandoCadastroRapido = false;
   cpfCadastroRapidoJaCadastrado = false;
+  cpfCadastroRapidoInvalido = false;
+  validandoCpfCadastroRapido = false;
+  mensagemValidacaoCpfCadastroRapido = '';
+  cpfCadastroRapidoPodeCadastrar = false;
+  camposCadastroRapidoHabilitados = false;
+  private ultimoCpfValidadoCadastroRapido = '';
 
   // ─── Verificação de reserva existente ─────────────────────────────────────
   verificandoReserva = false;
@@ -125,6 +134,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     private reservaService: ReservaService,
     private imobiliariaService: ImobiliariaService,
     private corretorService: CorretorService,
+    private usuarioService: UsuarioService,
     private permissaoService: PermissaoService,
     private appConfirmationService: AppConfirmationService,
     private messageService: MessageService
@@ -327,7 +337,9 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       corretor: null,
       corretorCpfBusca: '',
       corretorSugestoes: [],
-      corretorBuscando: false
+      corretorBuscando: false,
+      ultimoCpfBuscado: '',
+      corretorNaoEncontrado: false
     };
 
     if (tipo === 'principal') {
@@ -345,18 +357,40 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     }
   }
 
-  buscarCorretorPorCpf(profForm: ProfissionalForm): void {
+  buscarCorretorPorCpf(profForm: ProfissionalForm, opcoes?: { silencioso?: boolean; forcar?: boolean }): void {
+    const silencioso = !!opcoes?.silencioso;
+    const forcar = !!opcoes?.forcar;
     const cpf = (profForm.corretorCpfBusca || '').replace(/\D/g, '');
 
     if (cpf.length !== 11) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'CPF inválido',
-        detail: 'Informe um CPF válido com 11 dígitos para buscar o corretor.'
-      });
+      profForm.corretorNaoEncontrado = false;
+      if (!silencioso) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'CPF inválido',
+          detail: 'Informe um CPF válido com 11 dígitos para buscar o corretor.'
+        });
+      }
       return;
     }
 
+    if (!this.validarCPF(cpf)) {
+      profForm.corretorNaoEncontrado = false;
+      if (!silencioso) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'CPF inválido',
+          detail: 'Informe um CPF válido para buscar o corretor.'
+        });
+      }
+      return;
+    }
+
+    if (!forcar && cpf === profForm.ultimoCpfBuscado) {
+      return;
+    }
+
+    profForm.ultimoCpfBuscado = cpf;
     profForm.corretorBuscando = true;
     this.corretorService.buscarPorCpfReserva(cpf)
       .pipe(finalize(() => (profForm.corretorBuscando = false)))
@@ -364,31 +398,53 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
         next: (corretor) => {
           profForm.corretor = corretor;
           profForm.corretorCpfBusca = corretor.cpf || cpf;
+          profForm.corretorNaoEncontrado = false;
         },
         error: (err) => {
           profForm.corretor = null;
 
           if (err?.status === 404) {
-            this.messageService.add({
-              severity: 'warn',
-              summary: 'Corretor não encontrado',
-              detail: 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
-            });
-            this.abrirCadastroRapidoComCpf(cpf);
+            profForm.corretorNaoEncontrado = true;
+            if (!silencioso) {
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Corretor não encontrado',
+                detail: 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
+              });
+              this.abrirCadastroRapidoComCpf(cpf);
+            }
             return;
           }
 
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro na busca',
-            detail: err?.error?.message || 'Não foi possível buscar o corretor por CPF.'
-          });
+          profForm.corretorNaoEncontrado = false;
+
+          if (!silencioso) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro na busca',
+              detail: err?.error?.message || 'Não foi possível buscar o corretor por CPF.'
+            });
+          }
         }
       });
   }
 
+  onCpfCorretorAlterado(profForm: ProfissionalForm): void {
+    this.limparCorretorSelecionado(profForm);
+    const cpf = (profForm.corretorCpfBusca || '').replace(/\D/g, '');
+
+    if (cpf.length < 11) {
+      profForm.ultimoCpfBuscado = '';
+    }
+  }
+
+  onCpfCorretorBlur(profForm: ProfissionalForm): void {
+    this.buscarCorretorPorCpf(profForm, { silencioso: true });
+  }
+
   limparCorretorSelecionado(profForm: ProfissionalForm): void {
     profForm.corretor = null;
+    profForm.corretorNaoEncontrado = false;
   }
 
   buscarCorretores(_event: any, _profForm: ProfissionalForm): void {
@@ -402,6 +458,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   abrirCadastroRapidoComCpf(cpf: string): void {
     this.abrirCadastroRapido();
     this.cadastroRapidoCpf = cpf;
+    this.onCadastroRapidoCpfChange();
   }
 
   getNomeCorretor(c: CorretorSaidaDTO): string {
@@ -529,6 +586,16 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.contatoSecundario = '';
   }
 
+  removerImobiliariaSecundaria(): void {
+    this.imobiliariaSecundariaSelecionada = null;
+    this.tipoRelacionamentoSecundariaSelecionado = null;
+    this.tipoContatoSecundarioSelecionado = null;
+    this.contatoSecundario = '';
+    this.profissionaisSecundaria = [];
+    this.imobiliariaSecundariaSugestoes = [];
+    this.exibirSecundaria = false;
+  }
+
   onDropdownClickTipoRelacionamentoSecundaria(): void {
     this.tipoRelacionamentoSecundariaSugestoes = this.tiposRelacionamentoSecundariaOptions;
   }
@@ -552,8 +619,93 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.cadastroRapidoNome = '';
     this.cadastroRapidoEmail = '';
     this.cadastroRapidoTelefone = '';
-    this.cpfCadastroRapidoJaCadastrado = false;
+    this.limparEstadoValidacaoCpfCadastroRapido();
     this.displayCadastroRapido = true;
+  }
+
+  onCadastroRapidoCpfChange(): void {
+    const cpfLimpo = (this.cadastroRapidoCpf || '').replace(/\D/g, '');
+
+    this.cpfCadastroRapidoJaCadastrado = false;
+    this.cpfCadastroRapidoInvalido = false;
+    this.cpfCadastroRapidoPodeCadastrar = false;
+    this.camposCadastroRapidoHabilitados = false;
+    this.validandoCpfCadastroRapido = false;
+    this.mensagemValidacaoCpfCadastroRapido = '';
+
+    if (!cpfLimpo) {
+      this.ultimoCpfValidadoCadastroRapido = '';
+      return;
+    }
+
+    if (cpfLimpo.length < 11) {
+      this.ultimoCpfValidadoCadastroRapido = '';
+      return;
+    }
+
+    if (!this.validarCPF(cpfLimpo)) {
+      this.cpfCadastroRapidoInvalido = true;
+      this.mensagemValidacaoCpfCadastroRapido = 'CPF inválido. Verifique o número digitado.';
+      this.camposCadastroRapidoHabilitados = false;
+      return;
+    }
+
+    if (this.ultimoCpfValidadoCadastroRapido === cpfLimpo) {
+      return;
+    }
+
+    this.validarCpfCadastroRapidoNoBackend(cpfLimpo);
+  }
+
+  private validarCpfCadastroRapidoNoBackend(cpfLimpo: string): void {
+    this.validandoCpfCadastroRapido = true;
+    this.mensagemValidacaoCpfCadastroRapido = '';
+    this.ultimoCpfValidadoCadastroRapido = cpfLimpo;
+
+    this.usuarioService.validarCpf(this.formatarCpf(cpfLimpo))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.validandoCpfCadastroRapido = false))
+      )
+      .subscribe({
+        next: (response) => {
+          this.cpfCadastroRapidoJaCadastrado = response.cpfCadastrado;
+          this.cpfCadastroRapidoInvalido = false;
+          this.cpfCadastroRapidoPodeCadastrar = !response.cpfCadastrado;
+          this.camposCadastroRapidoHabilitados = !response.cpfCadastrado;
+          this.mensagemValidacaoCpfCadastroRapido = this.normalizarMensagemValidacaoCpfCadastroRapido(response.mensagem || '');
+        },
+        error: (error) => {
+          this.cpfCadastroRapidoPodeCadastrar = false;
+          this.cpfCadastroRapidoJaCadastrado = false;
+          this.camposCadastroRapidoHabilitados = false;
+          this.cpfCadastroRapidoInvalido = error?.status === 400;
+          this.mensagemValidacaoCpfCadastroRapido =
+            error?.status === 400
+              ? 'CPF inválido. Verifique o número digitado.'
+              : 'Erro ao validar CPF. Tente novamente.';
+        }
+      });
+  }
+
+  private formatarCpf(cpf: string): string {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  private limparEstadoValidacaoCpfCadastroRapido(): void {
+    this.cpfCadastroRapidoJaCadastrado = false;
+    this.cpfCadastroRapidoInvalido = false;
+    this.validandoCpfCadastroRapido = false;
+    this.cpfCadastroRapidoPodeCadastrar = false;
+    this.camposCadastroRapidoHabilitados = false;
+    this.mensagemValidacaoCpfCadastroRapido = '';
+    this.ultimoCpfValidadoCadastroRapido = '';
+  }
+
+  private normalizarMensagemValidacaoCpfCadastroRapido(mensagem: string): string {
+    return (mensagem || '')
+      .replace(/\s*Utilize a opção\s*['“”\"]?Esqueci minha senha['“”\"]?\s*para recuperar o acesso\.?/gi, '')
+      .trim();
   }
 
   salvarCadastroRapido(): void {
@@ -573,6 +725,24 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
         severity: 'error',
         summary: 'CPF inválido',
         detail: 'Por favor, informe um CPF válido.'
+      });
+      return;
+    }
+
+    if (this.cpfCadastroRapidoJaCadastrado) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'Este CPF já está cadastrado no sistema.'
+      });
+      return;
+    }
+
+    if (this.cpfCadastroRapidoInvalido || !this.cpfCadastroRapidoPodeCadastrar) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'CPF inválido',
+        detail: 'Informe um CPF válido para continuar o cadastro rápido.'
       });
       return;
     }
@@ -646,6 +816,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   salvar(): void {
     if (!this.validarFormulario()) return;
+    if (!this.validarContatosTelefoneWhatsapp()) return;
     if (!this.validarProfissionaisObrigatorios()) return;
 
     this.appConfirmationService.confirmSave()
@@ -681,11 +852,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       }
     }
 
-    const possuiProfissionalPrincipal = this.profissionaisPrincipal.some(
-      (prof) => prof.tipoProfissional !== null && prof.corretor !== null
-    );
-
-    if (!possuiProfissionalPrincipal) {
+    if (!this.profissionaisPrincipal.length) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Profissional obrigatório',
@@ -694,17 +861,113 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       return false;
     }
 
-    if (this.imobiliariaSecundariaSelecionada) {
-      const possuiProfissionalSecundaria = this.profissionaisSecundaria.some(
-        (prof) => prof.tipoProfissional !== null && prof.corretor !== null
-      );
+    for (let i = 0; i < this.profissionaisPrincipal.length; i++) {
+      if (!this.validarLinhaProfissional(this.profissionaisPrincipal[i], i, 'principal')) {
+        return false;
+      }
+    }
 
-      if (!possuiProfissionalSecundaria) {
+    if (this.imobiliariaSecundariaSelecionada) {
+      if (!this.profissionaisSecundaria.length) {
         this.messageService.add({
           severity: 'warn',
           summary: 'Profissional obrigatório',
           detail: 'Informe pelo menos um profissional na Imobiliária Secundária.'
         });
+        return false;
+      }
+
+      for (let i = 0; i < this.profissionaisSecundaria.length; i++) {
+        if (!this.validarLinhaProfissional(this.profissionaisSecundaria[i], i, 'secundaria')) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private validarLinhaProfissional(
+    prof: ProfissionalForm,
+    index: number,
+    tipo: 'principal' | 'secundaria'
+  ): boolean {
+    const sufixo = tipo === 'principal' ? 'Principal' : 'Secundária';
+    const idTipo = tipo === 'principal' ? `tipoProfissional_${index}` : `tipoProfissionalSecundaria_${index}`;
+    const idCpf = tipo === 'principal' ? `cpfCorretorPrincipal_${index}` : `cpfCorretorSecundaria_${index}`;
+
+    if (!prof.tipoProfissional) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Profissional incompleto',
+        detail: `Selecione o tipo do profissional (${sufixo}) na linha ${index + 1}.`
+      });
+      this.focarCampo(idTipo);
+      return false;
+    }
+
+    const cpf = (prof.corretor?.cpf || prof.corretorCpfBusca || '').replace(/\D/g, '');
+    if (!cpf) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Profissional incompleto',
+        detail: `Informe o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+      });
+      this.focarCampo(idCpf);
+      return false;
+    }
+
+    if (!this.validarCPF(cpf)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'CPF inválido',
+        detail: `Corrija o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+      });
+      this.focarCampo(idCpf);
+      return false;
+    }
+
+    if (!prof.corretor) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Corretor inválido',
+        detail: `Selecione um corretor válido (${sufixo}) na linha ${index + 1}.`
+      });
+      this.focarCampo(idCpf);
+      return false;
+    }
+
+    return true;
+  }
+
+  private validarContatosTelefoneWhatsapp(): boolean {
+    const validarContato = (contato: string, fieldId: string, contexto: string): boolean => {
+      const numeros = (contato || '').replace(/\D/g, '');
+      if (!numeros) {
+        return true;
+      }
+
+      if (numeros.length < 10 || numeros.length > 11) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Contato inválido',
+          detail: `${contexto}: informe um telefone/WhatsApp válido com DDD.`
+        });
+        this.focarCampo(fieldId);
+        return false;
+      }
+
+      return true;
+    };
+
+    if (this.isContatoTelefoneOuWhatsapp(this.tipoContatoPrincipalSelecionado?.value)) {
+      if (!validarContato(this.contatoPrincipal, 'contatoPrincipal', 'Contato da Imobiliária Principal')) {
+        return false;
+      }
+    }
+
+    if (this.imobiliariaSecundariaSelecionada && this.isContatoTelefoneOuWhatsapp(this.tipoContatoSecundarioSelecionado?.value)) {
+      if (!validarContato(this.contatoSecundario, 'contatoSecundario', 'Contato da Imobiliária Secundária')) {
         return false;
       }
     }
@@ -733,7 +996,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
             summary: 'Reserva criada!',
             detail: `Reserva da unidade ${this.bloco}/${this.unidade} criada com sucesso.`
           });
-          this.router.navigate(['/reservas', reserva.id, 'editar'], {
+          this.router.navigate(['/empreendimentos', this.codEmpreendimento, 'unidades'], {
             state: {
               nomeEmpreendimento: this.nomeEmpreendimento,
               preco: this.precoUnidade
@@ -757,6 +1020,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       .map(p => ({
         tipoProfissional: p.tipoProfissional!.value,
         corretorId: Number(p.corretor?.idExterno) || 0,
+        cpfCorretor: (p.corretor?.cpf || p.corretorCpfBusca || '').replace(/\D/g, ''),
         nomeCorretor: p.corretor?.nome || ''
       }));
   }
