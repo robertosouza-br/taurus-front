@@ -47,8 +47,8 @@
 
     <ng-template appTableTemplate="status" let-reserva="rowData">
       <p-tag
-        [value]="getStatusLabel(reserva.status)"
-        [severity]="getStatusSeverity(reserva.status)">
+        [value]="getStatusLabel(reserva)"
+        [severity]="getStatusSeverity(reserva)">
       </p-tag>
     </ng-template>
   </app-data-table>

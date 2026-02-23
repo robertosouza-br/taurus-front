@@ -23,7 +23,9 @@ import {
   TIPO_CONTATO_LABELS,
   TIPO_RELACIONAMENTO_SECUNDARIA_LABELS,
   FORMA_PAGAMENTO_LABELS,
-  ProfissionalReservaDTO
+  ProfissionalReservaDTO,
+  statusReservaToCodigo,
+  codigoToStatusReserva
 } from '../../../core/models/reserva.model';
 import { Imobiliaria } from '../../../core/models/imobiliaria.model';
 import { CorretorSaidaDTO } from '../../../core/models/corretor.model';
@@ -58,7 +60,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   tipoUnidade = '';
   tipologia = '';
   precoUnidade: number | null = null;
-  statusUnidadeOrigem = '';
+  statusUnidadeOrigem: string | number = '';
 
   // ─── Dados do cliente ─────────────────────────────────────────────────────
   cpfCnpjCliente = '';
@@ -191,16 +193,51 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     // Dados do state (passados via router navigate)
     this.nomeEmpreendimento = state?.nomeEmpreendimento || '';
     this.codColigadaEmpreendimento = Number(state?.codColigadaEmpreendimento) || 0;
-    this.statusUnidadeOrigem = state?.statusUnidade || '';
+    // Prioriza codigoStatusUnidade (number) sobre statusUnidade (string) para integração TOTVS RM
+    this.statusUnidadeOrigem = state?.codigoStatusUnidade ?? state?.statusUnidade ?? '';
     this.tipoUnidade = state?.tipoUnidade || '';
     this.tipologia = state?.tipologia || '';
     this.precoUnidade = state?.preco || null;
   }
 
-  private mapearStatusUnidadeParaReserva(statusUnidade: string): StatusReserva | null {
-    const status = (statusUnidade || '').trim();
+  /**
+   * Mapeia código de status da unidade (retornado pelo backend) para StatusReserva
+   * Atualizado: 23/02/2026 - Integração com códigos numéricos TOTVS RM
+   * @param statusUnidade - Pode ser código numérico ou descrição textual (compatibilidade)
+   */
+  private mapearStatusUnidadeParaReserva(statusUnidade: string | number): StatusReserva | null {
+    // Converte para número se for string numérica
+    const codigoNumerico = typeof statusUnidade === 'number' 
+      ? statusUnidade 
+      : parseInt(statusUnidade, 10);
 
-    const mapeamento: Record<string, StatusReserva> = {
+    // Se for um número válido, usa mapeamento por código
+    if (!isNaN(codigoNumerico)) {
+      const mapeamentoCodigo: Record<number, StatusReserva> = {
+        100: StatusReserva.NAO_VENDIDA,           // Disponível para Venda
+        102: StatusReserva.PROCESSO_FINALIZADO,   // Quitado
+        103: StatusReserva.NAO_VENDIDA,           // Outros
+        200: StatusReserva.RESERVADA,             // Reservado para Venda
+        250: StatusReserva.FORA_DE_VENDA,         // Bloqueado
+        251: StatusReserva.FORA_DE_VENDA,         // Não disponível
+        301: StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA, // Sinal Creditado/Cont.Assinado
+        441: StatusReserva.RESERVADA,             // Contrato em assinatura
+        600: StatusReserva.FORA_DE_VENDA,         // Bloqueado Juridicamente
+        801: StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA, // Sinal Creditado/Cont.Andamento
+        802: StatusReserva.SINAL_A_CREDITAR_DOC_CALPER, // Sinal a Creditar/Cont.Andament
+        803: StatusReserva.ASSINADO_SINAL_A_CREDITAR, // Sinal a Creditar/Cont.Assinado
+        804: StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA, // Sinal Pago, Doc na Imobiliária
+        805: StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC, // Sinal Pago, Pendência Documento
+        820: StatusReserva.FORA_DE_VENDA,         // Fora de venda
+        900: StatusReserva.PROCESSO_FINALIZADO    // Sinal Creditado/Cont.Finaliza
+      };
+      
+      return mapeamentoCodigo[codigoNumerico] ?? null;
+    }
+
+    // Fallback: Mapeamento por LABEL (compatibilidade com sistemas legados)
+    const status = String(statusUnidade || '').trim();
+    const mapeamentoLabel: Record<string, StatusReserva> = {
       'Não Vendida': StatusReserva.NAO_VENDIDA,
       'Disponível para Venda': StatusReserva.NAO_VENDIDA,
       'Em Negociação': StatusReserva.EM_NEGOCIACAO,
@@ -220,7 +257,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       'Fora de venda': StatusReserva.FORA_DE_VENDA
     };
 
-    return mapeamento[status] ?? null;
+    return mapeamentoLabel[status] ?? null;
   }
 
   private configurarOpcoes(): void {
@@ -283,8 +320,17 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
           if (reserva) {
             this.reservaExistente = reserva;
             
-            // Carrega o status real da reserva existente
-            this.statusSelecionado = this.statusOptions.find(o => o.value === reserva.status) || null;
+            // Carrega o status real da reserva existente (converte codigoStatus se necessário)
+            let statusReserva = reserva.status;
+            if (!statusReserva && reserva.codigoStatus) {
+              const statusConvertido = codigoToStatusReserva(reserva.codigoStatus);
+              if (statusConvertido) {
+                statusReserva = statusConvertido;
+              }
+            }
+            this.statusSelecionado = statusReserva 
+              ? this.statusOptions.find(o => o.value === statusReserva) || null
+              : null;
 
             this.router.navigate(['/reservas', reserva.id, 'editar'], {
               replaceUrl: true,
@@ -1026,6 +1072,11 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   }
 
   private montarPayload(): ReservaCreateDTO {
+    // Converte StatusReserva (enum) para código numérico
+    const codigoStatus = this.statusSelecionado?.value 
+      ? statusReservaToCodigo(this.statusSelecionado.value)
+      : 200; // Default: Reservado para Venda
+
     return {
       codEmpreendimento: this.codEmpreendimento,
       codColigadaEmpreendimento: this.codColigadaEmpreendimento,
@@ -1034,7 +1085,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       unidade: this.unidade,
       tipoUnidade: this.tipoUnidade,
       tipologia: this.tipologia,
-      status: this.statusSelecionado?.value,
+      codigoStatus: codigoStatus,
       cpfCnpjCliente: this.clienteEstrangeiro ? null : this.cpfCnpjCliente,
       passaporteCliente: this.clienteEstrangeiro ? this.passaporteCliente : null,
       imobiliariaPrincipalId: this.imobiliariaPrincipalSelecionada!.id,

@@ -24,7 +24,9 @@ import {
   TIPO_CONTATO_LABELS,
   TIPO_RELACIONAMENTO_SECUNDARIA_LABELS,
   FORMA_PAGAMENTO_LABELS,
-  ProfissionalReservaDTO
+  ProfissionalReservaDTO,
+  statusReservaToCodigo,
+  codigoToStatusReserva
 } from '../../../core/models/reserva.model';
 import { Imobiliaria } from '../../../core/models/imobiliaria.model';
 import { CorretorSaidaDTO } from '../../../core/models/corretor.model';
@@ -262,7 +264,18 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       : null;
     this.dataReserva = r.dataReserva ? new Date(r.dataReserva) : null;
     this.dataVenda = r.dataVenda ? new Date(r.dataVenda) : null;
-    this.statusSelecionado = this.statusOptions.find(o => o.value === r.status) || null;
+    
+    // Converte codigoStatus (número) para StatusReserva (enum) para preencher o dropdown
+    let statusParaDropdown: StatusReserva | null = r.status || null;
+    if (!statusParaDropdown && r.codigoStatus) {
+      const statusConvertido = codigoToStatusReserva(r.codigoStatus);
+      if (statusConvertido) {
+        statusParaDropdown = statusConvertido;
+      }
+    }
+    this.statusSelecionado = statusParaDropdown 
+      ? this.statusOptions.find(o => o.value === statusParaDropdown) || null
+      : null;
 
     // Imobiliária principal
     if (r.imobiliariaPrincipalId) {
@@ -1087,6 +1100,11 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   private montarPayload(): ReservaCreateDTO {
+    // Converte StatusReserva (enum) para código numérico
+    const codigoStatus = this.statusSelecionado?.value 
+      ? statusReservaToCodigo(this.statusSelecionado.value)
+      : 200; // Default: Reservado para Venda
+
     return {
       codEmpreendimento: this.codEmpreendimento,
       codColigadaEmpreendimento: this.codColigadaEmpreendimento,
@@ -1095,7 +1113,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       unidade: this.unidade,
       tipoUnidade: this.tipoUnidade,
       tipologia: this.tipologia,
-      status: this.statusSelecionado?.value,
+      codigoStatus: codigoStatus,
       cpfCnpjCliente: this.clienteEstrangeiro ? null : this.cpfCnpjCliente,
       passaporteCliente: this.clienteEstrangeiro ? this.passaporteCliente : null,
       imobiliariaPrincipalId: this.imobiliariaPrincipalSelecionada!.id,

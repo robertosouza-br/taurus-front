@@ -4,7 +4,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
-import { ReservaDTO, StatusReserva, STATUS_RESERVA_LABELS, STATUS_RESERVA_SEVERITY } from '../../../core/models/reserva.model';
+import { ReservaDTO, StatusReserva, STATUS_RESERVA_LABELS, STATUS_RESERVA_SEVERITY, codigoToStatusReserva } from '../../../core/models/reserva.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -169,12 +169,38 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
     });
   }
 
-  getStatusLabel(status: StatusReserva): string {
-    return STATUS_RESERVA_LABELS[status] || status;
+  getStatusLabel(reserva: ReservaDTO): string {
+    // Prioriza descricaoStatus do backend (mais preciso)
+    if (reserva.descricaoStatus) {
+      return reserva.descricaoStatus;
+    }
+    
+    // Fallback: usa enum status se disponível
+    if (reserva.status) {
+      return STATUS_RESERVA_LABELS[reserva.status] || reserva.status;
+    }
+    
+    // Último fallback: converte codigoStatus para enum
+    if (reserva.codigoStatus) {
+      const statusConvertido = codigoToStatusReserva(reserva.codigoStatus);
+      return statusConvertido ? STATUS_RESERVA_LABELS[statusConvertido] : 'N/A';
+    }
+    
+    return 'N/A';
   }
 
-  getStatusSeverity(status: StatusReserva): 'success' | 'secondary' | 'info' | 'warning' | 'danger' {
-    return STATUS_RESERVA_SEVERITY[status] || 'secondary';
+  getStatusSeverity(reserva: ReservaDTO): 'success' | 'secondary' | 'info' | 'warning' | 'danger' {
+    // Converte codigoStatus para StatusReserva se status não estiver disponível
+    let status = reserva.status;
+    
+    if (!status && reserva.codigoStatus) {
+      const statusConvertido = codigoToStatusReserva(reserva.codigoStatus);
+      if (statusConvertido) {
+        status = statusConvertido;
+      }
+    }
+    
+    return status ? (STATUS_RESERVA_SEVERITY[status] || 'secondary') : 'secondary';
   }
 
   temPermissaoIncluir(): boolean {

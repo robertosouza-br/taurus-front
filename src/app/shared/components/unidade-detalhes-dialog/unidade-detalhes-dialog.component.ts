@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Unidade } from '../../../core/models/unidade.model';
+import { Unidade, getStatusLabel, getStatusSeverity } from '../../../core/models/unidade.model';
 
 /**
  * Componente de dialog para exibir detalhes da unidade
@@ -44,27 +44,17 @@ export class UnidadeDetalhesDialogComponent {
   }
 
   /**
-   * Retorna a severidade do status para o componente p-tag
+   * Retorna o label do status (código -> descrição)
    */
-  getStatusSeverity(status: string): 'success' | 'secondary' | 'info' | 'warning' | 'danger' {
-    const statusLower = status.toLowerCase();
-    
-    if (statusLower.includes('disponível') || statusLower.includes('disponivel')) {
-      return 'success';
-    }
-    
-    if (statusLower.includes('vendida') || statusLower.includes('finaliza')) {
-      return 'info';
-    }
-    
-    if (statusLower.includes('reservada') || statusLower.includes('creditado')) {
-      return 'warning';
-    }
-    
-    if (statusLower.includes('indisponível') || statusLower.includes('indisponivel')) {
-      return 'danger';
-    }
-    
-    return 'secondary';
+  getStatusLabel(codigoStatus: number): string {
+    return getStatusLabel(codigoStatus);
+  }
+
+  /**
+   * Retorna a severidade do status para o componente p-tag
+   * Atualizado: 23/02/2026 - Usando função helper do modelo
+   */
+  getStatusSeverity(codigoStatus: number): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    return getStatusSeverity(codigoStatus);
   }
 }

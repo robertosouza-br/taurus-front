@@ -129,6 +129,7 @@ export interface ProfissionalReservaDTO {
 
 /**
  * DTO de resposta da API (GET)
+ * Atualizado: 23/02/2026 - Integração completa com API
  */
 export interface ReservaDTO {
   id: number;
@@ -139,7 +140,9 @@ export interface ReservaDTO {
   unidade: string;
   tipoUnidade: string;
   tipologia: string;
-  status: StatusReserva;
+  status: StatusReserva;              // Enum retornado pelo backend
+  codigoStatus: number;               // Código numérico do status (100, 200, 301, etc.)
+  descricaoStatus: string;            // Descrição textual do status
   cpfCnpjCliente: string | null;
   passaporteCliente: string | null;
   nomeCliente: string;
@@ -167,6 +170,7 @@ export interface ReservaDTO {
 
 /**
  * DTO de criação/atualização da reserva (POST/PUT)
+ * Atualizado: 23/02/2026 - Usa codigoStatus ao invés de status enum (conforme API)
  */
 export interface ReservaCreateDTO {
   codEmpreendimento: number;
@@ -176,7 +180,7 @@ export interface ReservaCreateDTO {
   unidade: string;
   tipoUnidade?: string;
   tipologia?: string;
-  status?: StatusReserva;
+  codigoStatus: number;                // Código numérico obrigatório (100, 200, 301, etc.)
   cpfCnpjCliente?: string | null;
   passaporteCliente?: string | null;
   imobiliariaPrincipalId: number;
@@ -214,3 +218,60 @@ export const STATUS_RESERVA_SEVERITY: Record<StatusReserva, 'success' | 'seconda
   [StatusReserva.DISTRATO]: 'danger',
   [StatusReserva.FORA_DE_VENDA]: 'danger'
 };
+
+/**
+ * Mapeamento de códigos de status da unidade para StatusReserva
+ * Baseado na documentação da API - 23/02/2026
+ */
+export const STATUS_CODIGO_TO_RESERVA: Record<number, StatusReserva> = {
+  100: StatusReserva.NAO_VENDIDA,           // Disponível para Venda
+  102: StatusReserva.PROCESSO_FINALIZADO,   // Quitado
+  103: StatusReserva.NAO_VENDIDA,           // Outros
+  200: StatusReserva.RESERVADA,             // Reservado para Venda
+  250: StatusReserva.FORA_DE_VENDA,         // Bloqueado
+  251: StatusReserva.FORA_DE_VENDA,         // Não disponível
+  301: StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA, // Sinal Creditado/Cont.Assinado
+  441: StatusReserva.RESERVADA,             // Contrato em assinatura
+  600: StatusReserva.FORA_DE_VENDA,         // Bloqueado Juridicamente
+  801: StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA, // Sinal Creditado/Cont.Andamento
+  802: StatusReserva.SINAL_A_CREDITAR_DOC_CALPER, // Sinal a Creditar/Cont.Andament
+  803: StatusReserva.ASSINADO_SINAL_A_CREDITAR, // Sinal a Creditar/Cont.Assinado
+  804: StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA, // Sinal Pago, Doc na Imobiliária
+  805: StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC, // Sinal Pago, Pendência Documento
+  820: StatusReserva.FORA_DE_VENDA,         // Fora de venda
+  900: StatusReserva.PROCESSO_FINALIZADO,   // Sinal Creditado/Cont.Finaliza
+  901: StatusReserva.PROCESSO_FINALIZADO    // Processo Finalizado - Cliente assinou PCV
+};
+
+/**
+ * Funções helper para trabalhar com status de reserva
+ */
+
+/**
+ * Converte código numérico de status para StatusReserva enum
+ */
+export function codigoToStatusReserva(codigo: number): StatusReserva | null {
+  return STATUS_CODIGO_TO_RESERVA[codigo] ?? null;
+}
+
+/**
+ * Retorna o código numérico sugerido baseado no StatusReserva
+ * (inverso do mapeamento principal)
+ */
+export function statusReservaToCodigo(status: StatusReserva): number {
+  // Mapeamento inverso: StatusReserva → código mais comum
+  const reverseMap: Record<StatusReserva, number> = {
+    [StatusReserva.NAO_VENDIDA]: 100,
+    [StatusReserva.EM_NEGOCIACAO]: 200,
+    [StatusReserva.RESERVADA]: 200,
+    [StatusReserva.ASSINADO_SINAL_A_CREDITAR]: 803,
+    [StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA]: 801,
+    [StatusReserva.SINAL_A_CREDITAR_DOC_CALPER]: 802,
+    [StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC]: 805,
+    [StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA]: 301,
+    [StatusReserva.PROCESSO_FINALIZADO]: 900,
+    [StatusReserva.DISTRATO]: 820,
+    [StatusReserva.FORA_DE_VENDA]: 820
+  };
+  return reverseMap[status] ?? 200;
+}

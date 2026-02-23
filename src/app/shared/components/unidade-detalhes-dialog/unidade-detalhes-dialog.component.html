@@ -75,8 +75,8 @@
             <div class="detail-item">
               <span class="detail-label">Status:</span>
               <p-tag 
-                [value]="unidade.statusUnidade"
-                [severity]="getStatusSeverity(unidade.statusUnidade)"
+                [value]="getStatusLabel(unidade.codigoStatusUnidade)"
+                [severity]="getStatusSeverity(unidade.codigoStatusUnidade)"
                 styleClass="w-full">
               </p-tag>
             </div>
