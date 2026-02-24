@@ -77,6 +77,11 @@
               <p-tag 
                 [value]="getStatusLabel(unidade.codigoStatusUnidade)"
                 [severity]="getStatusSeverity(unidade.codigoStatusUnidade)"
+                [style]="{
+                  'background-color': getStatusColors(unidade.codigoStatusUnidade).bg,
+                  'border-color': getStatusColors(unidade.codigoStatusUnidade).border,
+                  'color': getStatusColors(unidade.codigoStatusUnidade).text
+                }"
                 styleClass="w-full">
               </p-tag>
             </div>

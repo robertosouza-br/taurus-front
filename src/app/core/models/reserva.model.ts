@@ -58,18 +58,19 @@ export enum TipoRelacionamentoSecundaria {
 
 /**
  * Labels dos status de reserva
+ * Atualizado: 23/02/2026 - Alinhado com labels oficiais TOTVS RM
  */
 export const STATUS_RESERVA_LABELS: Record<StatusReserva, string> = {
-  [StatusReserva.NAO_VENDIDA]: 'Não Vendida',
+  [StatusReserva.NAO_VENDIDA]: 'Disponível para Venda',
   [StatusReserva.EM_NEGOCIACAO]: 'Em Negociação',
-  [StatusReserva.RESERVADA]: 'Reservada / Assinatura dos instrumentos aquisitivos',
-  [StatusReserva.ASSINADO_SINAL_A_CREDITAR]: 'Assinado, com Sinal a creditar e documentos na imobiliária',
-  [StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA]: 'Sinal Creditado, mas com todos os documentos na imobiliária',
-  [StatusReserva.SINAL_A_CREDITAR_DOC_CALPER]: 'Sinal a Creditar, mas com todos os documentos entregue na Calper',
-  [StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC]: 'Sinal Creditado, mas com pendência de documentos',
-  [StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA]: 'Sinal Creditado e sem pendência de documentos',
-  [StatusReserva.PROCESSO_FINALIZADO]: 'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA',
-  [StatusReserva.DISTRATO]: 'Sinal creditado, mas cliente pediu distrato',
+  [StatusReserva.RESERVADA]: 'Reservado para Venda',
+  [StatusReserva.ASSINADO_SINAL_A_CREDITAR]: 'Sinal a Creditar/Cont.Assinado',
+  [StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA]: 'Sinal Creditado/Cont.Andamento',
+  [StatusReserva.SINAL_A_CREDITAR_DOC_CALPER]: 'Sinal a Creditar/Cont.Andament',
+  [StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC]: 'Sinal Pago,Pendência Documento',
+  [StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA]: 'Sinal Creditado/Cont.Assinado',
+  [StatusReserva.PROCESSO_FINALIZADO]: 'Sinal Creditado/ Cont.Finaliza',
+  [StatusReserva.DISTRATO]: 'Fora de venda',
   [StatusReserva.FORA_DE_VENDA]: 'Fora de venda'
 };
 
@@ -239,8 +240,7 @@ export const STATUS_CODIGO_TO_RESERVA: Record<number, StatusReserva> = {
   804: StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA, // Sinal Pago, Doc na Imobiliária
   805: StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC, // Sinal Pago, Pendência Documento
   820: StatusReserva.FORA_DE_VENDA,         // Fora de venda
-  900: StatusReserva.PROCESSO_FINALIZADO,   // Sinal Creditado/Cont.Finaliza
-  901: StatusReserva.PROCESSO_FINALIZADO    // Processo Finalizado - Cliente assinou PCV
+  900: StatusReserva.PROCESSO_FINALIZADO    // Sinal Creditado/Cont.Finaliza
 };
 
 /**

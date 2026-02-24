@@ -76,7 +76,7 @@
     <div *ngIf="statusFiltroSelecionado !== 'TODOS'" class="filtro-ativo-banner">
       <div class="filtro-info">
         <i class="pi pi-filter"></i>
-        <span>Filtro ativo: <strong>{{ getStatusLabel(statusFiltroSelecionado) }}</strong></span>
+        <span>Filtro ativo: <strong>{{ statusFiltroSelecionado }}</strong></span>
         <span class="filtro-count">({{ getTotalUnidadesFiltradas() }} unidade{{ getTotalUnidadesFiltradas() !== 1 ? 's' : '' }})</span>
       </div>
       <app-custom-button
@@ -126,11 +126,11 @@
           <div class="footer-resumo">
             <div class="resumo-item" *ngFor="let resumo of bloco.resumoPorStatus; trackBy: trackByResumoStatus">
               <div class="resumo-cor" 
-                   [style.background-color]="getStatusColor(resumo.status).bg"
-                   [style.border-color]="getStatusColor(resumo.status).border">
+                   [style.background-color]="getStatusColorByLabel(resumo.status).bg"
+                   [style.border-color]="getStatusColorByLabel(resumo.status).border">
               </div>
               <span class="resumo-texto">
-                {{ getStatusLabel(resumo.status) }}: <strong>{{ resumo.quantidade }}</strong>
+                {{ resumo.status }}: <strong>{{ resumo.quantidade }}</strong>
               </span>
             </div>
           </div>
@@ -146,8 +146,8 @@
             
             <!-- Corpo do Card -->
             <div class="card-content" 
-                 [style.background]="getStatusColor(unidade.statusUnidade).bg"
-                 [style.border-color]="getStatusColor(unidade.statusUnidade).border">
+                 [style.background]="getStatusColor(unidade.codigoStatusUnidade).bg"
+                 [style.border-color]="getStatusColor(unidade.codigoStatusUnidade).border">
 
               <!-- Botão de informações -->
               <button
@@ -161,19 +161,19 @@
               
               <!-- Badge de Status -->
               <div class="status-badge"
-                   [style.background]="getStatusColor(unidade.statusUnidade).border"
-                   [pTooltip]="getStatusLabel(unidade.statusUnidade)"
+                   [style.background]="getStatusColor(unidade.codigoStatusUnidade).border"
+                   [pTooltip]="getStatusLabel(unidade.codigoStatusUnidade)"
                    tooltipPosition="top">
                 <i class="pi pi-circle-fill"></i>
               </div>
               
               <!-- Ícone do Tipo -->
-              <div class="tipo-icon" [style.color]="getStatusColor(unidade.statusUnidade).border">
+              <div class="tipo-icon" [style.color]="getStatusColor(unidade.codigoStatusUnidade).border">
                 <i class="pi {{ getIconePorTipo(unidade.tipo, unidade.sigla) }}"></i>
               </div>
               
               <!-- Número da Unidade -->
-              <div class="unidade-numero" [style.color]="getStatusColor(unidade.statusUnidade).text">
+              <div class="unidade-numero" [style.color]="getStatusColor(unidade.codigoStatusUnidade).text">
                 {{ formatarNumeroUnidade(unidade.unidade) }}
               </div>
               

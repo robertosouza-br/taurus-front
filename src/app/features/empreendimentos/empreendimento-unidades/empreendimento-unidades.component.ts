@@ -4,7 +4,7 @@ import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
-import { Unidade, STATUS_COLORS, STATUS_UNIDADE_LABELS } from '../../../core/models/unidade.model';
+import { Unidade, getStatusColors, getStatusLabel } from '../../../core/models/unidade.model';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -52,19 +52,24 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   statusDisponiveis: string[] = [];
   carregando = false;
   
-  // Lista completa de todos os status possíveis do sistema
+  // Lista completa de todos os status possíveis do sistema (labels oficiais)
   readonly todosStatusPossiveis: string[] = [
-    'Não Vendida',
-    'Em Negociação',
-    'Reservada / Assinatura dos instrumentos aquisitivos',
-    'Assinado, com Sinal a creditar e documentos na imobiliária',
-    'Sinal Creditado, mas com todos os documentos na imobiliária',
-    'Sinal a Creditar, mas com todos os documentos entregue na Calper',
-    'Sinal Creditado, mas com pendência de documentos',
-    'Sinal Creditado e sem pendência de documentos',
-    'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA',
-    'Sinal creditado, mas cliente pediu distrato',
-    'Fora de venda'
+    'Disponível para Venda',
+    'Quitado',
+    'Outros',
+    'Reservado para Venda',
+    'Bloqueado',
+    'Não disponível',
+    'Sinal Creditado/Cont.Assinado',
+    'Contrato em assinatura',
+    'Bloqueado Juridicamente',
+    'Sinal Creditado/Cont.Andamento',
+    'Sinal a Creditar/Cont.Andament',
+    'Sinal a Creditar/Cont.Assinado',
+    'Sinal Pago, Doc na Imobiliária',
+    'Sinal Pago,Pendência Documento',
+    'Fora de venda',
+    'Sinal Creditado/ Cont.Finaliza'
   ];
   
   // Visualização
@@ -256,17 +261,22 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    */
   private inicializarMenuFiltros(): void {
     const iconesPorStatus: Record<string, string> = {
-      'Não Vendida': 'pi-box',
-      'Em Negociação': 'pi-comments',
-      'Reservada / Assinatura dos instrumentos aquisitivos': 'pi-file-edit',
-      'Assinado, com Sinal a creditar e documentos na imobiliária': 'pi-file',
-      'Sinal Creditado, mas com todos os documentos na imobiliária': 'pi-folder',
-      'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'pi-folder-open',
-      'Sinal Creditado, mas com pendência de documentos': 'pi-exclamation-triangle',
-      'Sinal Creditado e sem pendência de documentos': 'pi-check-circle',
-      'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': 'pi-verified',
-      'Sinal creditado, mas cliente pediu distrato': 'pi-times-circle',
-      'Fora de venda': 'pi-ban'
+      'Disponível para Venda': 'pi-check-circle',
+      'Quitado': 'pi-verified',
+      'Outros': 'pi-info-circle',
+      'Reservado para Venda': 'pi-clock',
+      'Bloqueado': 'pi-lock',
+      'Não disponível': 'pi-ban',
+      'Sinal Creditado/Cont.Assinado': 'pi-file-check',
+      'Contrato em assinatura': 'pi-pencil',
+      'Bloqueado Juridicamente': 'pi-exclamation-triangle',
+      'Sinal Creditado/Cont.Andamento': 'pi-folder',
+      'Sinal a Creditar/Cont.Andament': 'pi-clock',
+      'Sinal a Creditar/Cont.Assinado': 'pi-clock',
+      'Sinal Pago, Doc na Imobiliária': 'pi-folder',
+      'Sinal Pago,Pendência Documento': 'pi-exclamation-circle',
+      'Fora de venda': 'pi-eye-slash',
+      'Sinal Creditado/ Cont.Finaliza': 'pi-check'
     };
 
     this.filtrosMenuItems = [
@@ -346,17 +356,22 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   private getClasseCorFiltro(status: string): string {
     const classesPorStatus: Record<string, string> = {
       'TODOS': 'filtro-cor-todos',
-      'Não Vendida': 'filtro-cor-estoque',
-      'Em Negociação': 'filtro-cor-negociacao',
-      'Reservada / Assinatura dos instrumentos aquisitivos': 'filtro-cor-reservada',
-      'Assinado, com Sinal a creditar e documentos na imobiliária': 'filtro-cor-assinado',
-      'Sinal Creditado, mas com todos os documentos na imobiliária': 'filtro-cor-creditado',
-      'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'filtro-cor-acreditar',
-      'Sinal Creditado, mas com pendência de documentos': 'filtro-cor-pendencia',
-      'Sinal Creditado e sem pendência de documentos': 'filtro-cor-ok',
-      'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': 'filtro-cor-finalizado',
-      'Sinal creditado, mas cliente pediu distrato': 'filtro-cor-distrato',
-      'Fora de venda': 'filtro-cor-fora'
+      'Disponível para Venda': 'filtro-cor-disponivel',
+      'Quitado': 'filtro-cor-quitado',
+      'Outros': 'filtro-cor-outros',
+      'Reservado para Venda': 'filtro-cor-reservado',
+      'Bloqueado': 'filtro-cor-bloqueado',
+      'Não disponível': 'filtro-cor-indisponivel',
+      'Sinal Creditado/Cont.Assinado': 'filtro-cor-creditado-assinado',
+      'Contrato em assinatura': 'filtro-cor-em-assinatura',
+      'Bloqueado Juridicamente': 'filtro-cor-bloq-juridico',
+      'Sinal Creditado/Cont.Andamento': 'filtro-cor-creditado-andamento',
+      'Sinal a Creditar/Cont.Andament': 'filtro-cor-a-creditar-andamento',
+      'Sinal a Creditar/Cont.Assinado': 'filtro-cor-a-creditar-assinado',
+      'Sinal Pago, Doc na Imobiliária': 'filtro-cor-doc-imobiliaria',
+      'Sinal Pago,Pendência Documento': 'filtro-cor-pendencia',
+      'Fora de venda': 'filtro-cor-fora',
+      'Sinal Creditado/ Cont.Finaliza': 'filtro-cor-finalizado'
     };
 
     return classesPorStatus[status] || 'filtro-cor-default';
@@ -394,9 +409,9 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     // Filtro por status
     if (this.statusFiltroSelecionado !== 'TODOS') {
       unidadesFiltradas = unidadesFiltradas.filter(u => {
-        // Converte status legado antes de comparar
-        const statusConvertido = this.converterStatusLegado(u.statusUnidade);
-        return statusConvertido === this.statusFiltroSelecionado;
+        // Compara pelo label do status
+        const labelStatus = getStatusLabel(u.codigoStatusUnidade);
+        return labelStatus === this.statusFiltroSelecionado;
       });
     }
 
@@ -450,10 +465,10 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     const statusMap = new Map<string, number>();
     
     unidades.forEach(unidade => {
-      // Converte status legado antes de contar
-      const statusConvertido = this.converterStatusLegado(unidade.statusUnidade);
-      const count = statusMap.get(statusConvertido) || 0;
-      statusMap.set(statusConvertido, count + 1);
+      // Obtém o label do status pelo código numérico
+      const statusLabel = getStatusLabel(unidade.codigoStatusUnidade);
+      const count = statusMap.get(statusLabel) || 0;
+      statusMap.set(statusLabel, count + 1);
     });
     
     return Array.from(statusMap.entries())
@@ -462,117 +477,64 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Extrai lista única de status presentes
+   * Extrai lista única de status presentes (usando codigoStatusUnidade numérico)
+   * Atualizado: 23/02/2026 - Usa codigoStatusUnidade e getStatusLabel
    */
   private extrairStatusDisponiveis(): void {
     const statusSet = new Set<string>();
-    // Converte status legados para novos antes de adicionar ao Set
     this.unidades.forEach(unidade => {
-      const statusConvertido = this.converterStatusLegado(unidade.statusUnidade);
-      statusSet.add(statusConvertido);
+      // Agora usa codigoStatusUnidade (number) e converte para label
+      const label = getStatusLabel(unidade.codigoStatusUnidade);
+      statusSet.add(label);
     });
     this.statusDisponiveis = Array.from(statusSet).sort();
   }
 
   /**
-   * Converte status legado do banco para os novos labels do sistema
+   * Retorna configuração de cor para um status (usando codigoStatusUnidade numérico)
+   * Atualizado: 23/02/2026 - Usa getStatusColors do modelo para cores customizadas
    */
-  private converterStatusLegado(statusLegado: string): string {
-    const mapeamentoLegado: Record<string, string> = {
-      // Status antigos → Status novos (alinhados com STATUS_RESERVA_LABELS)
-      'Disponível para Venda': 'Não Vendida',
-      'Reservado para Venda': 'Reservada / Assinatura dos instrumentos aquisitivos',
-      'Sinal Creditado/ Cont.Finaliza': 'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA',
-      'Sinal a Creditar/Cont.Andament': 'Sinal a Creditar, mas com todos os documentos entregue na Calper',
-      'Sinal Creditado/Cont.Andamento': 'Sinal Creditado, mas com todos os documentos na imobiliária'
+  getStatusColor(codigoStatus: number | string): { bg: string; border: string; text: string } {
+    // Converte para número se vier como string
+    const codigo = typeof codigoStatus === 'string' ? parseInt(codigoStatus, 10) : codigoStatus;
+    
+    // Usa a função helper do modelo que contém todas as cores corretas
+    const colors = getStatusColors(codigo);
+    
+    return {
+      bg: colors.bg,
+      border: colors.border,
+      text: colors.text
     };
-
-    return mapeamentoLegado[statusLegado] || statusLegado;
   }
 
   /**
-   * Retorna configuração de cor para um status
+   * Retorna configuração de cor para um status pelo label (string)
+   * Usado quando já temos o label e não o código numérico
    */
-  getStatusColor(status: string): { bg: string; border: string; text: string } {
-    const statusOriginal = (status || '').trim();
+  getStatusColorByLabel(statusLabel: string): { bg: string; border: string; text: string } {
+    // Busca a primeira unidade que tem esse label de status
+    const unidadeComEsseStatus = this.unidades.find(u => getStatusLabel(u.codigoStatusUnidade) === statusLabel);
     
-    // Converte status legado para novo formato
-    const statusConvertido = this.converterStatusLegado(statusOriginal);
-
-    // Suporte aos códigos de status do enum (DISPONIVEL, RESERVADA, etc.)
-    const statusEnum = STATUS_COLORS[statusConvertido as keyof typeof STATUS_COLORS];
-    if (statusEnum) {
-      return {
-        bg: statusEnum.bg,
-        border: statusEnum.border,
-        text: statusEnum.text
-      };
+    if (unidadeComEsseStatus) {
+      return this.getStatusColor(unidadeComEsseStatus.codigoStatusUnidade);
     }
-
-    const coresPorStatus: Record<string, { bg: string; border: string; text: string }> = {
-      // Status padronizados (alinhados com STATUS_RESERVA_LABELS)
-      'Não Vendida': {
-        bg: '#f3f4f6',
-        border: '#d1d5db',
-        text: '#4b5563'
-      },
-      'Reservada / Assinatura dos instrumentos aquisitivos': {
-        bg: '#fca5a5',
-        border: '#dc2626',
-        text: '#7f1d1d'
-      },
-      'Assinado, com Sinal a creditar e documentos na imobiliária': {
-        bg: '#fb923c',
-        border: '#ea580c',
-        text: '#7c2d12'
-      },
-      'Sinal Creditado, mas com todos os documentos na imobiliária': {
-        bg: '#fdba74',
-        border: '#f97316',
-        text: '#9a3412'
-      },
-      'Sinal a Creditar, mas com todos os documentos entregue na Calper': {
-        bg: '#fde047',
-        border: '#eab308',
-        text: '#713f12'
-      },
-      'Sinal Creditado, mas com pendência de documentos': {
-        bg: '#86efac',
-        border: '#22c55e',
-        text: '#14532d'
-      },
-      'Sinal Creditado e sem pendência de documentos': {
-        bg: '#4ade80',
-        border: '#16a34a',
-        text: '#14532d'
-      },
-      'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': {
-        bg: '#dbeafe',
-        border: '#3b82f6',
-        text: '#1e40af'
-      },
-      'Sinal creditado, mas cliente pediu distrato': {
-        bg: '#f3e8ff',
-        border: '#a855f7',
-        text: '#6b21a8'
-      },
-      'Fora de venda': {
-        bg: '#e5e7eb',
-        border: '#6b7280',
-        text: '#1f2937'
-      },
-      'Em Negociação': {
-        bg: '#bae6fd',
-        border: '#0ea5e9',
-        text: '#0c4a6e'
-      }
-    };
     
-    return coresPorStatus[statusConvertido] || {
+    // Fallback para cinza caso não encontre
+    return {
       bg: '#f3f4f6',
       border: '#9ca3af',
       text: '#374151'
     };
+  }
+
+  /**
+   * Retorna o label do status (usando codigoStatusUnidade numérico)
+   * Atualizado: 23/02/2026 - Usa getStatusLabel do modelo
+   */
+  getStatusLabel(codigoStatus: number | string): string {
+    const codigo = typeof codigoStatus === 'string' ? parseInt(codigoStatus, 10) : codigoStatus;
+    return getStatusLabel(codigo);
   }
 
   /**
@@ -631,84 +593,49 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
 
   /**
    * Retorna cor de um status específico (para o dropdown)
+   * Atualizado: 23/02/2026 - Busca código numérico correspondente ao label
    */
-  getCorPorStatus(status: string): string {
-    const statusNormalizado = (status || '').trim();
+  getCorPorStatus(statusLabel: string): string {
+    const statusNormalizado = (statusLabel || '').trim();
 
     if (statusNormalizado === 'TODOS') {
       return '#6b7280';
     }
 
-    // 1) Tenta pela regra principal de status do card
-    const corPrincipal = this.getStatusColor(statusNormalizado).border;
-    if (corPrincipal && corPrincipal !== '#9ca3af') {
-      return corPrincipal;
+    // Busca o código correspondente ao label
+    const unidadeComEsseStatus = this.unidades.find(u => getStatusLabel(u.codigoStatusUnidade) === statusNormalizado);
+    if (unidadeComEsseStatus) {
+      return this.getStatusColor(unidadeComEsseStatus.codigoStatusUnidade).border;
     }
 
-    // 2) Fallback por normalização textual (variações de acento, espaço e formatação)
-    const chave = this.normalizarStatus(statusNormalizado);
-
-    if (chave.includes('negoci')) return '#0ea5e9';
-    if (chave.includes('reserv')) return '#dc2626';
-    if (chave.includes('assinad')) return '#ea580c';
-    if (chave.includes('acreditar') || chave.includes('a creditar')) return '#eab308';
-    if (chave.includes('creditado') && chave.includes('pendenc')) return '#22c55e';
-    if (chave.includes('creditado') && chave.includes('sem pendenc')) return '#16a34a';
-    if (chave.includes('finaliz') || chave.includes('escritura')) return '#3b82f6';
-    if (chave.includes('distrat')) return '#a855f7';
-    if (chave.includes('fora') && chave.includes('venda')) return '#6b7280';
-    if (chave.includes('estoque') || chave.includes('nao vendida')) return '#d1d5db';
-    if (chave.includes('disponivel')) return '#10b981';
-    if (chave.includes('vendida')) return '#6366f1';
-    if (chave.includes('indisponivel')) return '#9ca3af';
-    if (chave.includes('construcao') || chave.includes('construcao')) return '#3b82f6';
-
-    return '#6366f1';
-  }
-
-  private normalizarStatus(status: string): string {
-    return (status || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[_/]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  /**
-   * Retorna label amigável para status
-   */
-  getStatusLabel(status: string): string {
-    if (status === 'TODOS') {
-      return 'Todos os Status';
-    }
-    // Converte status legado para novo formato antes de exibir
-    const statusConvertido = this.converterStatusLegado(status);
-    return statusConvertido || 'Status não informado';
+    // Fallback
+    return '#9ca3af';
   }
 
   /**
    * Retorna label curta para status (para resumos)
+   * Atualizado: 23/02/2026 - Usa labels oficiais da documentação
    */
   getStatusLabelCurto(status: string): string {
-    // Converte status legado antes de buscar label curto
-    const statusConvertido = this.converterStatusLegado(status);
-    
     const labels: Record<string, string> = {
-      'Não Vendida': 'Estoque',
-      'Em Negociação': 'Negociação',
-      'Reservada / Assinatura dos instrumentos aquisitivos': 'Reservada',
-      'Assinado, com Sinal a creditar e documentos na imobiliária': 'Assinado',
-      'Sinal Creditado, mas com todos os documentos na imobiliária': 'Creditado',
-      'Sinal a Creditar, mas com todos os documentos entregue na Calper': 'A Creditar',
-      'Sinal Creditado, mas com pendência de documentos': 'Pendência',
-      'Sinal Creditado e sem pendência de documentos': 'OK',
-      'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': 'Finalizado',
-      'Sinal creditado, mas cliente pediu distrato': 'Distrato',
-      'Fora de venda': 'Fora'
+      'Disponível para Venda': 'Disponível',
+      'Quitado': 'Quitado',
+      'Outros': 'Outros',
+      'Reservado para Venda': 'Reservado',
+      'Bloqueado': 'Bloqueado',
+      'Não disponível': 'Indisponível',
+      'Sinal Creditado/Cont.Assinado': 'Assinado',
+      'Contrato em assinatura': 'Em Assinatura',
+      'Bloqueado Juridicamente': 'Bloq. Jurídico',
+      'Sinal Creditado/Cont.Andamento': 'Creditado',
+      'Sinal a Creditar/Cont.Andament': 'A Creditar',
+      'Sinal a Creditar/Cont.Assinado': 'A Creditar',
+      'Sinal Pago, Doc na Imobiliária': 'Doc Imob.',
+      'Sinal Pago,Pendência Documento': 'Pendência',
+      'Fora de venda': 'Fora',
+      'Sinal Creditado/ Cont.Finaliza': 'Finalizado'
     };
-    return labels[statusConvertido] || statusConvertido?.substring(0, 7) || 'N/A';
+    return labels[status] || status?.substring(0, 10) || 'N/A';
   }
 
   /**
@@ -716,8 +643,8 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    */
   getCountByStatusNoBloco(bloco: BlocoUnidades, status: string): number {
     return bloco.unidades.filter(u => {
-      const statusConvertido = this.converterStatusLegado(u.statusUnidade);
-      return statusConvertido === status;
+      const statusLabel = getStatusLabel(u.codigoStatusUnidade);
+      return statusLabel === status;
     }).length;
   }
 
@@ -726,8 +653,8 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    */
   getCountByStatus(status: string): number {
     return this.unidades.filter(u => {
-      const statusConvertido = this.converterStatusLegado(u.statusUnidade);
-      return statusConvertido === status;
+      const statusLabel = getStatusLabel(u.codigoStatusUnidade);
+      return statusLabel === status;
     }).length;
   }
   
@@ -861,7 +788,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     return `
       Unidade: ${unidade.unidade}
       Tipo: ${unidade.tipo} - ${unidade.tipologia}
-      Status: ${this.getStatusLabel(unidade.statusUnidade)}
+      Status: ${getStatusLabel(unidade.codigoStatusUnidade)}
       Preço: ${this.formatarPreco(unidade.preco)}
       Localização: ${unidade.localizacao}
       Garagem: ${unidade.garagem}
@@ -895,7 +822,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
         state: {
           nomeEmpreendimento: this.nomeEmpreendimento,
           codColigadaEmpreendimento: this.codColigadaEmpreendimento,
-          statusUnidade: unidade.statusUnidade,
+          codigoStatusUnidade: unidade.codigoStatusUnidade,
           tipoUnidade: unidade.sigla || unidade.tipo,
           tipologia: unidade.tipologia,
           preco: unidade.preco

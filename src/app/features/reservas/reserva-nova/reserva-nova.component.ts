@@ -236,25 +236,39 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     }
 
     // Fallback: Mapeamento por LABEL (compatibilidade com sistemas legados)
+    // Atualizado: 23/02/2026 - Alinhado com labels oficiais da documentação
     const status = String(statusUnidade || '').trim();
     const mapeamentoLabel: Record<string, StatusReserva> = {
-      'Não Vendida': StatusReserva.NAO_VENDIDA,
+      // Labels oficiais TOTVS RM (conforme unidade.model.ts)
       'Disponível para Venda': StatusReserva.NAO_VENDIDA,
+      'Quitado': StatusReserva.PROCESSO_FINALIZADO,
+      'Outros': StatusReserva.NAO_VENDIDA,
+      'Reservado para Venda': StatusReserva.RESERVADA,
+      'Bloqueado': StatusReserva.FORA_DE_VENDA,
+      'Não disponível': StatusReserva.FORA_DE_VENDA,
+      'Sinal Creditado/Cont.Assinado': StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA,
+      'Contrato em assinatura': StatusReserva.RESERVADA,
+      'Bloqueado Juridicamente': StatusReserva.FORA_DE_VENDA,
+      'Sinal Creditado/Cont.Andamento': StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA,
+      'Sinal a Creditar/Cont.Andament': StatusReserva.SINAL_A_CREDITAR_DOC_CALPER,
+      'Sinal a Creditar/Cont.Assinado': StatusReserva.ASSINADO_SINAL_A_CREDITAR,
+      'Sinal Pago, Doc na Imobiliária': StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA,
+      'Sinal Pago,Pendência Documento': StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC,
+      'Fora de venda': StatusReserva.FORA_DE_VENDA,
+      'Sinal Creditado/ Cont.Finaliza': StatusReserva.PROCESSO_FINALIZADO,
+      
+      // Labels legados (compatibilidade retroativa - serão descontinuados)
+      'Não Vendida': StatusReserva.NAO_VENDIDA,
       'Em Negociação': StatusReserva.EM_NEGOCIACAO,
       'Reservada / Assinatura dos instrumentos aquisitivos': StatusReserva.RESERVADA,
       'Reservada/ Assinatura dos instrumentos aquisitivos': StatusReserva.RESERVADA,
-      'Reservado para Venda': StatusReserva.RESERVADA,
       'Assinado, com Sinal a creditar e documentos na imobiliária': StatusReserva.ASSINADO_SINAL_A_CREDITAR,
       'Sinal Creditado, mas com todos os documentos na imobiliária': StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA,
-      'Sinal Creditado/Cont.Andamento': StatusReserva.SINAL_CREDITADO_DOC_IMOBILIARIA,
       'Sinal a Creditar, mas com todos os documentos entregue na Calper': StatusReserva.SINAL_A_CREDITAR_DOC_CALPER,
-      'Sinal a Creditar/Cont.Andament': StatusReserva.SINAL_A_CREDITAR_DOC_CALPER,
       'Sinal Creditado, mas com pendência de documentos': StatusReserva.SINAL_CREDITADO_PENDENCIA_DOC,
       'Sinal Creditado e sem pendência de documentos': StatusReserva.SINAL_CREDITADO_SEM_PENDENCIA,
       'Processo Finalizado - Cliente assinou escritura pública de PCV e CCA': StatusReserva.PROCESSO_FINALIZADO,
-      'Sinal Creditado/ Cont.Finaliza': StatusReserva.PROCESSO_FINALIZADO,
-      'Sinal creditado, mas cliente pediu distrato': StatusReserva.DISTRATO,
-      'Fora de venda': StatusReserva.FORA_DE_VENDA
+      'Sinal creditado, mas cliente pediu distrato': StatusReserva.DISTRATO
     };
 
     return mapeamentoLabel[status] ?? null;

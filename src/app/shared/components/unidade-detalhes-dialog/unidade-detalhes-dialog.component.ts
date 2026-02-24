@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Unidade, getStatusLabel, getStatusSeverity } from '../../../core/models/unidade.model';
+import { Unidade, getStatusLabel, getStatusSeverity, getStatusColors } from '../../../core/models/unidade.model';
 
 /**
  * Componente de dialog para exibir detalhes da unidade
@@ -56,5 +56,13 @@ export class UnidadeDetalhesDialogComponent {
    */
   getStatusSeverity(codigoStatus: number): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
     return getStatusSeverity(codigoStatus);
+  }
+
+  /**
+   * Retorna as cores customizadas do status
+   * Atualizado: 23/02/2026 - Para aplicar cores específicas (branco para Disponível)
+   */
+  getStatusColors(codigoStatus: number): { bg: string; border: string; text: string; severity: string } {
+    return getStatusColors(codigoStatus);
   }
 }

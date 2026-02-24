@@ -18,12 +18,11 @@ export enum CodigoStatusUnidade {
   SINAL_PAGO_DOC_IMOBILIARIA = 804,
   SINAL_PAGO_PENDENCIA_DOCUMENTO = 805,
   FORA_DE_VENDA = 820,
-  SINAL_CREDITADO_CONTRATO_FINALIZADO = 900,
-  PROCESSO_FINALIZADO_PCV = 901
+  SINAL_CREDITADO_CONTRATO_FINALIZADO = 900
 }
 
 /**
- * Labels descritivos para cada código de status
+ * Labels descritivos para cada código de status (conforme documentação oficial)
  */
 export const CODIGO_STATUS_LABELS: Record<number, string> = {
   [CodigoStatusUnidade.DISPONIVEL_VENDA]: 'Disponível para Venda',
@@ -31,129 +30,148 @@ export const CODIGO_STATUS_LABELS: Record<number, string> = {
   [CodigoStatusUnidade.OUTROS]: 'Outros',
   [CodigoStatusUnidade.RESERVADO_VENDA]: 'Reservado para Venda',
   [CodigoStatusUnidade.BLOQUEADO]: 'Bloqueado',
-  [CodigoStatusUnidade.NAO_DISPONIVEL]: 'Não Disponível',
-  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ASSINADO]: 'Sinal Creditado/Contrato Assinado',
-  [CodigoStatusUnidade.CONTRATO_EM_ASSINATURA]: 'Contrato em Assinatura',
+  [CodigoStatusUnidade.NAO_DISPONIVEL]: 'Não disponível',
+  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ASSINADO]: 'Sinal Creditado/Cont.Assinado',
+  [CodigoStatusUnidade.CONTRATO_EM_ASSINATURA]: 'Contrato em assinatura',
   [CodigoStatusUnidade.BLOQUEADO_JURIDICAMENTE]: 'Bloqueado Juridicamente',
-  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ANDAMENTO]: 'Sinal Creditado/Contrato em Andamento',
-  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ANDAMENTO]: 'Sinal a Creditar/Contrato em Andamento',
-  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ASSINADO]: 'Sinal a Creditar/Contrato Assinado',
+  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ANDAMENTO]: 'Sinal Creditado/Cont.Andamento',
+  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ANDAMENTO]: 'Sinal a Creditar/Cont.Andament',
+  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ASSINADO]: 'Sinal a Creditar/Cont.Assinado',
   [CodigoStatusUnidade.SINAL_PAGO_DOC_IMOBILIARIA]: 'Sinal Pago, Doc na Imobiliária',
-  [CodigoStatusUnidade.SINAL_PAGO_PENDENCIA_DOCUMENTO]: 'Sinal Pago, Pendência de Documento',
-  [CodigoStatusUnidade.FORA_DE_VENDA]: 'Fora de Venda',
-  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_FINALIZADO]: 'Sinal Creditado/Contrato Finalizado',
-  [CodigoStatusUnidade.PROCESSO_FINALIZADO_PCV]: 'Processo Finalizado - Cliente assinou PCV'
+  [CodigoStatusUnidade.SINAL_PAGO_PENDENCIA_DOCUMENTO]: 'Sinal Pago,Pendência Documento',
+  [CodigoStatusUnidade.FORA_DE_VENDA]: 'Fora de venda',
+  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_FINALIZADO]: 'Sinal Creditado/ Cont.Finaliza'
 };
 
 /**
  * Cores e severities por código de status (alinhado com documentação da API)
+ * Atualizado: 23/02/2026 - Cores conforme tabela de referência visual
  */
 export const CODIGO_STATUS_COLORS: Record<number, { bg: string; border: string; text: string; severity: string }> = {
-  // Verde - Disponível/Quitado/Finalizado (#4CAF50)
+  // ☐ BRANCO - Disponível para Venda (código 100)
   [CodigoStatusUnidade.DISPONIVEL_VENDA]: { 
-    bg: '#d1fae5', 
-    border: '#4CAF50', 
-    text: '#065f46',
+    bg: '#ffffff', 
+    border: '#10b981', 
+    text: '#047857',
     severity: 'success'
   },
-  [CodigoStatusUnidade.QUITADO]: { 
-    bg: '#d1fae5', 
-    border: '#4CAF50', 
-    text: '#065f46',
-    severity: 'success'
-  },
-  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_FINALIZADO]: { 
-    bg: '#d1fae5', 
-    border: '#4CAF50', 
-    text: '#065f46',
-    severity: 'success'
-  },
-  [CodigoStatusUnidade.PROCESSO_FINALIZADO_PCV]: { 
-    bg: '#d1fae5', 
-    border: '#4CAF50', 
-    text: '#065f46',
-    severity: 'success'
-  },
-  // Azul - Reservado/Em Processo (#2196F3)
+  
+  // 🟥 VERMELHO - Reservado para Venda (código 200)
   [CodigoStatusUnidade.RESERVADO_VENDA]: { 
-    bg: '#dbeafe', 
-    border: '#2196F3', 
-    text: '#1e40af',
-    severity: 'info'
-  },
-  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ASSINADO]: { 
-    bg: '#dbeafe', 
-    border: '#2196F3', 
-    text: '#1e40af',
-    severity: 'info'
-  },
-  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ANDAMENTO]: { 
-    bg: '#dbeafe', 
-    border: '#2196F3', 
-    text: '#1e40af',
-    severity: 'info'
-  },
-  [CodigoStatusUnidade.SINAL_PAGO_DOC_IMOBILIARIA]: { 
-    bg: '#dbeafe', 
-    border: '#2196F3', 
-    text: '#1e40af',
-    severity: 'info'
-  },
-  // Laranja - Aguardando/Pendências (#FF9800)
-  [CodigoStatusUnidade.BLOQUEADO]: { 
-    bg: '#ffedd5', 
-    border: '#FF9800', 
-    text: '#7c2d12',
-    severity: 'warning'
-  },
-  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ANDAMENTO]: { 
-    bg: '#ffedd5', 
-    border: '#FF9800', 
-    text: '#7c2d12',
-    severity: 'warning'
-  },
-  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ASSINADO]: { 
-    bg: '#ffedd5', 
-    border: '#FF9800', 
-    text: '#7c2d12',
-    severity: 'warning'
-  },
-  [CodigoStatusUnidade.SINAL_PAGO_PENDENCIA_DOCUMENTO]: { 
-    bg: '#ffedd5', 
-    border: '#FF9800', 
-    text: '#7c2d12',
-    severity: 'warning'
-  },
-  // Vermelho - Bloqueado/Indisponível (#F44336)
-  [CodigoStatusUnidade.NAO_DISPONIVEL]: { 
     bg: '#fee2e2', 
-    border: '#F44336', 
+    border: '#ef4444', 
     text: '#7f1d1d',
     severity: 'danger'
   },
-  [CodigoStatusUnidade.BLOQUEADO_JURIDICAMENTE]: { 
-    bg: '#fee2e2', 
-    border: '#F44336', 
-    text: '#7f1d1d',
-    severity: 'danger'
-  },
-  // Amarelo - Em Assinatura (#FFC107)
+  
+  // 🟥 VERMELHO - Contrato em assinatura (código 441)
   [CodigoStatusUnidade.CONTRATO_EM_ASSINATURA]: { 
-    bg: '#fef3c7', 
-    border: '#FFC107', 
-    text: '#92400e',
+    bg: '#fee2e2', 
+    border: '#ef4444', 
+    text: '#7f1d1d',
+    severity: 'danger'
+  },
+  
+  // 🟥 VERMELHO/CORAL - Bloqueado (código 250)
+  [CodigoStatusUnidade.BLOQUEADO]: { 
+    bg: '#fecaca', 
+    border: '#f87171', 
+    text: '#991b1b',
+    severity: 'danger'
+  },
+  
+  // 🟥 VERMELHO/CORAL - Sinal a Creditar/Cont.Assinado (código 803)
+  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ASSINADO]: { 
+    bg: '#fecaca', 
+    border: '#f87171', 
+    text: '#991b1b',
+    severity: 'danger'
+  },
+  
+  // 🟧 LARANJA - Sinal Creditado/Cont.Andamento (código 801)
+  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ANDAMENTO]: { 
+    bg: '#ffedd5', 
+    border: '#f97316', 
+    text: '#7c2d12',
     severity: 'warning'
   },
-  // Cinza - Fora de venda/Outros (#9E9E9E)
-  [CodigoStatusUnidade.FORA_DE_VENDA]: { 
-    bg: '#f3f4f6', 
-    border: '#9E9E9E', 
-    text: '#374151',
+  
+  // 🟧 LARANJA - Sinal Pago, Doc na Imobiliária (código 804)
+  [CodigoStatusUnidade.SINAL_PAGO_DOC_IMOBILIARIA]: { 
+    bg: '#ffedd5', 
+    border: '#f97316', 
+    text: '#7c2d12',
+    severity: 'warning'
+  },
+  
+  // 🟨 AMARELO - Sinal a Creditar/Cont.Andament (código 802)
+  [CodigoStatusUnidade.SINAL_A_CREDITAR_CONTRATO_ANDAMENTO]: { 
+    bg: '#fef3c7', 
+    border: '#eab308', 
+    text: '#713f12',
+    severity: 'warning'
+  },
+  
+  // 🟩 VERDE CLARO - Sinal Pago,Pendência Documento (código 805)
+  [CodigoStatusUnidade.SINAL_PAGO_PENDENCIA_DOCUMENTO]: { 
+    bg: '#dcfce7', 
+    border: '#86efac', 
+    text: '#14532d',
+    severity: 'warning'
+  },
+  
+  // 🟩 VERDE ESCURO - Sinal Creditado/Cont.Assinado (código 301)
+  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_ASSINADO]: { 
+    bg: '#bbf7d0', 
+    border: '#16a34a', 
+    text: '#14532d',
+    severity: 'success'
+  },
+  
+  // 🟦 AZUL - Quitado (código 102)
+  [CodigoStatusUnidade.QUITADO]: { 
+    bg: '#dbeafe', 
+    border: '#3b82f6', 
+    text: '#1e3a8a',
+    severity: 'info'
+  },
+  
+  // 🟦 AZUL - Sinal Creditado/ Cont.Finaliza (código 900)
+  [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_FINALIZADO]: { 
+    bg: '#dbeafe', 
+    border: '#3b82f6', 
+    text: '#1e3a8a',
+    severity: 'info'
+  },
+  
+  // ⬜ CINZA - Não disponível (código 251)
+  [CodigoStatusUnidade.NAO_DISPONIVEL]: { 
+    bg: '#e5e7eb', 
+    border: '#6b7280', 
+    text: '#1f2937',
     severity: 'secondary'
   },
+  
+  // ⬜ CINZA - Bloqueado Juridicamente (código 600)
+  [CodigoStatusUnidade.BLOQUEADO_JURIDICAMENTE]: { 
+    bg: '#e5e7eb', 
+    border: '#6b7280', 
+    text: '#1f2937',
+    severity: 'secondary'
+  },
+  
+  // ⬜ CINZA - Fora de venda (código 820)
+  [CodigoStatusUnidade.FORA_DE_VENDA]: { 
+    bg: '#e5e7eb', 
+    border: '#6b7280', 
+    text: '#1f2937',
+    severity: 'secondary'
+  },
+  
+  // CINZA CLARO - Outros (código 103)
   [CodigoStatusUnidade.OUTROS]: { 
     bg: '#f3f4f6', 
-    border: '#9E9E9E', 
+    border: '#9ca3af', 
     text: '#374151',
     severity: 'secondary'
   }
@@ -178,7 +196,6 @@ export const CODIGO_STATUS_ICONS: Record<number, string> = {
   [CodigoStatusUnidade.FORA_DE_VENDA]: 'pi pi-eye-slash',                 // Fora de Venda
   [CodigoStatusUnidade.QUITADO]: 'pi pi-verified',                        // Quitado
   [CodigoStatusUnidade.SINAL_CREDITADO_CONTRATO_FINALIZADO]: 'pi pi-check', // Finalizado
-  [CodigoStatusUnidade.PROCESSO_FINALIZADO_PCV]: 'pi pi-check-circle',     // Processo Finalizado PCV
   [CodigoStatusUnidade.OUTROS]: 'pi pi-info-circle'                       // Outros
 };
 
