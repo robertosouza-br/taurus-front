@@ -10,6 +10,7 @@ import { ConfirmationService as AppConfirmationService } from '../../../shared/s
 import { LoadingService } from '../../../core/services/loading.service';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
+import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
 import { AuthorizationService } from '../../../core/services/authorization.service';
@@ -157,7 +158,8 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     private appConfirmationService: AppConfirmationService,
     private messageService: MessageService,
     private reservaBloqueioService: ReservaBloqueioService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private empreendimentoService: EmpreendimentoService
   ) {
     super();
   }
@@ -205,6 +207,19 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
     // Lê dados da unidade dos parâmetros de rota e do state
     this.lerDadosRota();
+
+    // Valida se a unidade existe antes de prosseguir
+    if (this.codEmpreendimento && this.bloco && this.unidade) {
+      this.validarUnidadeExistente();
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Parâmetros da unidade são obrigatórios.'
+      });
+      this.router.navigate(['/empreendimentos']);
+      return;
+    }
 
     // Configura opções dos selects
     this.configurarOpcoes();
@@ -258,6 +273,60 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.tipoUnidade = state?.tipoUnidade || '';
     this.tipologia = state?.tipologia || '';
     this.precoUnidade = state?.preco || null;
+  }
+
+  /**
+   * Valida se a unidade realmente existe no backend
+   * Previne criação de reservas com unidades inexistentes via manipulação de URL
+   */
+  private validarUnidadeExistente(): void {
+    this.loadingService.show('Validando unidade...');
+    
+    // Lista todas as unidades do empreendimento e verifica se a específica existe
+    this.empreendimentoService.listarUnidades(String(this.codEmpreendimento))
+      .pipe(
+        finalize(() => this.loadingService.hide()),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (unidades) => {
+          // Busca a unidade específica pelo bloco e unidade
+          const unidadeEncontrada = unidades.find(u => 
+            u.bloco === this.bloco && u.unidade === this.unidade
+          );
+          
+          if (!unidadeEncontrada) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Unidade Inválida',
+              detail: `A unidade ${this.bloco}/${this.unidade} não existe no empreendimento ${this.codEmpreendimento}.`
+            });
+            
+            // Redireciona para o mapa de unidades do empreendimento
+            this.router.navigate(['/empreendimentos', this.codEmpreendimento, 'unidades']);
+            return;
+          }
+          
+          // Unidade existe, atualiza dados se necessário
+          if (!this.nomeEmpreendimento && unidadeEncontrada.empreendimento) {
+            this.nomeEmpreendimento = unidadeEncontrada.empreendimento;
+          }
+          if (!this.tipologia && unidadeEncontrada.tipologia) {
+            this.tipologia = unidadeEncontrada.tipologia;
+          }
+          if (this.precoUnidade === null && unidadeEncontrada.preco) {
+            this.precoUnidade = unidadeEncontrada.preco;
+          }
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Não foi possível validar a unidade. Tente novamente.'
+          });
+          this.router.navigate(['/empreendimentos', this.codEmpreendimento, 'unidades']);
+        }
+      });
   }
 
   /**

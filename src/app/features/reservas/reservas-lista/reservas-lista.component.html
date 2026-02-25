@@ -10,9 +10,6 @@
     [actions]="headerActions">
   </app-page-header>
 
-  <!-- Confirmação de exclusão -->
-  <p-confirmDialog></p-confirmDialog>
-
   <!-- Tabela -->
   <app-data-table
     [data]="reservas"
@@ -22,7 +19,8 @@
     [loading]="carregando"
     [lazy]="true"
     [rows]="50"
-    (onLazyLoad)="onLazyLoad($event)">
+    (onLazyLoad)="onLazyLoad($event)"
+    (onSearch)="onBuscar($event)">
 
     <ng-template appTableTemplate="blocoUnidade" let-reserva="rowData">
       <span class="bloco-unidade">

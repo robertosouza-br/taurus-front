@@ -366,19 +366,30 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
     this.observacoes = r.observacoes || '';
 
-    // Configura breadcrumb
-    this.breadcrumbItems = [
-      { label: 'Imóveis', icon: 'pi pi-building' },
-      { label: 'Empreendimentos', url: '/empreendimentos' },
-      {
-        label: r.nomeEmpreendimento || `Cód. ${r.codEmpreendimento}`,
-      },
-      {
-        label: 'Mapa de Unidades',
-        url: `/empreendimentos/${r.codEmpreendimento}/unidades`
-      },
-      { label: `Reserva — ${r.bloco}/${r.unidade}` }
-    ];
+    // Configura breadcrumb dinamicamente baseado na origem
+    const state = window.history.state;
+    if (state?.fromList) {
+      // Navegação a partir da listagem de reservas
+      this.breadcrumbItems = [
+        { label: 'Reservas', icon: 'pi pi-bookmark' },
+        { label: 'Listagem', url: '/reservas' },
+        { label: `Editar ${r.bloco}/${r.unidade}` }
+      ];
+    } else {
+      // Navegação a partir do mapa de unidades (fluxo padrão)
+      this.breadcrumbItems = [
+        { label: 'Imóveis', icon: 'pi pi-building' },
+        { label: 'Empreendimentos', url: '/empreendimentos' },
+        {
+          label: r.nomeEmpreendimento || `Cód. ${r.codEmpreendimento}`,
+        },
+        {
+          label: 'Mapa de Unidades',
+          url: `/empreendimentos/${r.codEmpreendimento}/unidades`
+        },
+        { label: `Reserva — ${r.bloco}/${r.unidade}` }
+      ];
+    }
   }
 
   // ─── Bloqueio de Unidade ──────────────────────────────────────────────────

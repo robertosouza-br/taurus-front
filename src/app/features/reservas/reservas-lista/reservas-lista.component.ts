@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { finalize } from 'rxjs/operators';
+import { MessageService } from 'primeng/api';
+import { Subject } from 'rxjs';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
+import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
 import { ReservaDTO, StatusReserva, STATUS_RESERVA_LABELS, STATUS_RESERVA_SEVERITY, codigoToStatusReserva } from '../../../core/models/reserva.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
@@ -16,11 +18,14 @@ import { TableColumn, TableAction } from '../../../shared/components/data-table/
   templateUrl: './reservas-lista.component.html',
   styleUrls: ['./reservas-lista.component.scss']
 })
-export class ReservasListaComponent extends BaseListComponent implements OnInit {
+export class ReservasListaComponent extends BaseListComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   reservas: ReservaDTO[] = [];
   paginaAtual = 0;
   tamanhoPagina = 50;
   ordenacao?: string;
+  searchTerm: string = '';
 
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: any[] = [];
@@ -30,7 +35,7 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
   constructor(
     private reservaService: ReservaService,
     private permissaoService: PermissaoService,
-    private confirmationService: ConfirmationService,
+    private appConfirmationService: AppConfirmationService,
     private messageService: MessageService,
     private router: Router
   ) {
@@ -47,32 +52,19 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
       { label: 'Listagem' }
     ];
 
-    this.configurarHeaderActions();
     this.configurarTabela();
     this.carregar();
   }
 
-  private configurarHeaderActions(): void {
-    if (this.temPermissaoIncluir()) {
-      this.headerActions = [
-        {
-          label: 'Nova Reserva',
-          icon: 'pi pi-plus',
-          command: () => this.nova()
-        }
-      ];
-    }
-  }
-
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'nomeEmpreendimento', header: 'Empreendimento', width: '20%', align: 'left', sortable: true },
-      { field: 'bloco', header: 'Bloco / Unidade', width: '12%', align: 'center', sortable: true, template: 'blocoUnidade' },
-      { field: 'tipologia', header: 'Tipologia', width: '11%', align: 'left', sortable: true, template: 'tipologia' },
-      { field: 'nomeCliente', header: 'Cliente', width: '19%', align: 'left', sortable: true, template: 'cliente' },
-      { field: 'nomeImobiliariaPrincipal', header: 'Imobiliária', width: '16%', align: 'left', sortable: true, template: 'imobiliaria' },
-      { field: 'dataReserva', header: 'Data Reserva', width: '10%', align: 'center', sortable: true, pipe: 'date', pipeFormat: 'dd/MM/yyyy' },
-      { field: 'status', header: 'Status', width: '12%', align: 'center', sortable: true, template: 'status' }
+      { field: 'nomeEmpreendimento', header: 'Empreendimento', width: '20%', align: 'left' },
+      { field: 'bloco', header: 'Bloco / Unidade', width: '12%', align: 'center', template: 'blocoUnidade' },
+      { field: 'tipologia', header: 'Tipologia', width: '11%', align: 'left', template: 'tipologia' },
+      { field: 'nomeCliente', header: 'Cliente', width: '19%', align: 'left', template: 'cliente' },
+      { field: 'nomeImobiliariaPrincipal', header: 'Imobiliária', width: '16%', align: 'left', template: 'imobiliaria' },
+      { field: 'dataReserva', header: 'Data Reserva', width: '10%', align: 'center', pipe: 'date', pipeFormat: 'dd/MM/yyyy' },
+      { field: 'status', header: 'Status', width: '12%', align: 'center', template: 'status' }
     ];
 
     this.acoes = [
@@ -93,9 +85,15 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
     ];
   }
 
-  carregar(): void {
+  onBuscar(termo: any): void {
+    this.searchTerm = termo as string;
+    this.paginaAtual = 0; // Reset para primeira página ao buscar
+    this.carregar(this.searchTerm);
+  }
+
+  carregar(search: string = ''): void {
     this.carregando = true;
-    this.reservaService.listar(this.paginaAtual, this.tamanhoPagina, this.ordenacao)
+    this.reservaService.listar(this.paginaAtual, this.tamanhoPagina, this.ordenacao, search)
       .pipe(finalize(() => (this.carregando = false)))
       .subscribe({
         next: (page) => {
@@ -117,7 +115,7 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
       this.paginaAtual = page;
       this.tamanhoPagina = size;
       this.ordenacao = this.buildSortParam(event?.sortField, event?.sortOrder);
-      this.carregar();
+      this.carregar(this.searchTerm);
     });
   }
 
@@ -130,23 +128,22 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
     return `${sortField},${direction}`;
   }
 
-  nova(): void {
-    this.router.navigate(['/reservas/nova']);
-  }
-
   editar(reserva: ReservaDTO): void {
-    this.router.navigate(['/reservas', reserva.id, 'editar']);
+    this.router.navigate(['/reservas', reserva.id, 'editar'], {
+      state: { fromList: true }
+    });
   }
 
   excluir(reserva: ReservaDTO): void {
-    this.confirmationService.confirm({
-      message: `Deseja excluir a reserva da unidade ${reserva.bloco}/${reserva.unidade}?`,
-      header: 'Confirmar Exclusão',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sim, excluir',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
+    const mensagem = `Deseja realmente excluir a reserva da unidade ${reserva.bloco}/${reserva.unidade}?`;
+    
+    this.appConfirmationService.confirmDelete(mensagem)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmado) => {
+        if (!confirmado) {
+          return;
+        }
+        
         this.reservaService.excluir(reserva.id)
           .subscribe({
             next: () => {
@@ -165,8 +162,7 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
               });
             }
           });
-      }
-    });
+      });
   }
 
   getStatusLabel(reserva: ReservaDTO): string {
@@ -203,10 +199,6 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
     return status ? (STATUS_RESERVA_SEVERITY[status] || 'secondary') : 'secondary';
   }
 
-  temPermissaoIncluir(): boolean {
-    return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.INCLUIR);
-  }
-
   temPermissaoAlterar(): boolean {
     return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.ALTERAR);
   }
@@ -218,5 +210,10 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit 
   formatarData(data: string | null): string {
     if (!data) return '—';
     return new Date(data).toLocaleDateString('pt-BR');
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

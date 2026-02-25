@@ -26,16 +26,23 @@ export class ReservaService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Lista todas as reservas com paginação
+   * Lista todas as reservas com paginação e busca
    * @param page Número da página (base 0)
+   * @param size Tamanho da página
+   * @param sort Ordenação (opcional)
+   * @param search Termo de busca (opcional) - busca em cliente, empreendimento, unidade, CPF, etc.
    */
-  listar(page: number = 0, size: number = 50, sort?: string): Observable<Page<ReservaDTO>> {
+  listar(page: number = 0, size: number = 50, sort?: string, search?: string): Observable<Page<ReservaDTO>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
 
     if (sort) {
       params = params.set('sort', sort);
+    }
+
+    if (search && search.trim()) {
+      params = params.set('search', search.trim());
     }
 
     return this.http.get<Page<ReservaDTO>>(this.baseUrl, { params });
