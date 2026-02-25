@@ -1,4 +1,14 @@
 <div class="reserva-edicao-page">
+  <!-- Countdown Timer -->
+  <app-countdown-timer
+    [duracao]="duracaoTimer"
+    [autoStart]="unidadeBloqueada"
+    mensagem="Tempo para finalizar a edição"
+    position="top-right"
+    (onTimeout)="handleTimeout()"
+    (onTick)="onTimerTick($event)">
+  </app-countdown-timer>
+
   <!-- Breadcrumb -->
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 

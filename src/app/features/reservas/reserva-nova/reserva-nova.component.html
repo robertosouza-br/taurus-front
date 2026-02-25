@@ -1,4 +1,14 @@
 <div class="reserva-nova-page">
+  <!-- Countdown Timer -->
+  <app-countdown-timer
+    [duracao]="duracaoTimer"
+    [autoStart]="unidadeBloqueada"
+    mensagem="Tempo para finalizar a reserva"
+    position="top-right"
+    (onTimeout)="handleTimeout()"
+    (onTick)="onTimerTick($event)">
+  </app-countdown-timer>
+
   <!-- Breadcrumb -->
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 

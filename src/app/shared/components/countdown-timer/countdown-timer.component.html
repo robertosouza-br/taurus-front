@@ -1,0 +1,73 @@
+<div class="countdown-timer-container" [ngClass]="positionClass">
+  <div class="countdown-timer-card">
+    <!-- Mensagem -->
+    <div class="timer-mensagem">
+      <i class="pi pi-clock"></i>
+      <span>{{ mensagem }}</span>
+    </div>
+
+    <!-- Relógio Circular -->
+    <div class="timer-circle-wrapper">
+      <svg class="timer-circle" viewBox="0 0 100 100">
+        <!-- Círculo de fundo (cinza) -->
+        <circle
+          class="timer-circle-bg"
+          cx="50"
+          cy="50"
+          r="45"
+          fill="none"
+          stroke="#e5e7eb"
+          stroke-width="8">
+        </circle>
+        
+        <!-- Círculo de progresso (colorido) -->
+        <circle
+          class="timer-circle-progress"
+          cx="50"
+          cy="50"
+          r="45"
+          fill="none"
+          [attr.stroke]="corTimer"
+          stroke-width="8"
+          stroke-linecap="round"
+          [style.stroke-dasharray]="dashArray"
+          [style.stroke-dashoffset]="dashOffset">
+        </circle>
+      </svg>
+
+      <!-- Tempo no centro do relógio -->
+      <div class="timer-display">
+        <div class="timer-tempo" [style.color]="corTimer">
+          <span class="timer-minutos">{{ minutos }}</span>
+          <span class="timer-separador">:</span>
+          <span class="timer-segundos">{{ segundos }}</span>
+        </div>
+        <div class="timer-label">min</div>
+      </div>
+    </div>
+
+    <!-- Controles (opcional - apenas em dev, remover se não quiser) -->
+    <div class="timer-controles" *ngIf="false">
+      <button 
+        type="button"
+        class="timer-btn"
+        (click)="togglePausa()"
+        [title]="pausado ? 'Retomar' : 'Pausar'">
+        <i class="pi" [ngClass]="pausado ? 'pi-play' : 'pi-pause'"></i>
+      </button>
+      <button 
+        type="button"
+        class="timer-btn"
+        (click)="adicionarTempo(60)"
+        title="Adicionar 1 minuto">
+        <i class="pi pi-plus"></i>
+      </button>
+    </div>
+
+    <!-- Badge de alerta quando tempo crítico -->
+    <div class="timer-alerta" *ngIf="percentualProgresso <= 20">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>Tempo crítico!</span>
+    </div>
+  </div>
+</div>

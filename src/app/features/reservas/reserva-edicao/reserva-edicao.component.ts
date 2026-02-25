@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService, ConfirmationService as PrimeConfirmationService } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 
+import { environment } from '../../../../environments/environment';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
 import { ReservaService } from '../../../core/services/reserva.service';
@@ -11,6 +12,8 @@ import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import { ReservaBloqueioService } from '../../../core/services/reserva-bloqueio.service';
+import { CountdownTimerComponent } from '../../../shared/components/countdown-timer/countdown-timer.component';
 import {
   ReservaDTO,
   ReservaCreateDTO,
@@ -51,6 +54,9 @@ interface ProfissionalForm {
   styleUrls: ['./reserva-edicao.component.scss']
 })
 export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit, OnDestroy {
+
+  // ─── Referência ao Countdown Timer ────────────────────────────────────────
+  @ViewChild(CountdownTimerComponent) countdownTimer?: CountdownTimerComponent;
 
   reservaId!: number;
   reservaOriginal: ReservaDTO | null = null;
@@ -130,6 +136,13 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   private destroy$ = new Subject<void>();
 
+  // ─── Controle de bloqueio da unidade ──────────────────────────────────────
+  unidadeBloqueada = false;
+  verificandoBloqueio = false;
+  duracaoTimer = 300; // Duração inicial padrão (5 minutos)
+  tempoRestanteBloqueio = 0; // Tempo restante em segundos (vindo do backend)
+  renovacaoOferecida = false; // Flag para controlar se já oferecemos renovação
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -140,7 +153,8 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     private permissaoService: PermissaoService,
     private confirmationService: PrimeConfirmationService,
     private appConfirmationService: AppConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private reservaBloqueioService: ReservaBloqueioService
   ) {
     super();
   }
@@ -163,8 +177,23 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   ngOnDestroy(): void {
+    // Libera o bloqueio ao sair da tela
+    this.liberarBloqueio();
+    
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Libera bloqueio ao fechar a aba/navegador
+   * Chama o método liberarBloqueio para garantir que a requisição seja enviada
+   */
+  @HostListener('window:beforeunload')
+  onBeforeUnload(): void {
+    if (this.unidadeBloqueada && this.codEmpreendimento && this.bloco && this.unidade) {
+      // O navegador tentará completar a requisição DELETE mesmo ao fechar
+      this.liberarBloqueio();
+    }
   }
 
   // ─── Carregamento ─────────────────────────────────────────────────────────
@@ -204,6 +233,12 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
         next: (reserva) => {
           this.reservaOriginal = reserva;
           this.preencherFormulario(reserva);
+          
+          // Verifica se existe bloqueio ativo e depois tenta bloquear a unidade
+          // Importante: Ao dar refresh, verifica o tempo restante real do backend
+          if (this.codEmpreendimento && this.bloco && this.unidade) {
+            this.verificarEBloquearUnidade();
+          }
         },
         error: () => {
           this.messageService.add({
@@ -349,6 +384,256 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       },
       { label: `Reserva — ${r.bloco}/${r.unidade}` }
     ];
+  }
+
+  // ─── Bloqueio de Unidade ──────────────────────────────────────────────────
+
+  /**
+   * Verifica se já existe bloqueio ativo e tenta bloquear a unidade
+   * 
+   * Fluxo:
+   * 1. Verifica se já existe bloqueio (importante para refresh de página)
+   * 2. Se bloqueada pelo usuário atual, retoma o contador com tempo restante real
+   * 3. Se bloqueada por outro usuário, redireciona
+   * 4. Se não bloqueada, tenta bloquear
+   */
+  private verificarEBloquearUnidade(): void {
+    this.verificandoBloqueio = true;
+
+    // Primeiro verifica se já existe bloqueio
+    this.reservaBloqueioService.consultarStatus(
+      this.codEmpreendimento,
+      this.bloco,
+      this.unidade
+    ).pipe(
+      finalize(() => (this.verificandoBloqueio = false))
+    ).subscribe({
+      next: (status) => {
+        if (status.bloqueado && status.bloqueadoPorMim) {
+          // Bloqueio existe e é do usuário atual - retoma contador
+          this.unidadeBloqueada = true;
+          this.tempoRestanteBloqueio = status.tempoRestanteSegundos;
+          this.duracaoTimer = status.tempoRestanteSegundos;
+          
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Bloqueio Retomado',
+            detail: `Você tem ${this.formatarTempo(status.tempoRestanteSegundos)} para concluir a edição.`,
+            life: 4000
+          });
+        } else if (status.bloqueado && !status.bloqueadoPorMim) {
+          // Bloqueada por outro usuário - redireciona
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Unidade Indisponível',
+            detail: `Esta unidade está sendo editada por outro usuário. Tempo restante: ${this.formatarTempo(status.tempoRestanteSegundos)}.`,
+            life: 6000
+          });
+
+          setTimeout(() => {
+            this.voltar();
+          }, 2000);
+        } else {
+          // Não bloqueada - tenta bloquear
+          this.bloquearUnidade();
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao verificar bloqueio:', error);
+        // Em caso de erro, tenta bloquear mesmo assim
+        this.bloquearUnidade();
+      }
+    });
+  }
+
+  /**
+   * Tenta bloquear a unidade para o usuário atual
+   */
+  private bloquearUnidade(): void {
+    this.verificandoBloqueio = true;
+
+    this.reservaBloqueioService.bloquear({
+      codEmpreendimento: this.codEmpreendimento,
+      bloco: this.bloco,
+      unidade: this.unidade
+    }).pipe(
+      finalize(() => (this.verificandoBloqueio = false))
+    ).subscribe({
+      next: (response) => {
+        this.unidadeBloqueada = true;
+        this.tempoRestanteBloqueio = response.tempoRestanteSegundos;
+        this.duracaoTimer = response.tempoRestanteSegundos;
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Unidade Bloqueada',
+          detail: response.mensagem || 'Você tem 5 minutos para concluir a edição.',
+          life: 4000
+        });
+      },
+      error: (error) => {
+        console.error('Erro ao bloquear unidade:', error);
+
+        // HTTP 409 = Unidade já bloqueada por outro usuário
+        if (error.status === 409) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Unidade Indisponível',
+            detail: error.error?.message || 'Esta unidade está sendo editada por outro usuário.',
+            life: 6000
+          });
+
+          setTimeout(() => {
+            this.voltar();
+          }, 2000);
+        } else {
+          // Outros erros - permite continuar mas com aviso
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Aviso',
+            detail: 'Não foi possível bloquear a unidade. Continue com atenção.',
+            life: 4000
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Libera o bloqueio da unidade
+   * Chamado ao sair, salvar ou timeout
+   */
+  private liberarBloqueio(): void {
+    if (!this.unidadeBloqueada || !this.codEmpreendimento || !this.bloco || !this.unidade) {
+      return;
+    }
+
+    this.reservaBloqueioService.liberar(
+      this.codEmpreendimento,
+      this.bloco,
+      this.unidade
+    ).subscribe({
+      next: () => {
+        this.unidadeBloqueada = false;
+        console.log('Bloqueio liberado com sucesso');
+      },
+      error: (error) => {
+        console.error('Erro ao liberar bloqueio:', error);
+        // Não mostra mensagem ao usuário pois pode estar saindo da página
+      }
+    });
+  }
+
+  /**
+   * Renova o bloqueio por mais 5 minutos
+   * Chamado quando o usuário solicita mais tempo
+   */
+  renovarBloqueio(): void {
+    if (!this.unidadeBloqueada) {
+      return;
+    }
+
+    this.reservaBloqueioService.renovar({
+      codEmpreendimento: this.codEmpreendimento,
+      bloco: this.bloco,
+      unidade: this.unidade
+    }).subscribe({
+      next: (response) => {
+        this.tempoRestanteBloqueio = response.tempoRestanteSegundos;
+        this.renovacaoOferecida = false; // Reseta flag para oferecer novamente mais tarde
+        
+        // Reinicia o timer com novo tempo
+        if (this.countdownTimer) {
+          this.countdownTimer.resetar();
+          this.countdownTimer.duracao = response.tempoRestanteSegundos;
+          this.duracaoTimer = response.tempoRestanteSegundos;
+          this.countdownTimer.iniciar();
+        }
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Bloqueio Renovado',
+          detail: response.mensagem || 'Você ganhou mais 5 minutos para concluir a edição.',
+          life: 3000
+        });
+      },
+      error: (error) => {
+        console.error('Erro ao renovar bloqueio:', error);
+        
+        // HTTP 404 = Bloqueio não encontrado ou expirado
+        if (error.status === 404) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Não foi possível renovar',
+            detail: error.error?.message || 'O bloqueio expirou ou foi removido. Retornando à tela anterior.',
+            life: 4000
+          });
+
+          setTimeout(() => {
+            this.voltar();
+          }, 1500);
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao renovar',
+            detail: 'Não foi possível renovar o bloqueio. Tente concluir a edição rapidamente.',
+            life: 4000
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Callback executado a cada segundo pelo countdown timer
+   * Oferece renovação quando restar 1 minuto
+   */
+  onTimerTick(tempoRestante: number): void {
+    // Oferece renovação quando restar exatamente 60 segundos (1 minuto)
+    if (tempoRestante === 60 && !this.renovacaoOferecida && this.unidadeBloqueada) {
+      this.renovacaoOferecida = true;
+      this.oferecerRenovacao();
+    }
+  }
+
+  /**
+   * Oferece renovação do bloqueio ao usuário via diálogo
+   */
+  private oferecerRenovacao(): void {
+    this.appConfirmationService.confirm({
+      action: 'custom' as any,
+      message: 'Resta apenas 1 minuto para finalizar a edição. Deseja renovar o bloqueio por mais 5 minutos?',
+      title: 'Renovar Bloqueio?',
+      icon: 'pi pi-clock',
+      confirmLabel: 'Sim, renovar',
+      cancelLabel: 'Não',
+      severity: 'warning',
+      showCancel: true,
+      accept: () => {
+        this.renovarBloqueio();
+      },
+      reject: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Renovação Recusada',
+          detail: 'Finalize a edição antes que o tempo acabe.',
+          life: 3000
+        });
+      }
+    } as any);
+  }
+
+  /**
+   * Formata tempo em segundos para string legível
+   */
+  private formatarTempo(segundos: number): string {
+    const minutos = Math.floor(segundos / 60);
+    const segs = segundos % 60;
+    
+    if (minutos > 0) {
+      return segs > 0 ? `${minutos}min ${segs}s` : `${minutos}min`;
+    }
+    return `${segs}s`;
   }
 
   // ─── Profissionais ────────────────────────────────────────────────────────
@@ -1063,6 +1348,9 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       )
       .subscribe({
         next: () => {
+          // Libera o bloqueio após salvar com sucesso
+          this.liberarBloqueio();
+          
           this.messageService.add({
             severity: 'success',
             summary: 'Atualizado!',
@@ -1155,6 +1443,9 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   voltar(): void {
+    // Libera o bloqueio antes de sair
+    this.liberarBloqueio();
+    
     if (this.codEmpreendimento) {
       this.router.navigate(
         ['/empreendimentos', this.codEmpreendimento, 'unidades'],
@@ -1163,6 +1454,27 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     } else {
       this.router.navigate(['/reservas']);
     }
+  }
+
+  /**
+   * Tratamento de timeout do countdown timer
+   * Volta para a tela anterior descartando todas as alterações
+   */
+  handleTimeout(): void {
+    // Libera o bloqueio quando o tempo esgotar
+    this.liberarBloqueio();
+    
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Tempo Esgotado',
+      detail: 'O tempo para finalizar a edição acabou. Retornando à tela anterior.',
+      life: 5000
+    });
+    
+    // Descarta dados e volta
+    setTimeout(() => {
+      this.voltar();
+    }, 1000);
   }
 
   temPermissaoExcluir(): boolean {

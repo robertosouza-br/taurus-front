@@ -63,6 +63,7 @@ import { SearchFilterComponent } from './components/search-filter/search-filter.
 import { UnidadeDetalhesDialogComponent } from './components/unidade-detalhes-dialog/unidade-detalhes-dialog.component';
 import { MultiSelectComponent } from './components/multi-select/multi-select.component';
 import { UploadArquivosComponent } from './components/upload-arquivos/upload-arquivos.component';
+import { CountdownTimerComponent } from './components/countdown-timer/countdown-timer.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -104,7 +105,8 @@ import { CalendarModule } from 'primeng/calendar';
     SearchFilterComponent,
     UnidadeDetalhesDialogComponent,
     MultiSelectComponent,
-    UploadArquivosComponent
+    UploadArquivosComponent,
+    CountdownTimerComponent
   ],
   imports: [
     CommonModule,
@@ -171,6 +173,7 @@ import { CalendarModule } from 'primeng/calendar';
     UnidadeDetalhesDialogComponent,
     MultiSelectComponent,
     UploadArquivosComponent,
+    CountdownTimerComponent,
     // PrimeNG modules necessários pelos componentes
     CalendarModule,
     SliderModule,
