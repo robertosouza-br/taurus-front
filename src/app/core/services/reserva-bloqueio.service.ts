@@ -5,7 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 /**
- * DTO para requisição de bloqueio/renovação
+ * DTO para requisição de bloqueio
  */
 export interface BloqueioUnidadeEntradaDTO {
   codEmpreendimento: number;
@@ -14,47 +14,42 @@ export interface BloqueioUnidadeEntradaDTO {
 }
 
 /**
- * DTO de resposta para bloquear e renovar bloqueio
- * Especificação API v3.0 (24/02/2026)
+ * DTO de resposta unificado para bloqueio e status
+ * Especificação API - Mapa de Integração (25/02/2026)
  * 
  * Usado em:
  * - POST /api/v1/reservas/unidades/bloquear
- * - PUT /api/v1/reservas/unidades/renovar-bloqueio
- */
-export interface BloqueioCriadoDTO {
-  bloqueado: boolean;
-  tempoRestanteSegundos: number;
-  dataHoraExpiracao: string;
-  mensagem: string;
-}
-
-/**
- * DTO de resposta para consulta de status de bloqueio
- * Especificação API v3.0 (24/02/2026)
- * 
- * Usado em:
  * - GET /api/v1/reservas/unidades/status-bloqueio
+ * - POST /api/v1/reservas/unidades/renovar
  */
-export interface BloqueioStatusDTO {
-  bloqueado: boolean;
-  tempoRestanteSegundos: number;
+export interface BloqueioUnidadeDTO {
+  codEmpreendimento: number;
+  bloco: string;
+  unidade: string;
+  usuarioCpf: string | null;
+  dataHoraBloqueio: string | null;
   dataHoraExpiracao: string | null;
-  bloqueadoPorMim: boolean;
+  tempoRestanteSegundos: number;
+  bloqueado: boolean;
+  bloqueadoPorOutroUsuario: boolean;
 }
 
 /**
  * Serviço para gerenciar bloqueio temporário de unidades
  * 
  * Sistema de bloqueio com controle de concorrência para garantir que apenas
- * um usuário possa criar/editar reserva por vez. Bloqueio tem duração de 5 minutos.
+ * um usuário possa criar/editar reserva por vez. Bloqueio tem duração de 5 minutos FIXOS.
  * 
- * **Especificação v3.0 - 24/02/2026**
+ * **Especificação - Mapa de Integração - 25/02/2026**
  * 
  * Endpoints disponíveis:
  * - POST /api/v1/reservas/unidades/bloquear - Bloqueia unidade por 5 minutos
  * - GET /api/v1/reservas/unidades/status-bloqueio - Verifica status do bloqueio
- * - DELETE /api/v1/reservas/unidades/liberar-bloqueio - Libera bloqueio manualmente
- * - PUT /api/v1/reservas/unidades/renovar-bloqueio - Renova bloqueio por mais 5 minutos
+ * - DELETE /api/v1/reservas/unidades/liberar - Libera bloqueio manualmente
+ * 
+ * **IMPORTANTE:**
+ * Bloqueios NÃO podem ser renovados. Uma vez criado, o bloqueio expira em exatamente 5 minutos.
+ * O frontend deve alertar o usuário quando restar 30 segundos.
  * 
  * @Injectable
  */
@@ -73,11 +68,14 @@ export class ReservaBloqueioService {
    * @returns Observable com status do bloqueio
    * 
    * **HTTP Status:**
-   * - 200 OK: Bloqueio criado com sucesso
+   * - 200 OK: Bloqueio criado (verificar campo bloqueadoPorOutroUsuario)
    * - 409 Conflict: Unidade já bloqueada por outro usuário
+   * 
+   * **Importante:** Response pode ter bloqueadoPorOutroUsuario: true mesmo com status 200.
+   * Sempre verificar este campo para decidir se permite acesso.
    */
-  bloquear(dados: BloqueioUnidadeEntradaDTO): Observable<BloqueioCriadoDTO> {
-    return this.http.post<BloqueioCriadoDTO>(
+  bloquear(dados: BloqueioUnidadeEntradaDTO): Observable<BloqueioUnidadeDTO> {
+    return this.http.post<BloqueioUnidadeDTO>(
       `${this.baseUrl}/bloquear`,
       dados
     ).pipe(
@@ -96,7 +94,7 @@ export class ReservaBloqueioService {
    * @param codEmpreendimento Código do empreendimento
    * @param bloco Número do bloco
    * @param unidade Número da unidade
-   * @returns Observable com status do bloqueio
+   * @returns Observable com status do bloqueio (inclui campo bloqueadoPorOutroUsuario)
    * 
    * **HTTP Status:**
    * - 200 OK: Retorna status do bloqueio (bloqueada ou não)
@@ -105,13 +103,13 @@ export class ReservaBloqueioService {
     codEmpreendimento: number,
     bloco: string,
     unidade: string
-  ): Observable<BloqueioStatusDTO> {
+  ): Observable<BloqueioUnidadeDTO> {
     const params = new HttpParams()
       .set('codEmpreendimento', codEmpreendimento.toString())
       .set('bloco', bloco)
       .set('unidade', unidade);
 
-    return this.http.get<BloqueioStatusDTO>(
+    return this.http.get<BloqueioUnidadeDTO>(
       `${this.baseUrl}/status-bloqueio`,
       { params }
     ).pipe(
@@ -134,6 +132,7 @@ export class ReservaBloqueioService {
    * 
    * **HTTP Status:**
    * - 204 No Content: Bloqueio liberado com sucesso
+   * - 404 Not Found: Bloqueio não encontrado
    */
   liberar(
     codEmpreendimento: number,
@@ -146,35 +145,11 @@ export class ReservaBloqueioService {
       .set('unidade', unidade);
 
     return this.http.delete<void>(
-      `${this.baseUrl}/liberar-bloqueio`,
+      `${this.baseUrl}/liberar`,
       { params }
     ).pipe(
       catchError(error => {
         console.error('Erro ao liberar bloqueio:', error);
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Renova o bloqueio por mais 5 minutos
-   * 
-   * Apenas o usuário que bloqueou pode renovar.
-   * 
-   * @param dados Dados da unidade a renovar bloqueio
-   * @returns Observable com novo status do bloqueio
-   * 
-   * **HTTP Status:**
-   * - 200 OK: Bloqueio renovado com sucesso
-   * - 404 Not Found: Bloqueio não encontrado ou expirado
-   */
-  renovar(dados: BloqueioUnidadeEntradaDTO): Observable<BloqueioCriadoDTO> {
-    return this.http.put<BloqueioCriadoDTO>(
-      `${this.baseUrl}/renovar-bloqueio`,
-      dados
-    ).pipe(
-      catchError(error => {
-        console.error('Erro ao renovar bloqueio:', error);
         return throwError(() => error);
       })
     );
