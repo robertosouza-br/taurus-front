@@ -1,6 +1,7 @@
 <div class="reserva-edicao-page">
-  <!-- Countdown Timer -->
+  <!-- Countdown Timer - Apenas para unidades com status DISPONIVEL_PARA_VENDA (100) -->
   <app-countdown-timer
+    *ngIf="podeBloquerarUnidade"
     [duracao]="duracaoTimer"
     [autoStart]="unidadeBloqueada"
     mensagem="Tempo para finalizar a edição"
@@ -31,7 +32,7 @@
         icon="pi pi-trash"
         severity="danger"
         [outlined]="true"
-        [disabled]="carregando"
+        [disabled]="carregando || salvarDesabilitado"
         (onClick)="excluir()">
       </app-custom-button>
       <app-custom-button
@@ -39,7 +40,7 @@
         icon="pi pi-save"
         severity="success"
         [loading]="salvando"
-        [disabled]="carregando"
+        [disabled]="carregando || salvarDesabilitado"
         (onClick)="salvar()">
       </app-custom-button>
     </div>
@@ -108,6 +109,7 @@
             label="Status da Reserva"
             [(ngModel)]="statusSelecionado"
             [required]="false"
+            [disabled]="statusDesabilitado"
             [suggestions]="statusSugestoes"
             field="label"
             placeholder="Selecione o status"
@@ -133,6 +135,7 @@
             <p-checkbox
               inputId="clienteEstrangeiro"
               [(ngModel)]="clienteEstrangeiro"
+              [disabled]="camposDesabilitados"
               [binary]="true">
             </p-checkbox>
             <label for="clienteEstrangeiro" class="ml-2">Cliente Estrangeiro</label>
@@ -146,6 +149,7 @@
             [(ngModel)]="cpfCnpjCliente"
             documentType="cpfCnpj"
             [required]="true"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar">
           </app-input-cpf>
         </div>
@@ -156,6 +160,7 @@
             label="Passaporte do Cliente"
             [(ngModel)]="passaporteCliente"
             [required]="true"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar"
             placeholder="Informe o passaporte">
           </app-input-text>
@@ -167,6 +172,7 @@
             label="Nome Completo do Cliente"
             [(ngModel)]="nomeCliente"
             [required]="true"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar"
             placeholder="Digite o nome completo">
           </app-input-text>
@@ -178,6 +184,7 @@
             label="Forma de Pagamento"
             [(ngModel)]="formaPagamento"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [suggestions]="formaPagamentoSugestoes"
             field="label"
             placeholder="Selecione a forma de pagamento"
@@ -192,6 +199,7 @@
             label="Data da Reserva"
             [(ngModel)]="dataReserva"
             [required]="true"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar">
           </app-input-date>
         </div>
@@ -202,6 +210,7 @@
             label="Data da Venda"
             [(ngModel)]="dataVenda"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [showValidation]="false">
           </app-input-date>
         </div>
@@ -224,6 +233,7 @@
             label="Imobiliária"
             [(ngModel)]="imobiliariaPrincipalSelecionada"
             [required]="true"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar"
             [suggestions]="imobiliariaPrincipalSugestoes"
             field="nomeFantasia"
@@ -241,6 +251,7 @@
             [(ngModel)]="tipoContatoPrincipalSelecionado"
             (ngModelChange)="onTipoContatoPrincipalAlterado()"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [suggestions]="tipoContatoPrincipalSugestoes"
             field="label"
             placeholder="Tipo"
@@ -256,6 +267,7 @@
             label="Contato"
             [(ngModel)]="contatoPrincipal"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar">
           </app-input-telefone>
           <ng-template #contatoPrincipalTexto>
@@ -265,6 +277,7 @@
               [(ngModel)]="contatoPrincipal"
               [type]="isContatoEmail(tipoContatoPrincipalSelecionado?.value) ? 'email' : 'text'"
               [required]="false"
+              [disabled]="camposDesabilitados"
               [placeholder]="isContatoEmail(tipoContatoPrincipalSelecionado?.value) ? 'email@exemplo.com' : 'E-mail, fone ou WhatsApp'">
             </app-input-text>
           </ng-template>
@@ -281,6 +294,7 @@
                 class="btn-adicionar-prof-icon"
                 pTooltip="Adicionar profissional"
                 tooltipPosition="left"
+                [disabled]="camposDesabilitados"
                 (click)="adicionarProfissional('principal')">
                 <i class="pi pi-plus"></i>
               </button>
@@ -289,6 +303,7 @@
                 class="btn-novo-corretor-icon"
                 pTooltip="Cadastro rápido de corretor"
                 tooltipPosition="left"
+                [disabled]="camposDesabilitados"
                 (click)="abrirCadastroRapido()">
                 <i class="pi pi-user-plus"></i>
               </button>
@@ -302,40 +317,57 @@
                 label="Tipo"
                 [(ngModel)]="prof.tipoProfissional"
                 [required]="false"
+                [disabled]="camposDesabilitados"
                 [suggestions]="tiposProfissionalSugestoes"
                 field="label"
                 placeholder="Tipo"
                 (completeMethod)="filtrarTiposProfissional($event)"
-                (onDropdownClick)="onDropdownClickTiposProfissional()">
+                (onDropdownClick)="onDropdownClickTiposProfissional()"
+                (ngModelChange)="onTipoProfissionalAlterado(prof)">
               </app-autocomplete>
             </div>
             <div class="prof-field corretor">
-              <div class="corretor-busca-row">
+              <!-- Campo CPF apenas para CORRETOR -->
+              <div class="corretor-busca-row" *ngIf="isCorretor(prof)">
                 <div class="corretor-cpf-field">
                   <app-input-cpf
                     id="cpfCorretorPrincipal_{{ i }}"
                     label="CPF do Corretor"
                     [(ngModel)]="prof.corretorCpfBusca"
                     [required]="false"
+                    [disabled]="camposDesabilitados"
                     (ngModelChange)="onCpfCorretorAlterado(prof)"
                     (onBlur)="onCpfCorretorBlur(prof)">
                   </app-input-cpf>
                 </div>
               </div>
-              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+              <div class="corretor-buscando" *ngIf="isCorretor(prof) && prof.corretorBuscando">
                 <i class="pi pi-spin pi-spinner"></i>
                 <span>Buscando corretor...</span>
               </div>
-              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+              <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
                 <i class="pi pi-exclamation-triangle"></i>
                 <span>Corretor não encontrado para este CPF.</span>
                 <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
                   Usar cadastro rápido
                 </button>
               </div>
-              <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
+              <div class="corretor-encontrado" *ngIf="isCorretor(prof) && prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
                 <span class="corretor-encontrado-label">Corretor:</span>
                 <span class="corretor-encontrado-valor">{{ prof.corretor?.nome || prof.corretorNomeManual }}</span>
+              </div>
+              <!-- Campo texto livre para GERENTE, DIRETOR e PARCEIRO -->
+              <div class="corretor-busca-row" *ngIf="!isCorretor(prof)">
+                <div class="corretor-cpf-field">
+                  <app-input-text
+                    id="nomeProfissionalPrincipal_{{ i }}"
+                    label="Nome do Profissional"
+                    [(ngModel)]="prof.corretorNomeManual"
+                    [required]="false"
+                    [disabled]="camposDesabilitados"
+                    placeholder="Digite o nome completo">
+                  </app-input-text>
+                </div>
               </div>
             </div>
             <button
@@ -343,6 +375,7 @@
               class="btn-remover-prof-icon"
               pTooltip="Remover profissional"
               tooltipPosition="top"
+              [disabled]="camposDesabilitados"
               (click)="removerProfissional(i, 'principal')">
               <i class="pi pi-trash"></i>
             </button>
@@ -379,6 +412,7 @@
             label="Imobiliária Parceira"
             [(ngModel)]="imobiliariaSecundariaSelecionada"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [suggestions]="imobiliariaSecundariaSugestoes"
             field="nomeFantasia"
             placeholder="Buscar imobiliária parceira..."
@@ -392,6 +426,7 @@
             label="Relacionamento com a Imobiliária Principal"
             [(ngModel)]="tipoRelacionamentoSecundariaSelecionado"
             [required]="true"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar"
             [suggestions]="tipoRelacionamentoSecundariaSugestoes"
             field="label"
@@ -409,6 +444,7 @@
               icon="pi pi-trash"
               severity="danger"
               [outlined]="true"
+              [disabled]="camposDesabilitados"
               size="small"
               (onClick)="removerImobiliariaSecundaria()">
             </app-custom-button>
@@ -422,6 +458,7 @@
             [(ngModel)]="tipoContatoSecundarioSelecionado"
             (ngModelChange)="onTipoContatoSecundarioAlterado()"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [suggestions]="tipoContatoSecundarioSugestoes"
             field="label"
             placeholder="Tipo"
@@ -436,6 +473,7 @@
             label="Contato"
             [(ngModel)]="contatoSecundario"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [showValidation]="tentouSalvar">
           </app-input-telefone>
           <ng-template #contatoSecundarioTexto>
@@ -445,6 +483,7 @@
               [(ngModel)]="contatoSecundario"
               [type]="isContatoEmail(tipoContatoSecundarioSelecionado?.value) ? 'email' : 'text'"
               [required]="false"
+              [disabled]="camposDesabilitados"
               [placeholder]="isContatoEmail(tipoContatoSecundarioSelecionado?.value) ? 'email@exemplo.com' : 'E-mail, fone ou WhatsApp'">
             </app-input-text>
           </ng-template>
@@ -461,6 +500,7 @@
                 class="btn-adicionar-prof-icon"
                 pTooltip="Adicionar profissional"
                 tooltipPosition="left"
+                [disabled]="camposDesabilitados"
                 (click)="adicionarProfissional('secundaria')">
                 <i class="pi pi-plus"></i>
               </button>
@@ -469,6 +509,7 @@
                 class="btn-novo-corretor-icon"
                 pTooltip="Cadastro rápido de corretor"
                 tooltipPosition="left"
+                [disabled]="camposDesabilitados"
                 (click)="abrirCadastroRapido()">
                 <i class="pi pi-user-plus"></i>
               </button>
@@ -481,40 +522,57 @@
                 label="Tipo"
                 [(ngModel)]="prof.tipoProfissional"
                 [required]="false"
+                [disabled]="camposDesabilitados"
                 [suggestions]="tiposProfissionalSugestoes"
                 field="label"
                 placeholder="Tipo"
                 (completeMethod)="filtrarTiposProfissional($event)"
-                (onDropdownClick)="onDropdownClickTiposProfissional()">
+                (onDropdownClick)="onDropdownClickTiposProfissional()"
+                (ngModelChange)="onTipoProfissionalAlterado(prof)">
               </app-autocomplete>
             </div>
             <div class="prof-field corretor">
-              <div class="corretor-busca-row">
+              <!-- Campo CPF apenas para CORRETOR -->
+              <div class="corretor-busca-row" *ngIf="isCorretor(prof)">
                 <div class="corretor-cpf-field">
                   <app-input-cpf
                     id="cpfCorretorSecundaria_{{ i }}"
                     label="CPF do Corretor"
                     [(ngModel)]="prof.corretorCpfBusca"
                     [required]="false"
+                    [disabled]="camposDesabilitados"
                     (ngModelChange)="onCpfCorretorAlterado(prof)"
                     (onBlur)="onCpfCorretorBlur(prof)">
                   </app-input-cpf>
                 </div>
               </div>
-              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+              <div class="corretor-buscando" *ngIf="isCorretor(prof) && prof.corretorBuscando">
                 <i class="pi pi-spin pi-spinner"></i>
                 <span>Buscando corretor...</span>
               </div>
-              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+              <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
                 <i class="pi pi-exclamation-triangle"></i>
                 <span>Corretor não encontrado para este CPF.</span>
                 <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
                   Usar cadastro rápido
                 </button>
               </div>
-              <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
+              <div class="corretor-encontrado" *ngIf="isCorretor(prof) && prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
                 <span class="corretor-encontrado-label">Corretor:</span>
                 <span class="corretor-encontrado-valor">{{ prof.corretor?.nome || prof.corretorNomeManual }}</span>
+              </div>
+              <!-- Campo texto livre para GERENTE, DIRETOR e PARCEIRO -->
+              <div class="corretor-busca-row" *ngIf="!isCorretor(prof)">
+                <div class="corretor-cpf-field">
+                  <app-input-text
+                    id="nomeProfissionalSecundaria_{{ i }}"
+                    label="Nome do Profissional"
+                    [(ngModel)]="prof.corretorNomeManual"
+                    [required]="false"
+                    [disabled]="camposDesabilitados"
+                    placeholder="Digite o nome completo">
+                  </app-input-text>
+                </div>
               </div>
             </div>
             <button
@@ -522,6 +580,7 @@
               class="btn-remover-prof-icon"
               pTooltip="Remover profissional"
               tooltipPosition="top"
+              [disabled]="camposDesabilitados"
               (click)="removerProfissional(i, 'secundaria')">
               <i class="pi pi-trash"></i>
             </button>
@@ -545,6 +604,7 @@
             label="Observações"
             [(ngModel)]="observacoes"
             [required]="false"
+            [disabled]="camposDesabilitados"
             [rows]="4"
             placeholder="Informações adicionais sobre a reserva">
           </app-input-textarea>
@@ -589,7 +649,7 @@
         icon="pi pi-save"
         severity="success"
         [loading]="salvando"
-        [disabled]="carregando"
+        [disabled]="carregando || salvarDesabilitado"
         (onClick)="salvar()">
       </app-custom-button>
     </div>

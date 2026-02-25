@@ -7,12 +7,14 @@ import { finalize, takeUntil } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
+import { LoadingService } from '../../../core/services/loading.service';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { ReservaBloqueioService } from '../../../core/services/reserva-bloqueio.service';
+import { AuthorizationService } from '../../../core/services/authorization.service';
 import { CountdownTimerComponent } from '../../../shared/components/countdown-timer/countdown-timer.component';
 import {
   ReservaDTO,
@@ -33,6 +35,7 @@ import {
 } from '../../../core/models/reserva.model';
 import { Imobiliaria } from '../../../core/models/imobiliaria.model';
 import { CorretorSaidaDTO } from '../../../core/models/corretor.model';
+import { CodigoStatusUnidade } from '../../../core/models/unidade.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
@@ -71,6 +74,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   tipoUnidade = '';
   tipologia = '';
   precoUnidade: number | null = null;
+  codigoStatus: number | null = null; // Status (100=Disponível para Venda, 200=Reservado, etc.)
 
   // ─── Dados do cliente ─────────────────────────────────────────────────────
   cpfCnpjCliente = '';
@@ -151,10 +155,12 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     private corretorService: CorretorService,
     private usuarioService: UsuarioService,
     private permissaoService: PermissaoService,
+    private authorizationService: AuthorizationService,
     private confirmationService: PrimeConfirmationService,
     private appConfirmationService: AppConfirmationService,
     private messageService: MessageService,
-    private reservaBloqueioService: ReservaBloqueioService
+    private reservaBloqueioService: ReservaBloqueioService,
+    private loadingService: LoadingService
   ) {
     super();
   }
@@ -276,6 +282,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     this.unidade = r.unidade;
     this.tipoUnidade = r.tipoUnidade;
     this.tipologia = r.tipologia;
+    this.codigoStatus = r.codigoStatus ?? null;
 
     // Dados do cliente
     this.cpfCnpjCliente = r.cpfCnpjCliente || '';
@@ -377,7 +384,47 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   // ─── Bloqueio de Unidade ──────────────────────────────────────────────────
 
   /**
+   * Verifica se a unidade pode ser bloqueada
+   * Apenas unidades com status DISPONIVEL_PARA_VENDA (100) podem ser bloqueadas
+   */
+  get podeBloquerarUnidade(): boolean {
+    return this.codigoStatus === CodigoStatusUnidade.DISPONIVEL_VENDA;
+  }
+
+  /**
+   * Verifica se o usuário é administrador
+   */
+  get isAdmin(): boolean {
+    return this.authorizationService.isAdministrador();
+  }
+
+  /**
+   * Verifica se os campos devem estar desabilitados
+   * Campos são desabilitados quando o status é diferente de DISPONIVEL_PARA_VENDA (100)
+   */
+  get camposDesabilitados(): boolean {
+    return !this.podeBloquerarUnidade;
+  }
+
+  /**
+   * Verifica se o campo status deve estar desabilitado
+   * Status é desabilitado apenas para não-admins quando diferente de 100
+   */
+  get statusDesabilitado(): boolean {
+    return this.camposDesabilitados && !this.isAdmin;
+  }
+
+  /**
+   * Verifica se o botão salvar deve estar desabilitado
+   * Admin pode salvar mesmo quando status ≠ 100
+   */
+  get salvarDesabilitado(): boolean {
+    return this.camposDesabilitados && !this.isAdmin;
+  }
+
+  /**
    * Verifica se já existe bloqueio ativo e tenta bloquear a unidade
+   * IMPORTANTE: Apenas executa se o status da unidade for DISPONIVEL_PARA_VENDA (100)
    * 
    * Fluxo:
    * 1. Verifica se já existe bloqueio (importante para refresh de página)
@@ -386,6 +433,12 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * 4. Se não bloqueada, tenta bloquear
    */
   private verificarEBloquearUnidade(): void {
+    // Verifica se a unidade pode ser bloqueada (apenas status 100)
+    if (!this.podeBloquerarUnidade) {
+      console.log(`Unidade com status ${this.codigoStatus} não pode ser bloqueada. Bloqueio disponível apenas para status 100 (Disponível para Venda).`);
+      return;
+    }
+    
     // Proteção contra execuções concorrentes
     if (this.verificandoBloqueio) {
       console.log('Verificação de bloqueio já em andamento, ignorando chamada duplicada');
@@ -633,7 +686,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   adicionarProfissional(tipo: 'principal' | 'secundaria'): void {
     const novo: ProfissionalForm = {
-      tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === TipoProfissional.CORRETOR) || null,
+      tipoProfissional: null, // Usuário deve selecionar o tipo
       corretor: null,
       corretorCpfBusca: '',
       corretorNomeManual: '',
@@ -655,6 +708,31 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     } else {
       this.profissionaisSecundaria.splice(index, 1);
     }
+  }
+
+  /**
+   * Verifica se o profissional é do tipo CORRETOR
+   * @param prof - Formulário do profissional
+   * @returns true se for CORRETOR, false caso contrário
+   */
+  isCorretor(prof: ProfissionalForm): boolean {
+    return prof.tipoProfissional?.value === TipoProfissional.CORRETOR;
+  }
+
+  /**
+   * Handler executado quando o tipo de profissional é alterado
+   * Limpa os campos de CPF e nome conforme o tipo selecionado
+   * @param prof - Formulário do profissional
+   */
+  onTipoProfissionalAlterado(prof: ProfissionalForm): void {
+    // Limpa todos os campos quando mudar o tipo
+    prof.corretor = null;
+    prof.corretorCpfBusca = '';
+    prof.corretorNomeManual = '';
+    prof.corretorCpfManual = '';
+    prof.corretorBuscando = false;
+    prof.ultimoCpfBuscado = '';
+    prof.corretorNaoEncontrado = false;
   }
 
   buscarCorretorPorCpf(profForm: ProfissionalForm, opcoes?: { silencioso?: boolean; forcar?: boolean }): void {
@@ -1242,6 +1320,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     const sufixo = tipo === 'principal' ? 'Principal' : 'Secundária';
     const idTipo = tipo === 'principal' ? `tipoProfissionalPrincipal_${index}` : `tipoProfissionalSecundaria_${index}`;
     const idCpf = tipo === 'principal' ? `cpfCorretorPrincipal_${index}` : `cpfCorretorSecundaria_${index}`;
+    const idNome = tipo === 'principal' ? `nomeProfissionalPrincipal_${index}` : `nomeProfissionalSecundaria_${index}`;
 
     if (!prof.tipoProfissional) {
       this.messageService.add({
@@ -1253,38 +1332,41 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       return false;
     }
 
-    const cpf = (prof.corretor?.cpf || prof.corretorCpfManual || prof.corretorCpfBusca || '').replace(/\D/g, '');
-    if (!cpf) {
+    const isCorretor = prof.tipoProfissional.value === TipoProfissional.CORRETOR;
+
+    if (isCorretor) {
+      const cpf = (prof.corretor?.cpf || prof.corretorCpfManual || prof.corretorCpfBusca || '').replace(/\D/g, '');
+      if (!cpf) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Profissional incompleto',
+          detail: `Informe o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+        });
+        this.focarCampo(idCpf);
+        return false;
+      }
+
+      if (!this.validarCPF(cpf)) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'CPF inválido',
+          detail: `Corrija o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+        });
+        this.focarCampo(idCpf);
+        return false;
+      }
+
+      return true;
+    }
+
+    const nomeManual = (prof.corretorNomeManual || '').trim();
+    if (!nomeManual) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Profissional incompleto',
-        detail: `Informe o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+        detail: `Informe o nome do profissional (${sufixo}) na linha ${index + 1}.`
       });
-      this.focarCampo(idCpf);
-      return false;
-    }
-
-    if (!this.validarCPF(cpf)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'CPF inválido',
-        detail: `Corrija o CPF do corretor (${sufixo}) na linha ${index + 1}.`
-      });
-      this.focarCampo(idCpf);
-      return false;
-    }
-
-    const possuiCorretorValido =
-      !!prof.corretor ||
-      (!!(prof.corretorNomeManual || '').trim() && !!(prof.corretorCpfManual || '').replace(/\D/g, ''));
-
-    if (!possuiCorretorValido) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Corretor inválido',
-        detail: `Selecione um corretor válido (${sufixo}) na linha ${index + 1}.`
-      });
-      this.focarCampo(idCpf);
+      this.focarCampo(idNome);
       return false;
     }
 
@@ -1332,12 +1414,16 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     }
 
     this.salvando = true;
+    this.loadingService.show('Salvando reserva...');
     const payload = this.montarPayload();
 
     this.reservaService.atualizar(this.reservaId, payload)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.salvando = false))
+        finalize(() => {
+          this.salvando = false;
+          this.loadingService.hide();
+        })
       )
       .subscribe({
         next: () => {
@@ -1371,13 +1457,39 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     imobiliaria: Imobiliaria | null
   ): Omit<ProfissionalReservaDTO, 'id'>[] {
     return profs
-      .filter(p => p.tipoProfissional !== null && (p.corretor !== null || p.corretorNomeManual))
-      .map(p => ({
-        tipoProfissional: p.tipoProfissional!.value,
-        corretorId: Number(p.corretor?.idExterno) || 0,
-        cpfCorretor: (p.corretor?.cpf || p.corretorCpfManual || p.corretorCpfBusca || '').replace(/\D/g, ''),
-        nomeCorretor: p.corretor?.nome || p.corretorNomeManual || ''
-      }));
+      .filter(p => {
+        // Valida se tem tipo preenchido
+        if (p.tipoProfissional === null) {
+          return false;
+        }
+        // CORRETOR: Requer CPF informado (via busca ou manual)
+        if (p.tipoProfissional.value === TipoProfissional.CORRETOR) {
+          return p.corretorCpfBusca || p.corretorCpfManual;
+        }
+        // Outros tipos: Requer nome manual informado
+        return p.corretorNomeManual;
+      })
+      .map(p => {
+        const isCorretor = p.tipoProfissional!.value === TipoProfissional.CORRETOR;
+        
+        if (isCorretor) {
+          // CORRETOR: Envia apenas CPF (11 dígitos), backend preenche o nome
+          return {
+            tipoProfissional: p.tipoProfissional!.value,
+            corretorId: Number(p.corretor?.idExterno) || 0,
+            cpfCorretor: (p.corretor?.cpf || p.corretorCpfManual || p.corretorCpfBusca || '').replace(/\D/g, ''),
+            nomeCorretor: '' // Vazio - backend preenche
+          };
+        } else {
+          // GERENTE/DIRETOR/PARCEIRO: Envia apenas nome (texto livre)
+          return {
+            tipoProfissional: p.tipoProfissional!.value,
+            corretorId: 0, // Sempre 0 para não-corretores
+            cpfCorretor: '', // Vazio - não aplica
+            nomeCorretor: p.corretorNomeManual || ''
+          };
+        }
+      });
   }
 
   private montarPayload(): ReservaCreateDTO {

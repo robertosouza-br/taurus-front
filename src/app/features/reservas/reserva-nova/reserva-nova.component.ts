@@ -7,6 +7,7 @@ import { finalize, takeUntil } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
+import { LoadingService } from '../../../core/services/loading.service';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { CorretorService } from '../../../core/services/corretor.service';
@@ -153,7 +154,8 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     private permissaoService: PermissaoService,
     private appConfirmationService: AppConfirmationService,
     private messageService: MessageService,
-    private reservaBloqueioService: ReservaBloqueioService
+    private reservaBloqueioService: ReservaBloqueioService,
+    private loadingService: LoadingService
   ) {
     super();
   }
@@ -1313,13 +1315,17 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     }
 
     this.salvando = true;
+    this.loadingService.show('Salvando reserva...');
 
     const payload: ReservaCreateDTO = this.montarPayload();
 
     this.reservaService.criar(payload)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.salvando = false))
+        finalize(() => {
+          this.salvando = false;
+          this.loadingService.hide();
+        })
       )
       .subscribe({
         next: (reserva) => {

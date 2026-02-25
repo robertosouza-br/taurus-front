@@ -237,7 +237,7 @@
 
   .profissional-row {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 0.75rem;
     margin-bottom: 0.75rem;
     padding: 0.75rem;
@@ -251,6 +251,14 @@
 
     .prof-field {
       ::ng-deep .autocomplete-field {
+        margin-bottom: 0 !important;
+      }
+
+      ::ng-deep .input-text-field {
+        margin-bottom: 0 !important;
+      }
+
+      ::ng-deep .input-cpf-field {
         margin-bottom: 0 !important;
       }
 
