@@ -1378,3 +1378,53 @@ body.galleria-fullscreen-open {
     z-index: 99999 !important;
   }
 }
+
+/* ===== DIALOG BACKDROP (OVERLAY ESCURO) ===== */
+// Backdrop escuro para todos os dialogs modais do PrimeNG
+.p-dialog-mask {
+  background-color: rgba(0, 0, 0, 0.7) !important; // Fundo escuro com 70% de opacidade
+  backdrop-filter: blur(3px); // Efeito blur suave no fundo
+  -webkit-backdrop-filter: blur(3px); // Suporte Safari
+  z-index: 9998 !important; // Garante que fique acima do countdown timer
+}
+
+// Dialog fica acima do backdrop
+.p-dialog {
+  z-index: 9999 !important;
+}
+
+// Countdown timer deve ficar EMBAIXO do dialog backdrop
+.countdown-timer-container {
+  z-index: 1000 !important; // Muito menor que o dialog-mask (9998)
+}
+
+// Animação suave ao abrir/fechar o backdrop
+.p-dialog-mask.p-component-overlay-enter {
+  animation: p-dialog-mask-enter 0.25s ease-out;
+}
+
+.p-dialog-mask.p-component-overlay-leave {
+  animation: p-dialog-mask-leave 0.2s ease-in;
+}
+
+@keyframes p-dialog-mask-enter {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
+  }
+}
+
+@keyframes p-dialog-mask-leave {
+  from {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+  }
+}

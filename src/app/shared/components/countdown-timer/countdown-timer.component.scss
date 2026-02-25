@@ -1,6 +1,6 @@
 .countdown-timer-container {
   position: fixed;
-  z-index: 9999;
+  // z-index definido globalmente em styles.scss
   animation: slideIn 0.3s ease-out;
 
   &.countdown-timer-top-right {
@@ -79,9 +79,7 @@
   opacity: 0.3;
 }
 
-.timer-circle-progress {
-  // Sem sombra para visual mais limpo
-}
+// timer-circle-progress: sem estilos adicionais (visual limpo)
 
 .timer-display {
   position: relative;

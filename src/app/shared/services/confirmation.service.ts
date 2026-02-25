@@ -26,14 +26,17 @@ export class ConfirmationService {
   confirm(config: ConfirmationConfig): Observable<boolean> {
     const subject = new Subject<boolean>();
     
+    // Alertas sem botão cancelar não devem ser dismissables (forçar interação)
+    const dismissable = config.showCancel !== false;
+
     const ref: DynamicDialogRef | null = this.dialogService.open(ConfirmationDialogComponent, {
       data: config,
       header: '',
       width: '500px',
       modal: true,
-      dismissableMask: true,
+      dismissableMask: dismissable,
       closable: false,
-      closeOnEscape: true,
+      closeOnEscape: dismissable,
       styleClass: 'confirmation-dialog-wrapper'
     });
 
@@ -126,6 +129,29 @@ export class ConfirmationService {
       title,
       message,
       ...config
+    });
+  }
+
+  /**
+   * Exibe alerta informativo (sem botão cancelar)
+   * Útil para situações que não necessitam confirmação, apenas notificação
+   */
+  alert(title: string, message: string, severity: 'success' | 'info' | 'warning' | 'danger' = 'info', icon?: string): Observable<boolean> {
+    const iconMap = {
+      success: 'pi pi-check-circle',
+      info: 'pi pi-info-circle',
+      warning: 'pi pi-exclamation-triangle',
+      danger: 'pi pi-times-circle'
+    };
+
+    return this.confirm({
+      action: ConfirmationAction.CUSTOM,
+      title,
+      message,
+      severity,
+      icon: icon || iconMap[severity],
+      confirmLabel: 'Entendi',
+      showCancel: false
     });
   }
 }

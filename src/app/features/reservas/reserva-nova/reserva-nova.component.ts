@@ -439,17 +439,15 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
             life: 4000
           });
         } else if (status.bloqueado && status.bloqueadoPorOutroUsuario) {
-          // Bloqueada por outro usuário - redireciona
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Unidade Indisponível',
-            detail: `Esta unidade está sendo editada por outro usuário. Tente novamente em ${this.formatarTempo(status.tempoRestanteSegundos)}.`,
-            life: 6000
-          });
-
-          setTimeout(() => {
+          // Bloqueada por outro usuário - exibe dialog e redireciona
+          this.appConfirmationService.alert(
+            'Unidade Indisponível',
+            `Esta unidade está sendo editada por outro usuário. Tente novamente em ${this.formatarTempo(status.tempoRestanteSegundos)}.`,
+            'danger',
+            'pi pi-lock'
+          ).subscribe(() => {
             this.voltar();
-          }, 2000);
+          });
         } else {
           // Não bloqueada - tenta bloquear SOMENTE se ainda não foi bloqueada antes
           // Isso evita renovar o bloqueio ao dar F5
@@ -509,16 +507,14 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       next: (response) => {
         // Verifica se outro usuário bloqueou (mesmo com status 200)
         if (response.bloqueadoPorOutroUsuario) {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Unidade Indisponível',
-            detail: `Esta unidade está sendo visualizada por outro usuário. Tente novamente em ${this.formatarTempo(response.tempoRestanteSegundos)}.`,
-            life: 6000
-          });
-
-          setTimeout(() => {
+          this.appConfirmationService.alert(
+            'Unidade Indisponível',
+            `Esta unidade está sendo visualizada por outro usuário. Tente novamente em ${this.formatarTempo(response.tempoRestanteSegundos)}.`,
+            'danger',
+            'pi pi-lock'
+          ).subscribe(() => {
             this.voltar();
-          }, 2000);
+          });
           return;
         }
 
@@ -547,18 +543,18 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
         // HTTP 409 = Unidade já bloqueada por outro usuário
         if (error.status === 409) {
           const tempoRestante = error.error?.tempoRestanteSegundos || 0;
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Unidade Indisponível',
-            detail: tempoRestante > 0 
-              ? `Esta unidade não está disponível no momento. Tente novamente em ${this.formatarTempo(tempoRestante)}.`
-              : 'Esta unidade não está disponível no momento.',
-            life: 6000
-          });
-
-          setTimeout(() => {
+          const mensagem = tempoRestante > 0 
+            ? `Esta unidade não está disponível no momento. Tente novamente em ${this.formatarTempo(tempoRestante)}.`
+            : 'Esta unidade não está disponível no momento.';
+          
+          this.appConfirmationService.alert(
+            'Unidade Indisponível',
+            mensagem,
+            'danger',
+            'pi pi-lock'
+          ).subscribe(() => {
             this.voltar();
-          }, 2000);
+          });
         } else {
           // Outros erros - permite continuar mas com aviso
           this.messageService.add({
