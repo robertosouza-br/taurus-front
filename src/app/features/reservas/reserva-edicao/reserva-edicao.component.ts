@@ -386,6 +386,12 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * 4. Se não bloqueada, tenta bloquear
    */
   private verificarEBloquearUnidade(): void {
+    // Proteção contra execuções concorrentes
+    if (this.verificandoBloqueio) {
+      console.log('Verificação de bloqueio já em andamento, ignorando chamada duplicada');
+      return;
+    }
+
     this.verificandoBloqueio = true;
 
     // Primeiro verifica se já existe bloqueio
@@ -394,6 +400,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       this.bloco,
       this.unidade
     ).pipe(
+      takeUntil(this.destroy$),
       finalize(() => (this.verificandoBloqueio = false))
     ).subscribe({
       next: (status) => {
@@ -478,14 +485,18 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Tenta bloquear a unidade para o usuário atual
    */
   private bloquearUnidade(): void {
-    this.verificandoBloqueio = true;
+    // Proteção: não tenta bloquear se já está bloqueada
+    if (this.unidadeBloqueada) {
+      console.log('Unidade já bloqueada, ignorando chamada duplicada');
+      return;
+    }
 
     this.reservaBloqueioService.bloquear({
       codEmpreendimento: this.codEmpreendimento,
       bloco: this.bloco,
       unidade: this.unidade
     }).pipe(
-      finalize(() => (this.verificandoBloqueio = false))
+      takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
         // Verifica se outro usuário bloqueou (mesmo com status 200)
