@@ -408,10 +408,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   /**
    * Verifica se o campo status deve estar desabilitado
-   * Status é desabilitado apenas para não-admins quando diferente de 100
+   * Não-admin NUNCA pode alterar o status da reserva
    */
   get statusDesabilitado(): boolean {
-    return this.camposDesabilitados && !this.isAdmin;
+    return !this.isAdmin;
   }
 
   /**
@@ -420,6 +420,54 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    */
   get salvarDesabilitado(): boolean {
     return this.camposDesabilitados && !this.isAdmin;
+  }
+
+  /**
+   * Verifica se o campo data da venda deve estar desabilitado
+   * Admin pode editar mesmo quando status ≠ 100
+   */
+  get dataVendaDesabilitada(): boolean {
+    return this.camposDesabilitados && !this.isAdmin;
+  }
+
+  /**
+   * Verifica se o campo observações deve estar desabilitado
+   * Admin pode editar mesmo quando status ≠ 100
+   */
+  get observacoesDesabilitadas(): boolean {
+    return this.camposDesabilitados && !this.isAdmin;
+  }
+
+  /**
+   * Verifica se deve mostrar os botões de ação (Limpar e Salvar)
+   * - Status 100: TODOS os perfis veem os botões
+   * - Status ≠ 100: apenas ADMIN vê os botões, demais veem só Cancelar
+   */
+  get mostrarBotoesAcao(): boolean {
+    // Se codigoStatus não foi carregado ainda, não mostra botões (segurança)
+    if (this.codigoStatus === null || this.codigoStatus === undefined) {
+      return false;
+    }
+    
+    // Status 100 → TODOS veem os botões
+    // Status ≠ 100 → apenas ADMIN vê os botões
+    return this.codigoStatus === CodigoStatusUnidade.DISPONIVEL_VENDA || this.isAdmin;
+  }
+
+  /**
+   * Retorna opções de status filtradas baseadas no perfil do usuário
+   * - ADMIN: vê todos os 11 status
+   * - Não-ADMIN: vê apenas RESERVADA (200)
+   */
+  get statusOptionsFiltered(): any[] {
+    if (this.isAdmin) {
+      return this.statusOptions;
+    }
+    
+    // Não-admin pode ver apenas status 200 (Reservado para Venda)
+    return this.statusOptions.filter(opt => 
+      opt.value === StatusReserva.RESERVADA
+    );
   }
 
   /**
@@ -867,13 +915,18 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   filtrarStatus(event: any): void {
     const query = (event.query || '').toString().toLowerCase();
+    console.log('📝 [filtrarStatus] query:', query);
+    console.log('📝 [filtrarStatus] statusOptionsFiltered disponíveis:', this.statusOptionsFiltered.length);
+    
     if (!query) {
-      this.statusSugestoes = this.statusOptions;
+      this.statusSugestoes = this.statusOptionsFiltered;
     } else {
-      this.statusSugestoes = this.statusOptions.filter(opt =>
+      this.statusSugestoes = this.statusOptionsFiltered.filter(opt =>
         opt.label.toLowerCase().includes(query)
       );
     }
+    
+    console.log('📝 [filtrarStatus] statusSugestoes finais:', this.statusSugestoes);
   }
 
   filtrarFormaPagamento(event: any): void {
@@ -932,7 +985,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   onDropdownClickStatus(): void {
-    this.statusSugestoes = this.statusOptions;
+    console.log('🔽 [onDropdownClickStatus] Dropdown clicado');
+    console.log('🔽 [onDropdownClickStatus] statusOptionsFiltered disponíveis:', this.statusOptionsFiltered.length);
+    this.statusSugestoes = this.statusOptionsFiltered;
+    console.log('🔽 [onDropdownClickStatus] statusSugestoes setadas:', this.statusSugestoes);
   }
 
   onDropdownClickFormaPagamento(): void {
@@ -1241,6 +1297,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   salvar(): void {
     if (!this.validarFormulario()) return;
+    if (!this.validarDatas()) return;
     if (!this.validarContatosTelefoneWhatsapp()) return;
     if (!this.validarProfissionaisObrigatorios()) return;
 
@@ -1405,6 +1462,27 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       }
     }
 
+    return true;
+  }
+
+  /**
+   * Valida se a data da reserva não é maior que a data da venda
+   */
+  private validarDatas(): boolean {
+    if (this.dataReserva && this.dataVenda) {
+      const dataReservaTime = new Date(this.dataReserva).setHours(0, 0, 0, 0);
+      const dataVendaTime = new Date(this.dataVenda).setHours(0, 0, 0, 0);
+      
+      if (dataReservaTime > dataVendaTime) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Data inválida',
+          detail: 'A Data da Reserva não pode ser maior que a Data da Venda.'
+        });
+        this.focarCampo('dataReservaField');
+        return false;
+      }
+    }
     return true;
   }
 

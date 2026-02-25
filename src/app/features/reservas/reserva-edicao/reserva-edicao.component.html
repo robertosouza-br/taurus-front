@@ -210,7 +210,7 @@
             label="Data da Venda"
             [(ngModel)]="dataVenda"
             [required]="false"
-            [disabled]="camposDesabilitados"
+            [disabled]="dataVendaDesabilitada"
             [showValidation]="false">
           </app-input-date>
         </div>
@@ -604,7 +604,7 @@
             label="Observações"
             [(ngModel)]="observacoes"
             [required]="false"
-            [disabled]="camposDesabilitados"
+            [disabled]="observacoesDesabilitadas"
             [rows]="4"
             placeholder="Informações adicionais sobre a reserva">
           </app-input-textarea>
@@ -636,6 +636,7 @@
         (onClick)="voltar()">
       </app-custom-button>
       <app-custom-button
+        *ngIf="mostrarBotoesAcao"
         label="Limpar"
         icon="pi pi-refresh"
         severity="info"
@@ -645,6 +646,7 @@
         (onClick)="limparTela()">
       </app-custom-button>
       <app-custom-button
+        *ngIf="mostrarBotoesAcao"
         label="Salvar Alterações"
         icon="pi pi-save"
         severity="success"

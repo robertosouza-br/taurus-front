@@ -1,129 +1,118 @@
 <p-dialog
   [(visible)]="visible"
-  [header]="'Detalhes da Unidade ' + (unidade?.unidade || '')"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  [style]="{width: '800px'}"
+  [style]="{width: '850px'}"
   [breakpoints]="{'960px': '90vw', '640px': '95vw'}"
-  styleClass="unidade-detalhes-dialog">
+  styleClass="unidade-detalhes-dialog"
+  [showHeader]="false">
 
   <ng-container *ngIf="unidade">
-    <!-- Seção Principal -->
+    <!-- Header Customizado com Gradiente -->
+    <div class="dialog-custom-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <i class="pi pi-home"></i>
+        </div>
+        <div class="header-text">
+          <h2 class="header-title">Detalhes da Unidade</h2>
+          <p class="header-subtitle">{{ unidade.empreendimento }} · Bloco {{ unidade.bloco }} · {{ unidade.unidade }}</p>
+        </div>
+      </div>
+      <button 
+        type="button" 
+        class="p-dialog-header-close p-link" 
+        (click)="fechar()">
+        <span class="p-dialog-header-close-icon pi pi-times"></span>
+      </button>
+    </div>
+
+    <!-- Badge de Status em Destaque -->
+    <div class="status-destaque">
+      <p-tag 
+        [value]="getStatusLabel(unidade.codigoStatusUnidade)"
+        [severity]="getStatusSeverity(unidade.codigoStatusUnidade)"
+        [style]="{
+          'background': getStatusColors(unidade.codigoStatusUnidade).bg,
+          'border': '2px solid ' + getStatusColors(unidade.codigoStatusUnidade).border,
+          'color': getStatusColors(unidade.codigoStatusUnidade).text,
+          'font-size': '1rem',
+          'padding': '0.5rem 1.5rem'
+        }">
+      </p-tag>
+    </div>
+
+    <!-- Cards de Informações -->
     <div class="grid">
-      <!-- Coluna Esquerda -->
-      <div class="col-12 md:col-6">
-        <!-- Empreendimento e Localização -->
-        <div class="detail-card mb-3">
-          <div class="detail-header">
-            <i class="pi pi-building"></i>
-            <h3>Empreendimento</h3>
-          </div>
-          <div class="detail-body">
-            <div class="detail-item">
-              <span class="detail-label">Nome:</span>
-              <span class="detail-value">{{ unidade.empreendimento }}</span>
+      <!-- Card de Preço em Destaque -->
+      <div class="col-12">
+        <div class="detail-card price-card">
+          <div class="price-content">
+            <div class="price-header">
+              <i class="pi pi-tag"></i>
+              <span>Valor da Unidade</span>
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Bloco:</span>
-              <span class="detail-value">{{ unidade.bloco }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Código:</span>
-              <span class="detail-value">{{ unidade.unidade }}</span>
-            </div>
+            <div class="price-value">{{ formatarPreco(unidade.preco) }}</div>
           </div>
         </div>
+      </div>
 
-        <!-- Características -->
-        <div class="detail-card mb-3">
-          <div class="detail-header">
+      <!-- Características -->
+      <div class="col-12 lg:col-6">
+        <div class="detail-card">
+          <div class="card-header">
             <i class="pi pi-info-circle"></i>
             <h3>Características</h3>
           </div>
-          <div class="detail-body">
-            <div class="detail-item">
-              <span class="detail-label">Tipo:</span>
-              <span class="detail-value">{{ unidade.tipo }}</span>
+          <div class="card-body">
+            <div class="info-row">
+              <span class="info-label">Tipo</span>
+              <span class="info-value">{{ unidade.tipo }}</span>
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Tipologia:</span>
-              <span class="detail-value">{{ unidade.tipologia }}</span>
+            <div class="info-row">
+              <span class="info-label">Tipologia</span>
+              <span class="info-value">{{ unidade.tipologia }}</span>
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Sigla:</span>
-              <span class="detail-value">{{ unidade.sigla }}</span>
+            <div class="info-row">
+              <span class="info-label">Sigla</span>
+              <span class="info-value">{{ unidade.sigla }}</span>
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Fração Ideal:</span>
-              <span class="detail-value">{{ formatarFracaoIdeal(unidade.fracaoIdeal) }}</span>
+            <div class="info-row">
+              <span class="info-label">Fração Ideal</span>
+              <span class="info-value">{{ formatarFracaoIdeal(unidade.fracaoIdeal) }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Coluna Direita -->
-      <div class="col-12 md:col-6">
-        <!-- Status e Preço -->
-        <div class="detail-card mb-3">
-          <div class="detail-header">
-            <i class="pi pi-dollar"></i>
-            <h3>Comercial</h3>
-          </div>
-          <div class="detail-body">
-            <div class="detail-item">
-              <span class="detail-label">Status:</span>
-              <p-tag 
-                [value]="getStatusLabel(unidade.codigoStatusUnidade)"
-                [severity]="getStatusSeverity(unidade.codigoStatusUnidade)"
-                [style]="{
-                  'background-color': getStatusColors(unidade.codigoStatusUnidade).bg,
-                  'border-color': getStatusColors(unidade.codigoStatusUnidade).border,
-                  'color': getStatusColors(unidade.codigoStatusUnidade).text
-                }"
-                styleClass="w-full">
-              </p-tag>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Preço:</span>
-              <span class="detail-value price">{{ formatarPreco(unidade.preco) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Detalhes de Localização -->
-        <div class="detail-card mb-3">
-          <div class="detail-header">
-            <i class="pi pi-map-marker"></i>
-            <h3>Localização e Vista</h3>
-          </div>
-          <div class="detail-body">
-            <div class="detail-item">
-              <span class="detail-label">Localização:</span>
-              <span class="detail-value">{{ unidade.localizacao }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Posição Sol:</span>
-              <span class="detail-value">{{ unidade.posicaoSol }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Fachada:</span>
-              <span class="detail-value">{{ unidade.fachada }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Garagem -->
+      <!-- Localização -->
+      <div class="col-12 lg:col-6">
         <div class="detail-card">
-          <div class="detail-header">
-            <i class="pi pi-car"></i>
-            <h3>Garagem</h3>
+          <div class="card-header">
+            <i class="pi pi-map-marker"></i>
+            <h3>Localização</h3>
           </div>
-          <div class="detail-body">
-            <div class="detail-item">
-              <span class="detail-label">Vagas:</span>
-              <span class="detail-value">{{ unidade.garagem }}</span>
+          <div class="card-body">
+            <div class="info-row">
+              <span class="info-label">Localização</span>
+              <span class="info-value">{{ unidade.localizacao }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Posição Solar</span>
+              <span class="info-value">{{ unidade.posicaoSol }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Fachada</span>
+              <span class="info-value">{{ unidade.fachada }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Vagas de Garagem</span>
+              <span class="info-value garagem">
+                <i class="pi pi-car"></i>
+                {{ unidade.garagem }}
+              </span>
             </div>
           </div>
         </div>
@@ -132,15 +121,11 @@
   </ng-container>
 
   <ng-template pTemplate="footer">
-    <div class="flex justify-content-end">
-      <button 
-        pButton 
-        type="button" 
-        label="Fechar" 
-        icon="pi pi-times"
-        class="p-button-text"
-        (click)="fechar()">
-      </button>
-    </div>
+    <app-custom-button
+      label="Fechar"
+      icon="pi pi-times"
+      styleClass="p-button-outlined"
+      (onClick)="fechar()">
+    </app-custom-button>
   </ng-template>
 </p-dialog>

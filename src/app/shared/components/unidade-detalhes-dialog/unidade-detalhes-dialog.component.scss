@@ -1,170 +1,411 @@
 ::ng-deep .unidade-detalhes-dialog {
-  .p-dialog-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
-    color: white;
-    padding: 1.5rem;
-    
-    .p-dialog-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-    }
-
-    .p-dialog-header-icons button {
-      color: white !important;
-      
-      &:hover {
-        background: rgba(255, 255, 255, 0.1) !important;
-      }
-    }
-  }
-
   .p-dialog-content {
-    padding: 1.5rem;
+    padding: 0;
     background: #f8f9fa;
+    overflow: visible;
   }
 
   .p-dialog-footer {
     padding: 1rem 1.5rem;
-    border-top: 1px solid #dee2e6;
+    border-top: 1px solid #e9ecef;
+    background: white;
+  }
+
+  // Ajuste do grid para melhor espaçamento
+  .grid {
+    padding: 1.5rem;
+    margin: 0;
   }
 }
 
-.detail-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+// Header Customizado com Gradiente
+.dialog-custom-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.05)" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat;
+    background-size: cover;
+    opacity: 0.3;
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    i {
+      font-size: 1.75rem;
+      color: white;
+    }
+  }
+
+  .header-text {
+    color: white;
+  }
+
+  .header-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .header-subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.95rem;
+    opacity: 0.95;
+    font-weight: 500;
+  }
+
+  .p-dialog-header-close {
+    position: relative;
+    z-index: 1;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    .p-dialog-header-close-icon {
+      color: white;
+      font-size: 1.25rem;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Badge de Status em Destaque
+.status-destaque {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+}
+
+// Card de Preço em Destaque
+.price-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 2px solid #667eea !important;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.25);
+    border-color: #764ba2;
+  }
+
+  .price-content {
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .price-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+
+    i {
+      font-size: 1rem;
+      color: #667eea;
+    }
+  }
+
+  .price-value {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #667eea;
+    text-shadow: none;
   }
 }
 
-.detail-header {
+// Cards de Informações
+.detail-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  border: 1px solid #e9ecef;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+    border-color: #667eea;
+  }
+}
+
+.card-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-bottom: 2px solid var(--primary-color);
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
 
   i {
-    color: var(--primary-color);
-    font-size: 1.25rem;
+    color: white;
+    font-size: 1.5rem;
   }
 
   h3 {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
   }
 }
 
-.detail-body {
-  padding: 1.25rem;
+.card-body {
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.detail-item {
+.info-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: background 0.2s ease;
 
-.detail-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-value {
-  font-size: 0.95rem;
-  color: #212529;
-  font-weight: 500;
-
-  &.price {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
+  &:hover {
+    background: #e9ecef;
   }
-}
 
-::ng-deep {
-  .detail-item p-tag {
-    width: 100%;
-    
-    .p-tag {
-      width: 100%;
-      justify-content: center;
-      padding: 0.5rem 1rem;
-      font-weight: 600;
+  .info-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  .info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #212529;
+    text-align: right;
+
+    &.garagem {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--primary-color);
+
+      i {
+        font-size: 1.1rem;
+      }
     }
   }
 }
 
 // Responsividade
 @media screen and (max-width: 960px) {
-  .detail-card {
-    margin-bottom: 1rem !important;
+  .dialog-custom-header {
+    padding: 1.5rem 1.25rem;
+
+    .header-icon {
+      width: 3rem;
+      height: 3rem;
+
+      i {
+        font-size: 1.5rem;
+      }
+    }
+
+    .header-title {
+      font-size: 1.25rem;
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+    }
   }
 
-  .detail-header {
-    padding: 0.875rem 1rem;
+  .status-destaque {
+    padding: 1.25rem;
+  }
 
-    h3 {
-      font-size: 0.95rem;
+  .price-card {
+    .price-content {
+      padding: 1.75rem 1.25rem;
     }
+
+    .price-value {
+      font-size: 2.25rem;
+    }
+  }
+
+  .card-header {
+    padding: 1rem 1.25rem;
 
     i {
-      font-size: 1.1rem;
+      font-size: 1.25rem;
+    }
+
+    h3 {
+      font-size: 1rem;
     }
   }
 
-  .detail-body {
-    padding: 1rem;
+  .card-body {
+    padding: 1.25rem;
     gap: 0.875rem;
   }
 
-  .detail-value.price {
-    font-size: 1.25rem;
+  .grid {
+    padding: 1.25rem;
   }
 }
 
 @media screen and (max-width: 640px) {
   ::ng-deep .unidade-detalhes-dialog {
-    .p-dialog-header {
-      padding: 1.25rem;
+    .p-dialog-content {
+      padding: 0;
+    }
 
-      .p-dialog-title {
-        font-size: 1.1rem;
+    .p-dialog-footer {
+      padding: 0.875rem 1rem;
+    }
+  }
+
+  .dialog-custom-header {
+    padding: 1.25rem 1rem;
+
+    .header-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+
+      i {
+        font-size: 1.25rem;
       }
     }
 
-    .p-dialog-content {
-      padding: 1rem;
+    .header-title {
+      font-size: 1.1rem;
+    }
+
+    .header-subtitle {
+      font-size: 0.813rem;
+    }
+
+    .p-dialog-header-close {
+      width: 2rem;
+      height: 2rem;
+
+      .p-dialog-header-close-icon {
+        font-size: 1rem;
+      }
     }
   }
 
-  .detail-header {
-    padding: 0.75rem;
-    
+  .status-destaque {
+    padding: 1rem;
+  }
+
+  .price-card {
+    .price-content {
+      padding: 1.5rem 1rem;
+    }
+
+    .price-value {
+      font-size: 2rem;
+    }
+
+    .price-header {
+      font-size: 0.813rem;
+    }
+  }
+
+  .card-header {
+    padding: 0.875rem 1rem;
+
+    i {
+      font-size: 1.1rem;
+    }
+
     h3 {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
   }
 
-  .detail-body {
-    padding: 0.875rem;
+  .card-body {
+    padding: 1rem;
+    gap: 0.75rem;
   }
 
-  .detail-value.price {
-    font-size: 1.1rem;
+  .info-row {
+    padding: 0.625rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+
+    .info-value {
+      text-align: left;
+    }
+  }
+
+  .grid {
+    padding: 1rem;
   }
 }

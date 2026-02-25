@@ -91,6 +91,7 @@
             label="Status da Reserva"
             [(ngModel)]="statusSelecionado"
             [required]="false"
+            [disabled]="statusDesabilitado"
             [suggestions]="statusSugestoes"
             field="label"
             placeholder="Selecione o status"

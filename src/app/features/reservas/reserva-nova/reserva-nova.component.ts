@@ -12,6 +12,7 @@ import { ReservaService } from '../../../core/services/reserva.service';
 import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
+import { AuthorizationService } from '../../../core/services/authorization.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { ReservaBloqueioService } from '../../../core/services/reserva-bloqueio.service';
 import { CountdownTimerComponent } from '../../../shared/components/countdown-timer/countdown-timer.component';
@@ -152,12 +153,46 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     private corretorService: CorretorService,
     private usuarioService: UsuarioService,
     private permissaoService: PermissaoService,
+    private authorizationService: AuthorizationService,
     private appConfirmationService: AppConfirmationService,
     private messageService: MessageService,
     private reservaBloqueioService: ReservaBloqueioService,
     private loadingService: LoadingService
   ) {
     super();
+  }
+
+  // ─── Getters ──────────────────────────────────────────────────────────────
+
+  /**
+   * Verifica se o usuário atual possui perfil de administrador
+   */
+  get isAdmin(): boolean {
+    return this.authorizationService.isAdministrador();
+  }
+
+  /**
+   * Retorna opções de status filtradas baseadas no perfil do usuário
+   * - ADMIN: vê todos os 11 status
+   * - Não-ADMIN: vê apenas RESERVADA (200)
+   */
+  get statusOptionsFiltered(): any[] {
+    if (this.isAdmin) {
+      return this.statusOptions;
+    }
+    
+    // Não-admin pode ver apenas status 200 (Reservado para Venda)
+    return this.statusOptions.filter(opt => 
+      opt.value === StatusReserva.RESERVADA
+    );
+  }
+
+  /**
+   * Verifica se o campo status deve estar desabilitado
+   * Não-admin não pode alterar o status (sempre será RESERVADA)
+   */
+  get statusDesabilitado(): boolean {
+    return !this.isAdmin;
   }
 
   ngOnInit(): void {
@@ -325,8 +360,17 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       value: v
     }));
 
-    const statusMapeado = this.mapearStatusUnidadeParaReserva(this.statusUnidadeOrigem);
-    const statusInicial = statusMapeado || StatusReserva.RESERVADA;
+    // Define status inicial
+    // Não-admin: sempre RESERVADA (200)
+    // Admin: status mapeado da unidade ou RESERVADA como padrão
+    let statusInicial: StatusReserva;
+    if (!this.isAdmin) {
+      statusInicial = StatusReserva.RESERVADA;
+    } else {
+      const statusMapeado = this.mapearStatusUnidadeParaReserva(this.statusUnidadeOrigem);
+      statusInicial = statusMapeado || StatusReserva.RESERVADA;
+    }
+    
     this.statusSelecionado = this.statusOptions.find(o => o.value === statusInicial) || null;
   }
 
@@ -833,9 +877,9 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   filtrarStatus(event: any): void {
     const query = (event.query || '').toString().toLowerCase();
     if (!query) {
-      this.statusSugestoes = this.statusOptions;
+      this.statusSugestoes = this.statusOptionsFiltered;
     } else {
-      this.statusSugestoes = this.statusOptions.filter(opt =>
+      this.statusSugestoes = this.statusOptionsFiltered.filter(opt =>
         opt.label.toLowerCase().includes(query)
       );
     }
@@ -897,7 +941,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   }
 
   onDropdownClickStatus(): void {
-    this.statusSugestoes = this.statusOptions;
+    this.statusSugestoes = this.statusOptionsFiltered;
   }
 
   onDropdownClickFormaPagamento(): void {
@@ -1150,6 +1194,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   salvar(): void {
     if (!this.validarFormulario()) return;
+    if (!this.validarDatas()) return;
     if (!this.validarContatosTelefoneWhatsapp()) return;
     if (!this.validarProfissionaisObrigatorios()) return;
 
@@ -1306,6 +1351,27 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       }
     }
 
+    return true;
+  }
+
+  /**
+   * Valida se a data da reserva não é maior que a data da venda
+   */
+  private validarDatas(): boolean {
+    if (this.dataReserva && this.dataVenda) {
+      const dataReservaTime = new Date(this.dataReserva).setHours(0, 0, 0, 0);
+      const dataVendaTime = new Date(this.dataVenda).setHours(0, 0, 0, 0);
+      
+      if (dataReservaTime > dataVendaTime) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Data inválida',
+          detail: 'A Data da Reserva não pode ser maior que a Data da Venda.'
+        });
+        this.focarCampo('dataReservaField');
+        return false;
+      }
+    }
     return true;
   }
 
