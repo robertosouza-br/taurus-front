@@ -77,6 +77,10 @@ const routes: Routes = [
       {
         path: 'reservas',
         loadChildren: () => import('./features/reservas/reservas.module').then(m => m.ReservasModule)
+      },
+      {
+        path: 'propostas',
+        loadChildren: () => import('./features/propostas/propostas.module').then(m => m.PropostasModule)
       }
     ]
   },

@@ -1,0 +1,36 @@
+.proposta-step1-container {
+  .profissional-item {
+    background: var(--surface-50);
+    border: 1px solid var(--surface-200);
+    border-radius: var(--border-radius);
+
+    h4 {
+      color: var(--primary-color);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+  }
+
+  ::ng-deep {
+    .p-card-header {
+      background: var(--surface-100);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .p-dropdown {
+      width: 100%;
+    }
+  }
+
+  // Responsividade
+  @media (max-width: 768px) {
+    .flex.gap-2.justify-content-end {
+      flex-direction: column;
+
+      > * {
+        width: 100%;
+      }
+    }
+  }
+}

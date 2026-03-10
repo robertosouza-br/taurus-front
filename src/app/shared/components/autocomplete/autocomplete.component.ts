@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, Input, forwardRef, ViewChild, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { AutoComplete } from 'primeng/autocomplete';
 
@@ -14,7 +14,7 @@ import { AutoComplete } from 'primeng/autocomplete';
     }
   ]
 })
-export class AutocompleteComponent implements ControlValueAccessor {
+export class AutocompleteComponent implements ControlValueAccessor, OnChanges {
   @ViewChild('autoComplete') autoComplete!: AutoComplete;
 
   @Input() id: string = '';
@@ -25,6 +25,7 @@ export class AutocompleteComponent implements ControlValueAccessor {
   @Input() showValidation: boolean = false;
   @Input() errorMessage: string = '';
   @Input() field: string = 'nome'; // Campo a ser exibido
+  @Input() dataKey: string = ''; // Campo que contém o ID (se definido, retorna apenas o ID)
   @Input() suggestions: any[] = []; // Sugestões filtradas
   @Input() emptyMessage: string = 'Nenhum resultado encontrado';
   @Input() itemTemplate: any = null; // Template customizado para os itens
@@ -38,11 +39,44 @@ export class AutocompleteComponent implements ControlValueAccessor {
   value: any = null;
   touched: boolean = false;
   isFocused: boolean = false;
+  private _generatedId: string = `autocomplete-${Math.random().toString(36).substr(2, 9)}`;
+  private _pendingValue: any = null; // Armazena valor pendente até suggestions serem carregadas
   private onChange: (value: any) => void = () => {};
   private onTouched: () => void = () => {};
 
+  ngOnChanges(changes: SimpleChanges): void {
+    // Quando suggestions mudarem e houver um valor pendente, tenta encontrar o objeto
+    if (changes['suggestions'] && this.suggestions.length > 0 && this._pendingValue !== null) {
+      this.resolverValorPendente();
+    }
+  }
+
   writeValue(value: any): void {
-    this.value = value;
+    // Se dataKey estiver definido e value for um ID, busca o objeto completo nas suggestions
+    if (this.dataKey && value && typeof value !== 'object') {
+      if (this.suggestions.length > 0) {
+        const foundItem = this.suggestions.find(item => item[this.dataKey] === value);
+        this.value = foundItem || null;
+        this._pendingValue = null;
+      } else {
+        // Suggestions ainda não foram carregadas, armazena valor pendente
+        this._pendingValue = value;
+        this.value = null;
+      }
+    } else {
+      this.value = value;
+      this._pendingValue = null;
+    }
+  }
+
+  private resolverValorPendente(): void {
+    if (this._pendingValue !== null && this.dataKey) {
+      const foundItem = this.suggestions.find(item => item[this.dataKey] === this._pendingValue);
+      if (foundItem) {
+        this.value = foundItem;
+        this._pendingValue = null;
+      }
+    }
   }
 
   registerOnChange(fn: (value: any) => void): void {
@@ -59,8 +93,14 @@ export class AutocompleteComponent implements ControlValueAccessor {
 
   onValueChange(event: any): void {
     this.value = event;
-    this.onChange(this.value);
-    this.onSelect.emit(event);
+    
+    // Se dataKey estiver definido, retorna apenas o ID/valor da propriedade especificada
+    const valueToEmit = this.dataKey && event && typeof event === 'object' 
+      ? event[this.dataKey] 
+      : event;
+    
+    this.onChange(valueToEmit);
+    this.onSelect.emit(event); // Evento sempre emite o objeto completo
   }
 
   onFilter(event: any): void {
@@ -94,7 +134,7 @@ export class AutocompleteComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `autocomplete-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

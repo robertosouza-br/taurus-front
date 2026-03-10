@@ -76,6 +76,7 @@ export class UploadArquivosComponent implements ControlValueAccessor {
   isDragging: boolean = false;
   touched: boolean = false;
 
+  private _generatedId: string = `upload-arquivos-${Math.random().toString(36).substr(2, 9)}`;
   private onChangeCallback: (value: any) => void = () => {};
   private onTouchedCallback: () => void = () => {};
 
@@ -253,7 +254,7 @@ export class UploadArquivosComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `upload-arquivos-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

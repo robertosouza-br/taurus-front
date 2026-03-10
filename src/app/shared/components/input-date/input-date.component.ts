@@ -30,6 +30,7 @@ export class InputDateComponent implements ControlValueAccessor {
   value: Date | null = null;
   isFocused: boolean = false;
   touched: boolean = false;
+  private _generatedId: string = `input-date-${Math.random().toString(36).substr(2, 9)}`;
   private onChange: (value: Date | null) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -65,7 +66,7 @@ export class InputDateComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `input-date-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

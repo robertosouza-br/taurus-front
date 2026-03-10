@@ -1,0 +1,127 @@
+.proposta-header {
+  .steps-indicator {
+    background: var(--surface-card);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    
+    ::ng-deep {
+      .p-steps {
+        .p-steps-item {
+          &:not(.p-disabled) {
+            .p-menuitem-link {
+              cursor: pointer;
+              transition: all 0.2s;
+              
+              &:hover {
+                background: var(--surface-hover);
+                border-radius: var(--border-radius);
+                
+                .p-steps-number {
+                  transform: scale(1.1);
+                }
+              }
+            }
+          }
+          
+          &.active {
+            .p-menuitem-link {
+              .p-steps-number {
+                background: var(--primary-color);
+                color: var(--primary-color-text);
+              }
+            }
+          }
+          
+          &.p-disabled {
+            .p-menuitem-link {
+              cursor: not-allowed;
+              opacity: 0.5;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .unidade-header-card {
+    ::ng-deep {
+      .p-card-header {
+        background: var(--primary-color);
+        color: var(--primary-color-text);
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 1rem 1.5rem;
+      }
+
+      .p-card-body {
+        padding: 1.5rem;
+      }
+    }
+  }
+
+  .info-group {
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-color-secondary);
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      display: block;
+      font-size: 1rem;
+      color: var(--text-color);
+      margin: 0;
+      word-break: break-word;
+
+      &.info-destaque {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  // Responsividade
+  @media (max-width: 768px) {
+    .steps-indicator {
+      padding: 0.5rem;
+
+      ::ng-deep {
+        .p-steps {
+          .p-steps-item {
+            .p-menuitem-link {
+              .p-steps-title {
+                font-size: 0.75rem;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .info-group {
+      margin-bottom: 0.75rem;
+
+      .info-label {
+        font-size: 0.75rem;
+      }
+
+      .info-value {
+        font-size: 0.875rem;
+
+        &.info-destaque {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}

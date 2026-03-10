@@ -1,0 +1,234 @@
+<div class="proposta-step1-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="[
+    { label: 'Início', url: '/dashboard' },
+    { label: 'Propostas', url: '/propostas/lista' },
+    { label: 'Dados Iniciais' }
+  ]"></app-breadcrumb>
+
+  <app-page-header
+    title="Nova Proposta - Dados Iniciais"
+  ></app-page-header>
+
+  <!-- Header com dados da unidade -->
+  <app-proposta-header
+    [dadosUnidade]="dadosUnidade"
+    [stepAtual]="1"
+    [totalSteps]="2"
+    [stepsPreenchidos]="stepsPreenchidos"
+    (stepChange)="onStepChange($event)"
+  ></app-proposta-header>
+
+  <!-- Formulário de Dados Iniciais -->
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <p-card header="Imobiliárias" styleClass="mb-3">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <app-autocomplete
+            label="Imobiliária Principal"
+            formControlName="imobiliariaPrincipal"
+            [suggestions]="imobiliarias"
+            field="nomeFantasia"
+            dataKey="id"
+            placeholder="Selecione a imobiliária principal"
+          ></app-autocomplete>
+        </div>
+        <div class="col-12 md:col-6">
+          <app-autocomplete
+            label="Imobiliária Secundária"
+            formControlName="imobiliariaSecundaria"
+            [suggestions]="imobiliarias"
+            field="nomeFantasia"
+            dataKey="id"
+            placeholder="Selecione a imobiliária secundária"
+          ></app-autocomplete>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Profissionais Principal -->
+    <p-card header="Profissionais - Imobiliária Principal" styleClass="mb-3">
+      <div formArrayName="profissionaisPrincipal">
+        <div *ngFor="let profissional of profissionaisPrincipal.controls; let i = index" 
+             [formGroupName]="i" 
+             class="profissional-item mb-3 p-3">
+          <div class="grid">
+            <div class="col-12">
+              <div class="flex justify-content-between align-items-center mb-2">
+                <h4 class="m-0">Profissional {{ i + 1 }}</h4>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  (onClick)="removerProfissional(i, 'principal')"
+                  pTooltip="Remover profissional"
+                ></p-button>
+              </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <label class="block mb-2">Tipo de Profissional *</label>
+              <p-dropdown
+                formControlName="tipo"
+                [options]="tiposProfissional"
+                placeholder="Selecione o tipo"
+                styleClass="w-full"
+                (onChange)="onTipoProfissionalChange(i, 'principal')"
+              ></p-dropdown>
+            </div>
+
+            <!-- CPF Corretor (habilitado apenas se tipo = CORRETOR) -->
+            <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value === 'CORRETOR'">
+              <app-input-cpf
+                label="CPF do Corretor"
+                formControlName="cpfCorretor"
+                placeholder="Digite o CPF do corretor"
+                [required]="true"
+              ></app-input-cpf>
+              <small class="text-muted">O corretor será buscado pelo CPF</small>
+            </div>
+
+            <!-- Nome Texto (habilitado para outros tipos) -->
+            <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value && profissional.get('tipo')?.value !== 'CORRETOR'">
+              <app-input-text
+                label="Nome do Profissional"
+                formControlName="nomeTexto"
+                placeholder="Digite o nome do profissional"
+                [required]="true"
+              ></app-input-text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <app-custom-button
+          label="Adicionar Profissional Principal"
+          icon="pi pi-plus"
+          severity="secondary"
+          (click)="adicionarProfissional('principal')"
+        ></app-custom-button>
+      </div>
+    </p-card>
+
+    <!-- Profissionais Secundária -->
+    <p-card header="Profissionais - Imobiliária Secundária" styleClass="mb-3" *ngIf="formulario.get('imobiliariaSecundaria')?.value">
+      <div formArrayName="profissionaisSecundaria">
+        <div *ngFor="let profissional of profissionaisSecundaria.controls; let i = index" 
+             [formGroupName]="i" 
+             class="profissional-item mb-3 p-3">
+          <div class="grid">
+            <div class="col-12">
+              <div class="flex justify-content-between align-items-center mb-2">
+                <h4 class="m-0">Profissional {{ i + 1 }}</h4>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  (onClick)="removerProfissional(i, 'secundaria')"
+                  pTooltip="Remover profissional"
+                ></p-button>
+              </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <label class="block mb-2">Tipo de Profissional *</label>
+              <p-dropdown
+                formControlName="tipo"
+                [options]="tiposProfissional"
+                placeholder="Selecione o tipo"
+                styleClass="w-full"
+                (onChange)="onTipoProfissionalChange(i, 'secundaria')"
+              ></p-dropdown>
+            </div>
+
+            <!-- CPF Corretor (habilitado apenas se tipo = CORRETOR) -->
+            <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value === 'CORRETOR'">
+              <app-input-cpf
+                label="CPF do Corretor"
+                formControlName="cpfCorretor"
+                placeholder="Digite o CPF do corretor"
+                [required]="true"
+              ></app-input-cpf>
+              <small class="text-muted">O corretor será buscado pelo CPF</small>
+            </div>
+
+            <!-- Nome Texto (habilitado para outros tipos) -->
+            <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value && profissional.get('tipo')?.value !== 'CORRETOR'">
+              <app-input-text
+                label="Nome do Profissional"
+                formControlName="nomeTexto"
+                placeholder="Digite o nome do profissional"
+                [required]="true"
+              ></app-input-text>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <app-custom-button
+          label="Adicionar Profissional Secundária"
+          icon="pi pi-plus"
+          severity="secondary"
+          (click)="adicionarProfissional('secundaria')"
+        ></app-custom-button>
+      </div>
+    </p-card>
+
+    <!-- Informações Adicionais -->
+    <p-card header="Informações Adicionais" styleClass="mb-3">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Como conheceu o empreendimento?</label>
+          <p-dropdown
+            formControlName="midiaConhecimento"
+            [options]="midiasConhecimento"
+            placeholder="Selecione"
+            styleClass="w-full"
+          ></p-dropdown>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Motivo da compra</label>
+          <p-dropdown
+            formControlName="motivoCompra"
+            [options]="motivosCompra"
+            placeholder="Selecione"
+            styleClass="w-full"
+          ></p-dropdown>
+        </div>
+
+        <div class="col-12">
+          <app-input-textarea
+            label="Observações"
+            formControlName="observacoes"
+            placeholder="Digite observações adicionais"
+            [rows]="4"
+            [maxlength]="500"
+          ></app-input-textarea>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Ações -->
+    <div class="flex gap-2 justify-content-end mt-3">
+      <app-custom-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        type="button"
+        (click)="voltar()"
+      ></app-custom-button>
+      <app-custom-button
+        label="Salvar e Continuar"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        type="submit"
+        [loading]="salvando"
+      ></app-custom-button>
+    </div>
+  </form>
+
+  <p-toast></p-toast>
+</div>

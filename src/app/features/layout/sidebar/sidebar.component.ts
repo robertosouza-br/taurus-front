@@ -182,6 +182,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
             icon: 'pi pi-bookmark',
             routerLink: '/reservas',
             funcionalidade: Funcionalidade.RESERVA
+          },
+          {
+            label: 'Propostas',
+            icon: 'pi pi-file-edit',
+            routerLink: '/propostas',
+            funcionalidade: Funcionalidade.PROPOSTA
           }
         ]
       },

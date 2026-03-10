@@ -1,0 +1,32 @@
+.propostas-lista-container {
+  .acoes-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  ::ng-deep {
+    .p-datatable {
+      tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: var(--surface-hover) !important;
+        }
+      }
+    }
+  }
+
+  // Responsividade para mobile
+  @media (max-width: 768px) {
+    .acoes-header {
+      flex-direction: column;
+      width: 100%;
+
+      > * {
+        width: 100%;
+      }
+    }
+  }
+}

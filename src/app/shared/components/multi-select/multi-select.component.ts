@@ -38,6 +38,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
   value: any[] = [];
   touched: boolean = false;
   isFocused: boolean = false;
+  private _generatedId: string = `multi-select-${Math.random().toString(36).substr(2, 9)}`;
   private onChangeCallback: (value: any) => void = () => {};
   private onTouchedCallback: () => void = () => {};
 
@@ -74,7 +75,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `multi-select-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

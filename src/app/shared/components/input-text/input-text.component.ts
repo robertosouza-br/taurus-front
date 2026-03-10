@@ -30,6 +30,7 @@ export class InputTextComponent implements ControlValueAccessor {
   value: any = '';
   touched: boolean = false;
   emailInvalido: boolean = false;
+  private _generatedId: string = `input-${Math.random().toString(36).substr(2, 9)}`;
   private onChange: (value: any) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -78,7 +79,7 @@ export class InputTextComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

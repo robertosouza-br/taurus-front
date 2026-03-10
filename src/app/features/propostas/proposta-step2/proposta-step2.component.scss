@@ -1,0 +1,45 @@
+.proposta-step2-container {
+  .conjuge-card {
+    border: 2px solid var(--primary-color);
+    
+    ::ng-deep {
+      .p-card-header {
+        background: var(--primary-100);
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  ::ng-deep {
+    .p-card-header {
+      background: var(--surface-100);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .p-dropdown {
+      width: 100%;
+    }
+
+    .p-inputnumber {
+      width: 100%;
+      
+      input {
+        width: 100%;
+      }
+    }
+  }
+
+  // Responsividade
+  @media (max-width: 768px) {
+    .flex.gap-2.justify-content-end {
+      flex-direction: column;
+
+      > * {
+        width: 100%;
+      }
+    }
+  }
+}

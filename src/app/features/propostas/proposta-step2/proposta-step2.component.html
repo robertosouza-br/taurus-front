@@ -1,0 +1,267 @@
+<div class="proposta-step2-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="[
+    { label: 'Início', url: '/dashboard' },
+    { label: 'Propostas', url: '/propostas/lista' },
+    { label: 'Dados do Cliente' }
+  ]"></app-breadcrumb>
+
+  <app-page-header
+    title="Proposta - Dados do Cliente"
+  ></app-page-header>
+
+  <!-- Header com dados da unidade -->
+  <app-proposta-header
+    [dadosUnidade]="dadosUnidade"
+    [stepAtual]="2"
+    [totalSteps]="2"
+    [stepsPreenchidos]="stepsPreenchidos"
+    (stepChange)="onStepChange($event)"
+  ></app-proposta-header>
+
+  <!-- Formulário de Dados do Cliente -->
+  <form [formGroup]="formulario" (ngSubmit)="salvar()">
+    <!-- Dados Pessoais -->
+    <p-card header="Dados Pessoais do Cliente" styleClass="mb-3">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <app-input-text
+            label="Nome Completo"
+            formControlName="nome"
+            placeholder="Digite o nome completo"
+            [required]="true"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-3">
+          <app-input-cpf
+            label="CPF"
+            formControlName="cpf"
+            placeholder="000.000.000-00"
+            [required]="true"
+          ></app-input-cpf>
+        </div>
+        <div class="col-12 md:col-3">
+          <app-input-text
+            label="Passaporte"
+            formControlName="passaporte"
+            placeholder="Digite o passaporte"
+          ></app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-date
+            label="Data de Nascimento"
+            formControlName="dataNascimento"
+            placeholder="Selecione a data"
+            [required]="true"
+          ></app-input-date>
+        </div>
+        <div class="col-12 md:col-4">
+          <label class="block mb-2">Estado Civil *</label>
+          <p-dropdown
+            formControlName="estadoCivil"
+            [options]="estadosCivis"
+            placeholder="Selecione"
+            styleClass="w-full"
+          ></p-dropdown>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-input-text
+            label="Profissão"
+            formControlName="profissao"
+            placeholder="Digite a profissão"
+          ></app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <label class="block mb-2">Renda Mensal</label>
+          <p-inputNumber
+            formControlName="rendaMensal"
+            mode="currency"
+            currency="BRL"
+            locale="pt-BR"
+            placeholder="R$ 0,00"
+            styleClass="w-full"
+          ></p-inputNumber>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-input-telefone
+            label="Telefone"
+            formControlName="telefone"
+            placeholder="(00) 00000-0000"
+            [required]="true"
+          ></app-input-telefone>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-input-text
+            label="Email"
+            formControlName="email"
+            placeholder="email@exemplo.com"
+            type="email"
+            [required]="true"
+          ></app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Endereço -->
+    <p-card header="Endereço" styleClass="mb-3" formGroupName="endereco">
+      <div class="grid">
+        <div class="col-12 md:col-3">
+          <app-input-text
+            label="CEP"
+            formControlName="cep"
+            placeholder="00000-000"
+            [required]="true"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-7">
+          <app-input-text
+            label="Logradouro"
+            formControlName="logradouro"
+            placeholder="Digite o logradouro"
+            [required]="true"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-2">
+          <app-input-text
+            label="Número"
+            formControlName="numero"
+            placeholder="Nº"
+            [required]="true"
+          ></app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-text
+            label="Complemento"
+            formControlName="complemento"
+            placeholder="Apto, Bloco, etc"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-input-text
+            label="Bairro"
+            formControlName="bairro"
+            placeholder="Digite o bairro"
+            [required]="true"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-3">
+          <app-input-text
+            label="Cidade"
+            formControlName="cidade"
+            placeholder="Digite a cidade"
+            [required]="true"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-1">
+          <app-input-text
+            label="UF"
+            formControlName="estado"
+            placeholder="UF"
+            [required]="true"
+            [maxlength]="2"
+          ></app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Dados do Cônjuge (exibido apenas se CASADO) -->
+    <p-card 
+      *ngIf="mostrarConjuge" 
+      header="Dados do Cônjuge" 
+      styleClass="mb-3 conjuge-card" 
+      formGroupName="conjuge">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <app-input-text
+            label="Nome Completo do Cônjuge"
+            formControlName="nome"
+            placeholder="Digite o nome completo"
+            [required]="true"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-3">
+          <app-input-cpf
+            label="CPF do Cônjuge"
+            formControlName="cpf"
+            placeholder="000.000.000-00"
+            [required]="true"
+          ></app-input-cpf>
+        </div>
+        <div class="col-12 md:col-3">
+          <app-input-text
+            label="Passaporte"
+            formControlName="passaporte"
+            placeholder="Digite o passaporte"
+          ></app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-date
+            label="Data de Nascimento"
+            formControlName="dataNascimento"
+            placeholder="Selecione a data"
+            [required]="true"
+          ></app-input-date>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-input-text
+            label="Profissão"
+            formControlName="profissao"
+            placeholder="Digite a profissão"
+          ></app-input-text>
+        </div>
+        <div class="col-12 md:col-4">
+          <label class="block mb-2">Renda Mensal</label>
+          <p-inputNumber
+            formControlName="rendaMensal"
+            mode="currency"
+            currency="BRL"
+            locale="pt-BR"
+            placeholder="R$ 0,00"
+            styleClass="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <app-input-telefone
+            label="Telefone do Cônjuge"
+            formControlName="telefone"
+            placeholder="(00) 00000-0000"
+            [required]="true"
+          ></app-input-telefone>
+        </div>
+        <div class="col-12 md:col-6">
+          <app-input-text
+            label="Email do Cônjuge"
+            formControlName="email"
+            placeholder="email@exemplo.com"
+            type="email"
+            [required]="true"
+          ></app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Ações -->
+    <div class="flex gap-2 justify-content-end mt-3">
+      <app-custom-button
+        label="Voltar"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        type="button"
+        (click)="voltar()"
+      ></app-custom-button>
+      <app-custom-button
+        label="Salvar"
+        icon="pi pi-check"
+        type="submit"
+        [loading]="salvando"
+      ></app-custom-button>
+    </div>
+  </form>
+
+  <p-toast></p-toast>
+</div>

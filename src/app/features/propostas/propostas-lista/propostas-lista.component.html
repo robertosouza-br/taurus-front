@@ -1,0 +1,115 @@
+<div class="propostas-lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="[
+    { label: 'Início', url: '/dashboard' },
+    { label: 'Propostas' }
+  ]"></app-breadcrumb>
+
+  <app-page-header
+    title="Reservas para Proposta"
+  >
+    <div class="acoes-header">
+      <app-export-speed-dial
+        [loading]="exportando"
+        (onExport)="exportar()"
+      ></app-export-speed-dial>
+    </div>
+  </app-page-header>
+
+  <!-- Filtros -->
+  <p-card styleClass="mb-3">
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <app-input-text
+          label="Empreendimento"
+          [(ngModel)]="filtros.empreendimento"
+          placeholder="Buscar por empreendimento"
+        ></app-input-text>
+      </div>
+      <div class="col-12 md:col-4">
+        <app-input-text
+          label="Unidade"
+          [(ngModel)]="filtros.unidade"
+          placeholder="Buscar por unidade"
+        ></app-input-text>
+      </div>
+      <div class="col-12 md:col-4">
+        <app-input-text
+          label="Corretor"
+          [(ngModel)]="filtros.corretor"
+          placeholder="Buscar por corretor"
+        ></app-input-text>
+      </div>
+    </div>
+    <div class="grid mt-2">
+      <div class="col-12">
+        <div class="flex gap-2 justify-content-end">
+          <app-custom-button
+            label="Limpar"
+            icon="pi pi-filter-slash"
+            severity="secondary"
+            (click)="limparFiltros()"
+          ></app-custom-button>
+          <app-custom-button
+            label="Buscar"
+            icon="pi pi-search"
+            (click)="carregar()"
+            [loading]="carregando"
+          ></app-custom-button>
+        </div>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Tabela de Reservas -->
+  <app-data-table
+    [data]="reservas"
+    [columns]="colunas"
+    [totalRecords]="totalRegistros"
+    [loading]="carregando"
+    [lazy]="true"
+    [rows]="itensPorPagina"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [selectionMode]="'single'"
+    (onLazyLoad)="onLazyLoad($event)"
+    (rowSelect)="onRowClick($event)"
+    dataKey="id">
+    
+    <!-- Template para Corretor -->
+    <ng-template appTableTemplate="corretor" let-reserva="rowData">
+      <span *ngIf="reserva.profissionaisPrincipal?.length > 0">
+        {{ reserva.profissionaisPrincipal[0]?.nome || '-' }}
+      </span>
+      <span *ngIf="!reserva.profissionaisPrincipal || reserva.profissionaisPrincipal.length === 0">-</span>
+    </ng-template>
+    
+    <!-- Template para Status -->
+    <ng-template appTableTemplate="status" let-reserva="rowData">
+      <p-tag 
+        [value]="reserva.descricaoStatus" 
+        [severity]="getStatusSeverity(reserva.descricaoStatus)">
+      </p-tag>
+    </ng-template>
+    
+    <!-- Template para Data -->
+    <ng-template appTableTemplate="dataReserva" let-reserva="rowData">
+      {{ reserva.dataReserva | date: 'dd/MM/yyyy' }}
+    </ng-template>
+    
+    <!-- Template para Proposta -->
+    <ng-template appTableTemplate="proposta" let-reserva="rowData">
+      <p-tag 
+        *ngIf="reserva.propostaId" 
+        value="Em andamento" 
+        severity="success"
+        icon="pi pi-check">
+      </p-tag>
+      <p-tag 
+        *ngIf="!reserva.propostaId" 
+        value="Não iniciada" 
+        severity="warning"
+        icon="pi pi-clock">
+      </p-tag>
+    </ng-template>
+  </app-data-table>
+</div>

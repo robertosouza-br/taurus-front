@@ -1,6 +1,7 @@
 export enum Funcionalidade {
   VENDA = 'VENDA',
   RESERVA = 'RESERVA',
+  PROPOSTA = 'PROPOSTA',
   IMOVEL = 'IMOVEL',
   EMPREENDIMENTO = 'EMPREENDIMENTO',
   EMPREENDIMENTO_IMAGEM = 'EMPREENDIMENTO_IMAGEM',
@@ -20,6 +21,7 @@ export enum Funcionalidade {
 export const FuncionalidadeLabel: Record<Funcionalidade, string> = {
   [Funcionalidade.VENDA]: 'Vendas',
   [Funcionalidade.RESERVA]: 'Reservas',
+  [Funcionalidade.PROPOSTA]: 'Propostas',
   [Funcionalidade.IMOVEL]: 'Imóveis',
   [Funcionalidade.EMPREENDIMENTO]: 'Empreendimentos',
   [Funcionalidade.EMPREENDIMENTO_IMAGEM]: 'Imagens de Empreendimentos',

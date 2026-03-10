@@ -59,6 +59,10 @@ export class DataTableComponent implements OnDestroy {
   @Input() lazy = false; // Paginação lazy (server-side)
   @Input() totalRecords = 0; // Total de registros (para lazy loading)
   @Input() searchMask?: 'cpf'; // Tipo de máscara para o campo de busca
+  @Input() selectionMode?: 'single' | 'multiple'; // Modo de seleção de linha
+  @Input() dataKey?: string; // Chave única para identificação de linhas
+  
+  selectedRow: any; // Linha selecionada
   
   // Templates personalizados
   @Input() headerTemplate?: TemplateRef<any>;

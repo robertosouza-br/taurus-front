@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 // PrimeNG
 import { TableModule } from 'primeng/table';
@@ -27,6 +27,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { FileUploadModule } from 'primeng/fileupload';
 import { MessageModule } from 'primeng/message';
+import { StepsModule } from 'primeng/steps';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -111,6 +113,7 @@ import { CalendarModule } from 'primeng/calendar';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TableModule,
     ButtonModule,
     InputTextModule,
@@ -136,11 +139,14 @@ import { CalendarModule } from 'primeng/calendar';
     ProgressBarModule,
     FileUploadModule,
     MessageModule,
+    StepsModule,
+    InputNumberModule,
     ImageCropperComponent
   ],
   exports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TelefonePipe,
     CpfPipe,
     CnpjPipe,
@@ -191,6 +197,10 @@ import { CalendarModule } from 'primeng/calendar';
     ProgressBarModule,
     FileUploadModule,
     MessageModule,
+    ButtonModule,
+    InputTextModule,
+    StepsModule,
+    InputNumberModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

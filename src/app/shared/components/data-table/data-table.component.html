@@ -47,11 +47,12 @@
     [styleClass]="getTableClass()"
     [lazy]="lazy"
     [totalRecords]="lazy ? totalRecords : data.length"
+    [selectionMode]="selectionMode"
+    [dataKey]="dataKey || 'id'"
+    [(selection)]="selectedRow"
     (onLazyLoad)="onLazyLoad.emit($event)"
-    [(selection)]="data"
     (onRowSelect)="rowSelect.emit($event.data)"
     (onRowUnselect)="rowUnselect.emit($event.data)"
-    [dataKey]="'id'"
     #dt>
 
     <!-- Caption customizado -->
@@ -82,7 +83,7 @@
       </ng-container>
 
       <ng-template #defaultBody>
-        <tr>
+        <tr [pSelectableRow]="rowData">
           <td *ngFor="let col of columns" 
               [style.text-align]="col.align || 'left'">
             <ng-container *ngIf="resolveColumnTemplate(col) as customTemplate; else defaultCell">

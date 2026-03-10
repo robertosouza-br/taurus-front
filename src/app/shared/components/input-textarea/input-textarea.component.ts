@@ -29,6 +29,7 @@ export class InputTextareaComponent implements ControlValueAccessor {
 
   value: string = '';
   touched: boolean = false;
+  private _generatedId: string = `textarea-${Math.random().toString(36).substr(2, 9)}`;
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -60,7 +61,7 @@ export class InputTextareaComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

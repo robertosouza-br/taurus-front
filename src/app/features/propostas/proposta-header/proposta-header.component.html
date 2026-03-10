@@ -1,0 +1,69 @@
+<div class="proposta-header" *ngIf="dadosUnidade">
+  <!-- Indicador de Steps -->
+  <div class="steps-indicator mb-3">
+    <div class="grid">
+      <div class="col-12">
+        <p-steps [model]="[
+          { label: 'Dados Iniciais', styleClass: stepAtual >= 1 ? 'active' : '', disabled: stepsPreenchidos < 1 },
+          { label: 'Dados do Cliente', styleClass: stepAtual >= 2 ? 'active' : '', disabled: stepsPreenchidos < 2 },
+          { label: 'Dados Financeiros', styleClass: stepAtual >= 3 ? 'active' : '', disabled: true },
+          { label: 'Condições de Pagamento', styleClass: stepAtual >= 4 ? 'active' : '', disabled: true }
+        ]" [activeIndex]="stepAtual - 1" [readonly]="false" (activeIndexChange)="onStepChange($event)"></p-steps>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card com dados da unidade -->
+  <p-card [header]="'Unidade ' + (dadosUnidade.nomeUnidade || dadosUnidade.unidade) + ' - ' + dadosUnidade.nomeEmpreendimento" 
+          styleClass="unidade-header-card mb-4">
+    <div class="grid">
+      <!-- Coluna 1: Informações básicas -->
+      <div class="col-12 md:col-6 lg:col-3">
+        <div class="info-group">
+          <label class="info-label">Empreendimento</label>
+          <p class="info-value">{{ dadosUnidade.nomeEmpreendimento }}</p>
+        </div>
+        <div class="info-group">
+          <label class="info-label">Unidade</label>
+          <p class="info-value">{{ dadosUnidade.nomeUnidade || dadosUnidade.unidade }}</p>
+        </div>
+      </div>
+
+      <!-- Coluna 2: Valores -->
+      <div class="col-12 md:col-6 lg:col-3">
+        <div class="info-group">
+          <label class="info-label">Valor Total</label>
+          <p class="info-value info-destaque">{{ (dadosUnidade.valorTotal || dadosUnidade.valor) | currency: 'BRL' }}</p>
+        </div>
+        <div class="info-group">
+          <label class="info-label">Fração Ideal</label>
+          <p class="info-value">{{ dadosUnidade.fracaoIdeal }}%</p>
+        </div>
+      </div>
+
+      <!-- Coluna 3: Localização -->
+      <div class="col-12 md:col-6 lg:col-3">
+        <div class="info-group">
+          <label class="info-label">Localização</label>
+          <p class="info-value">{{ dadosUnidade.localizacao || 'Não informada' }}</p>
+        </div>
+        <div class="info-group">
+          <label class="info-label">Posição Solar</label>
+          <p class="info-value">{{ dadosUnidade.posicaoSolar || 'Não informada' }}</p>
+        </div>
+      </div>
+
+      <!-- Coluna 4: Características -->
+      <div class="col-12 md:col-6 lg:col-3">
+        <div class="info-group">
+          <label class="info-label">Fachada</label>
+          <p class="info-value">{{ dadosUnidade.fachada || 'Não informada' }}</p>
+        </div>
+        <div class="info-group">
+          <label class="info-label">Garagem</label>
+          <p class="info-value">{{ dadosUnidade.garagem || 'Não informada' }}</p>
+        </div>
+      </div>
+    </div>
+  </p-card>
+</div>

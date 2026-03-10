@@ -28,6 +28,7 @@ export class InputCpfComponent implements ControlValueAccessor {
 
   value: string = '';
   touched: boolean = false;
+  private _generatedId: string = `input-cpf-${Math.random().toString(36).substr(2, 9)}`;
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -199,7 +200,7 @@ export class InputCpfComponent implements ControlValueAccessor {
   }
 
   get inputId(): string {
-    return this.id || `input-cpf-${Math.random().toString(36).substr(2, 9)}`;
+    return this.id || this._generatedId;
   }
 
   get displayLabel(): string {

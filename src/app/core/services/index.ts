@@ -16,3 +16,5 @@ export * from './contato.service';
 export * from './dashboard.service';
 export * from './imobiliaria.service';
 export * from './reserva.service';
+export * from './proposta.service';
+export * from './proposta-state.service';
