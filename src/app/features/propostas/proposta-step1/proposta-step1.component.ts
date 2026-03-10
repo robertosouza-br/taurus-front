@@ -9,15 +9,15 @@ import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { ImobiliariaComboDTO } from '../../../core/models/imobiliaria.model';
 import { 
   DadosUnidadeHeaderDTO, 
-  DadosIniciaisReservaResponse,
+  PropostaCompletaResponse,
+  DadosIniciaisPropostaDTO,
   ProfissionalPropostaDTO,
   TipoProfissional,
   TIPO_PROFISSIONAL_LABELS,
-  MidiaConhecimento,
+  MidiaOrigem,
   MIDIA_CONHECIMENTO_LABELS,
   MotivoCompra,
-  MOTIVO_COMPRA_LABELS,
-  SalvarDadosIniciaisRequest
+  MOTIVO_COMPRA_LABELS
 } from '../../../core/models/proposta-fluxo.model';
 import { forkJoin } from 'rxjs';
 
@@ -43,8 +43,8 @@ export class PropostaStep1Component extends BaseFormComponent implements OnInit 
     value: key
   }));
   
-  midiasConhecimento = Object.keys(MidiaConhecimento).map(key => ({
-    label: MIDIA_CONHECIMENTO_LABELS[key as MidiaConhecimento],
+  midiasConhecimento = Object.keys(MidiaOrigem).map(key => ({
+    label: MIDIA_CONHECIMENTO_LABELS[key as MidiaOrigem],
     value: key
   }));
   
@@ -156,27 +156,27 @@ export class PropostaStep1Component extends BaseFormComponent implements OnInit 
   }
 
   /**
-   * Carrega dados iniciais: imobiliárias (para combo) e dados da reserva
+   * Carrega dados iniciais: imobiliárias (para combo) e dados completos da proposta
    */
   carregarDadosIniciais(): void {
     this.carregando = true;
     
     forkJoin({
       imobiliarias: this.imobiliariaService.listarCombo(),
-      dadosReserva: this.propostaService.buscarDadosIniciais(this.reservaId)
+      dadosCompletos: this.propostaService.buscarDadosCompletos(this.reservaId)
     }).subscribe({
       next: (results) => {
         console.log('=== Dados carregados ===');
         console.log('Imobiliárias:', results.imobiliarias);
-        console.log('Dados Reserva:', results.dadosReserva);
+        console.log('Dados Completos:', results.dadosCompletos);
         
         this.imobiliarias = results.imobiliarias;
         
-        // Constrói o objeto dadosUnidade a partir dos campos da resposta
-        this.dadosUnidade = this.mapearDadosUnidade(results.dadosReserva);
+        // Constrói o objeto dadosUnidade a partir do cabeçalho
+        this.dadosUnidade = this.mapearDadosUnidade(results.dadosCompletos);
         
-        // Inicializa o state da proposta
-        this.propostaStateService.iniciarProposta(this.reservaId, results.dadosReserva);
+        // Inicializa o state da proposta com dados completos
+        this.propostaStateService.iniciarProposta(this.reservaId, results.dadosCompletos);
         
         // Define quantos steps estão preenchidos
         const state = this.propostaStateService.getStateSnapshot();
@@ -188,8 +188,8 @@ export class PropostaStep1Component extends BaseFormComponent implements OnInit 
           console.log('Preenchendo formulário com dados salvos no state:', dadosSalvos);
           this.preencherFormularioComDadosSalvos(dadosSalvos);
         } else {
-          // Preenche o formulário com dados da reserva
-          this.preencherFormulario(results.dadosReserva);
+          // Preenche o formulário com dados iniciais da reserva
+          this.preencherFormulario(results.dadosCompletos.dadosIniciais);
         }
         
         this.carregando = false;
@@ -209,31 +209,32 @@ export class PropostaStep1Component extends BaseFormComponent implements OnInit 
   /**
    * Mapeia a resposta do backend para o objeto DadosUnidadeHeaderDTO
    */
-  private mapearDadosUnidade(dados: DadosIniciaisReservaResponse): DadosUnidadeHeaderDTO {
+  private mapearDadosUnidade(dados: PropostaCompletaResponse): DadosUnidadeHeaderDTO {
+    const cabecalho = dados.cabecalho;
     return {
-      reservaId: dados.id,
-      codEmpreendimento: dados.codEmpreendimento,
-      codColigada: dados.codColigadaEmpreendimento,
-      nomeEmpreendimento: dados.nomeEmpreendimento,
-      nomeUnidade: `${dados.bloco}-${dados.unidade}`,
-      bloco: dados.bloco,
-      unidade: dados.unidade,
-      tipoUnidade: dados.tipoUnidade,
-      tipologia: dados.tipologia,
-      sigla: dados.tipoUnidade,
-      valor: 0, // Não vem na resposta atual
-      valorTotal: 0, // Não vem na resposta atual
-      fracaoIdeal: 0, // Não vem na resposta atual
-      localizacao: '', // Não vem na resposta atual
-      posicaoSolar: '', // Não vem na resposta atual
-      fachada: '', // Não vem na resposta atual
-      garagem: '' // Não vem na resposta atual
+      reservaId: dados.dadosIniciais.reservaId,
+      codEmpreendimento: cabecalho.codEmpreendimento,
+      codColigada: cabecalho.codColigadaEmpreendimento,
+      nomeEmpreendimento: cabecalho.nomeEmpreendimento,
+      nomeUnidade: `${cabecalho.bloco}-${cabecalho.unidade}`,
+      bloco: cabecalho.bloco,
+      unidade: cabecalho.unidade,
+      tipoUnidade: cabecalho.tipoUnidade,
+      tipologia: cabecalho.tipologia,
+      sigla: cabecalho.sigla,
+      valor: cabecalho.valorUnidade,
+      valorTotal: cabecalho.valorUnidade,
+      fracaoIdeal: cabecalho.fracaoIdeal,
+      localizacao: cabecalho.localizacao,
+      posicaoSolar: cabecalho.posicaoSol,
+      fachada: cabecalho.fachada,
+      garagem: cabecalho.garagem
     };
   }
 
 
 
-  preencherFormulario(dados: DadosIniciaisReservaResponse): void {
+  preencherFormulario(dados: DadosIniciaisPropostaDTO): void {
     // Preenche profissionais ANTES de setar os IDs das imobiliárias
     this.profissionaisPrincipal.clear();
     dados.profissionaisPrincipal?.forEach((prof: ProfissionalPropostaDTO) => {

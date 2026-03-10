@@ -5,18 +5,17 @@ import { environment } from '../../../environments/environment';
 import { Page } from '../models/page.model';
 import {
   ReservaPropostaDTO,
-  DadosIniciaisPropostaDTO,
-  DadosIniciaisReservaResponse,
-  SalvarDadosIniciaisRequest,
-  SalvarDadosIniciaisResponse,
-  DadosClientePropostaDTO,
-  SalvarDadosClienteRequest,
-  SalvarDadosClienteResponse
+  PropostaCompletaResponse,
+  CriarPropostaRequest,
+  CriarPropostaResponse
 } from '../models/proposta-fluxo.model';
 
 /**
  * Service para gerenciar o fluxo de Proposta Multi-Step
- * Baseado no Mapa de Integração v1.0 - 10/03/2026
+ * Baseado no Mapa de Integração v2.0 - 10/03/2026
+ * 
+ * ENDPOINT PRINCIPAL:
+ * GET /api/v1/propostas/{reservaId}/completo
  */
 @Injectable({
   providedIn: 'root'
@@ -27,19 +26,18 @@ export class PropostaService {
   constructor(private http: HttpClient) {}
 
   // ========================
-  // CENÁRIO 1: Listagem de Reservas para Proposta
+  // LISTAGEM DE RESERVAS
   // ========================
 
   /**
    * Lista todas as reservas elegíveis para criação de proposta
-   * (status diferente de DISPONIVEL_PARA_VENDA)
+   * GET /api/v1/propostas/reservas
    * 
    * @param page Número da página (default: 0)
    * @param size Tamanho da página (default: 10)
    * @param nomeCliente Filtro por nome do cliente (opcional)
    * @param nomeEmpreendimento Filtro por nome do empreendimento (opcional)
    * @param status Filtro por status da reserva (opcional)
-   * @returns Observable<Page<ReservaPropostaDTO>>
    */
   listarReservasParaProposta(
     page: number = 0,
@@ -68,64 +66,101 @@ export class PropostaService {
   }
 
   // ========================
-  // STEP 1: Dados Iniciais (Imobiliária e Profissionais)
+  // ENDPOINT PRINCIPAL (RECOMENDADO)
   // ========================
 
   /**
-   * Busca os dados iniciais da proposta (Step 1)
+   * ⭐ ENDPOINT PRINCIPAL ⭐
+   * Busca TODOS os dados necessários para criação/edição da proposta
+   * em UMA ÚNICA requisição
+   * 
+   * GET /api/v1/propostas/{reservaId}/completo
+   * 
+   * Retorna:
+   * - Cabeçalho (dados da unidade)
+   * - Step 1 (dados iniciais pré-preenchidos da reserva)
+   * - Step 2 (dados do cliente a serem preenchidos)
+   * - Metadata (se proposta já existe)
    * 
    * @param reservaId ID da reserva
-   * @returns Observable<DadosIniciaisReservaResponse>
    */
-  buscarDadosIniciais(reservaId: number): Observable<DadosIniciaisReservaResponse> {
-    return this.http.get<DadosIniciaisReservaResponse>(`${this.baseUrl}/${reservaId}/dados-iniciais`);
-  }
-
-  /**
-   * Salva/Atualiza os dados iniciais da proposta (Step 1)
-   * 
-   * @param reservaId ID da reserva
-   * @param dados Dados iniciais a serem salvos
-   * @returns Observable<SalvarDadosIniciaisResponse>
-   */
-  salvarDadosIniciais(
-    reservaId: number,
-    dados: SalvarDadosIniciaisRequest
-  ): Observable<SalvarDadosIniciaisResponse> {
-    return this.http.put<SalvarDadosIniciaisResponse>(
-      `${this.baseUrl}/${reservaId}/dados-iniciais`,
-      dados
-    );
+  buscarDadosCompletos(reservaId: number): Observable<PropostaCompletaResponse> {
+    return this.http.get<PropostaCompletaResponse>(`${this.baseUrl}/${reservaId}/completo`);
   }
 
   // ========================
-  // STEP 2: Dados do Cliente
+  // CRIAR/ATUALIZAR PROPOSTA
   // ========================
 
   /**
-   * Busca os dados do cliente (Step 2)
+   * Cria uma nova proposta
+   * POST /api/v1/propostas
    * 
-   * @param propostaId ID da proposta
-   * @returns Observable<DadosClientePropostaDTO>
+   * Salva TODOS os dados de uma vez (após preencher todos os steps)
+   * 
+   * @param dados Dados completos da proposta (Step 2)
+   * @returns Observable<CriarPropostaResponse> - 201 Created
    */
-  buscarDadosCliente(propostaId: number): Observable<DadosClientePropostaDTO> {
-    return this.http.get<DadosClientePropostaDTO>(`${this.baseUrl}/${propostaId}/cliente`);
+  criarProposta(dados: CriarPropostaRequest): Observable<CriarPropostaResponse> {
+    return this.http.post<CriarPropostaResponse>(this.baseUrl, dados);
   }
 
   /**
-   * Salva/Atualiza os dados do cliente (Step 2)
+   * Atualiza uma proposta existente
+   * PUT /api/v1/propostas/{id}
    * 
    * @param propostaId ID da proposta
-   * @param dados Dados do cliente a serem salvos
-   * @returns Observable<SalvarDadosClienteResponse>
+   * @param dados Dados completos da proposta (Step 2)
+   * @returns Observable<CriarPropostaResponse> - 200 OK
    */
-  salvarDadosCliente(
+  atualizarProposta(
     propostaId: number,
-    dados: SalvarDadosClienteRequest
-  ): Observable<SalvarDadosClienteResponse> {
-    return this.http.put<SalvarDadosClienteResponse>(
-      `${this.baseUrl}/${propostaId}/cliente`,
-      dados
-    );
+    dados: CriarPropostaRequest
+  ): Observable<CriarPropostaResponse> {
+    return this.http.put<CriarPropostaResponse>(`${this.baseUrl}/${propostaId}`, dados);
+  }
+
+  /**
+   * Busca uma proposta por ID
+   * GET /api/v1/propostas/{id}
+   * 
+   * @param propostaId ID da proposta
+   */
+  buscarPropostaPorId(propostaId: number): Observable<CriarPropostaResponse> {
+    return this.http.get<CriarPropostaResponse>(`${this.baseUrl}/${propostaId}`);
+  }
+
+  /**
+   * Busca a proposta vinculada a uma reserva
+   * GET /api/v1/propostas/reserva/{reservaId}
+   * 
+   * @param reservaId ID da reserva
+   */
+  buscarPropostaPorReserva(reservaId: number): Observable<CriarPropostaResponse> {
+    return this.http.get<CriarPropostaResponse>(`${this.baseUrl}/reserva/${reservaId}`);
+  }
+
+  /**
+   * Lista todas as propostas com paginação
+   * GET /api/v1/propostas
+   * 
+   * @param page Número da página (default: 0)
+   * @param size Tamanho da página (default: 20)
+   * @param filtro Filtro de busca (nome cliente, empreendimento)
+   */
+  listarPropostas(
+    page: number = 0,
+    size: number = 20,
+    filtro?: string
+  ): Observable<Page<CriarPropostaResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (filtro) {
+      params = params.set('filtro', filtro);
+    }
+
+    return this.http.get<Page<CriarPropostaResponse>>(this.baseUrl, { params });
   }
 }

@@ -98,7 +98,9 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
   continuarProposta(reserva: ReservaPropostaDTO): void {
     if (reserva.propostaId) {
       // Se já existe proposta, vai direto para Step 2  
-      this.router.navigate([`/propostas/${reserva.propostaId}/dados-cliente`]);
+      this.router.navigate(['/propostas/step2'], {
+        queryParams: { reservaId: reserva.id }
+      });
     } else {
       // Se não existe, inicia nova proposta
       this.iniciarProposta(reserva);

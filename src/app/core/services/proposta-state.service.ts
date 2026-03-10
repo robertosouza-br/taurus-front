@@ -1,8 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { 
-  DadosIniciaisReservaResponse,
-  ProfissionalPropostaDTO 
+  PropostaCompletaResponse,
+  DadosIniciaisPropostaDTO,
+  DadosClientePropostaDTO,
+  ProfissionalPropostaDTO,
+  CriarPropostaRequest,
+  DadosClienteRequest
 } from '../models/proposta-fluxo.model';
 
 /**
@@ -54,13 +58,13 @@ export class PropostaStateService {
   }
 
   /**
-   * Inicia uma nova proposta com a reserva selecionada
+   * Inicia uma nova proposta com os dados completos da reserva
    */
-  iniciarProposta(reservaId: number, dadosReserva: DadosIniciaisReservaResponse): void {
+  iniciarProposta(reservaId: number, dadosCompletos: PropostaCompletaResponse): void {
     this.propostaState = {
       ...this.getInitialState(),
       reservaId,
-      dadosReserva,
+      dadosReserva: dadosCompletos,
       stepAtual: 1
     };
     this.atualizarState();
@@ -158,13 +162,39 @@ export class PropostaStateService {
 
   /**
    * Obtém o payload completo para enviar ao backend
+   * Retorna estrutura CriarPropostaRequest conforme API v2.0
    */
-  getPayloadCompleto(): any {
+  getPayloadCompleto(): CriarPropostaRequest | null {
+    if (!this.propostaState.reservaId || !this.propostaState.dadosCliente) {
+      return null;
+    }
+
+    const dadosCliente = this.propostaState.dadosCliente;
+
     return {
       reservaId: this.propostaState.reservaId,
-      dadosIniciais: this.propostaState.dadosIniciais,
-      dadosCliente: this.propostaState.dadosCliente
-      // Adicionar outros steps conforme necessário
+      dadosCliente: {
+        dataNascimento: dadosCliente.dataNascimento,
+        estadoCivil: dadosCliente.estadoCivil,
+        profissao: dadosCliente.profissao,
+        empresaTrabalho: dadosCliente.empresaTrabalho,
+        tempoEmpresaMeses: dadosCliente.tempoEmpresaMeses,
+        cnpjEmpresa: dadosCliente.cnpjEmpresa,
+        rendaMensal: dadosCliente.rendaMensal,
+        rendaComprovada: dadosCliente.rendaComprovada,
+        outrasRendas: dadosCliente.outrasRendas,
+        bancoPrincipal: dadosCliente.bancoPrincipal,
+        agencia: dadosCliente.agencia,
+        cep: dadosCliente.cep,
+        logradouro: dadosCliente.logradouro,
+        numero: dadosCliente.numero,
+        complemento: dadosCliente.complemento,
+        bairro: dadosCliente.bairro,
+        cidade: dadosCliente.cidade,
+        uf: dadosCliente.uf,
+        midiaOrigem: dadosCliente.midiaOrigem,
+        motivoCompra: dadosCliente.motivoCompra
+      }
     };
   }
 }
@@ -177,7 +207,7 @@ export interface PropostaState {
   stepAtual: number;
   dadosIniciais: DadosIniciaisStep;
   dadosCliente: any | null;
-  dadosReserva: DadosIniciaisReservaResponse | null; // Dados readonly da reserva
+  dadosReserva: PropostaCompletaResponse | null; // Dados completos da proposta
 }
 
 /**

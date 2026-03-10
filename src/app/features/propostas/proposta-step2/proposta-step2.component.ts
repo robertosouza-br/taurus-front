@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
@@ -9,9 +9,23 @@ import {
   DadosUnidadeHeaderDTO, 
   DadosClientePropostaDTO,
   EstadoCivil,
-  ESTADO_CIVIL_LABELS
+  ESTADO_CIVIL_LABELS,
+  MidiaOrigem,
+  MIDIA_ORIGEM_LABELS,
+  MotivoCompra,
+  MOTIVO_COMPRA_LABELS,
+  CriarPropostaRequest
 } from '../../../core/models/proposta-fluxo.model';
 
+/**
+ * Step 2: Dados do Cliente
+ * Complementação dos dados do cliente com 5 seções:
+ * 1. Dados Básicos (nome/CPF readonly, dataNascimento e estadoCivil para preencher)
+ * 2. Informações Profissionais
+ * 3. Informações Financeiras
+ * 4. Endereço Residencial
+ * 5. Origem da Venda
+ */
 @Component({
   selector: 'app-proposta-step2',
   templateUrl: './proposta-step2.component.html',
@@ -21,15 +35,70 @@ import {
 export class PropostaStep2Component extends BaseFormComponent implements OnInit {
   formulario!: FormGroup;
   reservaId!: number;
+  propostaId?: number;
   dadosUnidade?: DadosUnidadeHeaderDTO;
   carregando = false;
-  stepsPreenchidos = 2; // Step 2 pode acessar step 1 e 2
+  override salvando = false;
+  stepsPreenchidos = 2;
+  
+  // Dados pré-preenchidos da reserva (readonly)
+  dadosBasicosReserva: {
+    nomeCompleto: string;
+    cpfCnpj: string;
+    clienteEstrangeiro: boolean;
+    passaporte?: string;
+    contatoPrincipal: string;
+    tipoContatoPrincipal: string;
+    contatoSecundario?: string;
+    tipoContatoSecundario?: string;
+  } | null = null;
   
   // Options para dropdowns
   estadosCivis = Object.keys(EstadoCivil).map(key => ({
     label: ESTADO_CIVIL_LABELS[key as EstadoCivil],
     value: key
   }));
+  
+  midiasOrigem = Object.keys(MidiaOrigem).map(key => ({
+    label: MIDIA_ORIGEM_LABELS[key as MidiaOrigem],
+    value: key
+  }));
+  
+  motivosCompra = Object.keys(MotivoCompra).map(key => ({
+    label: MOTIVO_COMPRA_LABELS[key as MotivoCompra],
+    value: key
+  }));
+  
+  // UFs brasileiras
+  ufs = [
+    { label: 'AC', value: 'AC' },
+    { label: 'AL', value: 'AL' },
+    { label: 'AP', value: 'AP' },
+    { label: 'AM', value: 'AM' },
+    { label: 'BA', value: 'BA' },
+    { label: 'CE', value: 'CE' },
+    { label: 'DF', value: 'DF' },
+    { label: 'ES', value: 'ES' },
+    { label: 'GO', value: 'GO' },
+    { label: 'MA', value: 'MA' },
+    { label: 'MT', value: 'MT' },
+    { label: 'MS', value: 'MS' },
+    { label: 'MG', value: 'MG' },
+    { label: 'PA', value: 'PA' },
+    { label: 'PB', value: 'PB' },
+    { label: 'PR', value: 'PR' },
+    { label: 'PE', value: 'PE' },
+    { label: 'PI', value: 'PI' },
+    { label: 'RJ', value: 'RJ' },
+    { label: 'RN', value: 'RN' },
+    { label: 'RS', value: 'RS' },
+    { label: 'RO', value: 'RO' },
+    { label: 'RR', value: 'RR' },
+    { label: 'SC', value: 'SC' },
+    { label: 'SP', value: 'SP' },
+    { label: 'SE', value: 'SE' },
+    { label: 'TO', value: 'TO' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -45,78 +114,40 @@ export class PropostaStep2Component extends BaseFormComponent implements OnInit 
   ngOnInit(): void {
     this.inicializarFormulario();
     this.obterReservaId();
-    this.configurarValidacaoDinamica();
   }
 
   inicializarFormulario(): void {
     this.formulario = this.fb.group({
-      // Dados Pessoais
-      nome: ['', Validators.required],
-      cpf: ['', Validators.required],
-      passaporte: [''],
-      dataNascimento: ['', Validators.required],
-      estadoCivil: [null, Validators.required],
+      // SEÇÃO 1: Dados Básicos (campos complementares)
+      dataNascimento: [''],
+      estadoCivil: [''],
+      
+      // SEÇÃO 2: Informações Profissionais
       profissao: [''],
+      empresaTrabalho: [''],
+      tempoEmpresaMeses: [null],
+      cnpjEmpresa: [''],
+      
+      // SEÇÃO 3: Informações Financeiras
       rendaMensal: [null],
-      telefone: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      rendaComprovada: [null],
+      outrasRendas: [null],
+      bancoPrincipal: [''],
+      agencia: [''],
       
-      // Endereço
-      endereco: this.fb.group({
-        cep: ['', Validators.required],
-        logradouro: ['', Validators.required],
-        numero: ['', Validators.required],
-        complemento: [''],
-        bairro: ['', Validators.required],
-        cidade: ['', Validators.required],
-        estado: ['', Validators.required]
-      }),
+      // SEÇÃO 4: Endereço Residencial
+      cep: [''],
+      logradouro: [''],
+      numero: [''],
+      complemento: [''],
+      bairro: [''],
+      cidade: [''],
+      uf: [''],
       
-      // Cônjuge (obrigatório se CASADO)
-      conjuge: this.fb.group({
-        nome: [''],
-        cpf: [''],
-        passaporte: [''],
-        dataNascimento: [''],
-        profissao: [''],
-        rendaMensal: [null],
-        telefone: [''],
-        email: ['']
-      })
+      // SEÇÃO 5: Origem da Venda
+      midiaOrigem: [''],
+      motivoCompra: ['']
     });
-  }
-
-  configurarValidacaoDinamica(): void {
-    this.formulario.get('estadoCivil')?.valueChanges.subscribe(estadoCivil => {
-      const conjugeGroup = this.formulario.get('conjuge');
-      
-      if (estadoCivil === EstadoCivil.CASADO) {
-        // Torna campos do cônjuge obrigatórios
-        conjugeGroup?.get('nome')?.setValidators(Validators.required);
-        conjugeGroup?.get('cpf')?.setValidators(Validators.required);
-        conjugeGroup?.get('dataNascimento')?.setValidators(Validators.required);
-        conjugeGroup?.get('telefone')?.setValidators(Validators.required);
-        conjugeGroup?.get('email')?.setValidators([Validators.required, Validators.email]);
-      } else {
-        // Remove obrigatoriedade dos campos do cônjuge
-        conjugeGroup?.get('nome')?.clearValidators();
-        conjugeGroup?.get('cpf')?.clearValidators();
-        conjugeGroup?.get('dataNascimento')?.clearValidators();
-        conjugeGroup?.get('telefone')?.clearValidators();
-        conjugeGroup?.get('email')?.clearValidators();
-      }
-      
-      // Atualiza validação
-      if (conjugeGroup) {
-        Object.keys((conjugeGroup as FormGroup).controls).forEach(key => {
-          conjugeGroup?.get(key)?.updateValueAndValidity();
-        });
-      }
-    });
-  }
-
-  get mostrarConjuge(): boolean {
-    return this.formulario.get('estadoCivil')?.value === EstadoCivil.CASADO;
   }
 
   obterReservaId(): void {
@@ -142,11 +173,11 @@ export class PropostaStep2Component extends BaseFormComponent implements OnInit 
     const state = this.propostaStateService.getStateSnapshot();
     
     if (!state.reservaId || state.reservaId !== this.reservaId) {
-      // State não existe ou não corresponde à reserva atual - redireciona para Step 1
+      // State não existe - redireciona para Step 1
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Por favor, preencha os dados iniciais primeiro'
+        detail: 'Por favor, passe pelo Step 1 primeiro'
       });
       this.router.navigate(['/propostas/step1'], {
         queryParams: { reservaId: this.reservaId }
@@ -159,150 +190,231 @@ export class PropostaStep2Component extends BaseFormComponent implements OnInit 
     
     // Carrega dados da unidade do state
     if (state.dadosReserva) {
+      const cabecalho = state.dadosReserva.cabecalho;
+      const dadosIniciais = state.dadosReserva.dadosIniciais;
+      const dadosCliente = state.dadosReserva.dadosCliente;
+      
       this.dadosUnidade = {
-        reservaId: state.dadosReserva.id,
-        codEmpreendimento: state.dadosReserva.codEmpreendimento,
-        codColigada: state.dadosReserva.codColigadaEmpreendimento,
-        nomeEmpreendimento: state.dadosReserva.nomeEmpreendimento,
-        nomeUnidade: `${state.dadosReserva.bloco}-${state.dadosReserva.unidade}`,
-        bloco: state.dadosReserva.bloco,
-        unidade: state.dadosReserva.unidade,
-        tipoUnidade: state.dadosReserva.tipoUnidade,
-        tipologia: state.dadosReserva.tipologia,
-        sigla: state.dadosReserva.tipoUnidade,
-        valor: 0,
-        valorTotal: 0,
-        fracaoIdeal: 0,
-        localizacao: '',
-        posicaoSolar: '',
-        fachada: '',
-        garagem: ''
+        reservaId: dadosIniciais.reservaId,
+        codEmpreendimento: cabecalho.codEmpreendimento,
+        codColigada: cabecalho.codColigadaEmpreendimento,
+        nomeEmpreendimento: cabecalho.nomeEmpreendimento,
+        nomeUnidade: `${cabecalho.bloco}-${cabecalho.unidade}`,
+        bloco: cabecalho.bloco,
+        unidade: cabecalho.unidade,
+        tipoUnidade: cabecalho.tipoUnidade,
+        tipologia: cabecalho.tipologia,
+        sigla: cabecalho.sigla,
+        valor: cabecalho.valorUnidade,
+        valorTotal: cabecalho.valorUnidade,
+        fracaoIdeal: cabecalho.fracaoIdeal,
+        localizacao: cabecalho.localizacao,
+        posicaoSolar: cabecalho.posicaoSol,
+        fachada: cabecalho.fachada,
+        garagem: cabecalho.garagem
       };
-    }
-    
-    // Preenche formulário se já houver dados salvos no Step 2
-    const dadosCliente = state.dadosCliente;
-    if (dadosCliente) {
+      
+      // Dados básicos da reserva (readonly)
+      this.dadosBasicosReserva = {
+        nomeCompleto: dadosCliente.nomeCompleto,
+        cpfCnpj: dadosCliente.cpfCnpj,
+        clienteEstrangeiro: dadosCliente.clienteEstrangeiro,
+        passaporte: dadosCliente.passaporte || undefined,
+        contatoPrincipal: dadosCliente.contatoPrincipal,
+        tipoContatoPrincipal: dadosCliente.tipoContatoPrincipal,
+        contatoSecundario: dadosCliente.contatoSecundario || undefined,
+        tipoContatoSecundario: dadosCliente.tipoContatoSecundario || undefined
+      };
+      
+      // Preenche formulário com dados complementares (se existirem)
       this.preencherFormularioComDadosSalvos(dadosCliente);
+      
+      // Verifica se já existe proposta criada
+      if (state.dadosReserva.metadata.existeProposta && state.dadosReserva.metadata.propostaId) {
+        this.propostaId = state.dadosReserva.metadata.propostaId;
+      }
     }
     
     this.carregando = false;
   }
 
-  preencherFormularioComDadosSalvos(dados: any): void {
+  preencherFormularioComDadosSalvos(dadosCliente: DadosClientePropostaDTO): void {
     this.formulario.patchValue({
-      nome: dados.nome,
-      cpf: dados.cpf,
-      passaporte: dados.passaporte,
-      dataNascimento: dados.dataNascimento ? new Date(dados.dataNascimento) : null,
-      estadoCivil: dados.estadoCivil,
-      profissao: dados.profissao,
-      rendaMensal: dados.rendaMensal,
-      telefone: dados.telefone,
-      email: dados.email,
-      endereco: dados.endereco || {},
-      conjuge: dados.conjuge || {}
+      dataNascimento: dadosCliente.dataNascimento ? new Date(dadosCliente.dataNascimento) : null,
+      estadoCivil: dadosCliente.estadoCivil || '',
+      profissao: dadosCliente.profissao || '',
+      empresaTrabalho: dadosCliente.empresaTrabalho || '',
+      tempoEmpresaMeses: dadosCliente.tempoEmpresaMeses || null,
+      cnpjEmpresa: dadosCliente.cnpjEmpresa || '',
+      rendaMensal: dadosCliente.rendaMensal || null,
+      rendaComprovada: dadosCliente.rendaComprovada || null,
+      outrasRendas: dadosCliente.outrasRendas || null,
+      bancoPrincipal: dadosCliente.bancoPrincipal || '',
+      agencia: dadosCliente.agencia || '',
+      cep: dadosCliente.cep || '',
+      logradouro: dadosCliente.logradouro || '',
+      numero: dadosCliente.numero || '',
+      complemento: dadosCliente.complemento || '',
+      bairro: dadosCliente.bairro || '',
+      cidade: dadosCliente.cidade || '',
+      uf: dadosCliente.uf || '',
+      midiaOrigem: dadosCliente.midiaOrigem || '',
+      motivoCompra: dadosCliente.motivoCompra || ''
     });
   }
 
-  getCamposObrigatorios(): Array<{ id: string; valor: any; label?: string }> {
-    const campos = [
-      { id: 'nome', valor: this.formulario.get('nome')?.value, label: 'Nome' },
-      { id: 'cpf', valor: this.formulario.get('cpf')?.value, label: 'CPF' },
-      { id: 'dataNascimento', valor: this.formulario.get('dataNascimento')?.value, label: 'Data de Nascimento' },
-      { id: 'estadoCivil', valor: this.formulario.get('estadoCivil')?.value, label: 'Estado Civil' },
-      { id: 'telefone', valor: this.formulario.get('telefone')?.value, label: 'Telefone' },
-      { id: 'email', valor: this.formulario.get('email')?.value, label: 'Email' }
-    ];
+  /**
+   * Busca endereço via CEP
+   */
+  buscarCep(): void {
+    const cep = this.formulario.get('cep')?.value?.replace(/\D/g, '');
     
-    // Endereço
-    const endereco = this.formulario.get('endereco');
-    campos.push(
-      { id: 'endereco.cep', valor: endereco?.get('cep')?.value, label: 'CEP' },
-      { id: 'endereco.logradouro', valor: endereco?.get('logradouro')?.value, label: 'Logradouro' },
-      { id: 'endereco.numero', valor: endereco?.get('numero')?.value, label: 'Número' },
-      { id: 'endereco.bairro', valor: endereco?.get('bairro')?.value, label: 'Bairro' },
-      { id: 'endereco.cidade', valor: endereco?.get('cidade')?.value, label: 'Cidade' },
-      { id: 'endereco.estado', valor: endereco?.get('estado')?.value, label: 'Estado' }
-    );
-    
-    // Cônjuge (se CASADO)
-    if (this.mostrarConjuge) {
-      const conjuge = this.formulario.get('conjuge');
-      campos.push(
-        { id: 'conjuge.nome', valor: conjuge?.get('nome')?.value, label: 'Nome do Cônjuge' },
-        { id: 'conjuge.cpf', valor: conjuge?.get('cpf')?.value, label: 'CPF do Cônjuge' },
-        { id: 'conjuge.dataNascimento', valor: conjuge?.get('dataNascimento')?.value, label: 'Data de Nascimento do Cônjuge' },
-        { id: 'conjuge.telefone', valor: conjuge?.get('telefone')?.value, label: 'Telefone do Cônjuge' },
-        { id: 'conjuge.email', valor: conjuge?.get('email')?.value, label: 'Email do Cônjuge' }
-      );
+    if (!cep || cep.length !== 8) {
+      return;
     }
     
-    return campos;
+    this.carregando = true;
+    
+    // Chama ViaCEP
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.erro) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Atenção',
+            detail: 'CEP não encontrado'
+          });
+        } else {
+          this.formulario.patchValue({
+            logradouro: data.logradouro || '',
+            bairro: data.bairro || '',
+            cidade: data.localidade || '',
+            uf: data.uf || ''
+          });
+        }
+        this.carregando = false;
+      })
+      .catch(error => {
+        console.error('Erro ao buscar CEP:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao buscar CEP'
+        });
+        this.carregando = false;
+      });
+  }
+
+  getCamposObrigatorios(): Array<{ id: string; valor: any; label?: string }> {
+    // Conforme documento: TODOS os campos do Step2 são OPCIONAIS
+    // Apenas nome, CPF e contato (da reserva) são obrigatórios, mas já vêm preenchidos
+    return [];
   }
 
   /**
-   * Salva dados no state local e navega para próximo step
-   * NÃO persiste no backend - salvamento completo acontece na tela de resumo
+   * Salva proposta completa no backend
+   * POST /api/v1/propostas (se não existe) ou PUT (se já existe)
    */
   salvar(): void {
     this.tentouSalvar = true;
     
-    if (!this.validarFormulario()) {
-      return;
-    }
-
     const formValues = this.formulario.getRawValue();
     
-    // Monta o objeto para armazenar no state
-    const dados = {
-      nome: formValues.nome,
-      cpf: formValues.cpf,
-      estrangeiro: !!formValues.passaporte,
-      passaporte: formValues.passaporte,
-      dataNascimento: formValues.dataNascimento,
-      estadoCivil: formValues.estadoCivil,
-      profissao: formValues.profissao,
-      rendaMensal: formValues.rendaMensal,
-      telefone: formValues.telefone,
-      email: formValues.email,
-      endereco: formValues.endereco,
-      conjuge: this.mostrarConjuge ? formValues.conjuge : null
+    // Monta o payload conforme API v2.0
+    const request: CriarPropostaRequest = {
+      reservaId: this.reservaId,
+      dadosCliente: {
+        dataNascimento: formValues.dataNascimento ? this.formatarDataISO(formValues.dataNascimento) : '',
+        estadoCivil: formValues.estadoCivil || '',
+        profissao: formValues.profissao || '',
+        empresaTrabalho: formValues.empresaTrabalho,
+        tempoEmpresaMeses: formValues.tempoEmpresaMeses,
+        cnpjEmpresa: formValues.cnpjEmpresa,
+        rendaMensal: formValues.rendaMensal || 0,
+        rendaComprovada: formValues.rendaComprovada,
+        outrasRendas: formValues.outrasRendas,
+        bancoPrincipal: formValues.bancoPrincipal,
+        agencia: formValues.agencia,
+        cep: formValues.cep || '',
+        logradouro: formValues.logradouro || '',
+        numero: formValues.numero || '',
+        complemento: formValues.complemento,
+        bairro: formValues.bairro || '',
+        cidade: formValues.cidade || '',
+        uf: formValues.uf || '',
+        midiaOrigem: formValues.midiaOrigem,
+        motivoCompra: formValues.motivoCompra
+      }
     };
 
-    // Salva no state local
-    this.propostaStateService.salvarDadosCliente(dados);
+    this.salvando = true;
     
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Sucesso',
-      detail: 'Dados salvos! Prossiga para o próximo passo.'
+    const operacao = this.propostaId 
+      ? this.propostaService.atualizarProposta(this.propostaId, request)
+      : this.propostaService.criarProposta(request);
+    
+    operacao.subscribe({
+      next: (response) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: this.propostaId ? 'Proposta atualizada com sucesso!' : 'Proposta criada com sucesso!'
+        });
+        
+        // Limpa state local
+        this.propostaStateService.limparState();
+        
+        // Redireciona para listagem de propostas
+        setTimeout(() => {
+          this.router.navigate(['/propostas/lista']);
+        }, 1500);
+      },
+      error: (error) => {
+        console.error('Erro ao salvar proposta:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: error.error?.detail || 'Erro ao salvar proposta'
+        });
+        this.salvando = false;
+      }
     });
-    
-    // TODO: Quando Step 3 estiver pronto, navegar para ele
-    // Por enquanto, volta para a lista
-    setTimeout(() => {
-      this.router.navigate(['/propostas/lista']);
-    }, 1500);
+  }
+
+  private formatarDataISO(data: Date | string): string {
+    if (typeof data === 'string') {
+      return data;
+    }
+    const d = new Date(data);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   voltar(): void {
-    // Volta para Step 1
-    this.propostaStateService.voltarParaStep(1);
     this.router.navigate(['/propostas/step1'], {
       queryParams: { reservaId: this.reservaId }
     });
   }
 
-  /**
-   * Navega para o step selecionado no header
-   */
   onStepChange(step: number): void {
-    if (step === 2) {
-      return; // Já está no step 2
-    }
     if (step === 1) {
       this.voltar();
     }
+  }
+
+  cancelar(): void {
+    // Limpa state local
+    this.propostaStateService.limparState();
+    
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Cancelado',
+      detail: 'Criação de proposta cancelada'
+    });
+    
+    this.router.navigate(['/propostas/lista']);
   }
 }

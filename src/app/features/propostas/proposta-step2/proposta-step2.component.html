@@ -1,14 +1,11 @@
 <div class="proposta-step2-container">
-  <!-- Breadcrumb -->
-  <app-breadcrumb [items]="[
-    { label: 'Início', url: '/dashboard' },
-    { label: 'Propostas', url: '/propostas/lista' },
-    { label: 'Dados do Cliente' }
-  ]"></app-breadcrumb>
-
-  <app-page-header
-    title="Proposta - Dados do Cliente"
-  ></app-page-header>
+  <!-- Página sem breadcrumb customizado para evitar erros -->
+  <div class="page-header mb-4">
+    <h1 class="text-3xl font-bold">Nova Proposta - Dados do Cliente</h1>
+    <p class="text-sm text-muted mt-1">
+      Início / Propostas / Dados do Cliente
+    </p>
+  </div>
 
   <!-- Header com dados da unidade -->
   <app-proposta-header
@@ -19,45 +16,99 @@
     (stepChange)="onStepChange($event)"
   ></app-proposta-header>
 
-  <!-- Formulário de Dados do Cliente -->
-  <form [formGroup]="formulario" (ngSubmit)="salvar()">
-    <!-- Dados Pessoais -->
-    <p-card header="Dados Pessoais do Cliente" styleClass="mb-3">
+  <!-- Formulário de Dados do Cliente - 5 SEÇÕES -->
+  <form [formGroup]="formulario" (ngSubmit)="salvar()" *ngIf="!carregando">
+    
+    <!-- SEÇÃO 1: Dados Básicos -->
+    <p-card header="1. Dados Básicos do Cliente" styleClass="mb-3">
+      <p class="text-muted mb-3">
+        <i class="pi pi-info-circle mr-2"></i>
+        Nome, CPF e contatos foram preenchidos automaticamente da reserva.
+      </p>
+      
       <div class="grid">
         <div class="col-12 md:col-6">
-          <app-input-text
-            label="Nome Completo"
-            formControlName="nome"
-            placeholder="Digite o nome completo"
-            [required]="true"
-          ></app-input-text>
+          <label class="block mb-2 font-semibold">Nome Completo *</label>
+          <input 
+            type="text" 
+            pInputText 
+            [value]="dadosBasicosReserva?.nomeCompleto"
+            disabled
+            class="w-full"
+            style="background-color: #f8f9fa"
+          />
         </div>
-        <div class="col-12 md:col-3">
-          <app-input-cpf
-            label="CPF"
-            formControlName="cpf"
-            placeholder="000.000.000-00"
-            [required]="true"
-          ></app-input-cpf>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2 font-semibold">CPF/CNPJ *</label>
+          <input 
+            type="text" 
+            pInputText 
+            [value]="dadosBasicosReserva?.cpfCnpj"
+            disabled
+            class="w-full"
+            style="background-color: #f8f9fa"
+          />
         </div>
-        <div class="col-12 md:col-3">
-          <app-input-text
-            label="Passaporte"
-            formControlName="passaporte"
-            placeholder="Digite o passaporte"
-          ></app-input-text>
+        
+        <div class="col-12 md:col-6" *ngIf="dadosBasicosReserva?.clienteEstrangeiro">
+          <label class="block mb-2 font-semibold">Passaporte</label>
+          <input 
+            type="text" 
+            pInputText 
+            [value]="dadosBasicosReserva?.passaporte"
+            disabled
+            class="w-full"
+            style="background-color: #f8f9fa"
+          />
         </div>
-
-        <div class="col-12 md:col-4">
-          <app-input-date
-            label="Data de Nascimento"
-            formControlName="dataNascimento"
-            placeholder="Selecione a data"
-            [required]="true"
-          ></app-input-date>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2 font-semibold">Contato Principal *</label>
+          <input 
+            type="text" 
+            pInputText 
+            [value]="dadosBasicosReserva?.contatoPrincipal + ' (' + dadosBasicosReserva?.tipoContatoPrincipal + ')'"
+            disabled
+            class="w-full"
+            style="background-color: #f8f9fa"
+          />
         </div>
-        <div class="col-12 md:col-4">
-          <label class="block mb-2">Estado Civil *</label>
+        
+        <div class="col-12 md:col-6" *ngIf="dadosBasicosReserva?.contatoSecundario">
+          <label class="block mb-2 font-semibold">Contato Secundário</label>
+          <input 
+            type="text" 
+            pInputText 
+            [value]="dadosBasicosReserva?.contatoSecundario + ' (' + dadosBasicosReserva?.tipoContatoSecundario + ')'"
+            disabled
+            class="w-full"
+            style="background-color: #f8f9fa"
+          />
+        </div>
+      </div>
+      
+      <p-divider></p-divider>
+      
+      <p class="text-muted mb-3 mt-3">
+        <i class="pi pi-edit mr-2"></i>
+        Preencha os dados complementares abaixo:
+      </p>
+      
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Data de Nascimento</label>
+          <p-calendar 
+            formControlName="dataNascimento" 
+            dateFormat="dd/mm/yy" 
+            placeholder="DD/MM/AAAA"
+            [showIcon]="true"
+            styleClass="w-full"
+          ></p-calendar>
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Estado Civil</label>
           <p-dropdown
             formControlName="estadoCivil"
             [options]="estadosCivis"
@@ -65,14 +116,60 @@
             styleClass="w-full"
           ></p-dropdown>
         </div>
-        <div class="col-12 md:col-4">
-          <app-input-text
-            label="Profissão"
+      </div>
+    </p-card>
+
+    <!-- SEÇÃO 2: Informações Profissionais -->
+    <p-card header="2. Informações Profissionais" styleClass="mb-3">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Profissão</label>
+          <input 
+            type="text" 
+            pInputText 
             formControlName="profissao"
             placeholder="Digite a profissão"
-          ></app-input-text>
+            class="w-full"
+          />
         </div>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Empresa onde Trabalha</label>
+          <input 
+            type="text" 
+            pInputText 
+            formControlName="empresaTrabalho"
+            placeholder="Digite o nome da empresa"
+            class="w-full"
+          />
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Tempo de Empresa (em meses)</label>
+          <p-inputNumber
+            formControlName="tempoEmpresaMeses"
+            placeholder="Ex: 24"
+            [min]="0"
+            [showButtons]="true"
+            styleClass="w-full"
+          ></p-inputNumber>
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">CNPJ da Empresa</label>
+          <p-inputMask 
+            formControlName="cnpjEmpresa"
+            mask="99.999.999/9999-99"
+            placeholder="00.000.000/0000-00"
+            styleClass="w-full"
+          ></p-inputMask>
+        </div>
+      </div>
+    </p-card>
 
+    <!-- SEÇÃO 3: Informações Financeiras -->
+    <p-card header="3. Informações Financeiras" styleClass="mb-3">
+      <div class="grid">
         <div class="col-12 md:col-4">
           <label class="block mb-2">Renda Mensal</label>
           <p-inputNumber
@@ -84,184 +181,200 @@
             styleClass="w-full"
           ></p-inputNumber>
         </div>
+        
         <div class="col-12 md:col-4">
-          <app-input-telefone
-            label="Telefone"
-            formControlName="telefone"
-            placeholder="(00) 00000-0000"
-            [required]="true"
-          ></app-input-telefone>
+          <label class="block mb-2">Renda Comprovada</label>
+          <p-inputNumber
+            formControlName="rendaComprovada"
+            mode="currency"
+            currency="BRL"
+            locale="pt-BR"
+            placeholder="R$ 0,00"
+            styleClass="w-full"
+          ></p-inputNumber>
         </div>
+        
         <div class="col-12 md:col-4">
-          <app-input-text
-            label="Email"
-            formControlName="email"
-            placeholder="email@exemplo.com"
-            type="email"
-            [required]="true"
-          ></app-input-text>
+          <label class="block mb-2">Outras Rendas</label>
+          <p-inputNumber
+            formControlName="outrasRendas"
+            mode="currency"
+            currency="BRL"
+            locale="pt-BR"
+            placeholder="R$ 0,00"
+            styleClass="w-full"
+          ></p-inputNumber>
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Banco Principal</label>
+          <input 
+            type="text" 
+            pInputText 
+            formControlName="bancoPrincipal"
+            placeholder="Digite o nome do banco"
+            class="w-full"
+          />
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <label class="block mb-2">Agência</label>
+          <input 
+            type="text" 
+            pInputText 
+            formControlName="agencia"
+            placeholder="Ex: 1234-5"
+            class="w-full"
+          />
         </div>
       </div>
     </p-card>
 
-    <!-- Endereço -->
-    <p-card header="Endereço" styleClass="mb-3" formGroupName="endereco">
+    <!-- SEÇÃO 4: Endereço Residencial -->
+    <p-card header="4. Endereço Residencial" styleClass="mb-3">
       <div class="grid">
         <div class="col-12 md:col-3">
-          <app-input-text
-            label="CEP"
-            formControlName="cep"
-            placeholder="00000-000"
-            [required]="true"
-          ></app-input-text>
+          <label class="block mb-2">CEP</label>
+          <div class="p-inputgroup">
+            <p-inputMask 
+              formControlName="cep"
+              mask="99999-999"
+              placeholder="00000-000"
+              styleClass="w-full"
+              (onComplete)="buscarCep()"
+            ></p-inputMask>
+            <button 
+              type="button" 
+              pButton 
+              icon="pi pi-search" 
+              (click)="buscarCep()"
+              pTooltip="Buscar CEP"
+            ></button>
+          </div>
         </div>
+        
         <div class="col-12 md:col-7">
-          <app-input-text
-            label="Logradouro"
+          <label class="block mb-2">Logradouro</label>
+          <input 
+            type="text" 
+            pInputText 
             formControlName="logradouro"
             placeholder="Digite o logradouro"
-            [required]="true"
-          ></app-input-text>
+            class="w-full"
+          />
         </div>
+        
         <div class="col-12 md:col-2">
-          <app-input-text
-            label="Número"
+          <label class="block mb-2">Número</label>
+          <input 
+            type="text" 
+            pInputText 
             formControlName="numero"
             placeholder="Nº"
-            [required]="true"
-          ></app-input-text>
+            class="w-full"
+          />
         </div>
-
+        
         <div class="col-12 md:col-4">
-          <app-input-text
-            label="Complemento"
+          <label class="block mb-2">Complemento</label>
+          <input 
+            type="text" 
+            pInputText 
             formControlName="complemento"
             placeholder="Apto, Bloco, etc"
-          ></app-input-text>
+            class="w-full"
+          />
         </div>
+        
         <div class="col-12 md:col-4">
-          <app-input-text
-            label="Bairro"
+          <label class="block mb-2">Bairro</label>
+          <input 
+            type="text" 
+            pInputText 
             formControlName="bairro"
             placeholder="Digite o bairro"
-            [required]="true"
-          ></app-input-text>
+            class="w-full"
+          />
         </div>
+        
         <div class="col-12 md:col-3">
-          <app-input-text
-            label="Cidade"
+          <label class="block mb-2">Cidade</label>
+          <input 
+            type="text" 
+            pInputText 
             formControlName="cidade"
             placeholder="Digite a cidade"
-            [required]="true"
-          ></app-input-text>
+            class="w-full"
+          />
         </div>
+        
         <div class="col-12 md:col-1">
-          <app-input-text
-            label="UF"
-            formControlName="estado"
+          <label class="block mb-2">UF</label>
+          <p-dropdown
+            formControlName="uf"
+            [options]="ufs"
             placeholder="UF"
-            [required]="true"
-            [maxlength]="2"
-          ></app-input-text>
+            styleClass="w-full"
+          ></p-dropdown>
         </div>
       </div>
     </p-card>
 
-    <!-- Dados do Cônjuge (exibido apenas se CASADO) -->
-    <p-card 
-      *ngIf="mostrarConjuge" 
-      header="Dados do Cônjuge" 
-      styleClass="mb-3 conjuge-card" 
-      formGroupName="conjuge">
+    <!-- SEÇÃO 5: Origem da Venda -->
+    <p-card header="5. Origem da Venda" styleClass="mb-3">
       <div class="grid">
         <div class="col-12 md:col-6">
-          <app-input-text
-            label="Nome Completo do Cônjuge"
-            formControlName="nome"
-            placeholder="Digite o nome completo"
-            [required]="true"
-          ></app-input-text>
-        </div>
-        <div class="col-12 md:col-3">
-          <app-input-cpf
-            label="CPF do Cônjuge"
-            formControlName="cpf"
-            placeholder="000.000.000-00"
-            [required]="true"
-          ></app-input-cpf>
-        </div>
-        <div class="col-12 md:col-3">
-          <app-input-text
-            label="Passaporte"
-            formControlName="passaporte"
-            placeholder="Digite o passaporte"
-          ></app-input-text>
-        </div>
-
-        <div class="col-12 md:col-4">
-          <app-input-date
-            label="Data de Nascimento"
-            formControlName="dataNascimento"
-            placeholder="Selecione a data"
-            [required]="true"
-          ></app-input-date>
-        </div>
-        <div class="col-12 md:col-4">
-          <app-input-text
-            label="Profissão"
-            formControlName="profissao"
-            placeholder="Digite a profissão"
-          ></app-input-text>
-        </div>
-        <div class="col-12 md:col-4">
-          <label class="block mb-2">Renda Mensal</label>
-          <p-inputNumber
-            formControlName="rendaMensal"
-            mode="currency"
-            currency="BRL"
-            locale="pt-BR"
-            placeholder="R$ 0,00"
+          <label class="block mb-2">Como conheceu o empreendimento?</label>
+          <p-dropdown
+            formControlName="midiaOrigem"
+            [options]="midiasOrigem"
+            placeholder="Selecione"
             styleClass="w-full"
-          ></p-inputNumber>
+          ></p-dropdown>
         </div>
-
+        
         <div class="col-12 md:col-6">
-          <app-input-telefone
-            label="Telefone do Cônjuge"
-            formControlName="telefone"
-            placeholder="(00) 00000-0000"
-            [required]="true"
-          ></app-input-telefone>
-        </div>
-        <div class="col-12 md:col-6">
-          <app-input-text
-            label="Email do Cônjuge"
-            formControlName="email"
-            placeholder="email@exemplo.com"
-            type="email"
-            [required]="true"
-          ></app-input-text>
+          <label class="block mb-2">Motivo da Compra</label>
+          <p-dropdown
+            formControlName="motivoCompra"
+            [options]="motivosCompra"
+            placeholder="Selecione"
+            styleClass="w-full"
+          ></p-dropdown>
         </div>
       </div>
     </p-card>
 
-    <!-- Ações -->
-    <div class="flex gap-2 justify-content-end mt-3">
-      <app-custom-button
+    <!-- Botões de Ação -->
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        (onClick)="cancelar()"
+      ></p-button>
+      
+      <p-button
         label="Voltar"
         icon="pi pi-arrow-left"
         severity="secondary"
-        type="button"
-        (click)="voltar()"
-      ></app-custom-button>
-      <app-custom-button
-        label="Salvar"
-        icon="pi pi-check"
+        (onClick)="voltar()"
+      ></p-button>
+      
+      <p-button
         type="submit"
+        [label]="propostaId ? 'Atualizar Proposta' : 'Criar Proposta'"
+        icon="pi pi-check"
         [loading]="salvando"
-      ></app-custom-button>
+      ></p-button>
     </div>
   </form>
 
-  <p-toast></p-toast>
+  <!-- Loading -->
+  <div class="flex justify-content-center align-items-center py-8" *ngIf="carregando">
+    <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+  </div>
 </div>
+
+<p-toast></p-toast>
