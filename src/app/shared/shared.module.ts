@@ -29,6 +29,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { MessageModule } from 'primeng/message';
 import { StepsModule } from 'primeng/steps';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { AccordionModule } from 'primeng/accordion';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -143,6 +144,7 @@ import { CalendarModule } from 'primeng/calendar';
     MessageModule,
     StepsModule,
     InputNumberModule,
+    AccordionModule,
     ImageCropperComponent
   ],
   exports: [
@@ -204,6 +206,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputTextModule,
     StepsModule,
     InputNumberModule,
+    AccordionModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ],

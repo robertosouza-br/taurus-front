@@ -53,6 +53,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // Componentes Disponíveis (editável) - TODOS os componentes, incluindo ATO
   componentes: ComponenteFormulario[] = [];
   
+  // 🆕 v2.2 - Separação de Componentes
+  componenteAto: ComponenteFormulario | null = null;
+  componentesDisponiveisParaAdicionar: ComponenteTabelaPadraoDTO[] = [];
+  exibirComponentesDisponiveis = false;
+  
   // Resumo da simulação
   valorTabela = 0;
   valorProposta = 0;
@@ -199,7 +204,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           c => c.codigoComponente === comp.codigoComponente
         )!;
         
-        return {
+        const componente: ComponenteFormulario = {
           codigoComponente: comp.codigoComponente,
           nomeComponente: comp.nomeComponente,
           tipoComponente: comp.tipoComponente,
@@ -212,6 +217,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           regra,
           erroValidacao: null
         };
+        
+        // 📅 Gerar vencimentos iniciais
+        componente.listaVencimentos = this.gerarVencimentos(
+          componente.vencimento,
+          componente.quantidade,
+          regra.periodicidade ?? 0,
+          componente.valorParcela
+        );
+        
+        return componente;
       });
       
       this.valorProposta = simulacao.valorProposta;
@@ -229,15 +244,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           const valorTotal = temValor ? (regra.valor ?? 0) : 0;
           const valorParcela = temValor ? (regra.valorParcela ?? 0) : 0;
           const percentual = temValor ? (regra.percentual ?? 0) : 0;
+          const vencimento = this.calcularVencimentoInicial(regra);
           
-          return {
+          const componente: ComponenteFormulario = {
             codigoComponente: regra.codigoComponente,
             nomeComponente: regra.nomeComponente,
             tipoComponente: regra.tipoComponente,
             grupoComponente: regra.grupoComponente,
             periodicidade: regra.periodicidade,
             quantidade: regra.quantidade || 1,
-            vencimento: this.calcularVencimentoInicial(regra),
+            vencimento: vencimento,
             valorParcela: valorParcela,
             percentual: percentual,
             valorTotal: valorTotal,
@@ -245,11 +261,54 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             regra,
             erroValidacao: null
           };
+          
+          // 📅 Gerar vencimentos iniciais
+          componente.listaVencimentos = this.gerarVencimentos(
+            vencimento,
+            componente.quantidade,
+            regra.periodicidade ?? 0,
+            valorParcela
+          );
+          
+          return componente;
         });
         
       // Após inicializar, calcular totais
       this.calcularTotais();
     }
+    
+    // 🆕 v2.2 - Separar componentes
+    this.separarComponentes();
+  }
+
+  /**
+   * 🆕 v2.2 - Separa componentes em: Tabela Padrão, ATO e Disponíveis
+   * Conforme especificação do Mapa de Integração v2.2
+   */
+  private separarComponentes(): void {
+    if (!this.componentesNormalizadosCache || this.componentesNormalizadosCache.length === 0) {
+      return;
+    }
+    
+    // Identificar ATO
+    this.componenteAto = this.componentes.find(c => 
+      c.nomeComponente.toUpperCase().includes('ATO')
+    ) || null;
+    
+    // Identificar componentes disponíveis (não selecionados, tabelaPadrao = "NÃO")
+    this.componentesDisponiveisParaAdicionar = this.componentesNormalizadosCache
+      .filter(c => {
+        const jaSelecionado = this.componentes.some(comp => 
+          comp.selecionado && comp.codigoComponente === c.codigoComponente
+        );
+        return !jaSelecionado && c.tabelaPadrao === 'NÃO';
+      })
+      .sort((a, b) => a.ordem - b.ordem);
+      
+    console.log('🔍 Componentes separados:', {
+      ato: this.componenteAto?.nomeComponente,
+      disponiveis: this.componentesDisponiveisParaAdicionar.length
+    });
   }
 
   /**
@@ -291,8 +350,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           quantidade: comp.PRAZO_MESES || 1,
           periodicidade: 1, // Default mensal
           percentual: comp.PERCENTUAL || 0,
-          percentualMinimo: comp.PERCENTUAL_MINIMO ?? null,
-          percentualMaximo: comp.PERCENTUAL_MAXIMO ?? null,
           valorMinimo: comp.VALOR_MINIMO ?? null,
           valorMaximo: comp.VALOR_MAXIMO ?? null,
           prazoMeses: comp.PRAZO_MESES ?? 1,
@@ -380,9 +437,23 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     // Recalcula total baseado na nova quantidade
     componente.valorTotal = componente.valorParcela * componente.quantidade;
     
+    // 📅 Atualiza datas de vencimento
+    this.atualizarVencimentosComponente(componente);
+    
     // Recalcula totais e validações (apenas percentuais mudam)
     this.calcularTotais();
     this.gerarComparacao();
+  }
+
+  /**
+   * Manipula mudança de data de vencimento
+   */
+  onVencimentoChange(componente: ComponenteFormulario): void {
+    // 📅 Atualiza datas de vencimento
+    this.atualizarVencimentosComponente(componente);
+    
+    // Recalcula totais (adiantamento pode mudar)
+    this.calcularTotais();
   }
 
   /**
@@ -412,11 +483,41 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       (sum, c) => sum + c.valorTotal, 0
     );
     
+    // 🎯 Detectar se houve alteração na estrutura (adição/duplicação/alteração de valores)
+    // Se valorProposta ≠ valorTabela, significa que houve mudanças e TODOS os percentuais devem ser recalculados
+    const houveAlteracao = Math.abs(this.valorProposta - this.valorTabela) > 0.01;
+    
     // Recalcula percentual de cada componente selecionado em relação ao VALOR DA PROPOSTA
     componentesSelecionados.forEach(componente => {
-      componente.percentual = this.valorProposta > 0 
-        ? (componente.valorTotal / this.valorProposta) * 100 
-        : 0;
+      const nomeUpper = componente.nomeComponente.toUpperCase();
+      
+      // 🎯 ATO e SINAL: SEMPRE recalcular (percentual da API é a SOMA, não individual)
+      if (nomeUpper.includes('ATO') || nomeUpper.includes('SINAL')) {
+        componente.percentual = this.valorProposta > 0 
+          ? (componente.valorTotal / this.valorProposta) * 100 
+          : 0;
+        return;
+      }
+      
+      // 🎯 Se houve alteração na estrutura ou valores, RECALCULAR TODOS os percentuais
+      if (houveAlteracao) {
+        componente.percentual = this.valorProposta > 0 
+          ? (componente.valorTotal / this.valorProposta) * 100 
+          : 0;
+        return;
+      }
+      
+      // ✅ Estado inicial (sem alterações): PRESERVAR percentual da API
+      const temPercentualPadrao = componente.regra.percentual !== null && 
+                                   componente.regra.percentual !== undefined;
+      
+      if (temPercentualPadrao) {
+        componente.percentual = componente.regra.percentual;
+      } else {
+        componente.percentual = this.valorProposta > 0 
+          ? (componente.valorTotal / this.valorProposta) * 100 
+          : 0;
+      }
     });
     
     // Diferença em relação à tabela padrão
@@ -447,6 +548,113 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
+   * 📅 Gera lista de vencimentos baseado na periodicidade
+   * 
+   * @param dataBase Data base para cálculo (primeiro vencimento)
+   * @param quantidade Número de parcelas
+   * @param periodicidade 0=à vista, 1=mensal, 2=bimestral, 3=trimestral, 6=semestral, 12=anual
+   * @param valorParcela Valor de cada parcela
+   * @returns Array de VencimentoDTO com as datas calculadas
+   */
+  gerarVencimentos(
+    dataBase: Date | null,
+    quantidade: number,
+    periodicidade: number,
+    valorParcela: number
+  ): import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] {
+    const vencimentos: import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] = [];
+    
+    // Se não tem data base ou quantidade inválida, retorna array vazio
+    if (!dataBase || quantidade <= 0) {
+      return vencimentos;
+    }
+    
+    // Se periodicidade é 0 (à vista), gera apenas 1 vencimento com a mesma data
+    if (periodicidade === 0) {
+      vencimentos.push({
+        numeroParcela: 1,
+        dataVencimento: new Date(dataBase),
+        valor: valorParcela * quantidade  // Valor total à vista
+      });
+      return vencimentos;
+    }
+    
+    // Para periodicidades > 0, gerar N parcelas adicionando periodicidade em meses
+    for (let i = 0; i < quantidade; i++) {
+      const dataVencimento = new Date(dataBase);
+      
+      // Adicionar (i * periodicidade) meses à data base
+      dataVencimento.setMonth(dataVencimento.getMonth() + (i * periodicidade));
+      
+      vencimentos.push({
+        numeroParcela: i + 1,
+        dataVencimento: dataVencimento,
+        valor: valorParcela
+      });
+    }
+    
+    return vencimentos;
+  }
+
+  /**
+   * Atualiza as datas de vencimento de um componente
+   * Chamado quando usuário altera vencimento, quantidade ou periodicidade
+   */
+  atualizarVencimentosComponente(componente: ComponenteFormulario): void {
+    if (!componente.vencimento || !componente.quantidade || componente.periodicidade === undefined) {
+      componente.listaVencimentos = [];
+      return;
+    }
+    
+    componente.listaVencimentos = this.gerarVencimentos(
+      componente.vencimento,
+      componente.quantidade,
+      componente.periodicidade,
+      componente.valorParcela
+    );
+  }
+
+  /**
+   * REGRA 0: Valida se percentuais calculados estão próximos dos percentuais da API
+   * Compara o percentual calculado com o percentual retornado pela API
+   * 
+   * ⚠️ EXCEÇÕES: 
+   * - ATO e COTA SINAL são validados EM CONJUNTO na REGRA 1 (sinal total)
+   *   Por isso são IGNORADOS aqui para não gerar alertas duplicados
+   */
+  private validarPercentuaisComponentes(componentes: ComponenteFormulario[]): void {
+    componentes.forEach(componente => {
+      // Ignorar ATO e SINAL (validados EM CONJUNTO na REGRA 1)
+      const nomeUpper = componente.nomeComponente.toUpperCase();
+      if (nomeUpper.includes('ATO') || nomeUpper.includes('SINAL')) {
+        return;
+      }
+      
+      // Só validar componentes que têm percentual definido na API
+      const percentualAPI = componente.regra.percentual;
+      if (percentualAPI === null || percentualAPI === undefined || percentualAPI === 0) {
+        return;
+      }
+      
+      // Percentual calculado atual
+      const percentualCalculado = componente.percentual;
+      
+      // Calcular diferença
+      const diferenca = Math.abs(percentualCalculado - percentualAPI);
+      
+      // Alertar se diferença for maior que 0.5%
+      if (diferenca > 0.5) {
+        const mensagem = `${componente.nomeComponente}: ${percentualCalculado.toFixed(2)}% (esperado: ${percentualAPI.toFixed(2)}% da tabela padrão)`;
+        
+        // Marcar componente com erro
+        componente.mensagensErro = componente.mensagensErro || [];
+        componente.mensagensErro.push(mensagem);
+        componente.erroValidacao = mensagem;
+      }
+    });
+  }
+
+  /**
    * Executa todas as validações de aprovação automática
    * Popula o array violacoesAprovacao com os resultados
    */
@@ -460,6 +668,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     });
     
     const componentesSelecionados = this.componentes.filter(c => c.selecionado);
+    
+    // REGRA 0: Validar percentuais individuais de cada componente
+    this.validarPercentuaisComponentes(componentesSelecionados);
     
     // REGRA 1: Sinal Mínimo (ATO + SINAL >= 5%)
     this.validarSinalMinimo(componentesSelecionados);
@@ -484,45 +695,66 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
-   * REGRA 1: Sinal (ATO + SINAL) >= 5%
+   * REGRA 1: Sinal (ATO + SINAL) >= percentual do COTA SINAL
+   * O percentual mínimo vem do campo `percentual` do componente COTA SINAL retornado pela API
+   * 
+   * ⚠️ IMPORTANTE: Soma TODOS os componentes ATO e COTA SINAL (caso tenham sido duplicados)
    */
   private validarSinalMinimo(componentes: ComponenteFormulario[]): void {
-    const ato = componentes.find(c => c.nomeComponente.toUpperCase().includes('ATO'));
-    const sinal = componentes.find(c => c.nomeComponente.toUpperCase().includes('SINAL'));
+    // Pegar TODOS os componentes ATO e COTA SINAL (podem estar duplicados)
+    const componentesAto = componentes.filter(c => c.nomeComponente.toUpperCase().includes('ATO'));
+    const componentesSinal = componentes.filter(c => c.nomeComponente.toUpperCase().includes('SINAL'));
     
-    const valorAto = ato?.valorTotal || 0;
-    const valorSinal = sinal?.valorTotal || 0;
+    if (componentesSinal.length === 0) {
+      // Sem componente SINAL, não valida esta regra
+      return;
+    }
+    
+    // 🎯 Usar percentual do COTA SINAL retornado pela API (pega o primeiro para obter a regra)
+    const primeiroSinal = componentesSinal[0];
+    const percentualMinimoAPI = primeiroSinal.regra.percentual ?? this.configuracoesAprovacao.percentualSinalMinimo;
+    
+    // Somar TODOS os valores de ATO
+    const valorAto = componentesAto.reduce((sum, c) => sum + c.valorTotal, 0);
+    
+    // Somar TODOS os valores de COTA SINAL
+    const valorSinal = componentesSinal.reduce((sum, c) => sum + c.valorTotal, 0);
+    
     const totalSinal = valorAto + valorSinal;
     
     const percentualCalculado = this.valorTabela > 0 
       ? (totalSinal / this.valorTabela) * 100 
       : 0;
     
-    const conforme = percentualCalculado >= this.configuracoesAprovacao.percentualSinalMinimo;
-    const mensagem = `O sinal representa ${percentualCalculado.toFixed(2)}% do valor da unidade${
-      !conforme ? `, menor que os ${this.configuracoesAprovacao.percentualSinalMinimo}% do valor de arrecadação` : ''
-    }`;
+    const conforme = percentualCalculado >= percentualMinimoAPI;
+    
+    let mensagem = `O sinal representa ${percentualCalculado.toFixed(2)}% do valor da unidade`;
+    if (!conforme) {
+      mensagem += `, menor que os ${percentualMinimoAPI.toFixed(2)}% do valor de arrecadação`;
+    }
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.SINAL_MINIMO,
       status: conforme ? StatusRegraValidacao.CONFORME : StatusRegraValidacao.VIOLACAO,
       percentualCalculado,
-      percentualLimite: this.configuracoesAprovacao.percentualSinalMinimo,
+      percentualLimite: percentualMinimoAPI,
       mensagem,
       bloqueiaAprovacao: !conforme
     });
     
-    // Marcar componentes ATO e SINAL com erro
+    // Marcar TODOS os componentes ATO e SINAL com erro (caso tenham sido duplicados)
     if (!conforme) {
-      if (ato) {
+      componentesAto.forEach(ato => {
         ato.mensagensErro = ato.mensagensErro || [];
         ato.mensagensErro.push(mensagem);
         ato.erroValidacao = mensagem;
-      }
-      if (sinal) {
+      });
+      
+      componentesSinal.forEach(sinal => {
         sinal.mensagensErro = sinal.mensagensErro || [];
         sinal.mensagensErro.push(mensagem);
-      }
+        sinal.erroValidacao = mensagem;
+      });
     }
   }
 
@@ -618,7 +850,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
-   * REGRA 4: Última Parcela (COTA ÚNICA) <= 6%
+   * REGRA 4: Última Parcela (COTA ÚNICA) <= percentual da COTA ÚNICA
+   * O percentual máximo vem do campo `percentual` do componente COTA ÚNICA retornado pela API
    */
   private validarUltimaParcelaMaxima(componentes: ComponenteFormulario[]): void {
     const cotaUnica = componentes.find(c => 
@@ -636,20 +869,25 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
+    // 🎯 Usar percentual da COTA ÚNICA retornado pela API
+    const percentualMaximoAPI = cotaUnica.regra.percentual ?? this.configuracoesAprovacao.percentualUltimaParcelaMaximo;
+    
     const percentualCalculado = this.valorTabela > 0 
       ? (cotaUnica.valorTotal / this.valorTabela) * 100 
       : 0;
     
-    const conforme = percentualCalculado <= this.configuracoesAprovacao.percentualUltimaParcelaMaximo;
-    const mensagem = `O percentual da última parcela representa ${percentualCalculado.toFixed(2)}% do valor da unidade${
-      !conforme ? `, maior que os ${this.configuracoesAprovacao.percentualUltimaParcelaMaximo}% do valor de arrecadação` : ''
-    }`;
+    const conforme = percentualCalculado <= percentualMaximoAPI;
+    
+    let mensagem = `O percentual da última parcela representa ${percentualCalculado.toFixed(2)}% do valor da unidade`;
+    if (!conforme) {
+      mensagem += `, maior que os ${percentualMaximoAPI.toFixed(2)}% do valor de arrecadação`;
+    }
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.ULTIMA_PARCELA_MAXIMA,
       status: conforme ? StatusRegraValidacao.CONFORME : StatusRegraValidacao.VIOLACAO,
       percentualCalculado,
-      percentualLimite: this.configuracoesAprovacao.percentualUltimaParcelaMaximo,
+      percentualLimite: percentualMaximoAPI,
       mensagem,
       bloqueiaAprovacao: !conforme
     });
@@ -697,7 +935,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
-   * REGRA 7: ATO >= Valor Mínimo por Tipologia
+   * REGRA 7: Valor pago no ATO >= valor do componente ATO retornado pela API
+   * O valor mínimo vem do campo `valor` do componente ATO
    */
   private validarAtoMinimoPorTipologia(componentes: ComponenteFormulario[]): void {
     const ato = componentes.find(c => c.nomeComponente.toUpperCase().includes('ATO'));
@@ -712,10 +951,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
+    // 🎯 Usar valor do ATO retornado pela API (campo `valor` do componente ATO)
     const tipologia = this.proposta?.empreendimento?.tipologia || '';
-    const valorMinimoAto = this.configuracoesAprovacao.valoresAtoMinimosPorTipologia[tipologia] || 0;
     
-    if (valorMinimoAto === 0) {
+    // O valor da API vem no campo `valor` do componente retornado
+    const valorMinimoAPI = ato.regra.valor ?? this.configuracoesAprovacao.valoresAtoMinimosPorTipologia[tipologia] ?? 0;
+    
+    if (valorMinimoAPI === 0) {
       this.violacoesAprovacao.push({
         tipo: TipoRegraValidacao.ATO_MINIMO_TIPOLOGIA,
         status: StatusRegraValidacao.NAO_APLICAVEL,
@@ -725,16 +967,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
-    const conforme = ato.valorTotal >= valorMinimoAto;
+    const conforme = ato.valorTotal >= valorMinimoAPI;
     const mensagem = `O valor pago no ATO ${this.formatarMoeda(ato.valorTotal)}${
-      !conforme ? ` é menor que o valor mínimo da tipologia ${this.formatarMoeda(valorMinimoAto)}. Diferença de ${this.formatarMoeda(valorMinimoAto - ato.valorTotal)}` : ''
+      !conforme ? ` é menor que o valor mínimo da tipologia ${this.formatarMoeda(valorMinimoAPI)}. Diferença de ${this.formatarMoeda(valorMinimoAPI - ato.valorTotal)}` : ''
     }`;
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.ATO_MINIMO_TIPOLOGIA,
       status: conforme ? StatusRegraValidacao.CONFORME : StatusRegraValidacao.VIOLACAO,
       valorCalculado: ato.valorTotal,
-      valorLimite: valorMinimoAto,
+      valorLimite: valorMinimoAPI,
       mensagem,
       bloqueiaAprovacao: !conforme
     });
@@ -748,7 +990,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
-   * REGRA 8: Valor Mínimo COTA MENSAL >= R$ 1.000,00
+   * REGRA 8: Valor Mínimo COTA MENSAL >= R$ 1.000,00 (fixo)
    */
   private validarMensalMinima(componentes: ComponenteFormulario[]): void {
     const mensal = componentes.find(c => 
@@ -765,16 +1007,19 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
-    const conforme = mensal.valorParcela >= this.configuracoesAprovacao.valorMensalMinimo;
+    // 🎯 Valor mínimo fixo de R$ 1.000,00
+    const valorMinimoAPI = 1000.00;
+    
+    const conforme = mensal.valorParcela >= valorMinimoAPI;
     const mensagem = `O valor pago na MENSAL ${this.formatarMoeda(mensal.valorParcela)}${
-      !conforme ? ` é menor que ${this.formatarMoeda(this.configuracoesAprovacao.valorMensalMinimo)}. Diferença de ${this.formatarMoeda(this.configuracoesAprovacao.valorMensalMinimo - mensal.valorParcela)}` : ''
+      !conforme ? ` é menor que ${this.formatarMoeda(valorMinimoAPI)}. Diferença de ${this.formatarMoeda(valorMinimoAPI - mensal.valorParcela)}` : ''
     }`;
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.MENSAL_MINIMA,
       status: conforme ? StatusRegraValidacao.CONFORME : StatusRegraValidacao.VIOLACAO,
       valorCalculado: mensal.valorParcela,
-      valorLimite: this.configuracoesAprovacao.valorMensalMinimo,
+      valorLimite: valorMinimoAPI,
       mensagem,
       bloqueiaAprovacao: !conforme
     });
@@ -804,13 +1049,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     // Métricas de validação
     const metricas: ComparacaoMetricaDTO[] = [];
     
-    // 1. Sinal Mínimo (ATO + COTA SINAL)
+    // 1. Sinal Mínimo (ATO + COTA SINAL) - Soma TODOS os componentes
     const sinalComponents = componentesAtivos.filter(
-      c => c.nomeComponente === 'ATO' || c.nomeComponente === 'COTA SINAL'
+      c => c.nomeComponente.toUpperCase().includes('ATO') || c.nomeComponente.toUpperCase().includes('SINAL')
     );
     const percentualSinal = sinalComponents.reduce((sum, c) => sum + c.percentual, 0);
-    const regraAto = componentesNormalizados.find((c: ComponenteTabelaPadraoDTO) => c.nomeComponente === 'ATO');
-    const minSinal = regraAto?.percentualMinimo || 5;
+    const regraSinal = componentesNormalizados.find((c: ComponenteTabelaPadraoDTO) => c.nomeComponente.toUpperCase().includes('SINAL'));
+    const minSinal = regraSinal?.percentual || 5;
     
     metricas.push({
       metrica: 'Sinal Mínimo (Ato+Sinal)',
@@ -819,9 +1064,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       status: percentualSinal >= minSinal ? 'OK' : 'VIOLACAO'
     });
     
-    // 2. Arrecadação Primeiros 13 Meses
-    const cotaMensal = componentesNormalizados.find((c: ComponenteTabelaPadraoDTO) => c.nomeComponente === 'COTA MENSAL');
-    const minCotaMensal = cotaMensal?.percentualMinimo || 29;
+    // 2. Arrecadação Primeiros 13 Meses (fixo 29%)
+    const minCotaMensal = 29; // Valor fixo conforme especificação
     const compCotaMensal = componentesAtivos.find(c => c.nomeComponente === 'COTA MENSAL');
     const percentualCotaMensal = compCotaMensal?.percentual || 0;
     
@@ -832,9 +1076,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       status: percentualCotaMensal >= minCotaMensal ? 'OK' : 'VIOLACAO'
     });
     
-    // 3. Intermediárias (Últimos 13 Meses)
-    const intermediarias = componentesNormalizados.find((c: ComponenteTabelaPadraoDTO) => c.nomeComponente === 'INTERMEDIARIAS');
-    const maxIntermediarias = intermediarias?.percentualMaximo || 26;
+    // 3. Intermediárias (Últimos 13 Meses) - fixo 26%
+    const maxIntermediarias = 26; // Valor fixo conforme especificação
     const compIntermediarias = componentesAtivos.find(c => c.nomeComponente === 'INTERMEDIARIAS');
     const percentualIntermediarias = compIntermediarias?.percentual || 0;
     
@@ -845,9 +1088,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       status: percentualIntermediarias <= maxIntermediarias ? 'OK' : 'VIOLACAO'
     });
     
-    // 4. Cota Única (Última Parcela)
+    // 4. Cota Única (Última Parcela) - usar percentual do componente COTA ÚNICA
     const cotaUnica = componentesNormalizados.find((c: ComponenteTabelaPadraoDTO) => c.nomeComponente === 'COTA UNICA');
-    const maxCotaUnica = cotaUnica?.percentualMaximo || 6;
+    const maxCotaUnica = cotaUnica?.percentual || 10; // Percentual da COTA ÚNICA da API
     const compCotaUnica = componentesAtivos.find(c => c.nomeComponente === 'COTA UNICA');
     const percentualCotaUnica = compCotaUnica?.percentual || 0;
     
@@ -901,7 +1144,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       ...componente,
       codigoComponente: `${componente.codigoComponente}_${Date.now()}`,
       selecionado: true,
-      erroValidacao: null
+      erroValidacao: null,
+      // 📅 Copiar lista de vencimentos
+      listaVencimentos: componente.listaVencimentos ? [...componente.listaVencimentos] : []
     };
     
     this.componentes.splice(index + 1, 0, novoComponente);
@@ -913,9 +1158,86 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Remove um componente (marca como não selecionado)
    */
   excluirComponente(componente: ComponenteFormulario): void {
+    // 🆕 v2.2 - ATO não pode ser removido
+    if (componente.nomeComponente.toUpperCase().includes('ATO')) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'ATO não pode ser removido. É obrigatório.'
+      });
+      return;
+    }
+    
     componente.selecionado = false;
     this.calcularTotais();
     this.gerarComparacao();
+    this.separarComponentes(); // Atualizar lista de disponíveis
+  }
+
+  /**
+   * 🆕 v2.2 - Adiciona um componente disponível à simulação
+   */
+  adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
+    // Verificar se já existe nos componentes ativos
+    const jaExiste = this.componentes.some(c => 
+      c.codigoComponente === componente.codigoComponente
+    );
+    
+    if (jaExiste) {
+      // Reativar se já existe
+      const compExistente = this.componentes.find(c => 
+        c.codigoComponente === componente.codigoComponente
+      );
+      if (compExistente) {
+        compExistente.selecionado = true;
+      }
+    } else {
+      // Adicionar novo componente
+      const vencimentoInicial = new Date();
+      const novoComponente: ComponenteFormulario = {
+        codigoComponente: componente.codigoComponente,
+        nomeComponente: componente.nomeComponente,
+        tipoComponente: componente.tipoComponente,
+        grupoComponente: componente.grupoComponente,
+        periodicidade: componente.periodicidade,
+        quantidade: 1,
+        vencimento: vencimentoInicial,
+        valorParcela: 0,
+        percentual: 0,
+        valorTotal: 0,
+        selecionado: true,
+        regra: componente,
+        erroValidacao: null,
+        mensagensErro: []
+      };
+      
+      // 📅 Gerar vencimentos iniciais
+      novoComponente.listaVencimentos = this.gerarVencimentos(
+        vencimentoInicial,
+        1,
+        componente.periodicidade ?? 0,
+        0
+      );
+      
+      this.componentes.push(novoComponente);
+    }
+    
+    this.calcularTotais();
+    this.gerarComparacao();
+    this.separarComponentes(); // Atualizar lista de disponíveis
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Componente Adicionado',
+      detail: `${componente.nomeComponente} foi adicionado à simulação`
+    });
+  }
+
+  /**
+   * 🆕 v2.2 - Alterna visibilidade da lista de componentes disponíveis
+   */
+  toggleComponentesDisponiveis(): void {
+    this.exibirComponentesDisponiveis = !this.exibirComponentesDisponiveis;
   }
 
   /**

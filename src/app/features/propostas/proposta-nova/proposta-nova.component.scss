@@ -396,6 +396,59 @@
     }
   }
 
+  // 🆕 v2.2 - Componentes Disponíveis ───────────────────────────────────────
+  .componentes-disponiveis-card {
+    ::ng-deep .p-card {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      
+      .p-card-header {
+        background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+        padding: 0.75rem 1.25rem;
+        border-bottom: none;
+        
+        .card-header-flex {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          
+          .section-title {
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+          }
+        }
+      }
+      
+      .p-card-body {
+        padding: 0;
+      }
+      
+      .p-card-content {
+        padding: 0;
+      }
+    }
+    
+    .periodicidade-badge,
+    .tipo-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .periodicidade-badge {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .tipo-badge {
+      background: #fef3c7;
+      color: #92400e;
+    }
+  }
+
   // ─── Resumo da simulação ────────────────────────────────────────────────
   .resumo-simulacao {
     display: flex;
@@ -559,5 +612,84 @@
       align-items: flex-start;
       gap: 0.25rem;
     }
+  }
+}
+
+// 📅 Estilos para Detalhamento de Vencimentos
+.row-detalhamento {
+  background-color: #f8f9fa;
+
+  td {
+    padding: 0.5rem !important;
+  }
+
+  ::ng-deep .p-accordion {
+    .p-accordion-header {
+      background: transparent;
+      border: none;
+      
+      .p-accordion-header-link {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        color: #495057;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        
+        &:hover {
+          background: #e9ecef;
+        }
+      }
+    }
+
+    .p-accordion-content {
+      border: 1px solid #dee2e6;
+      border-top: none;
+      padding: 1rem;
+      background: #ffffff;
+    }
+  }
+}
+
+.vencimentos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+
+  .vencimento-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-left: 3px solid #007bff;
+    border-radius: 4px;
+    gap: 0.5rem;
+
+    .vencimento-numero {
+      font-weight: 600;
+      color: #495057;
+      font-size: 0.85rem;
+    }
+
+    .vencimento-data {
+      flex: 1;
+      text-align: center;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    .vencimento-valor {
+      font-weight: 600;
+      color: #28a745;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .vencimentos-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -130,18 +130,31 @@ export interface ComponenteTabelaPadraoDTO {
   grupoComponente: GrupoComponente;      // NOVO v2.0
   quantidade: number;                     // NOVO v2.0
   periodicidade: Periodicidade;           // NOVO v2.0
-  percentual: number;                     // NOVO v2.0
-  percentualMinimo: number | null;
-  percentualMaximo: number | null;
+  percentual: number;          // NOVO v2.0 - Percentual usado nas validações
   valorMinimo: number | null;
   valorMaximo: number | null;
   prazoMeses: number;
   ordem: number;
   ativo: boolean;
+  tabelaPadrao?: string;                  // 🆕 v2.2: "SIM" ou "NÃO" - indica se faz parte da tabela base
   
   // ✨ NOVO v2.1: Valores calculados automaticamente pelo backend
   valor: number | null;                   // Valor total calculado em R$
   valorParcela: number | null;            // Valor de cada parcela em R$ (se parcelado)
+  
+  // 📅 NOVO v2.3: Datas de vencimento calculadas automaticamente
+  dataVencimento?: Date | string | null;  // Data do primeiro vencimento
+  listaVencimentos?: VencimentoDTO[];     // Lista completa de vencimentos (se parcelado)
+}
+
+/**
+ * DTO de Vencimento Individual
+ * Representa cada parcela com sua data e valor específico
+ */
+export interface VencimentoDTO {
+  numeroParcela: number;    // Número da parcela (1, 2, 3...)
+  dataVencimento: Date | string;     // Data de vencimento desta parcela
+  valor: number;            // Valor da parcela
 }
 
 export type TipoComponente = 'ENTRADA' | 'PARCELA' | 'COTA_UNICA';
@@ -310,6 +323,9 @@ export interface ComponenteFormulario {
   regra: ComponenteTabelaPadraoDTO;
   erroValidacao: string | null;
   mensagensErro?: string[];  // Array de mensagens de erro de validação
+  
+  // 📅 NOVO v2.3: Lista de vencimentos calculados
+  listaVencimentos?: VencimentoDTO[];     // Lista completa de vencimentos (se parcelado)
 }
 
 // ========================
