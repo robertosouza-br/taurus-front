@@ -1,6 +1,6 @@
 <div class="proposta-header" *ngIf="dadosUnidade">
-  <!-- Indicador de Steps -->
-  <div class="steps-indicator mb-3">
+  <!-- Indicador de Steps (opcional) -->
+  <div class="steps-indicator mb-3" *ngIf="exibirSteps">
     <div class="grid">
       <div class="col-12">
         <p-steps [model]="[

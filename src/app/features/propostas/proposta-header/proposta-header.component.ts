@@ -3,7 +3,7 @@ import { DadosUnidadeHeaderDTO } from '../../../core/models/proposta-fluxo.model
 
 /**
  * Componente de cabeçalho com dados da unidade
- * Exibido em todos os steps do fluxo de proposta
+ * Exibido no fluxo de proposta (com ou sem steps)
  */
 @Component({
   selector: 'app-proposta-header',
@@ -15,6 +15,7 @@ export class PropostaHeaderComponent {
   @Input() stepAtual: number = 1;
   @Input() totalSteps: number = 2; // Por enquanto 2 steps (futuramente 4)
   @Input() stepsPreenchidos: number = 1; // Quantos steps já foram preenchidos
+  @Input() exibirSteps: boolean = true; // Controla se exibe ou não os steps
   @Output() stepChange = new EventEmitter<number>();
 
   onStepChange(index: number): void {

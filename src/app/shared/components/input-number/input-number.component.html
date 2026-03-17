@@ -1,0 +1,28 @@
+<div class="input-number-container" [ngClass]="styleClass">
+  <span class="p-float-label" [class.p-input-filled]="shouldShowLabel">
+    <p-inputNumber
+      [inputId]="inputId"
+      [ngModel]="value"
+      (ngModelChange)="onValueChange($event)"
+      (onFocus)="onFocus()"
+      (onBlur)="onBlur()"
+      [mode]="mode"
+      [currency]="currency"
+      [locale]="locale"
+      [placeholder]="placeholder"
+      [min]="min"
+      [max]="max"
+      [minFractionDigits]="minFractionDigits"
+      [maxFractionDigits]="maxFractionDigits"
+      [useGrouping]="useGrouping"
+      [showButtons]="showButtons"
+      [disabled]="disabled"
+      [readonly]="readonly"
+      [required]="required">
+    </p-inputNumber>
+    <label [for]="inputId">{{ displayLabel }}</label>
+  </span>
+  <small class="p-error" *ngIf="isInvalid">
+    {{ displayErrorMessage }}
+  </small>
+</div>

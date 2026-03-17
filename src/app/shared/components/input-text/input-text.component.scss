@@ -2,6 +2,14 @@
   display: block;
   width: 100%;
 
+  &.dados-readonly {
+    ::ng-deep .p-float-label input.p-inputtext:disabled {
+      background-color: #f8f9fa !important;
+      opacity: 0.85;
+      cursor: not-allowed;
+    }
+  }
+
   ::ng-deep {
     .p-float-label {
       display: block;
@@ -42,6 +50,7 @@
         pointer-events: none;
       }
 
+      &.p-input-filled label,
       input:focus ~ label,
       input.p-filled ~ label,
       input:-webkit-autofill ~ label,

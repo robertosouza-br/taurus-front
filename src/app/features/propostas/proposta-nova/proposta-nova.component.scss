@@ -1,0 +1,248 @@
+.proposta-nova-container {
+  padding: 0 1rem 3rem;
+
+  .proposta-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  // ─── Cards ──────────────────────────────────────────────────────────────
+  .proposta-card {
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    ::ng-deep .p-card-header { padding: 0; }
+    ::ng-deep .p-card-body { padding: 1.5rem; }
+    ::ng-deep .p-card-content { padding: 0; }
+  }
+
+  .card-gradient-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.875rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    user-select: none;
+
+    i { font-size: 1rem; }
+
+    &.toggle {
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #5a6fd6 0%, #6a3f96 100%);
+      }
+    }
+
+    .toggle-icon {
+      margin-left: auto;
+      font-size: 0.85rem;
+      transition: transform 0.3s ease;
+    }
+
+    .badge-opcional {
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+  }
+
+  .collapse-placeholder {
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background-color: #d1ecf1;
+    border: 1px solid #0dcaf0;
+    color: #0c5460;
+    animation: slideDown 0.3s ease-out;
+    
+    .alert-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+      color: #0dcaf0;
+    }
+    
+    .alert-content {
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+
+  .collapse-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .collapse-section {
+    border: 1px solid #e7ecf3;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fcfdff 0%, #f8fafc 100%);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+  }
+
+  .collapse-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    background: #dfe7f1;
+    border-bottom: 1px solid #c8d3df;
+  }
+
+  .collapse-section-title {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #243244;
+
+    i {
+      color: #3f536b;
+    }
+  }
+
+  .collapse-section-body {
+    padding: 1.1rem 1.1rem 0.9rem;
+  }
+
+  .section-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #cfd9e6;
+    color: #36485f;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .section-action {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: 0.25rem;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .campo-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.4rem;
+
+    &.campo-obrigatorio::after {
+      content: ' *';
+      color: #dc2626;
+    }
+  }
+
+  .text-primary {
+    color: #667eea;
+    font-weight: 600;
+  }
+
+  .profissional-item {
+    border: 1px solid #dde5f0;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    
+    &:hover {
+      background-color: #fbfcff;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #334155;
+    }
+  }
+
+  .dados-readonly {
+    background-color: #f8f9fa !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .section-divider {
+    margin: 2rem 0;
+    border-top: 2px solid #dee2e6;
+  }
+
+  // ─── Profissionais ──────────────────────────────────────────────────────
+  .profissionais-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .profissionais-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #4c1d95;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn-adicionar-prof {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #f5f3ff;
+    border: 1px solid #c4b5fd;
+    color: #6d28d9;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover { 
+      background: #ede9fe; 
+    }
+  }
+
+  @media (max-width: 768px) {
+    .collapse-section-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .collapse-section-body {
+      padding: 1rem 0.9rem 0.85rem;
+    }
+  }
+}

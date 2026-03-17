@@ -1,0 +1,701 @@
+<div class="proposta-nova-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="[
+    { label: 'Início', url: '/dashboard' },
+    { label: 'Propostas', url: '/propostas/lista' },
+    { label: propostaId ? 'Editar Proposta' : 'Nova Proposta' }
+  ]"></app-breadcrumb>
+
+  <app-page-header
+    [title]="propostaId ? 'Editar Proposta' : 'Nova Proposta'"
+  ></app-page-header>
+
+  <!-- Header com dados da unidade (SEM STEPS) -->
+  <app-proposta-header
+    [dadosUnidade]="dadosUnidade"
+    [exibirSteps]="false"
+  ></app-proposta-header>
+
+  <!-- Formulário Unificado -->
+  <form [formGroup]="formulario" (ngSubmit)="salvar()" *ngIf="!carregando">
+    
+    <!-- ========================================== -->
+    <!-- SEÇÃO 1: DADOS INICIAIS (anteriormente Step 1) -->
+    <!-- ========================================== -->
+    
+    <h2 class="text-2xl font-bold mb-3 mt-4">
+      <i class="pi pi-building mr-2"></i>
+      Dados Iniciais
+    </h2>
+    
+    <!-- Card: Imobiliárias e Detalhes -->
+    <p-card styleClass="mb-3 reserva-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-building"></i>
+          <span>Imobiliárias</span>
+        </div>
+      </ng-template>
+
+      <!-- Dados sempre visíveis: Apenas Imobiliária Principal -->
+      <div class="grid mb-3">
+        <div class="col-12">
+          <app-autocomplete
+            label="Imobiliária Principal"
+            formControlName="imobiliariaPrincipal"
+            [suggestions]="imobiliarias"
+            field="nomeFantasia"
+            dataKey="id"
+            placeholder="Selecione a imobiliária principal"
+          ></app-autocomplete>
+        </div>
+      </div>
+
+      <!-- Divider e Toggle para Detalhes -->
+      <p-divider></p-divider>
+      
+      <div class="collapse-toggle" (click)="expandirDadosIniciaisDetalhes = !expandirDadosIniciaisDetalhes" style="cursor: pointer;">
+        <div class="flex align-items-center justify-content-between p-2">
+          <div class="flex align-items-center gap-2">
+            <i class="pi pi-building-columns"></i>
+            <span class="font-semibold">Imobiliária Secundária, Profissionais e Informações Adicionais</span>
+            <span class="badge-opcional">Opcional</span>
+          </div>
+          <i class="pi" [ngClass]="expandirDadosIniciaisDetalhes ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+        </div>
+      </div>
+
+      <!-- Placeholder quando fechado -->
+      <div *ngIf="!expandirDadosIniciaisDetalhes" class="collapse-placeholder">
+        <i class="pi pi-info-circle alert-icon"></i>
+        <p class="alert-content">
+          Clique para adicionar imobiliária secundária, profissionais, mídia de conhecimento e observações
+        </p>
+      </div>
+
+      <!-- Conteúdo expandido -->
+
+      <div *ngIf="expandirDadosIniciaisDetalhes" class="collapse-content mt-3">
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title">
+              <i class="pi pi-building mr-2"></i>
+              Imobiliária Secundária
+            </h5>
+            <span class="section-chip">Opcional</span>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+              <div class="col-12">
+                <app-autocomplete
+                  label="Imobiliária Secundária"
+                  formControlName="imobiliariaSecundaria"
+                  [suggestions]="imobiliarias"
+                  field="nomeFantasia"
+                  dataKey="id"
+                  placeholder="Selecione a imobiliária secundária"
+                ></app-autocomplete>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title">
+              <i class="pi pi-users mr-2"></i>
+              Profissionais - Imobiliária Principal
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div formArrayName="profissionaisPrincipal">
+              <div *ngFor="let profissional of profissionaisPrincipal.controls; let i = index" 
+                   [formGroupName]="i" 
+                   class="profissional-item mb-3 p-3">
+                <div class="grid">
+                  <div class="col-12">
+                    <div class="flex justify-content-between align-items-center mb-2">
+                      <h4 class="m-0">Profissional {{ i + 1 }}</h4>
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        (onClick)="removerProfissional(i, 'principal')"
+                        pTooltip="Remover profissional"
+                      ></p-button>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-6">
+                    <app-autocomplete
+                      [label]="'Tipo de Profissional'"
+                      formControlName="tipo"
+                      [suggestions]="tiposProfissionalFiltrados"
+                      (completeMethod)="filtrarTiposProfissional($event)"
+                      (onDropdownClick)="mostrarTodosTiposProfissional()"
+                      (onSelect)="onTipoProfissionalChange(i, 'principal')"
+                      field="label"
+                      [required]="true"
+                      placeholder="Digite para buscar"
+                      emptyMessage="Nenhum tipo encontrado"
+                    ></app-autocomplete>
+                  </div>
+
+                  <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value === 'CORRETOR'">
+                    <app-input-cpf
+                      label="CPF do Corretor"
+                      formControlName="cpfCorretor"
+                      placeholder="Digite o CPF do corretor"
+                      [required]="true"
+                    ></app-input-cpf>
+                    <small class="text-muted">O corretor será buscado pelo CPF</small>
+                  </div>
+
+                  <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value && profissional.get('tipo')?.value !== 'CORRETOR'">
+                    <app-input-text
+                      label="Nome do Profissional"
+                      formControlName="nomeTexto"
+                      placeholder="Digite o nome do profissional"
+                      [required]="true"
+                    ></app-input-text>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-action mt-3">
+              <app-custom-button
+                label="Adicionar Profissional Principal"
+                icon="pi pi-plus"
+                severity="secondary"
+                (click)="adicionarProfissional('principal')"
+              ></app-custom-button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="formulario.get('imobiliariaSecundaria')?.value" class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title">
+              <i class="pi pi-users mr-2"></i>
+              Profissionais - Imobiliária Secundária
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div formArrayName="profissionaisSecundaria">
+              <div *ngFor="let profissional of profissionaisSecundaria.controls; let i = index" 
+                   [formGroupName]="i" 
+                   class="profissional-item mb-3 p-3">
+                <div class="grid">
+                  <div class="col-12">
+                    <div class="flex justify-content-between align-items-center mb-2">
+                      <h4 class="m-0">Profissional {{ i + 1 }}</h4>
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        (onClick)="removerProfissional(i, 'secundaria')"
+                        pTooltip="Remover profissional"
+                      ></p-button>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-6">
+                    <app-autocomplete
+                      [label]="'Tipo de Profissional'"
+                      formControlName="tipo"
+                      [suggestions]="tiposProfissionalFiltrados"
+                      (completeMethod)="filtrarTiposProfissional($event)"
+                      (onDropdownClick)="mostrarTodosTiposProfissional()"
+                      (onSelect)="onTipoProfissionalChange(i, 'secundaria')"
+                      field="label"
+                      [required]="true"
+                      placeholder="Digite para buscar"
+                      emptyMessage="Nenhum tipo encontrado"
+                    ></app-autocomplete>
+                  </div>
+
+                  <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value === 'CORRETOR'">
+                    <app-input-cpf
+                      label="CPF do Corretor"
+                      formControlName="cpfCorretor"
+                      placeholder="Digite o CPF do corretor"
+                      [required]="true"
+                    ></app-input-cpf>
+                    <small class="text-muted">O corretor será buscado pelo CPF</small>
+                  </div>
+
+                  <div class="col-12 md:col-6" *ngIf="profissional.get('tipo')?.value && profissional.get('tipo')?.value !== 'CORRETOR'">
+                    <app-input-text
+                      label="Nome do Profissional"
+                      formControlName="nomeTexto"
+                      placeholder="Digite o nome do profissional"
+                      [required]="true"
+                    ></app-input-text>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-action mt-3">
+              <app-custom-button
+                label="Adicionar Profissional Secundária"
+                icon="pi pi-plus"
+                severity="secondary"
+                (click)="adicionarProfissional('secundaria')"
+              ></app-custom-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title">
+              <i class="pi pi-info-circle mr-2"></i>
+              Informações Adicionais
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+              <div class="col-12 md:col-6">
+                <app-autocomplete
+                  label="Como conheceu o empreendimento?"
+                  formControlName="midiaConhecimento"
+                  [suggestions]="midiasConhecimentoFiltradas"
+                  (completeMethod)="filtrarMidiasConhecimento($event)"
+                  (onDropdownClick)="mostrarTodasMidiasConhecimento()"
+                  field="label"
+                  placeholder="Digite para buscar"
+                  emptyMessage="Nenhuma opção encontrada"
+                ></app-autocomplete>
+              </div>
+
+              <div class="col-12 md:col-6">
+                <app-autocomplete
+                  label="Motivo da compra"
+                  formControlName="motivoCompraInicial"
+                  [suggestions]="motivosCompraFiltrados"
+                  (completeMethod)="filtrarMotivosCompra($event)"
+                  (onDropdownClick)="mostrarTodosMotivosCompra()"
+                  field="label"
+                  placeholder="Digite para buscar"
+                  emptyMessage="Nenhum motivo encontrado"
+                ></app-autocomplete>
+              </div>
+
+              <div class="col-12">
+                <app-input-textarea
+                  label="Observações"
+                  formControlName="observacoes"
+                  placeholder="Digite observações adicionais"
+                  [rows]="4"
+                  [maxlength]="500"
+                ></app-input-textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <div class="section-divider"></div>
+
+    <!-- ========================================== -->
+    <!-- SEÇÃO 2: DADOS DO CLIENTE (anteriormente Step 2) -->
+    <!-- ========================================== -->
+    
+    <h2 class="text-2xl font-bold mb-3 mt-4">
+      <i class="pi pi-user mr-2"></i>
+      Dados do Cliente
+    </h2>
+
+    <!-- Card: Dados Básicos do Cliente -->
+    <p-card styleClass="mb-3 reserva-card">
+      <ng-template pTemplate="header">
+        <div class="card-gradient-header">
+          <i class="pi pi-id-card"></i>
+          <span>Dados Básicos do Cliente</span>
+        </div>
+      </ng-template>
+
+      <p class="text-muted mb-3">
+        <i class="pi pi-info-circle mr-2"></i>
+        Nome, CPF e contatos foram preenchidos automaticamente da reserva.
+      </p>
+      
+      <!-- Dados sempre visíveis: Nome e CPF/CNPJ -->
+      <div class="grid mb-3">
+        <div class="col-12 md:col-6">
+          <app-input-text
+            label="Nome Completo"
+            [inputValue]="dadosBasicosReserva?.nomeCompleto || ''"
+            [disabled]="true"
+            [required]="true"
+            styleClass="dados-readonly"
+          ></app-input-text>
+        </div>
+        
+        <div class="col-12 md:col-6">
+          <app-input-text
+            label="CPF/CNPJ"
+            [inputValue]="dadosBasicosReserva?.cpfCnpj || ''"
+            [disabled]="true"
+            [required]="true"
+            styleClass="dados-readonly"
+          ></app-input-text>
+        </div>
+      </div>
+
+      <!-- Divider e Toggle para demais campos -->
+      <p-divider></p-divider>
+      
+      <div class="collapse-toggle" (click)="expandirDadosBasicosDetalhes = !expandirDadosBasicosDetalhes" style="cursor: pointer;">
+        <div class="flex align-items-center justify-content-between p-2">
+          <div class="flex align-items-center gap-2">
+            <i class="pi pi-user-edit"></i>
+            <span class="font-semibold">Demais Informações do Cliente</span>
+            <span class="badge-opcional">Opcional</span>
+          </div>
+          <i class="pi" [ngClass]="expandirDadosBasicosDetalhes ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+        </div>
+      </div>
+
+      <!-- Placeholder quando fechado -->
+      <div *ngIf="!expandirDadosBasicosDetalhes" class="collapse-placeholder">
+        <i class="pi pi-info-circle alert-icon"></i>
+        <p class="alert-content">
+          Clique para preencher dados pessoais, profissionais, financeiros, endereço e origem da venda
+        </p>
+      </div>
+
+      <!-- Conteúdo expandido -->
+      <div *ngIf="expandirDadosBasicosDetalhes" class="collapse-content mt-3">
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title text-primary">
+              <i class="pi pi-user mr-2"></i>
+              Dados Pessoais
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+          <div class="col-12 md:col-6" *ngIf="dadosBasicosReserva?.clienteEstrangeiro">
+            <app-input-text
+              label="Passaporte"
+              [inputValue]="dadosBasicosReserva?.passaporte || ''"
+              [disabled]="true"
+              styleClass="dados-readonly"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-text
+              label="Contato Principal"
+              [inputValue]="formatarContatoReserva(dadosBasicosReserva?.contatoPrincipal, dadosBasicosReserva?.tipoContatoPrincipal)"
+              [disabled]="true"
+              [required]="true"
+              styleClass="dados-readonly"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-6" *ngIf="dadosBasicosReserva?.contatoSecundario">
+            <app-input-text
+              label="Contato Secundário"
+              [inputValue]="formatarContatoReserva(dadosBasicosReserva?.contatoSecundario, dadosBasicosReserva?.tipoContatoSecundario)"
+              [disabled]="true"
+              styleClass="dados-readonly"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-date
+              label="Data de Nascimento"
+              formControlName="dataNascimento"
+              placeholder="DD/MM/AAAA"
+            ></app-input-date>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-autocomplete
+              label="Estado Civil"
+              formControlName="estadoCivil"
+              [suggestions]="estadosCivisFiltrados"
+              (completeMethod)="filtrarEstadosCivis($event)"
+              (onDropdownClick)="mostrarTodosEstadosCivis()"
+              field="label"
+              placeholder="Digite para buscar"
+              emptyMessage="Nenhuma opção encontrada"
+            ></app-autocomplete>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title text-primary">
+              <i class="pi pi-briefcase mr-2"></i>
+              Informações Profissionais
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+          <div class="col-12 md:col-6">
+            <app-input-text
+              label="Profissão"
+              formControlName="profissao"
+              placeholder="Digite a profissão"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-text
+              label="Empresa onde Trabalha"
+              formControlName="empresaTrabalho"
+              placeholder="Digite o nome da empresa"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-number
+              label="Tempo de Empresa"
+              formControlName="tempoEmpresaMeses"
+              placeholder="Em meses"
+              [min]="0"
+              [maxFractionDigits]="0"
+            ></app-input-number>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-cnpj
+              label="CNPJ da Empresa"
+              formControlName="cnpjEmpresa"
+              placeholder="00.000.000/0000-00"
+            ></app-input-cnpj>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title text-primary">
+              <i class="pi pi-dollar mr-2"></i>
+              Informações Financeiras
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+          <div class="col-12 md:col-4">
+            <app-input-number
+              label="Renda Mensal"
+              formControlName="rendaMensal"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+            ></app-input-number>
+          </div>
+          
+          <div class="col-12 md:col-4">
+            <app-input-number
+              label="Renda Comprovada"
+              formControlName="rendaComprovada"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+            ></app-input-number>
+          </div>
+          
+          <div class="col-12 md:col-4">
+            <app-input-number
+              label="Outras Rendas"
+              formControlName="outrasRendas"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+            ></app-input-number>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-text
+              label="Banco Principal"
+              formControlName="bancoPrincipal"
+              placeholder="Digite o nome do banco"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-input-text
+              label="Agência"
+              formControlName="agencia"
+              placeholder="Ex: 1234-5"
+            ></app-input-text>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title text-primary">
+              <i class="pi pi-map-marker mr-2"></i>
+              Endereço Residencial
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+          <div class="col-12 md:col-3">
+            <app-input-cep
+              label="CEP"
+              formControlName="cep"
+              placeholder="00000-000"
+              (onBlurEvent)="buscarCep()"
+            ></app-input-cep>
+          </div>
+          
+          <div class="col-12 md:col-7">
+            <app-input-text
+              label="Logradouro"
+              formControlName="logradouro"
+              placeholder="Digite o logradouro"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-2">
+            <app-input-text
+              label="Número"
+              formControlName="numero"
+              placeholder="Nº"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-4">
+            <app-input-text
+              label="Complemento"
+              formControlName="complemento"
+              placeholder="Apto, Bloco, etc"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-4">
+            <app-input-text
+              label="Bairro"
+              formControlName="bairro"
+              placeholder="Digite o bairro"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-3">
+            <app-input-text
+              label="Cidade"
+              formControlName="cidade"
+              placeholder="Digite a cidade"
+            ></app-input-text>
+          </div>
+          
+          <div class="col-12 md:col-1">
+            <app-autocomplete
+              label="UF"
+              formControlName="uf"
+              [suggestions]="ufsFiltradas"
+              (completeMethod)="filtrarUfs($event)"
+              (onDropdownClick)="mostrarTodasUfs()"
+              field="label"
+              placeholder="UF"
+              emptyMessage="UF não encontrada"
+            ></app-autocomplete>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse-section">
+          <div class="collapse-section-header">
+            <h5 class="collapse-section-title text-primary">
+              <i class="pi pi-tag mr-2"></i>
+              Origem da Venda
+            </h5>
+          </div>
+
+          <div class="collapse-section-body">
+            <div class="grid">
+          <div class="col-12 md:col-6">
+            <app-autocomplete
+              label="Como conheceu o empreendimento?"
+              formControlName="midiaOrigem"
+              [suggestions]="midiasOrigemFiltradas"
+              (completeMethod)="filtrarMidiasOrigem($event)"
+              (onDropdownClick)="mostrarTodasMidiasOrigem()"
+              field="label"
+              placeholder="Digite para buscar"
+              emptyMessage="Nenhuma opção encontrada"
+            ></app-autocomplete>
+          </div>
+          
+          <div class="col-12 md:col-6">
+            <app-autocomplete
+              label="Motivo da Compra"
+              formControlName="motivoCompra"
+              [suggestions]="motivosCompraFiltrados"
+              (completeMethod)="filtrarMotivosCompra($event)"
+              (onDropdownClick)="mostrarTodosMotivosCompra()"
+              field="label"
+              placeholder="Digite para buscar"
+              emptyMessage="Nenhum motivo encontrado"
+            ></app-autocomplete>
+          </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Botões de Ação -->
+    <div class="flex justify-content-end gap-2 mt-4">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        type="button"
+        (click)="cancelar()"
+      ></app-custom-button>
+      
+      <app-custom-button
+        label="Voltar para Lista"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        type="button"
+        (click)="voltar()"
+      ></app-custom-button>
+      
+      <app-custom-button
+        type="submit"
+        [label]="propostaId ? 'Atualizar Proposta' : 'Criar Proposta'"
+        icon="pi pi-check"
+        [loading]="salvando"
+      ></app-custom-button>
+    </div>
+  </form>
+
+  <!-- Loading -->
+  <div class="flex justify-content-center align-items-center py-8" *ngIf="carregando">
+    <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+  </div>
+</div>
+
+<p-toast></p-toast>

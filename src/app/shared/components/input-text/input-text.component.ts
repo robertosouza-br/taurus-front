@@ -16,6 +16,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class InputTextComponent implements ControlValueAccessor {
   @Input() id: string = '';
   @Input() label: string = '';
+  @Input() set inputValue(value: any) {
+    this.value = value ?? '';
+  }
   @Input() placeholder: string = '';
   @Input() type: string = 'text';
   @Input() required: boolean = false;
@@ -29,6 +32,7 @@ export class InputTextComponent implements ControlValueAccessor {
 
   value: any = '';
   touched: boolean = false;
+  isFocused: boolean = false;
   emailInvalido: boolean = false;
   private _generatedId: string = `input-${Math.random().toString(36).substr(2, 9)}`;
   private onChange: (value: any) => void = () => {};
@@ -62,6 +66,7 @@ export class InputTextComponent implements ControlValueAccessor {
   }
 
   onBlur(): void {
+    this.isFocused = false;
     this.touched = true;
     this.onTouched();
     
@@ -71,6 +76,10 @@ export class InputTextComponent implements ControlValueAccessor {
     } else {
       this.emailInvalido = false;
     }
+  }
+
+  onFocus(): void {
+    this.isFocused = true;
   }
 
   private validarEmail(email: string): boolean {
@@ -84,6 +93,10 @@ export class InputTextComponent implements ControlValueAccessor {
 
   get displayLabel(): string {
     return this.required ? `${this.label} *` : this.label;
+  }
+
+  get shouldShowLabel(): boolean {
+    return this.isFocused || !!this.value;
   }
 
   get isInvalid(): boolean {

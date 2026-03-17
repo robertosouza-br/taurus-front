@@ -46,6 +46,7 @@ import { BreadcrumbComponent } from './components/breadcrumb/breadcrumb.componen
 import { ActionButtonComponent } from './components/action-button/action-button.component';
 import { CustomButtonComponent } from './components/custom-button/custom-button.component';
 import { InputTextComponent } from './components/input-text/input-text.component';
+import { InputNumberComponent } from './components/input-number/input-number.component';
 import { InputTextareaComponent } from './components/input-textarea/input-textarea.component';
 import { InputCpfComponent } from './components/input-cpf/input-cpf.component';
 import { InputCnpjComponent } from './components/input-cnpj/input-cnpj.component';
@@ -90,6 +91,7 @@ import { CalendarModule } from 'primeng/calendar';
     DataTableTemplateDirective,
     CustomButtonComponent,
     InputTextComponent,
+    InputNumberComponent,
     InputTextareaComponent,
     InputCpfComponent,
     InputCnpjComponent,
@@ -162,6 +164,7 @@ import { CalendarModule } from 'primeng/calendar';
     DataTableTemplateDirective,
     CustomButtonComponent,
     InputTextComponent,
+    InputNumberComponent,
     InputTextareaComponent,
     InputCpfComponent,
     InputCnpjComponent,

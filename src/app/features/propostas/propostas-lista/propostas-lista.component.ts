@@ -81,11 +81,11 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
   iniciarProposta(reserva: ReservaPropostaDTO): void {
     console.log('=== Iniciando navegação ===');
     console.log('Reserva ID:', reserva.id);
-    console.log('Rota destino:', '/propostas/novo/dados-iniciais');
+    console.log('Rota destino:', '/propostas/nova');
     console.log('Query params:', { reservaId: reserva.id });
     
-    // Navega para Step 1 (Dados Iniciais) passando reservaId como query param
-    const navegacao = this.router.navigate(['/propostas/novo/dados-iniciais'], {
+    // Navega para Nova Proposta (formulário unificado) passando reservaId como query param
+    const navegacao = this.router.navigate(['/propostas/nova'], {
       queryParams: { reservaId: reserva.id }
     });
     
@@ -96,15 +96,10 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
   }
 
   continuarProposta(reserva: ReservaPropostaDTO): void {
-    if (reserva.propostaId) {
-      // Se já existe proposta, vai direto para Step 2  
-      this.router.navigate(['/propostas/step2'], {
-        queryParams: { reservaId: reserva.id }
-      });
-    } else {
-      // Se não existe, inicia nova proposta
-      this.iniciarProposta(reserva);
-    }
+    // Sempre redireciona para o formulário unificado
+    this.router.navigate(['/propostas/nova'], {
+      queryParams: { reservaId: reserva.id }
+    });
   }
 
   onRowClick(reserva: ReservaPropostaDTO): void {

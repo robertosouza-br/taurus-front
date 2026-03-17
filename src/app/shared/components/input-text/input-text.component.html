@@ -1,17 +1,19 @@
 <div class="input-text-container" [ngClass]="styleClass">
-  <span class="p-float-label">
+  <span class="p-float-label" [class.p-input-filled]="shouldShowLabel">
     <input 
       [id]="inputId"
       [type]="type"
       pInputText
       [value]="value"
       (input)="onInputChange($event)"
+      (focus)="onFocus()"
       (blur)="onBlur()"
       [placeholder]="placeholder"
       [disabled]="disabled"
       [readonly]="readonly"
       [attr.maxlength]="maxlength"
       [required]="required"
+      [class.p-filled]="shouldShowLabel"
       [class.ng-invalid]="isInvalid"
       [class.ng-dirty]="isInvalid">
     <label [for]="inputId">{{ displayLabel }}</label>
