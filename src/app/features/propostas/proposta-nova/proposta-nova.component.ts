@@ -520,6 +520,25 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       }
     });
     
+    // 🎯 AJUSTE DE ARREDONDAMENTO: Garantir que soma dos percentuais = 100%
+    if (componentesSelecionados.length > 0) {
+      const somaPercentuais = componentesSelecionados.reduce((sum, c) => sum + c.percentual, 0);
+      const diferenca = 100 - somaPercentuais;
+      
+      // Se diferença for significativa (> 0.01%), ajustar no último componente
+      if (Math.abs(diferenca) > 0.01) {
+        // Encontrar o último componente que NÃO é ATO nem SINAL (esses são sempre recalculados)
+        const ultimoParaAjustar = [...componentesSelecionados]
+          .reverse()
+          .find(c => !c.nomeComponente.toUpperCase().includes('ATO') && 
+                     !c.nomeComponente.toUpperCase().includes('SINAL'));
+        
+        if (ultimoParaAjustar) {
+          ultimoParaAjustar.percentual += diferenca;
+        }
+      }
+    }
+    
     // Diferença em relação à tabela padrão
     this.diferenca = this.valorProposta - this.valorTabela;
     this.percentualDiferenca = this.valorTabela > 0 
