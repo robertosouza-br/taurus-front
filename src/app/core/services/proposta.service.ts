@@ -9,6 +9,12 @@ import {
   CriarPropostaRequest,
   CriarPropostaResponse
 } from '../models/proposta-fluxo.model';
+import {
+  PropostaSimplificadaDTO,
+  SalvarPropostaSimplificadaRequest,
+  SalvarPropostaResponse,
+  CalcularComponentesResponse
+} from '../models/proposta-simplificada.model';
 
 /**
  * Service para gerenciar o fluxo de Proposta Multi-Step
@@ -162,5 +168,77 @@ export class PropostaService {
     }
 
     return this.http.get<Page<CriarPropostaResponse>>(this.baseUrl, { params });
+  }
+
+  // ========================
+  // PROPOSTA SIMPLIFICADA
+  // ========================
+
+  /**
+   * Busca proposta simplificada por reserva
+   * GET /api/v1/propostas/reserva/{reservaId}/simplificada
+   * 
+   * Se não existir proposta, retorna estrutura vazia com dados da reserva
+   * e modalidade/tabela padrão do empreendimento
+   * 
+   * @param reservaId ID da reserva
+   */
+  buscarPropostaSimplificada(reservaId: number): Observable<PropostaSimplificadaDTO> {
+    return this.http.get<PropostaSimplificadaDTO>(
+      `${this.baseUrl}/reserva/${reservaId}/simplificada`
+    );
+  }
+
+  /**
+   * Salva proposta simplificada (criar ou atualizar)
+   * POST /api/v1/propostas
+   * 
+   * @param dados Dados da proposta com componentes de simulação
+   */
+  salvarPropostaSimplificada(dados: SalvarPropostaSimplificadaRequest): Observable<SalvarPropostaResponse> {
+    return this.http.post<SalvarPropostaResponse>(this.baseUrl, dados);
+  }
+
+  /**
+   * Atualiza proposta simplificada existente
+   * PUT /api/v1/propostas/{id}
+   * 
+   * @param propostaId ID da proposta
+   * @param dados Dados da proposta com componentes de simulação
+   */
+  atualizarPropostaSimplificada(
+    propostaId: number,
+    dados: SalvarPropostaSimplificadaRequest
+  ): Observable<SalvarPropostaResponse> {
+    return this.http.put<SalvarPropostaResponse>(`${this.baseUrl}/${propostaId}`, dados);
+  }
+
+  // ========================
+  // CÁLCULO DE COMPONENTES (NOVO v2.0)
+  // ========================
+
+  /**
+   * Calcula valores dos componentes baseado na modalidade e valor da unidade
+   * GET /api/v1/propostas/modalidade/{modalidadeId}/calcular-componentes
+   * 
+   * Retorna componentes com valorTotal e valorParcela calculados pelo backend
+   * 
+   * @param modalidadeId Código da modalidade
+   * @param codigoEmpreendimento Código do empreendimento
+   * @param valorUnidade Valor da unidade
+   */
+  calcularComponentes(
+    modalidadeId: string,
+    codigoEmpreendimento: string,
+    valorUnidade: number
+  ): Observable<CalcularComponentesResponse> {
+    const params = new HttpParams()
+      .set('codigoEmpreendimento', codigoEmpreendimento)
+      .set('valorUnidade', valorUnidade.toString());
+
+    return this.http.get<CalcularComponentesResponse>(
+      `${this.baseUrl}/modalidade/${modalidadeId}/calcular-componentes`,
+      { params }
+    );
   }
 }

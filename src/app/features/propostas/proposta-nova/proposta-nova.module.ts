@@ -4,6 +4,10 @@ import { SharedModule } from '../../../shared/shared.module';
 import { PropostaNovaRoutingModule } from './proposta-nova-routing.module';
 import { PropostaNovaComponent } from './proposta-nova.component';
 import { PropostasSharedModule } from '../propostas-shared.module';
+import { DialogModule } from 'primeng/dialog';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ChartModule } from 'primeng/chart';
 
 @NgModule({
   declarations: [
@@ -12,6 +16,10 @@ import { PropostasSharedModule } from '../propostas-shared.module';
   imports: [
     CommonModule,
     SharedModule,
+    DialogModule,
+    ProgressSpinnerModule,
+    CheckboxModule,
+    ChartModule,
     PropostasSharedModule,
     PropostaNovaRoutingModule
   ]
