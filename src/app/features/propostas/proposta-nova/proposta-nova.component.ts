@@ -99,6 +99,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // Comparação tabela vs proposta
   comparacao: ComparacaoMetricaDTO[] = [];
   graficoData: any = { labels: [], datasets: [] };
+  private simulacaoAlterada = false;
   
   // 📋 VALIDAÇÕES DE APROVAÇÃO AUTOMÁTICA
   violacoesAprovacao: RegraValidacaoDTO[] = [];
@@ -373,6 +374,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   private inicializarComponentes(): void {
     if (!this.proposta) return;
+
+    this.simulacaoAlterada = false;
     
     const modalidade = this.proposta.modalidadeTabelaPadrao;
     const simulacao = this.proposta.simulacao;
@@ -414,7 +417,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           componente.vencimento,
           componente.quantidade,
           regra.periodicidade ?? 0,
-          componente.valorParcela
+          componente.valorParcela,
+          componente.valorTotal
         );
         
         return componente;
@@ -473,7 +477,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               vencimento,
               componente.quantidade,
               regra.periodicidade ?? 0,
-              valorParcela
+              valorParcela,
+              valorTotal
             );
           }
           
@@ -635,7 +640,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   onValorParcelaChange(componente: ComponenteFormulario): void {
     // Recalcula valor total do componente editado
-    componente.valorTotal = componente.valorParcela * componente.quantidade;
+    componente.valorTotal = this.arredondarMoeda(componente.valorParcela * componente.quantidade);
     this.atualizarVencimentosComponente(componente);
     
     this.recalcularSimulacao();
@@ -652,6 +657,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   onValorParcelaInputChange(comp: ComponenteFormulario, valorDigitado: string): void {
     this.valorParcelaInputMap.set(comp, valorDigitado);
     comp.valorParcela = this.parseValorMonetario(valorDigitado);
+    this.simulacaoAlterada = true;
     this.onValorParcelaChange(comp);
   }
 
@@ -668,8 +674,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * componentes NÃO são alterados, apenas os percentuais são recalculados.
    */
   onQuantidadeChange(componente: ComponenteFormulario): void {
+    this.simulacaoAlterada = true;
+
     // Recalcula total baseado na nova quantidade
-    componente.valorTotal = componente.valorParcela * componente.quantidade;
+    componente.valorTotal = this.arredondarMoeda(componente.valorParcela * componente.quantidade);
     
     // 📅 Atualiza datas de vencimento
     this.atualizarVencimentosComponente(componente);
@@ -681,6 +689,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Manipula mudança de data de vencimento
    */
   onVencimentoChange(componente: ComponenteFormulario): void {
+    this.simulacaoAlterada = true;
+
     // 📅 Atualiza datas de vencimento
     this.atualizarVencimentosComponente(componente);
     
@@ -742,6 +752,34 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return Number.isFinite(valorNumerico) ? valorNumerico : 0;
   }
 
+  private arredondarMoeda(valor: number): number {
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
+  }
+
+  private valorParaCentavos(valor: number): number {
+    return Math.round((valor + Number.EPSILON) * 100);
+  }
+
+  private calcularValorParcelaBase(valorTotal: number, quantidade: number): number {
+    const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 1);
+    const valorTotalCentavos = this.valorParaCentavos(valorTotal);
+    const valorBaseCentavos = Math.floor(valorTotalCentavos / quantidadeSegura);
+
+    return valorBaseCentavos / 100;
+  }
+
+  private distribuirValorTotalEmParcelas(valorTotal: number, quantidade: number): number[] {
+    const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 1);
+    const valorTotalCentavos = this.valorParaCentavos(valorTotal);
+    const valorBaseCentavos = Math.floor(valorTotalCentavos / quantidadeSegura);
+    const parcelas = Array.from({ length: quantidadeSegura }, () => valorBaseCentavos);
+    const somaParcelasIniciais = valorBaseCentavos * (quantidadeSegura - 1);
+
+    parcelas[quantidadeSegura - 1] = valorTotalCentavos - somaParcelasIniciais;
+
+    return parcelas.map(valorCentavos => valorCentavos / 100);
+  }
+
   /**
    * Manipula mudança de seleção de um componente (checkbox)
    */
@@ -763,9 +801,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       (sum, c) => sum + c.valorTotal, 0
     );
     
-    // 🎯 Detectar se houve alteração na estrutura (adição/duplicação/alteração de valores)
-    // Se valorProposta ≠ valorTabela, significa que houve mudanças e TODOS os percentuais devem ser recalculados
-    const houveAlteracao = Math.abs(this.valorProposta - this.valorTabela) > 0.01;
+    // 🎯 Recalcular percentuais sempre que a simulação já tiver sofrido intervenção do usuário,
+    // mesmo que o total volte a coincidir com o valor da tabela padrão.
+    const houveAlteracao = this.simulacaoAlterada;
     
     // Recalcula percentual de cada componente em relação ao VALOR DA PROPOSTA
     componentesComValor.forEach(componente => {
@@ -859,12 +897,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     dataBase: Date | null,
     quantidade: number,
     periodicidade: number,
-    valorParcela: number
+    valorParcela: number,
+    valorTotal?: number
   ): import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] {
     const vencimentos: import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] = [];
+    const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 0);
+    const valorTotalCalculado = valorTotal !== undefined
+      ? this.arredondarMoeda(valorTotal)
+      : this.arredondarMoeda(valorParcela * quantidadeSegura);
     
     // Se não tem data base ou quantidade inválida, retorna array vazio
-    if (!dataBase || quantidade <= 0) {
+    if (!dataBase || quantidadeSegura <= 0) {
       return vencimentos;
     }
     
@@ -873,13 +916,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       vencimentos.push({
         numeroParcela: 1,
         dataVencimento: new Date(dataBase),
-        valor: valorParcela * quantidade  // Valor total à vista
+        valor: valorTotalCalculado
       });
       return vencimentos;
     }
+
+    const valoresParcelas = this.distribuirValorTotalEmParcelas(valorTotalCalculado, quantidadeSegura);
     
     // Para periodicidades > 0, gerar N parcelas adicionando periodicidade em meses
-    for (let i = 0; i < quantidade; i++) {
+    for (let i = 0; i < quantidadeSegura; i++) {
       const dataVencimento = new Date(dataBase);
       
       // Adicionar (i * periodicidade) meses à data base
@@ -888,7 +933,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       vencimentos.push({
         numeroParcela: i + 1,
         dataVencimento: dataVencimento,
-        valor: valorParcela
+        valor: valoresParcelas[i]
       });
     }
     
@@ -909,7 +954,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       componente.vencimento,
       componente.quantidade,
       componente.periodicidade,
-      componente.valorParcela
+      componente.valorParcela,
+      componente.valorTotal
     );
   }
 
@@ -1591,6 +1637,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * 🔢 v2.6 - Duplicação mantém valores do componente original
    */
   duplicarComponente(componente: ComponenteFormulario): void {
+    this.simulacaoAlterada = true;
     const index = this.componentes.indexOf(componente);
     const novoComponente: ComponenteFormulario = {
       ...componente,
@@ -1645,8 +1692,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     const quantidade = Math.max(componente.quantidade || 1, 1);
-    componente.valorTotal += valorRestante;
-    componente.valorParcela = componente.valorTotal / quantidade;
+    this.simulacaoAlterada = true;
+    componente.valorTotal = this.arredondarMoeda(componente.valorTotal + valorRestante);
+    componente.valorParcela = this.calcularValorParcelaBase(componente.valorTotal, quantidade);
 
     this.valorParcelaInputMap.set(componente, this.formatarValorParcelaExibicao(componente.valorParcela));
     this.atualizarVencimentosComponente(componente);
@@ -1676,6 +1724,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       acceptLabel: 'Sim, remover',
       rejectLabel: 'Cancelar',
       accept: () => {
+        this.simulacaoAlterada = true;
         // 🗑️ REMOVER completamente do array (não apenas desmarcar)
         const index = this.componentes.indexOf(componente);
         if (index > -1) {
@@ -1703,6 +1752,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * 🔢 v2.6 - SEMPRE adiciona novo componente (permite duplicação ilimitada)
    */
   adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
+    this.simulacaoAlterada = true;
     // 🆕 SEMPRE adicionar novo componente, mesmo que já exista (duplicação permitida)
     // 🎯 Calcular vencimento inicial respeitando periodicidade
     const hoje = new Date();
@@ -1738,6 +1788,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       vencimentoInicial,
       1,
       componente.periodicidade ?? 0,
+      0,
       0
     );
     
@@ -2239,7 +2290,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         return;
       }
 
-      this.gerarVencimentos(dataBase, quantidade, componente.periodicidade ?? 0, valorParcela)
+      this.gerarVencimentos(
+        dataBase,
+        quantidade,
+        componente.periodicidade ?? 0,
+        valorParcela,
+        componente.valor ?? this.arredondarMoeda(valorParcela * quantidade)
+      )
         .forEach(vencimento => {
           parcelas.push({
             data: new Date(vencimento.dataVencimento),
