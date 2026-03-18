@@ -118,6 +118,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   };
   
   // Controle de seções colapsáveis
+  dadosClienteCorretorExpandido = true;
+  preencherPropostaExpandido = true;
+  validacoesAprovacaoExpandido = true;
+  relatorioComparativoExpandido = true;
   tabelaPadraoExpandida = false;
   
   // Labels e severidades

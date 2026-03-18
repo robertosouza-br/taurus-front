@@ -141,6 +141,23 @@
       font-size: 1rem;
     }
 
+    &.card-header-collapsible {
+      justify-content: space-between;
+      cursor: pointer;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+       .header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+    }
+
     &.card-header-primary {
       background: var(--proposta-header-bg);
       justify-content: space-between;
@@ -194,6 +211,26 @@
     .toggle-icon {
       margin-left: auto;
       font-size: 0.85rem;
+    }
+  }
+
+  .collapse-fade-content {
+    animation: collapse-fade-in 120ms ease-out;
+  }
+
+  .collapse-fade-content-inline {
+    margin-top: 0.85rem;
+  }
+
+  @keyframes collapse-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
@@ -545,6 +582,103 @@
       font-size: 0.95rem;
       font-weight: 500;
       color: #1f2937;
+    }
+  }
+
+  .relacionamento-readonly {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 100%;
+    padding: 1rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid #dbe4ee;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+
+    &.relacionamento-readonly-principal {
+      border-color: #bfdbfe;
+      background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+    }
+
+    &.relacionamento-readonly-secundario {
+      border-color: #ddd6fe;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+    }
+
+    .relacionamento-titulo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .relacionamento-tipo {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.75rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .relacionamento-profissionais {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .relacionamento-subtitulo {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+    }
+
+    .relacionamento-profissionais-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .profissional-pill {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(203, 213, 225, 0.9);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .profissional-pill-nome {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .profissional-pill-cargo {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6366f1;
+      background: #eef2ff;
+      border-radius: 999px;
+      padding: 0.18rem 0.45rem;
+    }
+
+    .relacionamento-empty {
+      font-size: 0.875rem;
+      color: #64748b;
     }
   }
 

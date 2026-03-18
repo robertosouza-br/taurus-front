@@ -79,58 +79,99 @@
     <!-- ─── CARD: DADOS DO CLIENTE E CORRETOR ──────────────────────────── -->
     <p-card class="proposta-card">
       <ng-template pTemplate="header">
-        <div class="card-gradient-header">
-          <i class="pi pi-users"></i>
-          <span>Dados do Cliente e Corretor</span>
+        <div class="card-gradient-header card-header-collapsible" (click)="dadosClienteCorretorExpandido = !dadosClienteCorretorExpandido">
+          <div class="header-left">
+            <i class="pi pi-users"></i>
+            <span>Dados do Cliente e Corretor</span>
+          </div>
+          <i class="pi toggle-icon" [ngClass]="dadosClienteCorretorExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
         </div>
       </ng-template>
 
+      <div *ngIf="dadosClienteCorretorExpandido" class="collapse-fade-content">
       <div class="grid">
-        <div class="col-12 md:col-3">
+        <div class="col-12 md:col-6 lg:col-3">
           <div class="campo-readonly">
             <span class="campo-label">Cliente</span>
             <span class="campo-valor">{{ proposta.cliente.nome }}</span>
           </div>
         </div>
-        <div class="col-12 md:col-3">
+        <div class="col-12 md:col-6 lg:col-3">
           <div class="campo-readonly">
             <span class="campo-label">CPF</span>
             <span class="campo-valor">{{ proposta.cliente.cpfCnpj }}</span>
           </div>
         </div>
-        <div class="col-12 md:col-3">
-          <div class="campo-readonly">
-            <span class="campo-label">Corretor</span>
-            <span class="campo-valor">{{ proposta.corretor.nome }}</span>
+      </div>
+
+      <div class="grid mt-3">
+        <div class="col-12 md:col-6" *ngIf="proposta.imobiliariaPrincipal">
+          <div class="relacionamento-readonly relacionamento-readonly-principal">
+            <span class="campo-label">Imobiliária Principal</span>
+            <span class="campo-valor relacionamento-titulo">{{ proposta.imobiliariaPrincipal.nome }}</span>
+            <span class="relacionamento-tipo">{{ proposta.imobiliariaPrincipal.tipoRelacionamento }}</span>
+
+            <div class="relacionamento-profissionais" *ngIf="proposta.profissionaisPrincipal.length; else semProfissionaisPrincipal">
+              <span class="relacionamento-subtitulo">Corretores vinculados</span>
+              <div class="relacionamento-profissionais-lista">
+                <span class="profissional-pill" *ngFor="let profissional of proposta.profissionaisPrincipal">
+                  <span class="profissional-pill-nome">{{ profissional.nome }}</span>
+                  <span class="profissional-pill-cargo" *ngIf="profissional.cargo">{{ profissional.cargo }}</span>
+                </span>
+              </div>
+            </div>
+
+            <ng-template #semProfissionaisPrincipal>
+              <span class="relacionamento-empty">Nenhum corretor vinculado à imobiliária principal.</span>
+            </ng-template>
           </div>
         </div>
-        <div class="col-12 md:col-3">
-          <div class="campo-readonly">
-            <span class="campo-label">Imobiliária</span>
-            <span class="campo-valor">{{ proposta.imobiliariaPrincipal.nome }}</span>
+
+        <div class="col-12 md:col-6" *ngIf="proposta.imobiliariaSecundaria">
+          <div class="relacionamento-readonly relacionamento-readonly-secundario">
+            <span class="campo-label">Imobiliária Secundária</span>
+            <span class="campo-valor relacionamento-titulo">{{ proposta.imobiliariaSecundaria.nome }}</span>
+            <span class="relacionamento-tipo">{{ proposta.imobiliariaSecundaria.tipoRelacionamento }}</span>
+
+            <div class="relacionamento-profissionais" *ngIf="proposta.profissionaisSecundaria?.length; else semProfissionaisSecundaria">
+              <span class="relacionamento-subtitulo">Corretores vinculados</span>
+              <div class="relacionamento-profissionais-lista">
+                <span class="profissional-pill" *ngFor="let profissional of proposta.profissionaisSecundaria">
+                  <span class="profissional-pill-nome">{{ profissional.nome }}</span>
+                  <span class="profissional-pill-cargo" *ngIf="profissional.cargo">{{ profissional.cargo }}</span>
+                </span>
+              </div>
+            </div>
+
+            <ng-template #semProfissionaisSecundaria>
+              <span class="relacionamento-empty">Nenhum corretor vinculado à imobiliária secundária.</span>
+            </ng-template>
           </div>
         </div>
+      </div>
       </div>
     </p-card>
 
     <!-- ─── CARD: SIMULAÇÃO DE VENDA ────────────────────────────────────── -->
     <p-card class="proposta-card">
       <ng-template pTemplate="header">
-        <div class="card-gradient-header card-header-primary">
+        <div class="card-gradient-header card-header-primary card-header-collapsible" (click)="preencherPropostaExpandido = !preencherPropostaExpandido">
           <div class="header-left">
             <i class="pi pi-calculator"></i>
             <span>Preencher Proposta</span>
           </div>
-          <div class="header-right" *ngIf="proposta.numeroProposta">
-            <span class="proposta-numero-badge">
+          <div class="header-right">
+            <span class="proposta-numero-badge" *ngIf="proposta.numeroProposta">
               <span class="numero-label">Proposta:</span>
               <span class="numero-valor">{{ proposta.numeroProposta }}</span>
               <span class="numero-tipo">Sequencial</span>
             </span>
+            <i class="pi toggle-icon" [ngClass]="preencherPropostaExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
           </div>
         </div>
       </ng-template>
 
+      <div *ngIf="preencherPropostaExpandido" class="collapse-fade-content">
       <div class="modalidade-section">
         <div class="modalidade-header" (click)="tabelaPadraoExpandida = !tabelaPadraoExpandida">
           <div class="modalidade-info">
@@ -144,7 +185,7 @@
           </div>
         </div>
 
-        <div class="tabela-padrao-content" *ngIf="tabelaPadraoExpandida">
+        <div class="tabela-padrao-content collapse-fade-content collapse-fade-content-inline" *ngIf="tabelaPadraoExpandida">
           <p-table [value]="componentesTabelaPadrao"
                    styleClass="p-datatable-sm modern-table standard-table"
                    responsiveLayout="scroll">
@@ -541,7 +582,7 @@
           </div>
         </aside>
       </div>
-
+      </div>
     </p-card>
 
     <!-- ─── CARD: VALIDAÇÕES DE APROVAÇÃO AUTOMÁTICA ────────────────────── -->
@@ -549,19 +590,24 @@
           [ngClass]="possuiViolacoesAprovacao ? 'validacoes-card-alerta' : 'validacoes-card-ok'"
           *ngIf="violacoesAprovacao.length > 0">
       <ng-template pTemplate="header">
-        <div class="card-gradient-header card-header-validacoes"
+           <div class="card-gradient-header card-header-validacoes card-header-collapsible"
+             (click)="validacoesAprovacaoExpandido = !validacoesAprovacaoExpandido"
              [class.is-alerta]="possuiViolacoesAprovacao"
              [class.is-ok]="!possuiViolacoesAprovacao">
           <div class="header-left">
             <i class="pi pi-shield"></i>
             <span>Validações de Aprovação Automática</span>
           </div>
-          <span class="header-status-badge">
-            {{ possuiViolacoesAprovacao ? 'Aprovação manual necessária' : 'Dentro dos critérios automáticos' }}
-          </span>
+          <div class="header-right">
+            <span class="header-status-badge">
+              {{ possuiViolacoesAprovacao ? 'Aprovação manual necessária' : 'Dentro dos critérios automáticos' }}
+            </span>
+            <i class="pi toggle-icon" [ngClass]="validacoesAprovacaoExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          </div>
         </div>
       </ng-template>
 
+      <div *ngIf="validacoesAprovacaoExpandido" class="collapse-fade-content">
       <div class="validacoes-section">
         <div class="validacoes-overview">
           <div class="validacoes-overview-copy">
@@ -657,17 +703,22 @@
           </ng-template>
         </p-table>
       </div>
+      </div>
     </p-card>
 
     <!-- ─── CARD: ANÁLISE DA PROPOSTA ───────────────────────────────────── -->
     <p-card class="proposta-card">
       <ng-template pTemplate="header">
-        <div class="card-gradient-header">
-          <i class="pi pi-chart-line"></i>
-          <span>Relatório Comparativo</span>
+        <div class="card-gradient-header card-header-collapsible" (click)="relatorioComparativoExpandido = !relatorioComparativoExpandido">
+          <div class="header-left">
+            <i class="pi pi-chart-line"></i>
+            <span>Relatório Comparativo</span>
+          </div>
+          <i class="pi toggle-icon" [ngClass]="relatorioComparativoExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
         </div>
       </ng-template>
 
+      <div *ngIf="relatorioComparativoExpandido" class="collapse-fade-content">
       <div class="grid">
         <!-- Gráfico -->
         <div class="col-12 lg:col-7">
@@ -733,6 +784,7 @@
             </p-table>
           </div>
         </div>
+      </div>
       </div>
     </p-card>
 
