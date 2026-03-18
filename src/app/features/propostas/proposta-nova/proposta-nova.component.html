@@ -131,67 +131,72 @@
         </div>
       </ng-template>
 
-      <!-- Modalidade/Tabela Padrão Toggle -->
       <div class="modalidade-section">
         <div class="modalidade-header" (click)="tabelaPadraoExpandida = !tabelaPadraoExpandida">
           <div class="modalidade-info">
-            <span class="modalidade-label">Modalidade:</span>
-            <span class="modalidade-nome">{{ modalidadeNome }} - {{ modalidadeDescricao }}</span>
+            <span class="modalidade-label">Modalidade</span>
+            <span class="modalidade-nome">{{ modalidadeNome || modalidadeDescricao }}</span>
           </div>
-          <div class="flex align-items-center gap-2">
+
+          <div class="flex align-items-center gap-3">
             <span class="tabela-padrao-tag">Tabela Padrão</span>
             <i class="pi toggle-icon" [ngClass]="tabelaPadraoExpandida ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
           </div>
         </div>
 
-        <!-- Tabela Padrão Expandida -->
-        <div *ngIf="tabelaPadraoExpandida" class="tabela-padrao-content">
-          <p-table [value]="componentesTabelaPadrao" 
+        <div class="tabela-padrao-content" *ngIf="tabelaPadraoExpandida">
+          <p-table [value]="componentesTabelaPadrao"
                    styleClass="p-datatable-sm modern-table standard-table"
                    responsiveLayout="scroll">
             <ng-template pTemplate="header">
               <tr>
                 <th>Componente</th>
-                <th class="text-right">Qtd</th>
-                <th>1º Vencimento</th>
-                <th class="text-right">%</th>
-                <th class="text-right">Valor Parcela</th>
-                <th class="text-right">Valor Total</th>
+                <th style="width: 70px" class="text-center">Qtd</th>
+                <th style="width: 130px" class="text-center">Periodicidade</th>
+                <th style="width: 150px">1º Vencimento</th>
+                <th style="width: 90px" class="text-center">%</th>
+                <th style="width: 140px" class="text-right">Valor Parcela</th>
+                <th style="width: 150px" class="text-right">Valor Total</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-comp>
+
+            <ng-template pTemplate="body" let-componente>
               <tr>
                 <td>
                   <div class="cell-componente cell-componente-readonly">
-                    <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
+                    <span class="cell-componente-titulo">{{ componente.nomeComponente }}</span>
                     <div class="cell-componente-meta">
-                      <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
-                      <span *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
+                      <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(componente.grupoComponente) }}</span>
+                      <span *ngIf="getPeriodicidadeBadgeLabel(componente.grupoComponente, componente.periodicidade) as periodicidadeBadge"
                             class="meta-pill meta-pill-light">{{ periodicidadeBadge }}</span>
                     </div>
                   </div>
                 </td>
-                <td class="text-right">
-                  <span class="number-badge">{{ comp.quantidade || 1 }}</span>
+                <td class="text-center">
+                  <span class="count-chip">{{ componente.quantidade }}</span>
+                </td>
+                <td class="text-center">
+                  <span class="meta-pill meta-pill-light">{{ getPeriodicidadeLabel(componente.periodicidade) }}</span>
                 </td>
                 <td>
-                  <span class="money-value money-value-soft">{{ getPrimeiroVencimentoTabelaPadrao(comp) ? (getPrimeiroVencimentoTabelaPadrao(comp) | date:'dd/MM/yyyy') : '-' }}</span>
+                  {{ getPrimeiroVencimentoTabelaPadrao(componente) ? (getPrimeiroVencimentoTabelaPadrao(componente) | date:'dd/MM/yyyy') : '-' }}
+                </td>
+                <td class="text-center">
+                  <span class="percent-chip">{{ componente.percentual ? formatarPercentual(componente.percentual) : '-' }}</span>
                 </td>
                 <td class="text-right">
-                  <span class="percent-chip">{{ comp.percentual ? formatarPercentual(comp.percentual) : '-' }}</span>
+                  <span class="money-value money-value-soft">{{ componente.valorParcela ? formatarMoeda(componente.valorParcela) : '-' }}</span>
                 </td>
                 <td class="text-right">
-                  <span class="money-value money-value-soft">{{ comp.valorParcela ? formatarMoeda(comp.valorParcela) : '-' }}</span>
-                </td>
-                <td class="text-right">
-                  <span class="money-value">{{ comp.valor ? formatarMoeda(comp.valor) : '-' }}</span>
+                  <span class="money-value">{{ componente.valor ? formatarMoeda(componente.valor) : '-' }}</span>
                 </td>
               </tr>
             </ng-template>
+
             <ng-template pTemplate="footer">
               <tr>
-                <td colspan="3"><span class="table-total-label">Total</span></td>
-                <td class="text-right">
+                <td colspan="4"><span class="table-total-label">Total</span></td>
+                <td class="text-center">
                   <span class="table-total-value">{{ formatarPercentual(calcularTotalPercentualTabelaPadrao()) }}</span>
                 </td>
                 <td></td>
@@ -204,23 +209,46 @@
         </div>
       </div>
 
-      <!-- 🆕 v2.5 - Seleção de Componentes para Adicionar -->
+      <div class="acoes-tabela">
+        <div class="acoes-tabela-principais">
+          <app-custom-button
+            label="Adicionar componente"
+            icon="pi pi-plus"
+            severity="primary"
+            [outlined]="true"
+            size="small"
+            [disabled]="componentesDisponiveisParaAdicionar.length === 0"
+            (onClick)="abrirDialogAdicionarComponente()">
+          </app-custom-button>
+
+          <app-custom-button
+            label="Restaurar tabela"
+            icon="pi pi-refresh"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            (onClick)="restaurarTabela()">
+          </app-custom-button>
+
+          <app-custom-button
+            *ngIf="valorRestanteParaAjuste > 0"
+            label="Atribuir restante"
+            icon="pi pi-percentage"
+            severity="warning"
+            size="small"
+            styleClass="atribuir-restante-button"
+            (onClick)="abrirDialogAjusteDiferenca()">
+          </app-custom-button>
+        </div>
+      </div>
+
       <ng-template #componenteTemplate let-componente>
         <div class="flex justify-content-between align-items-center">
           <div>
             <div class="font-bold">{{ componente.nomeComponente }}</div>
             <small class="text-600">
-              {{ componente.grupoComponente === 1 ? 'Entrada' :
-                 componente.grupoComponente === 2 ? 'Mensal' :
-                 componente.grupoComponente === 3 ? 'Intermediária' :
-                 componente.grupoComponente === 6 ? 'Única' : 'Opcional' }}
-              •
-              {{ componente.periodicidade === 0 ? 'À vista' : 
-                 componente.periodicidade === 1 ? 'Mensal' :
-                 componente.periodicidade === 2 ? 'Bimestral' :
-                 componente.periodicidade === 3 ? 'Trimestral' :
-                 componente.periodicidade === 6 ? 'Semestral' :
-                 componente.periodicidade === 12 ? 'Anual' : componente.periodicidade + ' meses' }}
+              {{ getGrupoComponenteLabel(componente.grupoComponente) }}
+              <span *ngIf="componente.periodicidade !== undefined"> • {{ getPeriodicidadeLabel(componente.periodicidade) }}</span>
             </small>
           </div>
           <i class="pi pi-plus-circle text-primary" style="font-size: 1.5rem;"></i>
@@ -232,45 +260,47 @@
         [modal]="true"
         [draggable]="false"
         [resizable]="false"
-        [closable]="true"
+        [dismissableMask]="true"
         [style]="{ width: '34rem' }"
         [breakpoints]="{ '960px': '75vw', '640px': '92vw' }"
-        styleClass="adicionar-componente-dialog"
-        (onHide)="fecharDialogAdicionarComponente()">
+        styleClass="adicionar-componente-dialog">
         <ng-template pTemplate="header">
           <div class="adicionar-componente-dialog-header">
-            <div class="dialog-header-icon">
-              <i class="pi pi-plus-circle"></i>
-            </div>
+            <span class="dialog-header-icon">
+              <i class="pi pi-plus"></i>
+            </span>
             <div class="dialog-header-copy">
-              <span class="dialog-header-title">Adicionar componente</span>
-              <span class="dialog-header-subtitle">Escolha um componente disponível para incluir na simulação.</span>
+              <span class="dialog-header-title">Adicionar componente à simulação</span>
+              <span class="dialog-header-subtitle">
+                Selecione um componente disponível para incluir na proposta atual.
+              </span>
             </div>
           </div>
         </ng-template>
 
         <div class="adicionar-componente-dialog-content">
           <div class="adicionar-componente-dialog-summary">
-            <span class="summary-label">Componentes disponíveis</span>
+            <span class="summary-label">Disponíveis para inclusão</span>
             <strong class="summary-value">{{ componentesDisponiveisParaAdicionar.length }}</strong>
           </div>
 
           <div class="adicionar-componente-dialog-field">
             <app-autocomplete
-              id="adicionar-componente-dialog"
+              id="componente-adicionar"
               label="Componente"
               [(ngModel)]="componenteSelecionadoAutocomplete"
               [suggestions]="componentesFiltrados"
-              (completeMethod)="filtrarComponentesDisponiveis($event)"
-              (onSelect)="onComponenteSelecionado($event)"
-              (onDropdownClick)="onDropdownClickComponentes()"
-              field="nomeComponente"
-              [disabled]="carregandoComponentesDisponiveis"
-              [emptyMessage]="carregandoComponentesDisponiveis ? 'Carregando componentes...' : 'Nenhum componente disponível'"
               [itemTemplate]="componenteTemplate"
+              field="nomeComponente"
+              dataKey="codigoComponente"
+              placeholder="Busque um componente"
+              [emptyMessage]="'Nenhum componente disponível'"
               [appendTo]="'body'"
               [overlayOptions]="adicionarComponenteAutocompleteOverlayOptions"
-              panelStyleClass="app-autocomplete-panel adicionar-componente-autocomplete-panel">
+              panelStyleClass="app-autocomplete-panel adicionar-componente-autocomplete-panel"
+              (completeMethod)="filtrarComponentesDisponiveis($event)"
+              (onDropdownClick)="onDropdownClickComponentes()"
+              (onSelect)="onComponenteSelecionado($event)">
             </app-autocomplete>
           </div>
 
@@ -287,96 +317,73 @@
         </div>
       </p-dialog>
 
-      <!-- Botões de Ação -->
-      <div class="acoes-tabela mt-3">
-        <div class="acoes-tabela-principais">
-          <button type="button" pButton pRipple icon="pi pi-refresh" label="Restaurar tabela" 
-            class="p-button-outlined p-button-sm" (click)="restaurarTabela()"></button>
-          <button type="button" pButton pRipple icon="pi pi-plus" label="Adicionar componente"
-            class="p-button-outlined p-button-sm"
-            [disabled]="carregandoComponentesDisponiveis || componentesDisponiveisParaAdicionar.length === 0"
-            (click)="abrirDialogAdicionarComponente()"></button>
-          <button type="button" pButton pRipple icon="pi pi-percentage" label="Desconto" 
-            class="p-button-outlined p-button-sm" [disabled]="true"></button>
-          <button type="button" pButton pRipple icon="pi pi-calendar" label="Plano de pagamento" 
-            class="p-button-outlined p-button-sm" [disabled]="true"></button>
-          <button *ngIf="possuiDesconto"
-            type="button"
-            pButton
-            pRipple
-            icon="pi pi-wallet"
-            label="Atribuir restante"
-            class="p-button-sm p-button-warning atribuir-restante-button"
-            (click)="abrirDialogAjusteDiferenca()"></button>
-        </div>
-      </div>
+            <p-dialog
+              [(visible)]="ajusteDiferencaDialogVisible"
+              [modal]="true"
+              [draggable]="false"
+              [resizable]="false"
+              [dismissableMask]="true"
+              [style]="{ width: '32rem' }"
+              [breakpoints]="{ '960px': '75vw', '640px': '92vw' }"
+              styleClass="ajuste-diferenca-dialog">
+              <ng-template pTemplate="header">
+                <div class="ajuste-diferenca-dialog-header">
+                  <span class="dialog-header-icon">
+                    <i class="pi pi-percentage"></i>
+                  </span>
+                  <div class="dialog-header-copy">
+                    <span class="dialog-header-title">Atribuir restante da diferença</span>
+                    <span class="dialog-header-subtitle">
+                      Selecione o componente que deve absorver {{ formatarMoeda(valorRestanteParaAjuste) }}.
+                    </span>
+                  </div>
+                </div>
+              </ng-template>
 
-      <p-dialog
-        [(visible)]="ajusteDiferencaDialogVisible"
-        [modal]="true"
-        [draggable]="false"
-        [resizable]="false"
-        [closable]="true"
-        [style]="{ width: '34rem' }"
-        [breakpoints]="{ '960px': '75vw', '640px': '92vw' }"
-        styleClass="ajuste-diferenca-dialog"
-        (onHide)="fecharDialogAjusteDiferenca()">
-        <ng-template pTemplate="header">
-          <div class="ajuste-diferenca-dialog-header">
-            <div class="dialog-header-icon">
-              <i class="pi pi-wallet"></i>
-            </div>
-            <div class="dialog-header-copy">
-              <span class="dialog-header-title">Atribuir valor restante</span>
-              <span class="dialog-header-subtitle">Selecione o componente que receberá o ajuste final da simulação.</span>
-            </div>
-          </div>
-        </ng-template>
+              <div class="ajuste-diferenca-dialog-content">
+                <div class="ajuste-diferenca-dialog-summary">
+                  <span class="summary-label">Valor a atribuir</span>
+                  <strong class="summary-value">{{ formatarMoeda(valorRestanteParaAjuste) }}</strong>
+                </div>
 
-        <div class="ajuste-diferenca-dialog-content">
-          <div class="ajuste-diferenca-dialog-summary">
-            <span class="summary-label">Valor restante para distribuir</span>
-            <strong class="summary-value">{{ formatarMoeda(valorRestanteParaAjuste) }}</strong>
-          </div>
+                <div class="ajuste-diferenca-dialog-field">
+                  <app-autocomplete
+                    id="componente-ajuste-restante"
+                    label="Componente"
+                    [(ngModel)]="codigoComponenteAjusteDiferenca"
+                    [suggestions]="opcoesAjusteDiferencaFiltradas"
+                    field="label"
+                    dataKey="value"
+                    placeholder="Escolha o componente"
+                    [emptyMessage]="'Nenhum componente encontrado'"
+                    [appendTo]="'body'"
+                    [overlayOptions]="ajusteDiferencaAutocompleteOverlayOptions"
+                    panelStyleClass="app-autocomplete-panel ajuste-diferenca-autocomplete-panel"
+                    (completeMethod)="filtrarOpcoesAjusteDiferenca($event)"
+                    (onDropdownClick)="abrirTodasOpcoesAjusteDiferenca()">
+                  </app-autocomplete>
+                </div>
 
-          <div class="ajuste-diferenca-dialog-field">
-            <app-autocomplete
-              id="componente-ajuste-restante"
-              label="Componente"
-              [(ngModel)]="codigoComponenteAjusteDiferenca"
-              [suggestions]="opcoesAjusteDiferencaFiltradas"
-              field="label"
-              dataKey="value"
-              placeholder="Escolha o componente"
-              [emptyMessage]="'Nenhum componente encontrado'"
-              [appendTo]="'body'"
-              [overlayOptions]="ajusteDiferencaAutocompleteOverlayOptions"
-              panelStyleClass="app-autocomplete-panel ajuste-diferenca-autocomplete-panel"
-              (completeMethod)="filtrarOpcoesAjusteDiferenca($event)"
-              (onDropdownClick)="abrirTodasOpcoesAjusteDiferenca()">
-            </app-autocomplete>
-          </div>
-
-          <div class="ajuste-diferenca-dialog-actions">
-            <app-custom-button
-              label="Cancelar"
-              icon="pi pi-times"
-              severity="secondary"
-              [outlined]="true"
-              size="small"
-              (onClick)="fecharDialogAjusteDiferenca()">
-            </app-custom-button>
-            <app-custom-button
-              label="Aplicar ajuste"
-              icon="pi pi-check"
-              severity="warning"
-              size="small"
-              [disabled]="!codigoComponenteAjusteDiferenca"
-              (onClick)="aplicarDiferencaRestante()">
-            </app-custom-button>
-          </div>
-        </div>
-      </p-dialog>
+                <div class="ajuste-diferenca-dialog-actions">
+                  <app-custom-button
+                    label="Cancelar"
+                    icon="pi pi-times"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    (onClick)="fecharDialogAjusteDiferenca()">
+                  </app-custom-button>
+                  <app-custom-button
+                    label="Aplicar ajuste"
+                    icon="pi pi-check"
+                    severity="warning"
+                    size="small"
+                    [disabled]="!codigoComponenteAjusteDiferenca"
+                    (onClick)="aplicarDiferencaRestante()">
+                  </app-custom-button>
+                </div>
+              </div>
+            </p-dialog>
 
       <div class="simulacao-main-layout mt-4 mb-4">
         <!-- Tabela de Simulação Editável -->
@@ -550,24 +557,58 @@
     </p-card>
 
     <!-- ─── CARD: VALIDAÇÕES DE APROVAÇÃO AUTOMÁTICA ────────────────────── -->
-    <p-card class="proposta-card" *ngIf="violacoesAprovacao.length > 0">
+        <p-card class="proposta-card validacoes-card"
+          [ngClass]="possuiViolacoesAprovacao ? 'validacoes-card-alerta' : 'validacoes-card-ok'"
+          *ngIf="violacoesAprovacao.length > 0">
       <ng-template pTemplate="header">
-        <div class="card-gradient-header">
-          <i class="pi pi-shield"></i>
-          <span>Validações de Aprovação Automática</span>
+        <div class="card-gradient-header card-header-validacoes"
+             [class.is-alerta]="possuiViolacoesAprovacao"
+             [class.is-ok]="!possuiViolacoesAprovacao">
+          <div class="header-left">
+            <i class="pi pi-shield"></i>
+            <span>Validações de Aprovação Automática</span>
+          </div>
+          <span class="header-status-badge">
+            {{ possuiViolacoesAprovacao ? 'Aprovação manual necessária' : 'Dentro dos critérios automáticos' }}
+          </span>
         </div>
       </ng-template>
 
       <div class="validacoes-section">
+        <div class="validacoes-overview">
+          <div class="validacoes-overview-copy">
+            <span class="overview-eyebrow">Compliance da proposta</span>
+            <h4 class="overview-title">Leitura rápida das regras financeiras</h4>
+            <p class="overview-description">
+              Este bloco consolida as regras avaliadas para aprovação automática e destaca imediatamente os pontos que exigem análise manual.
+            </p>
+          </div>
+
+          <div class="validacoes-overview-stats">
+            <div class="overview-stat stat-violacao">
+              <span class="stat-label">Violações</span>
+              <span class="stat-value">{{ quantidadeViolacoesBloqueantes }}</span>
+            </div>
+            <div class="overview-stat stat-conforme">
+              <span class="stat-label">Conformes</span>
+              <span class="stat-value">{{ quantidadeValidacoesConformes }}</span>
+            </div>
+            <div class="overview-stat stat-neutro">
+              <span class="stat-label">Não aplicáveis</span>
+              <span class="stat-value">{{ quantidadeValidacoesNaoAplicaveis }}</span>
+            </div>
+          </div>
+        </div>
+
         <p-message 
           *ngIf="possuiViolacoesAprovacao" 
           severity="warn" 
           text="Esta proposta possui violações que bloqueiam a aprovação automática. Será necessária aprovação manual da Diretoria Comercial."
-          styleClass="mb-3">
+          styleClass="mb-3 validacoes-alerta-message">
         </p-message>
 
         <p-table [value]="violacoesAprovacao" 
-                 styleClass="p-datatable-sm modern-table"
+                 styleClass="p-datatable-sm modern-table validacoes-table"
                  responsiveLayout="scroll">
           <ng-template pTemplate="header">
             <tr>
@@ -580,22 +621,26 @@
           </ng-template>
           <ng-template pTemplate="body" let-validacao>
             <tr [class.row-violacao]="validacao.status === 'VIOLACAO'"
-                [class.row-conforme]="validacao.status === 'CONFORME'">
-              <td class="text-center">
-                <i *ngIf="validacao.status === 'CONFORME'" 
-                   class="pi pi-check-circle" 
-                   style="color: var(--green-500); font-size: 1rem;"
-                   pTooltip="Conforme"></i>
-                <i *ngIf="validacao.status === 'VIOLACAO'" 
-                   class="pi pi-times-circle" 
-                   style="color: var(--red-500); font-size: 1rem;"
-                   pTooltip="Violação"></i>
-                <i *ngIf="validacao.status === 'NAO_APLICAVEL'" 
-                   class="pi pi-minus-circle" 
-                   style="color: var(--gray-400); font-size: 1rem;"
-                   pTooltip="Não aplicável"></i>
+               [class.row-conforme]="validacao.status === 'CONFORME'"
+               [class.row-neutra]="validacao.status === 'NAO_APLICAVEL'">
+              <td class="text-center status-cell">
+                <span *ngIf="validacao.status === 'CONFORME'"
+                      class="status-indicator status-conforme"
+                      pTooltip="Conforme">
+                  <i class="pi pi-check-circle"></i>
+                </span>
+                <span *ngIf="validacao.status === 'VIOLACAO'"
+                      class="status-indicator status-violacao"
+                      pTooltip="Violação">
+                  <i class="pi pi-times-circle"></i>
+                </span>
+                <span *ngIf="validacao.status === 'NAO_APLICAVEL'"
+                      class="status-indicator status-neutro"
+                      pTooltip="Não aplicável">
+                  <i class="pi pi-minus-circle"></i>
+                </span>
               </td>
-              <td>
+              <td class="regra-cell">
                 <strong>{{ obterNomeRegra(validacao.tipo) }}</strong>
               </td>
               <td class="text-right">
@@ -614,7 +659,7 @@
                   {{ formatarMoeda(validacao.valorLimite) }}
                 </span>
               </td>
-              <td>
+              <td class="mensagem-cell">
                 <span [class.text-danger]="validacao.bloqueiaAprovacao">
                   {{ validacao.mensagem }}
                 </span>

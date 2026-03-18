@@ -1761,6 +1761,18 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   get possuiViolacoesAprovacao(): boolean {
     return this.violacoesAprovacao.some(v => v.bloqueiaAprovacao);
   }
+  
+  get quantidadeViolacoesBloqueantes(): number {
+    return this.violacoesAprovacao.filter(v => v.status === StatusRegraValidacao.VIOLACAO).length;
+  }
+  
+  get quantidadeValidacoesConformes(): number {
+    return this.violacoesAprovacao.filter(v => v.status === StatusRegraValidacao.CONFORME).length;
+  }
+  
+  get quantidadeValidacoesNaoAplicaveis(): number {
+    return this.violacoesAprovacao.filter(v => v.status === StatusRegraValidacao.NAO_APLICAVEL).length;
+  }
 
   /**
    * Campos obrigatórios para validação (implementação da classe base)
