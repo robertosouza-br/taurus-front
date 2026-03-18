@@ -329,7 +329,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           const valorTotal = temValor ? (regra.valor ?? 0) : 0;
           const valorParcela = temValor ? (regra.valorParcela ?? 0) : 0;
           const percentual = temValor ? (regra.percentual ?? 0) : 0;
-          const vencimento = this.calcularVencimentoInicial(regra);
+          
+          // 🎯 CORREÇÃO: Usar dataVencimento da API se disponível, senão calcular
+          const vencimento = regra.dataVencimento 
+            ? new Date(regra.dataVencimento) 
+            : this.calcularVencimentoInicial(regra);
           
           const componente: ComponenteFormulario = {
             codigoComponente: regra.codigoComponente,
@@ -347,13 +351,25 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             erroValidacao: null
           };
           
-          // 📅 Gerar vencimentos iniciais
-          componente.listaVencimentos = this.gerarVencimentos(
-            vencimento,
-            componente.quantidade,
-            regra.periodicidade ?? 0,
-            valorParcela
-          );
+          // 📅 Gerar vencimentos: usar lista da API se disponível, senão gerar
+          if (regra.listaVencimentos && regra.listaVencimentos.length > 0) {
+            // Usar lista de vencimentos que veio da API
+            componente.listaVencimentos = regra.listaVencimentos.map(v => ({
+              numeroParcela: v.numeroParcela,
+              dataVencimento: typeof v.dataVencimento === 'string' 
+                ? new Date(v.dataVencimento) 
+                : v.dataVencimento,
+              valor: v.valor
+            }));
+          } else {
+            // Gerar vencimentos calculados
+            componente.listaVencimentos = this.gerarVencimentos(
+              vencimento,
+              componente.quantidade,
+              regra.periodicidade ?? 0,
+              valorParcela
+            );
+          }
           
           return componente;
         });
@@ -883,6 +899,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   /**
    * REGRA 2: Arrecadação 13 Primeiros Meses >= 29%
+   * 🎯 Aplicável apenas se duração do contrato > 13 meses
    */
   private validarArrecadacao13PrimeirosMeses(componentes: ComponenteFormulario[]): void {
     // Ordenar por vencimento
@@ -900,15 +917,55 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
-    // Calcular percentual dos 13 primeiros meses
+    // 🎯 Calcular duração do contrato (primeiro vencimento até última parcela do componente mais longo)
     const primeiroVencimento = componentesOrdenados[0].vencimento!;
+    const dataFinalContrato = this.calcularDataFinalContrato(componentesOrdenados);
+    
+    if (!dataFinalContrato) {
+      this.violacoesAprovacao.push({
+        tipo: TipoRegraValidacao.ARRECADACAO_13_PRIMEIROS_MESES,
+        status: StatusRegraValidacao.NAO_APLICAVEL,
+        mensagem: 'Não foi possível calcular data final do contrato',
+        bloqueiaAprovacao: false
+      });
+      return;
+    }
+    
+    const duracaoEmMeses = this.calcularDiferencaMeses(primeiroVencimento, dataFinalContrato);
+    
+    // 🎯 Regra só se aplica se contrato tiver mais de 13 meses
+    if (duracaoEmMeses <= 13) {
+      this.violacoesAprovacao.push({
+        tipo: TipoRegraValidacao.ARRECADACAO_13_PRIMEIROS_MESES,
+        status: StatusRegraValidacao.NAO_APLICAVEL,
+        mensagem: `Contrato com ${duracaoEmMeses} meses de duração (regra não se aplica para contratos <= 13 meses)`,
+        bloqueiaAprovacao: false
+      });
+      return;
+    }
+    
+    // Calcular valor arrecadado nos 13 primeiros meses
+    // Soma 12 meses para ter período de exatamente 13 meses (mês inicial + 12 = 13 meses)
     const dataLimite = new Date(primeiroVencimento);
-    dataLimite.setMonth(dataLimite.getMonth() + 13);
+    dataLimite.setMonth(dataLimite.getMonth() + 12);
     
-    const valorPrimeiros13Meses = componentesOrdenados
-      .filter(c => c.vencimento! <= dataLimite)
-      .reduce((sum, c) => sum + c.valorTotal, 0);
+    console.log('🔍 DEBUG ARRECADAÇÃO 13 PRIMEIROS MESES:');
+    console.log('  ├─ Data Início:', primeiroVencimento.toISOString().split('T')[0]);
+    console.log('  ├─ Data Limite:', dataLimite.toISOString().split('T')[0]);
+    console.log('  ├─ Valor Unidade:', this.valorTabela);
+    console.log('  └─ Componentes:', componentesOrdenados.length);
     
+    // 🎯 Somar TODAS as parcelas individuais que vencem nos 13 primeiros meses
+    // Depois calcular percentual dessa soma em relação ao valor total da unidade
+    const valorPrimeiros13Meses = this.calcularValorPorPeriodo(
+      componentesOrdenados,
+      primeiroVencimento,
+      dataLimite
+    );
+    
+    console.log('  └─ Valor Calculado:', valorPrimeiros13Meses);
+    
+    // Percentual = (Valor arrecadado nos 13 primeiros meses / Valor da unidade) * 100
     const percentualCalculado = this.valorTabela > 0 
       ? (valorPrimeiros13Meses / this.valorTabela) * 100 
       : 0;
@@ -934,6 +991,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   /**
    * REGRA 3: Arrecadação 13 Últimos Meses <= 26%
+   * 🎯 Aplicável apenas se duração do contrato > 13 meses
    */
   private validarArrecadacao13UltimosMeses(componentes: ComponenteFormulario[]): void {
     const componentesOrdenados = [...componentes]
@@ -950,15 +1008,48 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
-    // Calcular percentual dos 13 últimos meses
-    const ultimoVencimento = componentesOrdenados[0].vencimento!;
+    // 🎯 Calcular duração do contrato (primeiro vencimento até última parcela do componente mais longo)
+    const primeiroVencimento = componentesOrdenados[componentesOrdenados.length - 1].vencimento!;
+    const dataFinalContrato = this.calcularDataFinalContrato(componentesOrdenados);
+    
+    if (!dataFinalContrato) {
+      this.violacoesAprovacao.push({
+        tipo: TipoRegraValidacao.ARRECADACAO_13_ULTIMOS_MESES,
+        status: StatusRegraValidacao.NAO_APLICAVEL,
+        mensagem: 'Não foi possível calcular data final do contrato',
+        bloqueiaAprovacao: false
+      });
+      return;
+    }
+    
+    const duracaoEmMeses = this.calcularDiferencaMeses(primeiroVencimento, dataFinalContrato);
+    
+    // 🎯 Regra só se aplica se contrato tiver mais de 13 meses
+    if (duracaoEmMeses <= 13) {
+      this.violacoesAprovacao.push({
+        tipo: TipoRegraValidacao.ARRECADACAO_13_ULTIMOS_MESES,
+        status: StatusRegraValidacao.NAO_APLICAVEL,
+        mensagem: `Contrato com ${duracaoEmMeses} meses de duração (regra não se aplica para contratos <= 13 meses)`,
+        bloqueiaAprovacao: false
+      });
+      return;
+    }
+    
+    // Calcular valor arrecadado nos últimos 13 meses
+    // Retroceder 12 meses para ter período de exatamente 13 meses (mês final - 12 = 13 meses)
+    const ultimoVencimento = dataFinalContrato;
     const dataLimite = new Date(ultimoVencimento);
-    dataLimite.setMonth(dataLimite.getMonth() - 13);
+    dataLimite.setMonth(dataLimite.getMonth() - 12);
     
-    const valorUltimos13Meses = componentesOrdenados
-      .filter(c => c.vencimento! >= dataLimite)
-      .reduce((sum, c) => sum + c.valorTotal, 0);
+    // 🎯 Somar TODAS as parcelas individuais que vencem nos últimos 13 meses
+    // Depois calcular percentual dessa soma em relação ao valor total da unidade
+    const valorUltimos13Meses = this.calcularValorPorPeriodo(
+      componentesOrdenados,
+      dataLimite,
+      ultimoVencimento
+    );
     
+    // Percentual = (Valor arrecadado nos últimos 13 meses / Valor da unidade) * 100
     const percentualCalculado = this.valorTabela > 0 
       ? (valorUltimos13Meses / this.valorTabela) * 100 
       : 0;
@@ -1599,6 +1690,103 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   formatarPercentual(valor: number): string {
     return `${valor.toFixed(2)}%`;
+  }
+
+  /**
+   * Calcula diferença em meses entre duas datas
+   * Usado para determinar duração do contrato
+   */
+  private calcularDiferencaMeses(dataInicio: Date, dataFim: Date): number {
+    const anos = dataFim.getFullYear() - dataInicio.getFullYear();
+    const meses = dataFim.getMonth() - dataInicio.getMonth();
+    return anos * 12 + meses;
+  }
+
+  /**
+   * Calcula a data final do contrato (última parcela do componente mais longo)
+   * Considera a listaVencimentos de cada componente para pegar a última parcela real
+   */
+  private calcularDataFinalContrato(componentes: ComponenteFormulario[]): Date | null {
+    let dataFinal: Date | null = null;
+    
+    componentes.forEach(componente => {
+      // Se tem lista de vencimentos, pegar a última data
+      if (componente.listaVencimentos && componente.listaVencimentos.length > 0) {
+        const ultimaParcela = componente.listaVencimentos[componente.listaVencimentos.length - 1];
+        const dataUltimaParcela = new Date(ultimaParcela.dataVencimento);
+        
+        if (!dataFinal || dataUltimaParcela > dataFinal) {
+          dataFinal = dataUltimaParcela;
+        }
+      } else if (componente.vencimento) {
+        // Se não tem lista, usar o vencimento único
+        if (!dataFinal || componente.vencimento > dataFinal) {
+          dataFinal = componente.vencimento;
+        }
+      }
+    });
+    
+    return dataFinal;
+  }
+
+  /**
+   * Calcula a soma de TODAS as parcelas que vencem dentro do período específico
+   * Para cada componente, soma apenas as parcelas individuais que vencem no período
+   */
+  private calcularValorPorPeriodo(
+    componentes: ComponenteFormulario[], 
+    dataInicio: Date, 
+    dataFim: Date
+  ): number {
+    let valorTotal = 0;
+    let parcelasContadas = 0;
+    
+    console.log(`    🔍 Analisando período: ${dataInicio.toISOString().split('T')[0]} até ${dataFim.toISOString().split('T')[0]}`);
+    
+    componentes.forEach(componente => {
+      if (componente.listaVencimentos && componente.listaVencimentos.length > 0) {
+        // Somar APENAS as parcelas que vencem dentro do período
+        let parcelasDesteComponente = 0;
+        let valorDesteComponente = 0;
+        
+        console.log(`    ├─ ${componente.nomeComponente} (${componente.listaVencimentos.length} parcelas):`);
+        
+        componente.listaVencimentos.forEach(parcela => {
+          const dataParcela = new Date(parcela.dataVencimento);
+          const dataStr = dataParcela.toISOString().split('T')[0];
+          const dentroPerido = dataParcela >= dataInicio && dataParcela <= dataFim;
+          
+          if (dentroPerido) {
+            valorTotal += parcela.valor;
+            valorDesteComponente += parcela.valor;
+            parcelasContadas++;
+            parcelasDesteComponente++;
+            console.log(`    │  ✓ Parcela ${parcela.numeroParcela} em ${dataStr}: R$ ${parcela.valor.toFixed(2)}`);
+          } else {
+            console.log(`    │  ✗ Parcela ${parcela.numeroParcela} em ${dataStr}: R$ ${parcela.valor.toFixed(2)} (FORA DO PERÍODO)`);
+          }
+        });
+        
+        if (parcelasDesteComponente > 0) {
+          console.log(`    │  SUBTOTAL: ${parcelasDesteComponente} parcelas = R$ ${valorDesteComponente.toFixed(2)}`);
+        }
+      } else if (componente.vencimento) {
+        const dataStr = componente.vencimento.toISOString().split('T')[0];
+        const dentroPerido = componente.vencimento >= dataInicio && componente.vencimento <= dataFim;
+        
+        if (dentroPerido) {
+          valorTotal += componente.valorTotal;
+          parcelasContadas++;
+          console.log(`    ├─ ${componente.nomeComponente} em ${dataStr}: R$ ${componente.valorTotal.toFixed(2)}`);
+        } else {
+          console.log(`    ├─ ${componente.nomeComponente} em ${dataStr}: R$ ${componente.valorTotal.toFixed(2)} (FORA DO PERÍODO)`);
+        }
+      }
+    });
+    
+    console.log(`    └─ TOTAL: ${parcelasContadas} parcelas = R$ ${valorTotal.toFixed(2)}`);
+    
+    return valorTotal;
   }
 
   /**
