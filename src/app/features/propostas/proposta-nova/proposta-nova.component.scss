@@ -845,6 +845,45 @@
         color: #4c1d95;
         font-size: 1.2rem;
       }
+
+      &.resumo-card-total-igual {
+        background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #bfdbfe;
+
+        .resumo-label {
+          color: #1d4ed8;
+        }
+
+        .resumo-valor {
+          color: #1e40af;
+        }
+      }
+
+      &.resumo-card-total-menor {
+        background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+        border-color: #fecdd3;
+
+        .resumo-label {
+          color: #be123c;
+        }
+
+        .resumo-valor {
+          color: #b91c1c;
+        }
+      }
+
+      &.resumo-card-total-maior {
+        background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: #bbf7d0;
+
+        .resumo-label {
+          color: #15803d;
+        }
+
+        .resumo-valor {
+          color: #166534;
+        }
+      }
     }
 
     .resumo-card-diferenca .resumo-valor-group {
@@ -1272,7 +1311,14 @@
       font-size: 0.95rem;
       font-weight: 600;
       color: #374151;
-      margin-bottom: 1rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .section-description {
+      margin: 0 0 1rem;
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: #64748b;
     }
   }
 
@@ -1295,19 +1341,11 @@
         border-radius: 3px;
 
         &.legenda-limite {
-          background: #94a3b8;
+          background: #64748b;
         }
 
         &.legenda-proposta {
-          background: #6366f1;
-        }
-
-        &.legenda-acima {
-          background: #22c55e;
-        }
-
-        &.legenda-abaixo {
-          background: #ef4444;
+          background: #667eea;
         }
       }
     }
@@ -1315,6 +1353,103 @@
 
   .grafico-wrapper {
     height: 300px;
+  }
+
+  .comparacao-section {
+    .comparacao-metrica-cell {
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.4;
+    }
+
+    .comparacao-value {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .comparacao-ref {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #dbe2ea;
+    }
+
+    .comparacao-sim {
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+    }
+
+    .status-cell {
+      text-align: center;
+    }
+  }
+}
+
+.proposta-nova-page ::ng-deep {
+  .comparacao-table.p-datatable {
+    .p-datatable-thead > tr > th:last-child,
+    .p-datatable-tbody > tr > td:last-child {
+      width: 3.5rem;
+    }
+
+    .p-datatable-tbody > tr.row-status-ok {
+      background: linear-gradient(90deg, #f6fff8 0%, #fbfffc 100%) !important;
+
+      > td {
+        border-bottom-color: #dcfce7;
+      }
+    }
+
+    .p-datatable-tbody > tr.row-status-alerta {
+      background: linear-gradient(90deg, #fff7ed 0%, #fffbf5 100%) !important;
+
+      > td {
+        border-bottom-color: #fed7aa;
+      }
+    }
+
+    .p-datatable-tbody > tr.row-status-violacao {
+      background: linear-gradient(90deg, #fff1f2 0%, #fff7f7 100%) !important;
+      box-shadow: inset 4px 0 0 #dc2626;
+
+      > td {
+        border-bottom-color: #fecdd3;
+      }
+    }
+
+    .status-ok,
+    .status-alerta,
+    .status-violacao {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      font-size: 1rem;
+      background: transparent;
+      border: none;
+    }
+
+    .status-ok {
+      color: #16a34a;
+    }
+
+    .status-alerta {
+      color: #ea580c;
+    }
+
+    .status-violacao {
+      color: #dc2626;
+    }
   }
 }
 

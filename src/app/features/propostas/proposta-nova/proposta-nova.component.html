@@ -530,30 +530,14 @@
               </div>
             </div>
 
-            <div class="resumo-card resumo-card-total">
+            <div class="resumo-card resumo-card-total"
+                 [class.resumo-card-total-igual]="!possuiDesconto && !possuiAcrescimo"
+                 [class.resumo-card-total-menor]="possuiDesconto"
+                 [class.resumo-card-total-maior]="possuiAcrescimo">
               <span class="resumo-label">Valor Total (100,00%)</span>
               <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
             </div>
 
-            <div class="resumo-card">
-              <span class="resumo-label">Valor Total</span>
-              <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
-            </div>
-
-            <div class="resumo-card">
-              <span class="resumo-label">Comissão Mesa</span>
-              <span class="resumo-valor">(-{{ formatarMoeda(0) }})</span>
-            </div>
-
-            <div class="resumo-card">
-              <span class="resumo-label">Saldo Devedor</span>
-              <span class="resumo-valor">{{ formatarMoeda(saldoDevedor) }}</span>
-            </div>
-
-            <div class="resumo-card resumo-card-adiantamento">
-              <span class="resumo-label">Adiantamento</span>
-              <span class="resumo-valor valor-adiantamento">{{ formatarMoeda(adiantamento) }}</span>
-            </div>
           </div>
         </aside>
       </div>
@@ -680,7 +664,7 @@
       <ng-template pTemplate="header">
         <div class="card-gradient-header">
           <i class="pi pi-chart-line"></i>
-          <span>Gráfico de Análise da Proposta</span>
+          <span>Relatório Comparativo</span>
         </div>
       </ng-template>
 
@@ -688,27 +672,22 @@
         <!-- Gráfico -->
         <div class="col-12 lg:col-7">
           <div class="grafico-section">
-            <h4 class="section-title">Análise Gráfica</h4>
+            <h4 class="section-title">Curva Acumulada por Vencimento</h4>
+            <p class="section-description">
+              Compare a evolução do valor acumulado entre a Tabela Padrão e a Simulação ao longo das datas de vencimento.
+            </p>
             <div class="grafico-legenda">
               <span class="legenda-item">
                 <span class="legenda-cor legenda-limite"></span>
-                LIMITE
+                Tabela Padrão
               </span>
               <span class="legenda-item">
                 <span class="legenda-cor legenda-proposta"></span>
-                PROPOSTA
-              </span>
-              <span class="legenda-item">
-                <span class="legenda-cor legenda-acima"></span>
-                Acima do limite
-              </span>
-              <span class="legenda-item">
-                <span class="legenda-cor legenda-abaixo"></span>
-                Abaixo do limite
+                Simulação
               </span>
             </div>
             <div class="grafico-wrapper">
-              <p-chart type="line" [data]="getGraficoData()" [options]="graficoOptions" height="300px"></p-chart>
+              <p-chart type="line" [data]="graficoData" [options]="graficoOptions" height="300px"></p-chart>
             </div>
           </div>
         </div>
@@ -716,22 +695,35 @@
         <!-- Comparação -->
         <div class="col-12 lg:col-5">
           <div class="comparacao-section">
-            <h4 class="section-title">Comparação da Tabela Padrão Vrs Proposta</h4>
-            <p-table [value]="comparacao" styleClass="p-datatable-sm modern-table">
+            <h4 class="section-title">Indicadores Comerciais e Validações</h4>
+            <p class="section-description">
+              Esta grade mantém a leitura das regras de negócio e dos limites utilizados na aprovação automática da proposta.
+            </p>
+            <p-table [value]="comparacao" styleClass="p-datatable-sm modern-table comparacao-table">
               <ng-template pTemplate="header">
                 <tr>
                   <th>Métrica</th>
-                  <th class="text-center">LIMITE</th>
-                  <th class="text-center">PROPOSTA</th>
+                  <th class="text-center">Referência</th>
+                  <th class="text-center">Simulação</th>
                   <th class="text-center" style="width: 50px"></th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-item>
-                <tr>
-                  <td>{{ item.metrica }}</td>
-                  <td class="text-center">{{ item.limite }}</td>
-                  <td class="text-center">{{ item.proposta || '-' }}</td>
+                <tr [ngClass]="{
+                  'row-status-ok': item.status === 'OK',
+                  'row-status-alerta': item.status === 'ALERTA',
+                  'row-status-violacao': item.status === 'VIOLACAO'
+                }">
+                  <td>
+                    <div class="comparacao-metrica-cell">{{ item.metrica }}</div>
+                  </td>
                   <td class="text-center">
+                    <span class="comparacao-value comparacao-ref">{{ item.limite }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="comparacao-value comparacao-sim">{{ item.proposta || '-' }}</span>
+                  </td>
+                  <td class="text-center status-cell">
                     <i [class]="getStatusIcon(item.status)" 
                        [ngClass]="getStatusClass(item.status)">
                     </i>

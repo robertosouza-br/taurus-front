@@ -98,6 +98,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   
   // Comparação tabela vs proposta
   comparacao: ComparacaoMetricaDTO[] = [];
+  graficoData: any = { labels: [], datasets: [] };
   
   // 📋 VALIDAÇÕES DE APROVAÇÃO AUTOMÁTICA
   violacoesAprovacao: RegraValidacaoDTO[] = [];
@@ -280,6 +281,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           this.inicializarComponentes();
           this.calcularTotais();
           this.gerarComparacao();
+          this.atualizarGrafico();
           
           // Carregar componentes disponíveis da API após carregar proposta
           this.carregarComponentesDisponiveis();
@@ -634,6 +636,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   onValorParcelaChange(componente: ComponenteFormulario): void {
     // Recalcula valor total do componente editado
     componente.valorTotal = componente.valorParcela * componente.quantidade;
+    this.atualizarVencimentosComponente(componente);
     
     this.recalcularSimulacao();
   }
@@ -688,6 +691,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   private recalcularSimulacao(): void {
     this.calcularTotais();
     this.gerarComparacao();
+    this.atualizarGrafico();
 
     if (!this.possuiDesconto && this.ajusteDiferencaDialogVisible) {
       this.fecharDialogAjusteDiferenca();
@@ -1453,28 +1457,30 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       status: percentualSinal >= minSinal ? 'OK' : 'VIOLACAO'
     });
     
-    // 2. Arrecadação Primeiros 13 Meses (fixo 29%)
-    const minCotaMensal = 29; // Valor fixo conforme especificação
-    const compCotaMensal = componentesAtivos.find(c => c.nomeComponente === 'COTA MENSAL');
-    const percentualCotaMensal = compCotaMensal?.percentual || 0;
+    // 2. Arrecadação Primeiros 13 Meses - mesma regra da validação automática
+    const percentualMinimo13PrimeirosMeses = this.configuracoesAprovacao.percentual13PrimeirosMesesMinimo;
+    const percentualPrimeiros13Meses = this.calcularPercentualArrecadacao13PrimeirosMeses(componentesAtivos);
     
     metricas.push({
       metrica: 'Arrecadação Primeiros 13 Meses',
-      limite: `${minCotaMensal.toFixed(2)}%`,
-      proposta: `${percentualCotaMensal.toFixed(2)}%`,
-      status: percentualCotaMensal >= minCotaMensal ? 'OK' : 'VIOLACAO'
+      limite: `${percentualMinimo13PrimeirosMeses.toFixed(2)}%`,
+      proposta: percentualPrimeiros13Meses === null ? 'N/A' : `${percentualPrimeiros13Meses.toFixed(2)}%`,
+      status: percentualPrimeiros13Meses === null
+        ? 'ALERTA'
+        : percentualPrimeiros13Meses >= percentualMinimo13PrimeirosMeses ? 'OK' : 'VIOLACAO'
     });
     
-    // 3. Intermediárias (Últimos 13 Meses) - fixo 26%
-    const maxIntermediarias = 26; // Valor fixo conforme especificação
-    const compIntermediarias = componentesAtivos.find(c => c.nomeComponente === 'INTERMEDIARIAS');
-    const percentualIntermediarias = compIntermediarias?.percentual || 0;
+    // 3. Arrecadação Últimos 13 Meses - mesma regra da validação automática
+    const percentualMaximo13UltimosMeses = this.configuracoesAprovacao.percentual13UltimosMesesMaximo;
+    const percentualUltimos13Meses = this.calcularPercentualArrecadacao13UltimosMeses(componentesAtivos);
     
     metricas.push({
       metrica: 'Arrecadação Últimos 13 Meses',
-      limite: `${maxIntermediarias.toFixed(2)}%`,
-      proposta: `${percentualIntermediarias.toFixed(2)}%`,
-      status: percentualIntermediarias <= maxIntermediarias ? 'OK' : 'VIOLACAO'
+      limite: `${percentualMaximo13UltimosMeses.toFixed(2)}%`,
+      proposta: percentualUltimos13Meses === null ? 'N/A' : `${percentualUltimos13Meses.toFixed(2)}%`,
+      status: percentualUltimos13Meses === null
+        ? 'ALERTA'
+        : percentualUltimos13Meses <= percentualMaximo13UltimosMeses ? 'OK' : 'VIOLACAO'
     });
     
     // 4. Cota Única (Última Parcela) - usar percentual do componente COTA ÚNICA
@@ -1490,23 +1496,77 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       status: percentualCotaUnica <= maxCotaUnica ? 'OK' : 'VIOLACAO'
     });
     
-    // 5. Preço da Proposta
-    metricas.push({
-      metrica: 'Preço da Proposta',
-      limite: 'Proposta dentro do preço',
-      proposta: null,
-      status: Math.abs(this.diferenca) <= 0.01 ? 'OK' : (this.diferenca < 0 ? 'ALERTA' : 'OK')
-    });
-    
-    // 6. Valor da Proposta
-    metricas.push({
-      metrica: 'Valor da Proposta',
-      limite: 'Valor Proposta ≥ Valor da tabela',
-      proposta: null,
-      status: this.valorProposta >= this.valorTabela ? 'OK' : 'VIOLACAO'
-    });
-    
     this.comparacao = metricas;
+  }
+
+  private calcularPercentualArrecadacao13PrimeirosMeses(componentes: ComponenteFormulario[]): number | null {
+    const componentesOrdenados = [...componentes]
+      .filter(c => c.vencimento)
+      .sort((a, b) => a.vencimento!.getTime() - b.vencimento!.getTime());
+
+    if (!componentesOrdenados.length) {
+      return null;
+    }
+
+    const primeiroVencimento = componentesOrdenados[0].vencimento!;
+    const dataFinalContrato = this.calcularDataFinalContrato(componentesOrdenados);
+
+    if (!dataFinalContrato) {
+      return null;
+    }
+
+    const duracaoEmMeses = this.calcularDiferencaMeses(primeiroVencimento, dataFinalContrato);
+    if (duracaoEmMeses <= 13) {
+      return null;
+    }
+
+    const dataLimite = new Date(primeiroVencimento);
+    dataLimite.setMonth(dataLimite.getMonth() + 12);
+
+    const valorPrimeiros13Meses = this.calcularValorPorPeriodo(
+      componentesOrdenados,
+      primeiroVencimento,
+      dataLimite
+    );
+
+    return this.valorTabela > 0
+      ? Number(((valorPrimeiros13Meses / this.valorTabela) * 100).toFixed(2))
+      : 0;
+  }
+
+  private calcularPercentualArrecadacao13UltimosMeses(componentes: ComponenteFormulario[]): number | null {
+    const componentesOrdenados = [...componentes]
+      .filter(c => c.vencimento)
+      .sort((a, b) => b.vencimento!.getTime() - a.vencimento!.getTime());
+
+    if (!componentesOrdenados.length) {
+      return null;
+    }
+
+    const primeiroVencimento = componentesOrdenados[componentesOrdenados.length - 1].vencimento!;
+    const dataFinalContrato = this.calcularDataFinalContrato(componentesOrdenados);
+
+    if (!dataFinalContrato) {
+      return null;
+    }
+
+    const duracaoEmMeses = this.calcularDiferencaMeses(primeiroVencimento, dataFinalContrato);
+    if (duracaoEmMeses <= 13) {
+      return null;
+    }
+
+    const dataLimite = new Date(dataFinalContrato);
+    dataLimite.setMonth(dataLimite.getMonth() - 12);
+
+    const valorUltimos13Meses = this.calcularValorPorPeriodo(
+      componentesOrdenados,
+      dataLimite,
+      dataFinalContrato
+    );
+
+    return this.valorTabela > 0
+      ? Number(((valorUltimos13Meses / this.valorTabela) * 100).toFixed(2))
+      : 0;
   }
 
   /**
@@ -1516,6 +1576,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.inicializarComponentes();
     this.calcularTotais();
     this.gerarComparacao();
+    this.atualizarGrafico();
     this.fecharDialogAjusteDiferenca();
     
     this.messageService.add({
@@ -1542,8 +1603,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     };
     
     this.componentes.splice(index + 1, 0, novoComponente);
-    this.calcularTotais();
-    this.gerarComparacao();
+    this.recalcularSimulacao();
     
     this.messageService.add({
       severity: 'success',
@@ -1626,8 +1686,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           this.codigoComponenteAjusteDiferenca = null;
         }
         
-        this.calcularTotais();
-        this.gerarComparacao();
+        this.recalcularSimulacao();
         this.separarComponentes(); // Atualizar lista de disponíveis
         
         this.messageService.add({
@@ -1684,8 +1743,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     
     this.componentes.push(novoComponente);
     
-    this.calcularTotais();
-    this.gerarComparacao();
+    this.recalcularSimulacao();
     this.separarComponentes(); // Atualizar lista de disponíveis
     
     this.messageService.add({
@@ -2079,22 +2137,30 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   graficoOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false
+    },
     plugins: {
       legend: {
         display: true,
         position: 'top' as const
       },
       tooltip: {
-        mode: 'index' as const,
-        intersect: false
+        callbacks: {
+          label: (context: any) => {
+            const label = context.dataset?.label || '';
+            const valor = Number(context.parsed?.y || 0);
+            return `${label}: ${this.formatarMoeda(valor)}`;
+          }
+        }
       }
     },
     scales: {
       y: {
         beginAtZero: true,
-        max: 100,
         ticks: {
-          callback: (value: number) => value + '%'
+          callback: (value: number | string) => this.formatarMoeda(Number(value))
         }
       }
     }
@@ -2104,83 +2170,177 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Retorna dados para o gráfico de análise
    */
   getGraficoData(): any {
-    // Labels baseados nos meses
-    const labels = this.gerarLabelsMeses();
-    
-    // Dados de limite (linha tracejada)
-    const limiteData = this.calcularLimiteCumulativo();
-    
-    // Dados da proposta
-    const propostaData = this.calcularPropostaCumulativa();
-    
+    const parcelasTabelaPadrao = this.extrairParcelasTabelaPadrao();
+    const parcelasSimulacao = this.extrairParcelasSimulacao();
+    const chaves = this.gerarChavesMeses(parcelasTabelaPadrao, parcelasSimulacao);
+    const serieTabelaPadrao = this.construirSerieAcumulada(parcelasTabelaPadrao, chaves);
+    const serieSimulacao = this.construirSerieAcumulada(parcelasSimulacao, chaves);
+    const labels = this.gerarLabelsAcumulados(chaves);
+
     return {
       labels,
       datasets: [
         {
-          label: 'LIMITE',
-          data: limiteData,
-          borderColor: '#000000',
+          label: 'Tabela Padrão',
+          data: serieTabelaPadrao,
+          borderColor: '#64748b',
+          backgroundColor: 'rgba(100, 116, 139, 0.12)',
           borderDash: [5, 5],
           fill: false,
-          tension: 0.1
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: 0.25
         },
         {
-          label: 'PROPOSTA',
-          data: propostaData,
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34, 197, 94, 0.2)',
+          label: 'Simulação',
+          data: serieSimulacao,
+          borderColor: '#667eea',
+          backgroundColor: 'rgba(102, 126, 234, 0.16)',
           fill: true,
-          tension: 0.1
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: 0.25
         }
       ]
     };
   }
 
-  /**
-   * Gera labels de meses para o gráfico
-   */
-  private gerarLabelsMeses(): string[] {
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const labels: string[] = [];
-    const hoje = new Date();
-    
-    for (let i = 0; i < 48; i += 6) {
-      const data = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
-      labels.push(`${meses[data.getMonth()]}/${data.getFullYear().toString().slice(-2)}`);
-    }
-    
-    return labels;
+  private atualizarGrafico(): void {
+    this.graficoData = this.getGraficoData();
   }
 
-  /**
-   * Calcula dados cumulativos do limite
-   */
-  private calcularLimiteCumulativo(): number[] {
-    // Valores aproximados baseados na tabela padrão
-    return [8, 15, 25, 40, 60, 80, 95, 100];
+  private gerarLabelsAcumulados(chaves: string[]): string[] {
+    if (!chaves.length) {
+      return ['Sem dados'];
+    }
+
+    return chaves.map(chave => this.formatarMesAno(chave));
   }
 
-  /**
-   * Calcula dados cumulativos da proposta
-   */
-  private calcularPropostaCumulativa(): number[] {
-    if (this.valorProposta <= 0) {
-      return [0, 0, 0, 0, 0, 0, 0, 0];
+  private extrairParcelasTabelaPadrao(): Array<{ data: Date; valor: number }> {
+    const parcelas: Array<{ data: Date; valor: number }> = [];
+
+    this.componentesTabelaPadrao.forEach(componente => {
+      if (componente.listaVencimentos && componente.listaVencimentos.length > 0) {
+        componente.listaVencimentos.forEach(vencimento => {
+          parcelas.push({
+            data: new Date(vencimento.dataVencimento),
+            valor: vencimento.valor
+          });
+        });
+        return;
+      }
+
+      const dataBase = this.getPrimeiroVencimentoTabelaPadrao(componente);
+      const quantidade = componente.quantidade || 1;
+      const valorParcela = componente.valorParcela ?? ((componente.valor ?? 0) / quantidade);
+
+      if (!dataBase || valorParcela <= 0) {
+        return;
+      }
+
+      this.gerarVencimentos(dataBase, quantidade, componente.periodicidade ?? 0, valorParcela)
+        .forEach(vencimento => {
+          parcelas.push({
+            data: new Date(vencimento.dataVencimento),
+            valor: vencimento.valor
+          });
+        });
+    });
+
+    return parcelas;
+  }
+
+  private extrairParcelasSimulacao(): Array<{ data: Date; valor: number }> {
+    const parcelas: Array<{ data: Date; valor: number }> = [];
+
+    this.componentes
+      .filter(componente => componente.selecionado && componente.valorTotal > 0)
+      .forEach(componente => {
+        if (componente.listaVencimentos && componente.listaVencimentos.length > 0) {
+          componente.listaVencimentos.forEach(vencimento => {
+            parcelas.push({
+              data: new Date(vencimento.dataVencimento),
+              valor: vencimento.valor
+            });
+          });
+          return;
+        }
+
+        if (!componente.vencimento) {
+          return;
+        }
+
+        parcelas.push({
+          data: new Date(componente.vencimento),
+          valor: componente.valorTotal
+        });
+      });
+
+    return parcelas;
+  }
+
+  private construirSerieAcumulada(parcelas: Array<{ data: Date; valor: number }>, chavesBase: string[]): number[] {
+    if (!chavesBase.length) {
+      return [0];
     }
-    
-    // Calcula percentual acumulado por período  
-    const componentesComValor = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
+
+    const valoresPorMes = new Map<string, number>();
+
+    parcelas.forEach(parcela => {
+      if (!parcela.data || parcela.valor <= 0) {
+        return;
+      }
+
+      const chave = `${parcela.data.getFullYear()}-${String(parcela.data.getMonth() + 1).padStart(2, '0')}`;
+      valoresPorMes.set(chave, (valoresPorMes.get(chave) ?? 0) + parcela.valor);
+    });
     let acumulado = 0;
-    const dados: number[] = [];
-    
-    // Simplificação: distribui uniformemente
-    const incremento = 100 / 8;
-    for (let i = 0; i < 8; i++) {
-      acumulado += incremento * (this.valorProposta / this.valorTabela);
-      dados.push(Math.min(acumulado, 100));
+
+    return chavesBase.map(chave => {
+      acumulado += valoresPorMes.get(chave) ?? 0;
+      return Number(acumulado.toFixed(2));
+    });
+  }
+
+  private gerarChavesMeses(
+    parcelasTabelaPadrao: Array<{ data: Date; valor: number }>,
+    parcelasSimulacao: Array<{ data: Date; valor: number }>
+  ): string[] {
+    const todasParcelas = [...parcelasTabelaPadrao, ...parcelasSimulacao]
+      .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
+      .sort((a, b) => a.data.getTime() - b.data.getTime());
+
+    if (!todasParcelas.length) {
+      return [];
     }
-    
-    return dados;
+
+    const primeiraData = new Date(todasParcelas[0].data.getFullYear(), todasParcelas[0].data.getMonth(), 1);
+    const ultimaData = new Date(
+      todasParcelas[todasParcelas.length - 1].data.getFullYear(),
+      todasParcelas[todasParcelas.length - 1].data.getMonth(),
+      1
+    );
+
+    const chaves: string[] = [];
+    const cursor = new Date(primeiraData);
+
+    while (cursor <= ultimaData) {
+      chaves.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`);
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    return chaves;
+  }
+
+  private formatarMesAno(chave: string): string {
+    const [ano, mes] = chave.split('-').map(Number);
+    const data = new Date(ano, (mes || 1) - 1, 1);
+
+    return data.toLocaleDateString('pt-BR', {
+      month: 'short',
+      year: '2-digit'
+    }).replace('.', '');
   }
 
   /**
