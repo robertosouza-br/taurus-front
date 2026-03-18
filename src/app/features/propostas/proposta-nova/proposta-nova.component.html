@@ -247,13 +247,89 @@
 
       <!-- Botões de Ação -->
       <div class="acoes-tabela mt-3">
-        <button type="button" pButton pRipple icon="pi pi-refresh" label="Restaurar tabela" 
-                class="p-button-outlined p-button-sm" (click)="restaurarTabela()"></button>
-        <button type="button" pButton pRipple icon="pi pi-percentage" label="Desconto" 
-                class="p-button-outlined p-button-sm" [disabled]="true"></button>
-        <button type="button" pButton pRipple icon="pi pi-calendar" label="Plano de pagamento" 
-                class="p-button-outlined p-button-sm" [disabled]="true"></button>
+        <div class="acoes-tabela-principais">
+          <button type="button" pButton pRipple icon="pi pi-refresh" label="Restaurar tabela" 
+            class="p-button-outlined p-button-sm" (click)="restaurarTabela()"></button>
+          <button type="button" pButton pRipple icon="pi pi-percentage" label="Desconto" 
+            class="p-button-outlined p-button-sm" [disabled]="true"></button>
+          <button type="button" pButton pRipple icon="pi pi-calendar" label="Plano de pagamento" 
+            class="p-button-outlined p-button-sm" [disabled]="true"></button>
+          <button *ngIf="possuiDesconto"
+            type="button"
+            pButton
+            pRipple
+            icon="pi pi-wallet"
+            label="Atribuir restante"
+            class="p-button-sm p-button-warning"
+            (click)="abrirDialogAjusteDiferenca()"></button>
+        </div>
       </div>
+
+      <p-dialog
+        [(visible)]="ajusteDiferencaDialogVisible"
+        [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
+        [closable]="true"
+        [style]="{ width: '34rem' }"
+        [breakpoints]="{ '960px': '75vw', '640px': '92vw' }"
+        styleClass="ajuste-diferenca-dialog"
+        (onHide)="fecharDialogAjusteDiferenca()">
+        <ng-template pTemplate="header">
+          <div class="ajuste-diferenca-dialog-header">
+            <div class="dialog-header-icon">
+              <i class="pi pi-wallet"></i>
+            </div>
+            <div class="dialog-header-copy">
+              <span class="dialog-header-title">Atribuir valor restante</span>
+              <span class="dialog-header-subtitle">Selecione o componente que receberá o ajuste final da simulação.</span>
+            </div>
+          </div>
+        </ng-template>
+
+        <div class="ajuste-diferenca-dialog-content">
+          <div class="ajuste-diferenca-dialog-summary">
+            <span class="summary-label">Valor restante para distribuir</span>
+            <strong class="summary-value">{{ formatarMoeda(valorRestanteParaAjuste) }}</strong>
+          </div>
+
+          <div class="ajuste-diferenca-dialog-field">
+            <app-autocomplete
+              id="componente-ajuste-restante"
+              label="Componente"
+              [(ngModel)]="codigoComponenteAjusteDiferenca"
+              [suggestions]="opcoesAjusteDiferencaFiltradas"
+              field="label"
+              dataKey="value"
+              placeholder="Escolha o componente"
+              [emptyMessage]="'Nenhum componente encontrado'"
+              [appendTo]="'body'"
+              panelStyleClass="ajuste-diferenca-autocomplete-panel"
+              (completeMethod)="filtrarOpcoesAjusteDiferenca($event)"
+              (onDropdownClick)="abrirTodasOpcoesAjusteDiferenca()">
+            </app-autocomplete>
+          </div>
+
+          <div class="ajuste-diferenca-dialog-actions">
+            <app-custom-button
+              label="Cancelar"
+              icon="pi pi-times"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (onClick)="fecharDialogAjusteDiferenca()">
+            </app-custom-button>
+            <app-custom-button
+              label="Aplicar ajuste"
+              icon="pi pi-check"
+              severity="warning"
+              size="small"
+              [disabled]="!codigoComponenteAjusteDiferenca"
+              (onClick)="aplicarDiferencaRestante()">
+            </app-custom-button>
+          </div>
+        </div>
+      </p-dialog>
 
       <!-- Tabela de Simulação Editável -->
       <div class="table-container mt-4 mb-4">

@@ -5,11 +5,11 @@
 .proposta-nova-page {
   padding: 0 1rem 3rem;
 
-  // ─── Verificando/Loading banner ─────────────────────────────────────────
   .verificando-banner {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    justify-content: flex-start;
     background: #eff6ff;
     border: 1px solid #bfdbfe;
     border-radius: 8px;
@@ -431,16 +431,25 @@
   // ─── Botões da tabela (ações primárias) ────────────────────────────────
   .acoes-tabela {
     display: flex;
+    align-items: center;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
     padding: 0.75rem;
-    background: #f9fafb;
-    border-radius: 6px;
+    background: #f8fafc;
+    border-radius: 8px;
     border: 1px solid #e5e7eb;
+
+    .acoes-tabela-principais {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
     
     ::ng-deep {
-      .p-button-outlined {
+      .acoes-tabela-principais .p-button-outlined {
         border-width: 1.5px;
         font-weight: 500;
         transition: all 0.2s ease;
@@ -454,11 +463,159 @@
         }
       }
       
-      .p-button-sm {
+      .acoes-tabela-principais .p-button-sm {
         padding: 0.5rem 1rem;
         font-size: 0.875rem;
+        height: 2.35rem;
+      }
+
+      .acoes-tabela-principais .p-button-warning {
+        background: #f97316;
+        border-color: #f97316;
+
+        &:enabled:hover {
+          background: #ea580c;
+          border-color: #ea580c;
+          transform: translateY(-1px);
+        }
       }
     }
+  }
+
+  ::ng-deep .ajuste-diferenca-dialog {
+    .p-dialog-header {
+      padding: 1rem 1.25rem 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .p-dialog-content {
+      padding: 1.25rem;
+      background: #ffffff;
+    }
+
+    .p-dialog-header-icons .p-dialog-header-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 6px;
+      color: #64748b;
+
+      &:hover {
+        background: #f1f5f9;
+        color: #334155;
+      }
+    }
+  }
+
+  ::ng-deep .ajuste-diferenca-autocomplete-panel {
+    z-index: 1205 !important;
+
+    .p-autocomplete-items {
+      padding: 0.35rem 0;
+    }
+
+    .p-autocomplete-item {
+      position: relative;
+      z-index: 1206;
+    }
+  }
+
+  .ajuste-diferenca-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    width: 100%;
+
+    .dialog-header-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #fed7aa;
+      flex: 0 0 auto;
+
+      i {
+        font-size: 1.1rem;
+      }
+    }
+
+    .dialog-header-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+
+    .dialog-header-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .dialog-header-subtitle {
+      font-size: 0.8125rem;
+      color: #64748b;
+      line-height: 1.45;
+    }
+  }
+
+  .ajuste-diferenca-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ajuste-diferenca-dialog-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+    border-radius: 10px;
+
+    .summary-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #9a3412;
+    }
+
+    .summary-value {
+      font-size: 1.2rem;
+      line-height: 1.15;
+      color: #c2410c;
+      font-weight: 700;
+    }
+  }
+
+  .ajuste-diferenca-dialog-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .dialog-field-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+    }
+  }
+
+  .ajuste-diferenca-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid #f1f5f9;
   }
 
   // ─── Seção de gráfico ───────────────────────────────────────────────────
@@ -543,9 +700,23 @@
     .acoes-tabela {
       flex-direction: column;
 
+      .acoes-tabela-principais {
+        width: 100%;
+        flex-direction: column;
+      }
+
       button {
         width: 100%;
       }
+    }
+
+    .ajuste-diferenca-dialog-header {
+      align-items: center;
+    }
+
+    .ajuste-diferenca-dialog-actions {
+      flex-direction: column-reverse;
+      align-items: stretch;
     }
 
     .acoes-finais {

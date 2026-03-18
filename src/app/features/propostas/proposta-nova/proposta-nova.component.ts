@@ -69,6 +69,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // 🆕 v2.5 - Autocomplete de componentes (17/03/2026)
   componenteSelecionadoAutocomplete: ComponenteTabelaPadraoDTO | null = null;
   componentesFiltrados: ComponenteTabelaPadraoDTO[] = [];
+  codigoComponenteAjusteDiferenca: string | null = null;
+  opcoesAjusteDiferencaFiltradas: Array<{ label: string; value: string }> = [];
+  ajusteDiferencaDialogVisible = false;
   
   // Resumo da simulação
   valorTabela = 0;
@@ -159,6 +162,43 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return periodicidadeLabel;
+  }
+
+  get valorRestanteParaAjuste(): number {
+    return this.possuiDesconto ? Math.abs(this.diferenca) : 0;
+  }
+
+  get opcoesAjusteDiferenca(): Array<{ label: string; value: string }> {
+    return this.componentes
+      .filter(c => c.selecionado)
+      .map((componente, index) => ({
+        value: componente.codigoComponente,
+        label: `${componente.nomeComponente} ${this.componentes.filter(c => c.nomeComponente === componente.nomeComponente).length > 1 ? `#${index + 1}` : ''} • ${componente.quantidade}x • ${this.formatarMoeda(componente.valorTotal)}`
+      }));
+  }
+
+  filtrarOpcoesAjusteDiferenca(event: any): void {
+    const query = event.query?.toLowerCase()?.trim() || '';
+    const opcoes = this.opcoesAjusteDiferenca;
+
+    this.opcoesAjusteDiferencaFiltradas = !query
+      ? [...opcoes]
+      : opcoes.filter(opcao => opcao.label.toLowerCase().includes(query));
+  }
+
+  abrirTodasOpcoesAjusteDiferenca(): void {
+    this.opcoesAjusteDiferencaFiltradas = [...this.opcoesAjusteDiferenca];
+  }
+
+  abrirDialogAjusteDiferenca(): void {
+    this.opcoesAjusteDiferencaFiltradas = [...this.opcoesAjusteDiferenca];
+    this.ajusteDiferencaDialogVisible = true;
+  }
+
+  fecharDialogAjusteDiferenca(): void {
+    this.ajusteDiferencaDialogVisible = false;
+    this.codigoComponenteAjusteDiferenca = null;
+    this.opcoesAjusteDiferencaFiltradas = [];
   }
 
   ngOnInit(): void {
@@ -614,6 +654,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   private recalcularSimulacao(): void {
     this.calcularTotais();
     this.gerarComparacao();
+
+    if (!this.possuiDesconto && this.ajusteDiferencaDialogVisible) {
+      this.fecharDialogAjusteDiferenca();
+    }
   }
 
   private formatarValorParcelaEdicao(valor: number | null | undefined): string {
@@ -1438,6 +1482,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.inicializarComponentes();
     this.calcularTotais();
     this.gerarComparacao();
+    this.fecharDialogAjusteDiferenca();
     
     this.messageService.add({
       severity: 'info',
@@ -1473,6 +1518,58 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     });
   }
 
+  aplicarDiferencaRestante(): void {
+    const valorRestante = this.valorRestanteParaAjuste;
+
+    if (valorRestante <= 0.01) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Sem ajuste',
+        detail: 'Não há diferença restante para atribuir.'
+      });
+      return;
+    }
+
+    if (!this.codigoComponenteAjusteDiferenca) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Selecione um componente',
+        detail: 'Escolha o componente que receberá o valor restante.'
+      });
+      return;
+    }
+
+    const componente = this.componentes.find(c => c.codigoComponente === this.codigoComponenteAjusteDiferenca);
+    if (!componente) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Componente não encontrado',
+        detail: 'O componente selecionado não está mais disponível para ajuste.'
+      });
+      this.codigoComponenteAjusteDiferenca = null;
+      return;
+    }
+
+    const quantidade = Math.max(componente.quantidade || 1, 1);
+    componente.valorTotal += valorRestante;
+    componente.valorParcela = componente.valorTotal / quantidade;
+
+    this.valorParcelaInputMap.set(componente, this.formatarValorParcelaExibicao(componente.valorParcela));
+    this.atualizarVencimentosComponente(componente);
+    this.recalcularSimulacao();
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Ajuste aplicado',
+      detail: `${this.formatarMoeda(valorRestante)} foi atribuído ao componente "${componente.nomeComponente}".`
+    });
+
+    this.fecharDialogAjusteDiferenca();
+
+    this.codigoComponenteAjusteDiferenca = null;
+    this.opcoesAjusteDiferencaFiltradas = [];
+  }
+
   /**
    * Remove um componente (marca como não selecionado)
    */
@@ -1489,6 +1586,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         const index = this.componentes.indexOf(componente);
         if (index > -1) {
           this.componentes.splice(index, 1);
+        }
+
+        if (this.codigoComponenteAjusteDiferenca === componente.codigoComponente) {
+          this.codigoComponenteAjusteDiferenca = null;
         }
         
         this.calcularTotais();
