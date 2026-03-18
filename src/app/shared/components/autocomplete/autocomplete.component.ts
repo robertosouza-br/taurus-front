@@ -1,5 +1,6 @@
 import { Component, Input, forwardRef, ViewChild, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { OverlayOptions } from 'primeng/api';
 import { AutoComplete } from 'primeng/autocomplete';
 
 @Component({
@@ -31,6 +32,9 @@ export class AutocompleteComponent implements ControlValueAccessor, OnChanges {
   @Input() itemTemplate: any = null; // Template customizado para os itens
   @Input() appendTo: any = 'body';
   @Input() panelStyleClass: string = 'app-autocomplete-panel';
+  @Input() autoZIndex: boolean = true;
+  @Input() baseZIndex: number = 0;
+  @Input() overlayOptions?: OverlayOptions;
   
   @Output() completeMethod = new EventEmitter<any>(); // Evento de filtro
   @Output() onSelect = new EventEmitter<any>(); // Evento de seleção

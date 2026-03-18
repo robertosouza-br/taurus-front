@@ -228,14 +228,19 @@
       }
 
       .tabela-padrao-tag {
-        font-size: 0.75rem;
-        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8125rem;
+        font-weight: 700;
         background: #dbeafe;
         color: #1e40af;
-        padding: 0.3rem 0.75rem;
-        border-radius: 4px;
+        padding: 0.4rem 0.95rem;
+        border-radius: 999px;
         text-transform: uppercase;
-        letter-spacing: 0.025em;
+        letter-spacing: 0.04em;
+        border: 1px solid #bfdbfe;
+        animation: tabela-padrao-tag-pulse 2s ease-in-out infinite;
       }
 
       .toggle-icon {
@@ -479,6 +484,55 @@
           transform: translateY(-1px);
         }
       }
+
+      .acoes-tabela-principais .atribuir-restante-button {
+        animation: atribuir-restante-pulse 1.8s ease-in-out infinite;
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
+      }
+    }
+  }
+
+  @keyframes atribuir-restante-pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.35);
+    }
+
+    35% {
+      transform: scale(1.03);
+      box-shadow: 0 0 0 0.45rem rgba(249, 115, 22, 0);
+    }
+
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    }
+  }
+
+  @keyframes tabela-padrao-tag-pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.22);
+    }
+
+    35% {
+      transform: scale(1.04);
+      box-shadow: 0 0 0 0.4rem rgba(59, 130, 246, 0);
+    }
+
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::ng-deep .acoes-tabela-principais .atribuir-restante-button {
+      animation: none;
+    }
+
+    .modalidade-section .modalidade-header .tabela-padrao-tag {
+      animation: none;
     }
   }
 
@@ -492,6 +546,33 @@
     .p-dialog-content {
       padding: 1.25rem;
       background: #ffffff;
+      overflow: visible;
+    }
+
+    .p-dialog-header-icons .p-dialog-header-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 6px;
+      color: #64748b;
+
+      &:hover {
+        background: #f1f5f9;
+        color: #334155;
+      }
+    }
+  }
+
+  ::ng-deep .adicionar-componente-dialog {
+    .p-dialog-header {
+      padding: 1rem 1.25rem 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .p-dialog-content {
+      padding: 1.25rem;
+      background: #ffffff;
+      overflow: visible;
     }
 
     .p-dialog-header-icons .p-dialog-header-icon {
@@ -518,6 +599,24 @@
       position: relative;
       z-index: 1206;
     }
+  }
+
+  ::ng-deep .ajuste-diferenca-autocomplete-overlay {
+    z-index: 11000 !important;
+  }
+
+  ::ng-deep .adicionar-componente-autocomplete-overlay {
+    z-index: 11000 !important;
+  }
+
+  ::ng-deep .ajuste-diferenca-autocomplete-overlay .p-overlay-content,
+  ::ng-deep .ajuste-diferenca-autocomplete-overlay-content {
+    z-index: 11001 !important;
+  }
+
+  ::ng-deep .adicionar-componente-autocomplete-overlay .p-overlay-content,
+  ::ng-deep .adicionar-componente-autocomplete-overlay-content {
+    z-index: 11001 !important;
   }
 
   .ajuste-diferenca-dialog-header {
@@ -564,7 +663,57 @@
     }
   }
 
+  .adicionar-componente-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    width: 100%;
+
+    .dialog-header-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      flex: 0 0 auto;
+
+      i {
+        font-size: 1.1rem;
+      }
+    }
+
+    .dialog-header-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+
+    .dialog-header-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .dialog-header-subtitle {
+      font-size: 0.8125rem;
+      color: #64748b;
+      line-height: 1.45;
+    }
+  }
+
   .ajuste-diferenca-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .adicionar-componente-dialog-content {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -595,6 +744,31 @@
     }
   }
 
+  .adicionar-componente-dialog-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+
+    .summary-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #1d4ed8;
+    }
+
+    .summary-value {
+      font-size: 1.2rem;
+      line-height: 1.15;
+      color: #1e40af;
+      font-weight: 700;
+    }
+  }
+
   .ajuste-diferenca-dialog-field {
     display: flex;
     flex-direction: column;
@@ -609,7 +783,22 @@
     }
   }
 
+  .adicionar-componente-dialog-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .ajuste-diferenca-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .adicionar-componente-dialog-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -894,8 +1083,23 @@
   }
 
   .standard-table {
+    .p-datatable-tbody > tr {
+      background: #f8fafc;
+    }
+
     .p-datatable-tbody > tr:nth-child(even) {
-      background: #fcfdff;
+      background: #f1f5f9;
+    }
+
+    ::ng-deep .p-datatable-tfoot > tr > td {
+      background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+      border-top: 2px solid #94a3b8;
+      padding-top: 0.85rem !important;
+      padding-bottom: 0.85rem !important;
+    }
+
+    ::ng-deep .p-datatable-tfoot > tr > td:first-child {
+      box-shadow: inset 4px 0 0 #64748b;
     }
   }
 
@@ -1021,17 +1225,19 @@
   }
 
   .table-total-label {
-    color: #0f172a;
-    font-size: 0.78rem;
+    display: inline-block;
+    padding-left: 0.55rem;
+    color: #334155;
+    font-size: 0.82rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
   }
 
   .table-total-value {
     color: #0f172a;
-    font-size: 0.875rem;
-    font-weight: 800;
+    font-size: 0.94rem;
+    font-weight: 900;
     font-feature-settings: 'tnum';
     white-space: nowrap;
   }

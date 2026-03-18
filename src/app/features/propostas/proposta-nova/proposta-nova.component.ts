@@ -69,9 +69,22 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // 🆕 v2.5 - Autocomplete de componentes (17/03/2026)
   componenteSelecionadoAutocomplete: ComponenteTabelaPadraoDTO | null = null;
   componentesFiltrados: ComponenteTabelaPadraoDTO[] = [];
+  adicionarComponenteDialogVisible = false;
   codigoComponenteAjusteDiferenca: string | null = null;
   opcoesAjusteDiferencaFiltradas: Array<{ label: string; value: string }> = [];
   ajusteDiferencaDialogVisible = false;
+  readonly adicionarComponenteAutocompleteOverlayOptions = {
+    styleClass: 'adicionar-componente-autocomplete-overlay',
+    contentStyleClass: 'adicionar-componente-autocomplete-overlay-content',
+    autoZIndex: true,
+    baseZIndex: 11000
+  };
+  readonly ajusteDiferencaAutocompleteOverlayOptions = {
+    styleClass: 'ajuste-diferenca-autocomplete-overlay',
+    contentStyleClass: 'ajuste-diferenca-autocomplete-overlay-content',
+    autoZIndex: true,
+    baseZIndex: 11000
+  };
   
   // Resumo da simulação
   valorTabela = 0;
@@ -164,6 +177,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return periodicidadeLabel;
   }
 
+  getPrimeiroVencimentoTabelaPadrao(componente: ComponenteTabelaPadraoDTO): Date | null {
+    if (componente.dataVencimento) {
+      return componente.dataVencimento instanceof Date
+        ? componente.dataVencimento
+        : new Date(componente.dataVencimento);
+    }
+
+    return this.calcularVencimentoInicial(componente);
+  }
+
   get valorRestanteParaAjuste(): number {
     return this.possuiDesconto ? Math.abs(this.diferenca) : 0;
   }
@@ -193,6 +216,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   abrirDialogAjusteDiferenca(): void {
     this.opcoesAjusteDiferencaFiltradas = [...this.opcoesAjusteDiferenca];
     this.ajusteDiferencaDialogVisible = true;
+  }
+
+  abrirDialogAdicionarComponente(): void {
+    this.onDropdownClickComponentes();
+    this.adicionarComponenteDialogVisible = true;
+  }
+
+  fecharDialogAdicionarComponente(): void {
+    this.adicionarComponenteDialogVisible = false;
+    this.componenteSelecionadoAutocomplete = null;
+    this.componentesFiltrados = [];
   }
 
   fecharDialogAjusteDiferenca(): void {
@@ -1694,6 +1728,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       setTimeout(() => {
         this.componenteSelecionadoAutocomplete = null;
       }, 100);
+
+      this.fecharDialogAdicionarComponente();
     }
   }
 
