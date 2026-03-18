@@ -3,6 +3,14 @@
 // =============================================
 
 .proposta-nova-page {
+  --proposta-banner-bg: linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%);
+  --proposta-header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --proposta-header-bg-strong: linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%);
+  --proposta-accent-bg: #eef2ff;
+  --proposta-accent-border: #c7d2fe;
+  --proposta-accent-text: #4338ca;
+  --proposta-accent-strong: #5b21b6;
+
   padding: 0 1rem 3rem;
 
   .verificando-banner {
@@ -29,17 +37,17 @@
 
   // ─── Banner da unidade ──────────────────────────────────────────────────
   .unidade-banner {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    border-radius: 10px;
-    padding: 1.75rem 2rem;
+    background: var(--proposta-banner-bg);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
     color: white;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
 
     .unidade-banner-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 1.25rem;
+      gap: 1.5rem;
       justify-content: center;
     }
 
@@ -48,34 +56,36 @@
       flex-direction: column;
       gap: 0.25rem;
       align-items: center;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.10);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      padding: 0.55rem 0.85rem;
       min-width: 140px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
 
       .info-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        opacity: 0.9;
+        opacity: 0.92;
       }
 
       .info-valor {
-        font-size: 1.0625rem;
+        font-size: 1.05rem;
         font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 
         &.destaque {
-          font-size: 1.1875rem;
+          font-size: 1.1rem;
           font-weight: 800;
         }
 
         &.preco {
-          font-size: 1.25rem;
-          color: #fde68a;
+          font-size: 1.1rem;
+          color: #fde047;
           font-weight: 800;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
         }
       }
     }
@@ -83,10 +93,9 @@
 
   // ─── Cards do formulário ────────────────────────────────────────────────
   .proposta-card {
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    border: 1px solid #e5e7eb;
 
     ::ng-deep .p-card-header {
       padding: 0;
@@ -106,9 +115,9 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: var(--proposta-header-bg);
     color: white;
-    padding: 1rem 1.25rem;
+    padding: 0.875rem 1.25rem;
     font-weight: 600;
     font-size: 0.9375rem;
 
@@ -117,7 +126,7 @@
     }
 
     &.card-header-primary {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      background: var(--proposta-header-bg);
       justify-content: space-between;
 
       .header-left {
@@ -596,18 +605,18 @@
         justify-content: center;
         font-size: 0.8125rem;
         font-weight: 700;
-        background: #dbeafe;
-        color: #1e40af;
+        background: var(--proposta-accent-bg);
+        color: var(--proposta-accent-strong);
         padding: 0.4rem 0.95rem;
         border-radius: 999px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        border: 1px solid #bfdbfe;
+        border: 1px solid var(--proposta-accent-border);
         animation: tabela-padrao-tag-pulse 2s ease-in-out infinite;
       }
 
       .toggle-icon {
-        color: #3b82f6;
+        color: #667eea;
         font-weight: bold;
       }
     }
@@ -798,15 +807,15 @@
     }
 
     .resumo-card-total {
-      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
-      border-color: #bfdbfe;
+      background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%);
+      border-color: #c4b5fd;
 
       .resumo-label {
-        color: #1d4ed8;
+        color: #6d28d9;
       }
 
       .resumo-valor {
-        color: #1e3a8a;
+        color: #4c1d95;
         font-size: 1.2rem;
       }
     }
@@ -848,7 +857,7 @@
     }
 
     .valor-adiantamento {
-      color: var(--primary-color);
+      color: var(--proposta-accent-strong);
       font-weight: 800;
     }
   }
@@ -881,9 +890,9 @@
         border-radius: 6px;
         
         &:hover {
-          background: rgba(59, 130, 246, 0.08);
-          border-color: #3b82f6;
-          color: #3b82f6;
+          background: rgba(102, 126, 234, 0.08);
+          border-color: #667eea;
+          color: #667eea;
           transform: translateY(-1px);
         }
       }
@@ -895,19 +904,19 @@
       }
 
       .acoes-tabela-principais .p-button-warning {
-        background: #f97316;
-        border-color: #f97316;
+        background: #667eea;
+        border-color: #667eea;
 
         &:enabled:hover {
-          background: #ea580c;
-          border-color: #ea580c;
+          background: #5a6fd6;
+          border-color: #5a6fd6;
           transform: translateY(-1px);
         }
       }
 
       .acoes-tabela-principais .atribuir-restante-button {
         animation: atribuir-restante-pulse 1.8s ease-in-out infinite;
-        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.35);
       }
     }
   }
@@ -915,12 +924,12 @@
   @keyframes atribuir-restante-pulse {
     0% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.35);
+      box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.3);
     }
 
     35% {
       transform: scale(1.03);
-      box-shadow: 0 0 0 0.45rem rgba(249, 115, 22, 0);
+      box-shadow: 0 0 0 0.45rem rgba(102, 126, 234, 0);
     }
 
     100% {
@@ -1096,9 +1105,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: #eff6ff;
-      color: #2563eb;
-      border: 1px solid #bfdbfe;
+      background: #f5f3ff;
+      color: #6d28d9;
+      border: 1px solid #ddd6fe;
       flex: 0 0 auto;
 
       i {
@@ -1169,8 +1178,8 @@
     flex-direction: column;
     gap: 0.3rem;
     padding: 1rem;
-    background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
-    border: 1px solid #bfdbfe;
+    background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%);
+    border: 1px solid #c4b5fd;
     border-radius: 10px;
 
     .summary-label {
@@ -1178,13 +1187,13 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      color: #1d4ed8;
+      color: #6d28d9;
     }
 
     .summary-value {
       font-size: 1.2rem;
       line-height: 1.15;
-      color: #1e40af;
+      color: #4c1d95;
       font-weight: 700;
     }
   }
@@ -1569,6 +1578,12 @@
   }
 
   .standard-table {
+    .p-datatable-thead > tr > th {
+      background: #e5e7eb;
+      color: #374151;
+      border-bottom: 2px solid #cbd5e1;
+    }
+
     .p-datatable-tbody > tr {
       background: #f8fafc;
     }
@@ -1590,6 +1605,12 @@
   }
 
   .simulation-table {
+    .p-datatable-thead > tr > th {
+      background: #e5e7eb;
+      color: #374151;
+      border-bottom: 2px solid #cbd5e1;
+    }
+
     .p-datatable-tbody > tr > td:first-child {
       position: relative;
     }
@@ -1659,8 +1680,8 @@
   }
 
   .meta-pill-light {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--proposta-accent-bg);
+    color: var(--proposta-accent-text);
   }
 
   .number-badge {
@@ -1685,8 +1706,8 @@
     height: 1.55rem;
     padding: 0 0.55rem;
     border-radius: 999px;
-    background: #eef2ff;
-    color: #4338ca;
+    background: var(--proposta-accent-bg);
+    color: var(--proposta-accent-text);
     font-size: 0.77rem;
     font-weight: 700;
     font-feature-settings: 'tnum';
@@ -1748,8 +1769,8 @@
     
     &:focus {
       outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
     }
   }
 
@@ -1765,7 +1786,7 @@
       
       &:hover {
         background: #f8fafc;
-        color: #3b82f6;
+        color: #667eea;
       }
     }
   }
