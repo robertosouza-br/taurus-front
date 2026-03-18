@@ -570,27 +570,21 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   /**
    * Manipula mudança de seleção de um componente (checkbox)
    */
-  onSelecionadoChange(componente: ComponenteFormulario): void {
-    this.calcularTotais();
-    this.gerarComparacao();
-  }
-
-
-
   /**
    * Calcula totais da simulação
    * 
    * Baseado nas instruções do documento:
-   * - Valor Total: soma de componentes selecionados
+   * - Valor Total: soma de componentes com valor preenchido
    * - Diferença: valor total - valor da unidade
    * - Adiantamento: componentes com vencimento no mês corrente
    * - Saldo Devedor: valor total - adiantamento
    */
   calcularTotais(): void {
-    const componentesSelecionados = this.componentes.filter(c => c.selecionado);
+    // Considera apenas componentes com valores preenchidos
+    const componentesComValor = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
     
     // Valor total da proposta (calcular ANTES dos percentuais)
-    this.valorProposta = componentesSelecionados.reduce(
+    this.valorProposta = componentesComValor.reduce(
       (sum, c) => sum + c.valorTotal, 0
     );
     
@@ -598,8 +592,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     // Se valorProposta ≠ valorTabela, significa que houve mudanças e TODOS os percentuais devem ser recalculados
     const houveAlteracao = Math.abs(this.valorProposta - this.valorTabela) > 0.01;
     
-    // Recalcula percentual de cada componente selecionado em relação ao VALOR DA PROPOSTA
-    componentesSelecionados.forEach(componente => {
+    // Recalcula percentual de cada componente em relação ao VALOR DA PROPOSTA
+    componentesComValor.forEach(componente => {
       const nomeUpper = componente.nomeComponente.toUpperCase();
       
       // 🎯 ATO e SINAL: SEMPRE recalcular (percentual da API é a SOMA, não individual)
@@ -632,14 +626,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     });
     
     // 🎯 AJUSTE DE ARREDONDAMENTO: Garantir que soma dos percentuais = 100%
-    if (componentesSelecionados.length > 0) {
-      const somaPercentuais = componentesSelecionados.reduce((sum, c) => sum + c.percentual, 0);
+    if (componentesComValor.length > 0) {
+      const somaPercentuais = componentesComValor.reduce((sum, c) => sum + c.percentual, 0);
       const diferenca = 100 - somaPercentuais;
       
       // Se diferença for significativa (> 0.01%), ajustar no último componente
       if (Math.abs(diferenca) > 0.01) {
         // Encontrar o último componente que NÃO é ATO nem SINAL (esses são sempre recalculados)
-        const ultimoParaAjustar = [...componentesSelecionados]
+        const ultimoParaAjustar = [...componentesComValor]
           .reverse()
           .find(c => !c.nomeComponente.toUpperCase().includes('ATO') && 
                      !c.nomeComponente.toUpperCase().includes('SINAL'));
@@ -661,7 +655,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     
     // 💰 Adiantamento: soma dos componentes com vencimento no mês corrente
     const dataReferencia = new Date();
-    this.adiantamento = componentesSelecionados
+    this.adiantamento = componentesComValor
       .filter(c => {
         if (!c.vencimento) return false;
         const venc = new Date(c.vencimento);
@@ -801,10 +795,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       c.erroValidacao = null;
     });
     
-    // 🔢 Filtrar apenas componentes selecionados E com valores preenchidos
+    // 🔢 Filtrar apenas componentes com valores preenchidos
     // Componentes recém-adicionados (valor=0, percentual=0) não são validados
     const componentesSelecionados = this.componentes.filter(c => 
-      c.selecionado && (c.valorParcela > 0 || c.percentual > 0)
+      c.valorParcela > 0 || c.percentual > 0
     );
     
     // REGRA 0: Validar percentuais individuais de cada componente
@@ -1261,7 +1255,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   gerarComparacao(): void {
     if (!this.proposta) return;
     
-    const componentesAtivos = this.componentes.filter(c => c.selecionado);
+    // Filtrar componentes com valores preenchidos
+    const componentesAtivos = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
     
     // Usar componentes normalizados do cache (já processado em inicializarComponentes)
     // ✨ Evita reprocessamento e warnings duplicados
@@ -1389,16 +1384,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Remove um componente (marca como não selecionado)
    */
   excluirComponente(componente: ComponenteFormulario): void {
-    // 🆕 v2.2 - ATO não pode ser removido
-    if (componente.nomeComponente.toUpperCase().includes('ATO')) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'ATO não pode ser removido. É obrigatório.'
-      });
-      return;
-    }
-    
     // Confirmar antes de excluir
     this.confirmationService.confirm({
       message: `Deseja realmente remover o componente "${componente.nomeComponente}"?`,
@@ -1407,7 +1392,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       acceptLabel: 'Sim, remover',
       rejectLabel: 'Cancelar',
       accept: () => {
-        componente.selecionado = false;
+        // 🗑️ REMOVER completamente do array (não apenas desmarcar)
+        const index = this.componentes.indexOf(componente);
+        if (index > -1) {
+          this.componentes.splice(index, 1);
+        }
+        
         this.calcularTotais();
         this.gerarComparacao();
         this.separarComponentes(); // Atualizar lista de disponíveis
@@ -1525,7 +1515,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Verifica se há erros de validação
    */
   get temErrosValidacao(): boolean {
-    return this.componentes.some(c => c.selecionado && c.erroValidacao);
+    return this.componentes.some(c => c.erroValidacao);
   }
 
   /**
@@ -1548,9 +1538,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   getCamposObrigatorios(): Array<{ id: string; valor: any; label?: string }> {
     const campos: Array<{ id: string; valor: any; label?: string }> = [];
     
-    // Validar se todos os componentes selecionados têm valor
+    // Validar se todos os componentes têm valor preenchido
     this.componentes.forEach((comp, index) => {
-      if (comp.selecionado && comp.valorParcela <= 0) {
+      if (comp.valorParcela <= 0) {
         campos.push({
           id: `valorParcela_${index}`,
           valor: comp.valorParcela,
@@ -1566,7 +1556,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Gera PIX para o componente ATO
    */
   gerarPix(): void {
-    const ato = this.componentes.find(c => c.nomeComponente === 'ATO' && c.selecionado);
+    const ato = this.componentes.find(c => c.nomeComponente === 'ATO');
     
     if (!ato || ato.valorParcela <= 0) {
       this.messageService.add({
@@ -1647,7 +1637,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Monta o request para salvar a proposta
    */
   private montarRequest(): SalvarPropostaSimplificadaRequest {
-    const componentesSelecionados = this.componentes.filter(c => c.selecionado);
+    // Enviar apenas componentes com valores preenchidos
+    const componentesSelecionados = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
     
     return {
       reservaId: this.reservaId,
@@ -1935,8 +1926,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return [0, 0, 0, 0, 0, 0, 0, 0];
     }
     
-    // Calcula percentual acumulado por período
-    const componentesSelecionados = this.componentes.filter(c => c.selecionado);
+    // Calcula percentual acumulado por período  
+    const componentesComValor = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
     let acumulado = 0;
     const dados: number[] = [];
     

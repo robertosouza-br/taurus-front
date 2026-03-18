@@ -259,7 +259,6 @@
                  [scrollable]="true">
           <ng-template pTemplate="header">
             <tr>
-              <th style="width: 3rem"></th>
               <th>Componente</th>
               <th style="width: 100px">Quantidade</th>
               <th style="width: 150px">Vencimento</th>
@@ -270,18 +269,9 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
-            <tr [class.row-disabled]="!comp.selecionado" [class.row-erro]="comp.mensagensErro && comp.mensagensErro.length > 0">
+            <tr [class.row-erro]="comp.mensagensErro && comp.mensagensErro.length > 0">
               <td>
-                <p-checkbox [(ngModel)]="comp.selecionado" 
-                            [binary]="true"
-                            (onChange)="onSelecionadoChange(comp)">
-                </p-checkbox>
-              </td>
-              <td>
-                <div class="componente-nome-cell">
-                  <i class="pi pi-check-circle status-icon status-ok" *ngIf="comp.selecionado && comp.valorParcela > 0"></i>
-                  <span>{{ comp.nomeComponente }}</span>
-                </div>
+                <span>{{ comp.nomeComponente }}</span>
               </td>
               <td>
                 <p-inputNumber [(ngModel)]="comp.quantidade"
@@ -291,7 +281,6 @@
                                spinnerMode="horizontal"
                                incrementButtonIcon="pi pi-plus"
                                decrementButtonIcon="pi pi-minus"
-                               [disabled]="!comp.selecionado"
                                (onInput)="onQuantidadeChange(comp)"
                                styleClass="input-quantidade">
                 </p-inputNumber>
@@ -300,7 +289,6 @@
                 <p-calendar [(ngModel)]="comp.vencimento"
                             dateFormat="dd/mm/yy"
                             [showIcon]="true"
-                            [disabled]="!comp.selecionado"
                             (onSelect)="onVencimentoChange(comp)"
                             styleClass="input-calendar"
                             appendTo="body">
@@ -311,14 +299,13 @@
                                mode="currency"
                                currency="BRL"
                                locale="pt-BR"
-                               [disabled]="!comp.selecionado"
                                (onInput)="onValorParcelaChange(comp)"
                                styleClass="input-valor">
                 </p-inputNumber>
               </td>
               <td class="text-center">
                 <span class="percentual-badge" 
-                      [class.ok]="comp.selecionado && comp.valorParcela > 0">
+                      [class.ok]="comp.valorParcela > 0">
                   {{ formatarPercentual(comp.percentual) }}
                 </span>
               </td>
