@@ -196,14 +196,53 @@
         </div>
       </div>
 
+      <!-- 🆕 v2.5 - Autocomplete para Adicionar Componentes -->
+      <div class="grid mt-3">
+        <div class="col-12 md:col-6 lg:col-4">
+          <app-autocomplete
+            id="adicionar-componente"
+            label="Adicionar Componente à Simulação"
+            placeholder="Digite o nome do componente ou clique na seta..."
+            [(ngModel)]="componenteSelecionadoAutocomplete"
+            [suggestions]="componentesFiltrados"
+            (completeMethod)="filtrarComponentesDisponiveis($event)"
+            (onSelect)="onComponenteSelecionado($event)"
+            (onDropdownClick)="onDropdownClickComponentes()"
+            field="nomeComponente"
+            [disabled]="carregandoComponentesDisponiveis"
+            [emptyMessage]="carregandoComponentesDisponiveis ? 'Carregando componentes...' : 'Nenhum componente disponível'"
+            [itemTemplate]="componenteTemplate">
+            <ng-template #componenteTemplate let-componente>
+              <div class="flex justify-content-between align-items-center">
+                <div>
+                  <div class="font-bold">{{ componente.nomeComponente }}</div>
+                  <small class="text-600">
+                    {{ componente.grupoComponente === 1 ? 'Entrada' :
+                       componente.grupoComponente === 2 ? 'Mensal' :
+                       componente.grupoComponente === 3 ? 'Intermediária' :
+                       componente.grupoComponente === 6 ? 'Única' : 'Opcional' }}
+                    •
+                    {{ componente.periodicidade === 0 ? 'À vista' : 
+                       componente.periodicidade === 1 ? 'Mensal' :
+                       componente.periodicidade === 2 ? 'Bimestral' :
+                       componente.periodicidade === 3 ? 'Trimestral' :
+                       componente.periodicidade === 6 ? 'Semestral' :
+                       componente.periodicidade === 12 ? 'Anual' : componente.periodicidade + ' meses' }}
+                  </small>
+                </div>
+                <i class="pi pi-plus-circle text-primary" style="font-size: 1.5rem;"></i>
+              </div>
+            </ng-template>
+          </app-autocomplete>
+          <small class="text-500" *ngIf="componentesDisponiveisParaAdicionar.length > 0">
+            <i class="pi pi-info-circle mr-1"></i>
+            {{ componentesDisponiveisParaAdicionar.length }} componente(s) disponível(is) para adicionar
+          </small>
+        </div>
+      </div>
+
       <!-- Botões de Ação -->
-      <div class="acoes-tabela">
-        <button type="button" pButton pRipple icon="pi pi-plus" 
-                [label]="'Componentes Disponíveis' + (componentesDisponiveisParaAdicionar.length > 0 ? ' (' + componentesDisponiveisParaAdicionar.length + ')' : '')"
-                class="p-button-outlined p-button-sm" 
-                (click)="toggleComponentesDisponiveis()"></button>
-        <button type="button" pButton pRipple icon="pi pi-trash" label="Excluir Componente" 
-                class="p-button-outlined p-button-sm p-button-danger" [disabled]="true"></button>
+      <div class="acoes-tabela mt-3">
         <button type="button" pButton pRipple icon="pi pi-refresh" label="Restaurar tabela" 
                 class="p-button-outlined p-button-sm" (click)="restaurarTabela()"></button>
         <button type="button" pButton pRipple icon="pi pi-percentage" label="Desconto" 
@@ -235,7 +274,7 @@
               <td>
                 <p-checkbox [(ngModel)]="comp.selecionado" 
                             [binary]="true"
-                            (onChange)="onSelecionadoChange()">
+                            (onChange)="onSelecionadoChange(comp)">
                 </p-checkbox>
               </td>
               <td>
@@ -288,13 +327,17 @@
               </td>
               <td class="text-center">
                 <div class="acoes-cell">
+                  <!-- Duplicar -->
                   <button type="button" pButton pRipple icon="pi pi-copy" 
                           class="p-button-text p-button-sm p-button-secondary"
                           pTooltip="Duplicar componente" tooltipPosition="top"
                           (click)="duplicarComponente(comp)"></button>
-                  <button type="button" pButton pRipple icon="pi pi-ellipsis-v" 
-                          class="p-button-text p-button-sm p-button-secondary"
-                          pTooltip="Mais ações" tooltipPosition="top"></button>
+                  
+                  <!-- Excluir/Remover -->
+                  <button type="button" pButton pRipple icon="pi pi-trash" 
+                          class="p-button-text p-button-sm p-button-danger"
+                          pTooltip="Remover componente" tooltipPosition="top"
+                          (click)="excluirComponente(comp)"></button>
                 </div>
               </td>
             </tr>
@@ -329,82 +372,6 @@
             </tr>
           </ng-template>
         </p-table>
-      </div>
-
-      <!-- 🆕 v2.2 - Lista de Componentes Disponíveis -->
-      <div *ngIf="exibirComponentesDisponiveis && componentesDisponiveisParaAdicionar.length > 0" 
-           class="componentes-disponiveis-card mt-3">
-        <p-card>
-          <ng-template pTemplate="header">
-            <div class="card-header-flex">
-              <h4 class="section-title m-0">
-                <i class="pi pi-box mr-2"></i>
-                Componentes Disponíveis ({{ componentesDisponiveisParaAdicionar.length }})
-              </h4>
-              <button pButton pRipple icon="pi pi-times" 
-                      class="p-button-text p-button-sm"
-                      (click)="toggleComponentesDisponiveis()"
-                      pTooltip="Fechar" tooltipPosition="top"></button>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="content">
-            <p-table [value]="componentesDisponiveisParaAdicionar" 
-                     styleClass="p-datatable-sm"
-                     responsiveLayout="scroll">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Componente</th>
-                  <th style="width: 120px">Periodicidade</th>
-                  <th style="width: 100px">Tipo</th>
-                  <th style="width: 100px" class="text-center">Ação</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-comp>
-                <tr>
-                  <td>
-                    <i class="pi pi-plus-circle mr-2" style="color: var(--primary-color)"></i>
-                    <strong>{{ comp.nomeComponente }}</strong>
-                  </td>
-                  <td>
-                    <span class="periodicidade-badge">
-                      {{ comp.periodicidade === 0 ? 'À vista' : 
-                         comp.periodicidade === 1 ? 'Mensal' :
-                         comp.periodicidade === 2 ? 'Bimestral' :
-                         comp.periodicidade === 3 ? 'Trimestral' :
-                         comp.periodicidade === 6 ? 'Semestral' :
-                         comp.periodicidade === 12 ? 'Anual' : comp.periodicidade + ' meses' }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="tipo-badge">
-                      {{ comp.grupoComponente === 1 ? 'Entrada' :
-                         comp.grupoComponente === 2 ? 'Mensal' :
-                         comp.grupoComponente === 3 ? 'Intermediária' :
-                         comp.grupoComponente === 6 ? 'Única' :
-                         comp.grupoComponente === 7 ? 'Opcional' : 'Outros' }}
-                    </span>
-                  </td>
-                  <td class="text-center">
-                    <button pButton pRipple icon="pi pi-plus" 
-                            label="Adicionar"
-                            class="p-button-success p-button-sm"
-                            (click)="adicionarComponenteDisponivel(comp)"
-                            pTooltip="Adicionar " + comp.nomeComponente
-                            toolTipPosition="top"></button>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="4" class="text-center">
-                    <i class="pi pi-info-circle mr-2"></i>
-                    Não há componentes disponíveis para adicionar
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </ng-template>
-        </p-card>
       </div>
 
       <!-- Resumo Financeiro -->
@@ -618,3 +585,6 @@
 
 <!-- Toast -->
 <p-toast></p-toast>
+
+<!-- Dialog de Confirmação -->
+<p-confirmDialog></p-confirmDialog>

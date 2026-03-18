@@ -13,7 +13,8 @@ import {
   PropostaSimplificadaDTO,
   SalvarPropostaSimplificadaRequest,
   SalvarPropostaResponse,
-  CalcularComponentesResponse
+  CalcularComponentesResponse,
+  ComponenteDisponivelDTO
 } from '../models/proposta-simplificada.model';
 
 /**
@@ -211,6 +212,38 @@ export class PropostaService {
     dados: SalvarPropostaSimplificadaRequest
   ): Observable<SalvarPropostaResponse> {
     return this.http.put<SalvarPropostaResponse>(`${this.baseUrl}/${propostaId}`, dados);
+  }
+
+  // ========================
+  // COMPONENTES DISPONÍVEIS (NOVO v2.4 - 17/03/2026)
+  // ========================
+
+  /**
+   * 🆕 Lista todos os componentes disponíveis para adicionar em simulações
+   * GET /api/v1/modalidades-tabela-padrao/componentes-disponiveis
+   * 
+   * Retorna lista completa de componentes que podem ser adicionados além dos padrões
+   */
+  listarComponentesDisponiveis(): Observable<ComponenteDisponivelDTO[]> {
+    return this.http.get<ComponenteDisponivelDTO[]>(
+      `${environment.apiUrl}/modalidades-tabela-padrao/componentes-disponiveis`
+    );
+  }
+
+  /**
+   * 🆕 Lista componentes disponíveis filtrados por empreendimento
+   * GET /api/v1/modalidades-tabela-padrao/empreendimento/{codigoEmpreendimento}/componentes-disponiveis
+   * 
+   * Retorna componentes globais + componentes específicos do empreendimento
+   * 
+   * @param codigoEmpreendimento Código do empreendimento para filtrar componentes
+   */
+  listarComponentesDisponiveisPorEmpreendimento(
+    codigoEmpreendimento: string
+  ): Observable<ComponenteDisponivelDTO[]> {
+    return this.http.get<ComponenteDisponivelDTO[]>(
+      `${environment.apiUrl}/modalidades-tabela-padrao/empreendimento/${codigoEmpreendimento}/componentes-disponiveis`
+    );
   }
 
   // ========================

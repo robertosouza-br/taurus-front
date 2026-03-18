@@ -383,3 +383,27 @@ export interface ConfiguracoesAprovacaoDTO {
     [tipologia: string]: number;           // Ex: {"02 QUARTOS": 15000, "03 QUARTOS": 20000}
   };
 }
+
+// ========================
+// COMPONENTES DISPONÍVEIS (v2.4 - 17/03/2026)
+// ========================
+
+/**
+ * DTO de Componente Disponível para Adição em Simulações
+ * Endpoint: GET /api/v1/modalidades-tabela-padrao/componentes-disponiveis
+ * Endpoint: GET /api/v1/modalidades-tabela-padrao/empreendimento/{codigoEmpreendimento}/componentes-disponiveis
+ */
+export interface ComponenteDisponivelDTO {
+  codigoComponente: string;          // Código único do componente
+  nomeComponente: string;            // Nome descritivo (ex: "ATO", "COTA SINAL")
+  tipoComponente: string;            // ENTRADA, PARCELA, TAXA, CHAVES, DESCONTO
+  grupoComponente: number | null;    // Número do grupo para agrupamento
+  percentualPadrao: number | null;   // Percentual padrão sobre valor do imóvel
+  valorMinimo: number | null;        // Valor mínimo permitido em BRL
+  valorMaximo: number | null;        // Valor máximo permitido em BRL
+  quantidadePadrao: number | null;   // Quantidade padrão de parcelas
+  periodicidadePadrao: number | null; // Periodicidade em meses (1=mensal, 6=semestral)
+  prazoMesesPadrao: number | null;   // Prazo total em meses
+  ativo: boolean;                    // Disponível para uso
+  ordem: number | null;              // Ordem de apresentação
+}

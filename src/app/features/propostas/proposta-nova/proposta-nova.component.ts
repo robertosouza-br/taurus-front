@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
@@ -19,7 +19,10 @@ import {
   RegraValidacaoDTO,
   ConfiguracoesAprovacaoDTO,
   TipoRegraValidacao,
-  StatusRegraValidacao
+  StatusRegraValidacao,
+  TipoComponente,
+  GrupoComponente,
+  Periodicidade
 } from '../../../core/models/proposta-simplificada.model';
 
 /**
@@ -35,7 +38,7 @@ import {
   selector: 'app-proposta-nova',
   templateUrl: './proposta-nova.component.html',
   styleUrls: ['./proposta-nova.component.scss'],
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
 export class PropostaNovaComponent extends BaseFormComponent implements OnInit, OnDestroy {
   // Dados da proposta
@@ -56,7 +59,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // 🆕 v2.2 - Separação de Componentes
   componenteAto: ComponenteFormulario | null = null;
   componentesDisponiveisParaAdicionar: ComponenteTabelaPadraoDTO[] = [];
-  exibirComponentesDisponiveis = false;
+  
+  // 🆕 v2.4 - Componentes Disponíveis da API (17/03/2026)
+  componentesDisponiveisAPI: ComponenteTabelaPadraoDTO[] = [];
+  carregandoComponentesDisponiveis = false;
+  
+  // 🆕 v2.5 - Autocomplete de componentes (17/03/2026)
+  componenteSelecionadoAutocomplete: ComponenteTabelaPadraoDTO | null = null;
+  componentesFiltrados: ComponenteTabelaPadraoDTO[] = [];
   
   // Resumo da simulação
   valorTabela = 0;
@@ -104,7 +114,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     private route: ActivatedRoute,
     private router: Router,
     private propostaService: PropostaService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {
     super();
   }
@@ -165,6 +176,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           this.inicializarComponentes();
           this.calcularTotais();
           this.gerarComparacao();
+          
+          // Carregar componentes disponíveis da API após carregar proposta
+          this.carregarComponentesDisponiveis();
         },
         error: (error) => {
           console.error('Erro ao carregar proposta:', error);
@@ -173,6 +187,77 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             summary: 'Erro',
             detail: error?.error?.message || 'Não foi possível carregar os dados da proposta'
           });
+        }
+      });
+  }
+
+  /**
+   * Carrega lista de componentes disponíveis da API
+   * Filtra apenas ativos e ordena conforme configuração
+   */
+  private carregarComponentesDisponiveis(): void {
+    if (!this.proposta?.empreendimento?.codEmpreendimento) {
+      return;
+    }
+
+    this.carregandoComponentesDisponiveis = true;
+    const codigoEmpreendimento = String(this.proposta.empreendimento.codEmpreendimento);
+
+    this.propostaService.listarComponentesDisponiveisPorEmpreendimento(codigoEmpreendimento)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.carregandoComponentesDisponiveis = false)
+      )
+      .subscribe({
+        next: (componentes) => {
+          // Filtrar apenas ativos e ordenar
+          const componentesAtivos = componentes
+            .filter(c => c.ativo)
+            .sort((a, b) => {
+              // Ordena por ordem primeiro, depois por nome (trata nulls)
+              const ordemA = a.ordem ?? 999;
+              const ordemB = b.ordem ?? 999;
+              
+              if (ordemA !== ordemB) {
+                return ordemA - ordemB;
+              }
+              return a.nomeComponente.localeCompare(b.nomeComponente);
+            });
+
+          // Converter ComponenteDisponivelDTO para ComponenteTabelaPadraoDTO
+          this.componentesDisponiveisAPI = componentesAtivos.map(comp => ({
+            codigoComponente: comp.codigoComponente,
+            nomeComponente: comp.nomeComponente,
+            tipoComponente: comp.tipoComponente as TipoComponente,
+            grupoComponente: (comp.grupoComponente ?? 7) as GrupoComponente,
+            percentual: comp.percentualPadrao ?? 0,
+            valorMinimo: comp.valorMinimo,
+            valorMaximo: comp.valorMaximo,
+            quantidade: comp.quantidadePadrao ?? 1,
+            periodicidade: (comp.periodicidadePadrao ?? 1) as Periodicidade,
+            prazoMeses: comp.prazoMesesPadrao ?? 1,
+            ordem: comp.ordem ?? 999,
+            ativo: comp.ativo,
+            tabelaPadrao: 'NÃO', // Componentes da API são sempre disponíveis para adicionar
+            valor: null,
+            valorParcela: null,
+            selecionado: false
+          }));
+
+          console.log(`✅ Carregados ${this.componentesDisponiveisAPI.length} componentes disponíveis da API`);
+          
+          // Atualizar lista de componentes disponíveis para adicionar
+          this.separarComponentes();
+        },
+        error: (error) => {
+          console.error('Erro ao carregar componentes disponíveis:', error);
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Aviso',
+            detail: 'Não foi possível carregar componentes adicionais. Apenas componentes padrão estarão disponíveis.'
+          });
+          // Não bloqueia o fluxo - continua com componentes da tabela padrão
+          this.componentesDisponiveisAPI = [];
         }
       });
   }
@@ -284,31 +369,41 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   /**
    * 🆕 v2.2 - Separa componentes em: Tabela Padrão, ATO e Disponíveis
    * Conforme especificação do Mapa de Integração v2.2
+   * 
+   * REGRA: Todos os componentes podem ser duplicados/adicionados, incluindo ATO
    */
   private separarComponentes(): void {
     if (!this.componentesNormalizadosCache || this.componentesNormalizadosCache.length === 0) {
       return;
     }
     
-    // Identificar ATO
+    // Identificar ATO (primeiro da lista)
     this.componenteAto = this.componentes.find(c => 
       c.nomeComponente.toUpperCase().includes('ATO')
     ) || null;
     
-    // Identificar componentes disponíveis (não selecionados, tabelaPadrao = "NÃO")
-    this.componentesDisponiveisParaAdicionar = this.componentesNormalizadosCache
-      .filter(c => {
-        const jaSelecionado = this.componentes.some(comp => 
-          comp.selecionado && comp.codigoComponente === c.codigoComponente
-        );
-        return !jaSelecionado && c.tabelaPadrao === 'NÃO';
-      })
+    // Identificar componentes disponíveis para adicionar:
+    // TODOS os componentes da tabela padrão
+    const disponiveisTabelaPadrao = [...this.componentesNormalizadosCache];
+    
+    // TODOS os componentes da API
+    const disponiveisAPI = [...(this.componentesDisponiveisAPI || [])];
+    
+    // Combinar ambas as listas e remover duplicados por codigoComponente
+    const todoDisponiveis = [...disponiveisTabelaPadrao, ...disponiveisAPI];
+    const mapaComponentes = new Map<string, ComponenteTabelaPadraoDTO>();
+    
+    todoDisponiveis.forEach(c => {
+      if (!mapaComponentes.has(c.codigoComponente)) {
+        mapaComponentes.set(c.codigoComponente, c);
+      }
+    });
+    
+    // Ordenar por ordem e converter para array
+    this.componentesDisponiveisParaAdicionar = Array.from(mapaComponentes.values())
       .sort((a, b) => a.ordem - b.ordem);
       
-    console.log('🔍 Componentes separados:', {
-      ato: this.componenteAto?.nomeComponente,
-      disponiveis: this.componentesDisponiveisParaAdicionar.length
-    });
+    console.log(`✅ ${this.componentesDisponiveisParaAdicionar.length} componente(s) disponível(is) para adicionar (incluindo ATO)`);
   }
 
   /**
@@ -457,9 +552,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
-   * Manipula mudança de seleção de um componente
+   * Manipula mudança de seleção de um componente (checkbox)
    */
-  onSelecionadoChange(): void {
+  onSelecionadoChange(componente: ComponenteFormulario): void {
     this.calcularTotais();
     this.gerarComparacao();
   }
@@ -676,6 +771,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   /**
    * Executa todas as validações de aprovação automática
    * Popula o array violacoesAprovacao com os resultados
+   * 
+   * 🔢 v2.6 - Ignora componentes com valores zerados (ainda não preenchidos)
    */
   private executarValidacoesAprovacao(): void {
     this.violacoesAprovacao = [];
@@ -686,7 +783,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       c.erroValidacao = null;
     });
     
-    const componentesSelecionados = this.componentes.filter(c => c.selecionado);
+    // 🔢 Filtrar apenas componentes selecionados E com valores preenchidos
+    // Componentes recém-adicionados (valor=0, percentual=0) não são validados
+    const componentesSelecionados = this.componentes.filter(c => 
+      c.selecionado && (c.valorParcela > 0 || c.percentual > 0)
+    );
     
     // REGRA 0: Validar percentuais individuais de cada componente
     this.validarPercentuaisComponentes(componentesSelecionados);
@@ -1156,6 +1257,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   /**
    * Adiciona ou duplica um componente
+   * 🔢 v2.6 - Duplicação mantém valores do componente original
    */
   duplicarComponente(componente: ComponenteFormulario): void {
     const index = this.componentes.indexOf(componente);
@@ -1164,6 +1266,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       codigoComponente: `${componente.codigoComponente}_${Date.now()}`,
       selecionado: true,
       erroValidacao: null,
+      mensagensErro: [],
       // 📅 Copiar lista de vencimentos
       listaVencimentos: componente.listaVencimentos ? [...componente.listaVencimentos] : []
     };
@@ -1171,6 +1274,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.componentes.splice(index + 1, 0, novoComponente);
     this.calcularTotais();
     this.gerarComparacao();
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Sucesso',
+      detail: `Componente "${componente.nomeComponente}" duplicado com sucesso`
+    });
   }
 
   /**
@@ -1187,59 +1296,61 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
     
-    componente.selecionado = false;
-    this.calcularTotais();
-    this.gerarComparacao();
-    this.separarComponentes(); // Atualizar lista de disponíveis
+    // Confirmar antes de excluir
+    this.confirmationService.confirm({
+      message: `Deseja realmente remover o componente "${componente.nomeComponente}"?`,
+      header: 'Confirmar Remoção',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim, remover',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        componente.selecionado = false;
+        this.calcularTotais();
+        this.gerarComparacao();
+        this.separarComponentes(); // Atualizar lista de disponíveis
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: `Componente "${componente.nomeComponente}" removido da simulação`
+        });
+      }
+    });
   }
 
   /**
    * 🆕 v2.2 - Adiciona um componente disponível à simulação
+   * 🔢 v2.6 - SEMPRE adiciona novo componente (permite duplicação ilimitada)
    */
   adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
-    // Verificar se já existe nos componentes ativos
-    const jaExiste = this.componentes.some(c => 
-      c.codigoComponente === componente.codigoComponente
+    // 🆕 SEMPRE adicionar novo componente, mesmo que já exista (duplicação permitida)
+    const vencimentoInicial = new Date();
+    const novoComponente: ComponenteFormulario = {
+      codigoComponente: componente.codigoComponente + '_' + Date.now(), // Código único para duplicação
+      nomeComponente: componente.nomeComponente,
+      tipoComponente: componente.tipoComponente,
+      grupoComponente: componente.grupoComponente,
+      periodicidade: componente.periodicidade,
+      quantidade: 1,
+      vencimento: vencimentoInicial,
+      valorParcela: 0,
+      percentual: 0,
+      valorTotal: 0,
+      selecionado: true,
+      regra: componente,
+      erroValidacao: null,
+      mensagensErro: []
+    };
+    
+    // 📅 Gerar vencimentos iniciais
+    novoComponente.listaVencimentos = this.gerarVencimentos(
+      vencimentoInicial,
+      1,
+      componente.periodicidade ?? 0,
+      0
     );
     
-    if (jaExiste) {
-      // Reativar se já existe
-      const compExistente = this.componentes.find(c => 
-        c.codigoComponente === componente.codigoComponente
-      );
-      if (compExistente) {
-        compExistente.selecionado = true;
-      }
-    } else {
-      // Adicionar novo componente
-      const vencimentoInicial = new Date();
-      const novoComponente: ComponenteFormulario = {
-        codigoComponente: componente.codigoComponente,
-        nomeComponente: componente.nomeComponente,
-        tipoComponente: componente.tipoComponente,
-        grupoComponente: componente.grupoComponente,
-        periodicidade: componente.periodicidade,
-        quantidade: 1,
-        vencimento: vencimentoInicial,
-        valorParcela: 0,
-        percentual: 0,
-        valorTotal: 0,
-        selecionado: true,
-        regra: componente,
-        erroValidacao: null,
-        mensagensErro: []
-      };
-      
-      // 📅 Gerar vencimentos iniciais
-      novoComponente.listaVencimentos = this.gerarVencimentos(
-        vencimentoInicial,
-        1,
-        componente.periodicidade ?? 0,
-        0
-      );
-      
-      this.componentes.push(novoComponente);
-    }
+    this.componentes.push(novoComponente);
     
     this.calcularTotais();
     this.gerarComparacao();
@@ -1253,10 +1364,47 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   /**
-   * 🆕 v2.2 - Alterna visibilidade da lista de componentes disponíveis
+   * 🆕 v2.5 - Filtra componentes disponíveis para o autocomplete
    */
-  toggleComponentesDisponiveis(): void {
-    this.exibirComponentesDisponiveis = !this.exibirComponentesDisponiveis;
+  filtrarComponentesDisponiveis(event: any): void {
+    const query = event.query?.toLowerCase() || '';
+    
+    // Se não digitou nada (clicou no dropdown), mostra todos
+    if (!query || query.trim() === '') {
+      this.componentesFiltrados = [...this.componentesDisponiveisParaAdicionar];
+      return;
+    }
+    
+    // Filtra por nome ou código
+    this.componentesFiltrados = this.componentesDisponiveisParaAdicionar.filter(comp => 
+      comp.nomeComponente.toLowerCase().includes(query) ||
+      comp.codigoComponente.toLowerCase().includes(query)
+    );
+  }
+
+  /**
+   * 🆕 v2.5 - Evento disparado ao selecionar componente no autocomplete
+   */
+  onComponenteSelecionado(event: any): void {
+    const componente = event as ComponenteTabelaPadraoDTO;
+    
+    if (componente) {
+      // Adicionar o componente à simulação
+      this.adicionarComponenteDisponivel(componente);
+      
+      // Limpar o autocomplete após adicionar
+      setTimeout(() => {
+        this.componenteSelecionadoAutocomplete = null;
+      }, 100);
+    }
+  }
+
+  /**
+   * 🆕 v2.5 - Mostra todos os componentes ao clicar no dropdown
+   */
+  onDropdownClickComponentes(): void {
+    // Mostrar todos os componentes disponíveis
+    this.componentesFiltrados = [...this.componentesDisponiveisParaAdicionar];
   }
 
   /**
