@@ -76,48 +76,35 @@
       </div>
     </div>
 
-    <!-- ─── CARD: DADOS DO CLIENTE ──────────────────────────────────────── -->
+    <!-- ─── CARD: DADOS DO CLIENTE E CORRETOR ──────────────────────────── -->
     <p-card class="proposta-card">
       <ng-template pTemplate="header">
         <div class="card-gradient-header">
-          <i class="pi pi-user"></i>
-          <span>Dados do Cliente</span>
+          <i class="pi pi-users"></i>
+          <span>Dados do Cliente e Corretor</span>
         </div>
       </ng-template>
 
       <div class="grid">
-        <div class="col-12 md:col-6">
+        <div class="col-12 md:col-3">
           <div class="campo-readonly">
-            <span class="campo-label">Nome</span>
+            <span class="campo-label">Cliente</span>
             <span class="campo-valor">{{ proposta.cliente.nome }}</span>
           </div>
         </div>
-        <div class="col-12 md:col-6">
+        <div class="col-12 md:col-3">
           <div class="campo-readonly">
             <span class="campo-label">CPF</span>
             <span class="campo-valor">{{ proposta.cliente.cpfCnpj }}</span>
           </div>
         </div>
-      </div>
-    </p-card>
-
-    <!-- ─── CARD: DADOS DO CORRETOR ─────────────────────────────────────── -->
-    <p-card class="proposta-card">
-      <ng-template pTemplate="header">
-        <div class="card-gradient-header">
-          <i class="pi pi-id-card"></i>
-          <span>Dados do Corretor</span>
-        </div>
-      </ng-template>
-
-      <div class="grid">
-        <div class="col-12 md:col-6">
+        <div class="col-12 md:col-3">
           <div class="campo-readonly">
             <span class="campo-label">Corretor</span>
             <span class="campo-valor">{{ proposta.corretor.nome }}</span>
           </div>
         </div>
-        <div class="col-12 md:col-6">
+        <div class="col-12 md:col-3">
           <div class="campo-readonly">
             <span class="campo-label">Imobiliária</span>
             <span class="campo-valor">{{ proposta.imobiliariaPrincipal.nome }}</span>
@@ -160,7 +147,7 @@
         <!-- Tabela Padrão Expandida -->
         <div *ngIf="tabelaPadraoExpandida" class="tabela-padrao-content">
           <p-table [value]="componentesTabelaPadrao" 
-                   styleClass="p-datatable-sm p-datatable-striped"
+                   styleClass="p-datatable-sm modern-table standard-table"
                    responsiveLayout="scroll">
             <ng-template pTemplate="header">
               <tr>
@@ -173,21 +160,38 @@
             </ng-template>
             <ng-template pTemplate="body" let-comp>
               <tr>
-                <td>{{ comp.nomeComponente }}</td>
-                <td class="text-right">{{ comp.quantidade || 1 }}</td>
-                <td class="text-right">{{ comp.percentual ? formatarPercentual(comp.percentual) : '-' }}</td>
-                <td class="text-right">{{ comp.valor ? formatarMoeda(comp.valor) : '-' }}</td>
-                <td class="text-right">{{ comp.valorParcela ? formatarMoeda(comp.valorParcela) : '-' }}</td>
+                <td>
+                  <div class="cell-componente cell-componente-readonly">
+                    <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
+                    <div class="cell-componente-meta">
+                      <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
+                      <span *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
+                            class="meta-pill meta-pill-light">{{ periodicidadeBadge }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-right">
+                  <span class="number-badge">{{ comp.quantidade || 1 }}</span>
+                </td>
+                <td class="text-right">
+                  <span class="percent-chip">{{ comp.percentual ? formatarPercentual(comp.percentual) : '-' }}</span>
+                </td>
+                <td class="text-right">
+                  <span class="money-value">{{ comp.valor ? formatarMoeda(comp.valor) : '-' }}</span>
+                </td>
+                <td class="text-right">
+                  <span class="money-value money-value-soft">{{ comp.valorParcela ? formatarMoeda(comp.valorParcela) : '-' }}</span>
+                </td>
               </tr>
             </ng-template>
             <ng-template pTemplate="footer">
               <tr>
-                <td colspan="2"><strong>TOTAL</strong></td>
+                <td colspan="2"><span class="table-total-label">Total</span></td>
                 <td class="text-right">
-                  <strong>{{ formatarPercentual(calcularTotalPercentualTabelaPadrao()) }}</strong>
+                  <span class="table-total-value">{{ formatarPercentual(calcularTotalPercentualTabelaPadrao()) }}</span>
                 </td>
                 <td class="text-right">
-                  <strong>{{ formatarMoeda(calcularTotalTabelaPadrao()) }}</strong>
+                  <span class="table-total-value">{{ formatarMoeda(calcularTotalTabelaPadrao()) }}</span>
                 </td>
                 <td></td>
               </tr>
@@ -252,82 +256,83 @@
       </div>
 
       <!-- Tabela de Simulação Editável -->
-      <div class="simulacao-tabela">
+      <div class="table-container mt-4 mb-4">
         <p-table [value]="componentes" 
-                 styleClass="p-datatable-gridlines"
+                 styleClass="p-datatable-sm modern-table simulation-table"
                  responsiveLayout="scroll"
                  [scrollable]="true">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Componente</th>
-              <th style="width: 100px">Quantidade</th>
-              <th style="width: 150px">Vencimento</th>
-              <th style="width: 150px">Valor Parcela</th>
-              <th style="width: 80px" class="text-center">%</th>
-              <th style="width: 150px" class="text-right">Valor Total</th>
-              <th style="width: 80px" class="text-center">Ações</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
-            <tr [class.row-erro]="comp.mensagensErro && comp.mensagensErro.length > 0">
-              <td>
-                <span>{{ comp.nomeComponente }}</span>
-              </td>
-              <td>
-                <p-inputNumber [(ngModel)]="comp.quantidade"
-                               [min]="1"
-                               [showButtons]="true"
-                               buttonLayout="horizontal"
-                               spinnerMode="horizontal"
-                               incrementButtonIcon="pi pi-plus"
-                               decrementButtonIcon="pi pi-minus"
-                               (onInput)="onQuantidadeChange(comp)"
-                               styleClass="input-quantidade">
-                </p-inputNumber>
-              </td>
-              <td>
-                <p-calendar [(ngModel)]="comp.vencimento"
-                            dateFormat="dd/mm/yy"
-                            [showIcon]="true"
-                            (onSelect)="onVencimentoChange(comp)"
-                            styleClass="input-calendar"
-                            appendTo="body">
-                </p-calendar>
-              </td>
-              <td>
-                <p-inputNumber [(ngModel)]="comp.valorParcela"
-                               mode="currency"
-                               currency="BRL"
-                               locale="pt-BR"
-                               (onInput)="onValorParcelaChange(comp)"
-                               styleClass="input-valor">
-                </p-inputNumber>
-              </td>
-              <td class="text-center">
-                <span class="percentual-badge" 
-                      [class.ok]="comp.valorParcela > 0">
-                  {{ formatarPercentual(comp.percentual) }}
-                </span>
-              </td>
-              <td class="text-right font-semibold">
-                {{ formatarMoeda(comp.valorTotal) }}
-              </td>
-              <td class="text-center">
-                <div class="acoes-cell">
-                  <!-- Duplicar -->
-                  <button type="button" pButton pRipple icon="pi pi-copy" 
-                          class="p-button-text p-button-sm p-button-secondary"
-                          pTooltip="Duplicar componente" tooltipPosition="top"
-                          (click)="duplicarComponente(comp)"></button>
-                  
-                  <!-- Excluir/Remover -->
-                  <button type="button" pButton pRipple icon="pi pi-trash" 
-                          class="p-button-text p-button-sm p-button-danger"
-                          pTooltip="Remover componente" tooltipPosition="top"
-                          (click)="excluirComponente(comp)"></button>
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Componente</th>
+            <th style="width: 70px" class="text-center">Qtd</th>
+            <th style="width: 170px">Vencimento</th>
+            <th style="width: 160px">Valor Parcela</th>
+            <th style="width: 80px" class="text-center">%</th>
+            <th style="width: 150px" class="text-right">Valor Total</th>
+            <th style="width: 90px" class="text-center">Ações</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
+          <tr [class.row-erro]="comp.mensagensErro && comp.mensagensErro.length > 0">
+            <td>
+              <div class="cell-componente">
+                <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
+                <div class="cell-componente-meta">
+                  <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
+                  <span *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
+                        class="meta-pill meta-pill-light">{{ periodicidadeBadge }}</span>
                 </div>
-              </td>
-            </tr>
+              </div>
+            </td>
+            <td class="text-center">
+              <input type="text" pInputText
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     [(ngModel)]="comp.quantidade"
+                     (input)="onQuantidadeChange(comp)"
+                     class="modern-input text-center"
+                     style="width: 50px;"
+                     placeholder="Qtd">
+            </td>
+            <td>
+              <p-calendar [(ngModel)]="comp.vencimento"
+                          dateFormat="dd/mm/yy"
+                          [showIcon]="true"
+                          (onSelect)="onVencimentoChange(comp)"
+                          [style]="{'width': '145px'}"
+                          styleClass="modern-calendar"
+                          appendTo="body">
+              </p-calendar>
+            </td>
+            <td>
+              <p-inputNumber [(ngModel)]="comp.valorParcela"
+                             mode="currency"
+                             currency="BRL"
+                             locale="pt-BR"
+                             (onInput)="onValorParcelaChange(comp)"
+                             [inputStyle]="{'width': '135px', 'text-align': 'right'}"
+                             styleClass="modern-inputnumber">
+              </p-inputNumber>
+            </td>
+            <td class="text-center">
+              <span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span>
+            </td>
+            <td class="text-right font-semibold">
+              <span class="money-value money-value-strong">{{ formatarMoeda(comp.valorTotal) }}</span>
+            </td>
+            <td class="text-center">
+              <div class="flex justify-content-center gap-1">
+                <button pButton pRipple icon="pi pi-copy" 
+                          class="p-button-rounded p-button-text action-icon-button action-icon-copy"
+                        pTooltip="Duplicar" tooltipPosition="top"
+                        (click)="duplicarComponente(comp)"></button>
+                <button pButton pRipple icon="pi pi-trash" 
+                          class="p-button-rounded p-button-text action-icon-button action-icon-delete"
+                        pTooltip="Remover" tooltipPosition="top"
+                        (click)="excluirComponente(comp)"></button>
+              </div>
+            </td>
+          </tr>
             <!-- Linha de Mensagens de Erro -->
             <tr *ngIf="comp.mensagensErro && comp.mensagensErro.length > 0" class="row-mensagens-erro">
               <td colspan="8">
@@ -343,8 +348,8 @@
             </tr>
             <!-- 📅 Linha de Detalhamento de Vencimentos -->
             <tr *ngIf="comp.listaVencimentos && comp.listaVencimentos.length > 1" class="row-detalhamento">
-              <td colspan="8">
-                <p-accordion>
+              <td colspan="8" style="padding: 0;">
+                <p-accordion styleClass="detalhamento-accordion">
                   <p-accordionTab header="📋 Detalhamento de Vencimentos ({{ comp.listaVencimentos.length }} parcelas)">
                     <div class="vencimentos-grid">
                       <div *ngFor="let venc of comp.listaVencimentos" class="vencimento-item">
@@ -412,14 +417,6 @@
         </div>
       </div>
 
-      <!-- Botões Finais -->
-      <div class="acoes-finais">
-        <button type="button" pButton pRipple icon="pi pi-qrcode" label="Gerar PIX" 
-                class="p-button-success" [loading]="gerandoPix" (click)="gerarPix()"></button>
-        <button type="button" pButton pRipple icon="pi pi-save" label="SALVAR PROPOSTA" 
-                class="p-button-warning p-button-lg" [loading]="salvando" 
-                [disabled]="temErrosValidacao" (click)="salvar()"></button>
-      </div>
     </p-card>
 
     <!-- ─── CARD: VALIDAÇÕES DE APROVAÇÃO AUTOMÁTICA ────────────────────── -->
@@ -440,7 +437,7 @@
         </p-message>
 
         <p-table [value]="violacoesAprovacao" 
-                 styleClass="p-datatable-sm p-datatable-striped"
+                 styleClass="p-datatable-sm modern-table"
                  responsiveLayout="scroll">
           <ng-template pTemplate="header">
             <tr>
@@ -457,15 +454,15 @@
               <td class="text-center">
                 <i *ngIf="validacao.status === 'CONFORME'" 
                    class="pi pi-check-circle" 
-                   style="color: var(--green-500); font-size: 1.5rem;"
+                   style="color: var(--green-500); font-size: 1rem;"
                    pTooltip="Conforme"></i>
                 <i *ngIf="validacao.status === 'VIOLACAO'" 
                    class="pi pi-times-circle" 
-                   style="color: var(--red-500); font-size: 1.5rem;"
-                   pTooltip="Violação - Bloqueia aprovação automática"></i>
+                   style="color: var(--red-500); font-size: 1rem;"
+                   pTooltip="Violação"></i>
                 <i *ngIf="validacao.status === 'NAO_APLICAVEL'" 
                    class="pi pi-minus-circle" 
-                   style="color: var(--gray-400); font-size: 1.5rem;"
+                   style="color: var(--gray-400); font-size: 1rem;"
                    pTooltip="Não aplicável"></i>
               </td>
               <td>
@@ -540,7 +537,7 @@
         <div class="col-12 lg:col-5">
           <div class="comparacao-section">
             <h4 class="section-title">Comparação da Tabela Padrão Vrs Proposta</h4>
-            <p-table [value]="comparacao" styleClass="p-datatable-sm">
+            <p-table [value]="comparacao" styleClass="p-datatable-sm modern-table">
               <ng-template pTemplate="header">
                 <tr>
                   <th>Métrica</th>

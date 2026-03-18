@@ -22,7 +22,9 @@ import {
   StatusRegraValidacao,
   TipoComponente,
   GrupoComponente,
-  Periodicidade
+  Periodicidade,
+  GRUPO_COMPONENTE_LABELS,
+  PERIODICIDADE_LABELS
 } from '../../../core/models/proposta-simplificada.model';
 
 /**
@@ -129,6 +131,33 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   get modalidadeDescricao(): string {
     const modal: any = this.proposta?.modalidadeTabelaPadrao;
     return modal?.DESCRICAO ?? modal?.descricao ?? '';
+  }
+
+  getGrupoComponenteLabel(grupo?: number | null): string {
+    if (grupo === null || grupo === undefined) {
+      return 'Componente';
+    }
+
+    return GRUPO_COMPONENTE_LABELS[grupo as GrupoComponente] ?? 'Componente';
+  }
+
+  getPeriodicidadeLabel(periodicidade?: number | null): string {
+    if (periodicidade === null || periodicidade === undefined) {
+      return 'Periodicidade livre';
+    }
+
+    return PERIODICIDADE_LABELS[periodicidade as Periodicidade] ?? `${periodicidade} meses`;
+  }
+
+  getPeriodicidadeBadgeLabel(grupo?: number | null, periodicidade?: number | null): string | null {
+    const grupoLabel = this.getGrupoComponenteLabel(grupo).trim().toLocaleLowerCase('pt-BR');
+    const periodicidadeLabel = this.getPeriodicidadeLabel(periodicidade).trim();
+
+    if (grupoLabel === periodicidadeLabel.toLocaleLowerCase('pt-BR')) {
+      return null;
+    }
+
+    return periodicidadeLabel;
   }
 
   ngOnInit(): void {
