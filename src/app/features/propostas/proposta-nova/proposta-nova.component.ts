@@ -949,12 +949,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const dataLimite = new Date(primeiroVencimento);
     dataLimite.setMonth(dataLimite.getMonth() + 12);
     
-    console.log('🔍 DEBUG ARRECADAÇÃO 13 PRIMEIROS MESES:');
-    console.log('  ├─ Data Início:', primeiroVencimento.toISOString().split('T')[0]);
-    console.log('  ├─ Data Limite:', dataLimite.toISOString().split('T')[0]);
-    console.log('  ├─ Valor Unidade:', this.valorTabela);
-    console.log('  └─ Componentes:', componentesOrdenados.length);
-    
     // 🎯 Somar TODAS as parcelas individuais que vencem nos 13 primeiros meses
     // Depois calcular percentual dessa soma em relação ao valor total da unidade
     const valorPrimeiros13Meses = this.calcularValorPorPeriodo(
@@ -962,8 +956,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       primeiroVencimento,
       dataLimite
     );
-    
-    console.log('  └─ Valor Calculado:', valorPrimeiros13Meses);
     
     // Percentual = (Valor arrecadado nos 13 primeiros meses / Valor da unidade) * 100
     const percentualCalculado = this.valorTabela > 0 
@@ -1435,7 +1427,18 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
     // 🆕 SEMPRE adicionar novo componente, mesmo que já exista (duplicação permitida)
-    const vencimentoInicial = new Date();
+    // 🎯 Calcular vencimento inicial respeitando periodicidade
+    const hoje = new Date();
+    const vencimentoInicial = new Date(hoje);
+    
+    // Se periodicidade > 0, adiciona N meses à data de hoje
+    // Periodicidade = 0: à vista (hoje)
+    // Periodicidade = 1: hoje + 1 mês
+    // Periodicidade = 6: hoje + 6 meses (ex: INTERMEDIARIAS)
+    if (componente.periodicidade && componente.periodicidade > 0) {
+      vencimentoInicial.setMonth(vencimentoInicial.getMonth() + componente.periodicidade);
+    }
+    
     const novoComponente: ComponenteFormulario = {
       codigoComponente: componente.codigoComponente + '_' + Date.now(), // Código único para duplicação
       nomeComponente: componente.nomeComponente,
@@ -1739,52 +1742,21 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     dataFim: Date
   ): number {
     let valorTotal = 0;
-    let parcelasContadas = 0;
-    
-    console.log(`    🔍 Analisando período: ${dataInicio.toISOString().split('T')[0]} até ${dataFim.toISOString().split('T')[0]}`);
     
     componentes.forEach(componente => {
       if (componente.listaVencimentos && componente.listaVencimentos.length > 0) {
         // Somar APENAS as parcelas que vencem dentro do período
-        let parcelasDesteComponente = 0;
-        let valorDesteComponente = 0;
-        
-        console.log(`    ├─ ${componente.nomeComponente} (${componente.listaVencimentos.length} parcelas):`);
-        
         componente.listaVencimentos.forEach(parcela => {
           const dataParcela = new Date(parcela.dataVencimento);
-          const dataStr = dataParcela.toISOString().split('T')[0];
-          const dentroPerido = dataParcela >= dataInicio && dataParcela <= dataFim;
-          
-          if (dentroPerido) {
+          if (dataParcela >= dataInicio && dataParcela <= dataFim) {
             valorTotal += parcela.valor;
-            valorDesteComponente += parcela.valor;
-            parcelasContadas++;
-            parcelasDesteComponente++;
-            console.log(`    │  ✓ Parcela ${parcela.numeroParcela} em ${dataStr}: R$ ${parcela.valor.toFixed(2)}`);
-          } else {
-            console.log(`    │  ✗ Parcela ${parcela.numeroParcela} em ${dataStr}: R$ ${parcela.valor.toFixed(2)} (FORA DO PERÍODO)`);
           }
         });
-        
-        if (parcelasDesteComponente > 0) {
-          console.log(`    │  SUBTOTAL: ${parcelasDesteComponente} parcelas = R$ ${valorDesteComponente.toFixed(2)}`);
-        }
-      } else if (componente.vencimento) {
-        const dataStr = componente.vencimento.toISOString().split('T')[0];
-        const dentroPerido = componente.vencimento >= dataInicio && componente.vencimento <= dataFim;
-        
-        if (dentroPerido) {
-          valorTotal += componente.valorTotal;
-          parcelasContadas++;
-          console.log(`    ├─ ${componente.nomeComponente} em ${dataStr}: R$ ${componente.valorTotal.toFixed(2)}`);
-        } else {
-          console.log(`    ├─ ${componente.nomeComponente} em ${dataStr}: R$ ${componente.valorTotal.toFixed(2)} (FORA DO PERÍODO)`);
-        }
+      } else if (componente.vencimento && componente.vencimento >= dataInicio && componente.vencimento <= dataFim) {
+        // Componente sem lista (pagamento único) - soma o valor total apenas se vence no período
+        valorTotal += componente.valorTotal;
       }
     });
-    
-    console.log(`    └─ TOTAL: ${parcelasContadas} parcelas = R$ ${valorTotal.toFixed(2)}`);
     
     return valorTotal;
   }
