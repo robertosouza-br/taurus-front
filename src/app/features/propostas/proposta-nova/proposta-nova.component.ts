@@ -109,6 +109,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // Cache de componentes normalizados (evita reprocessamento)
   // ✨ Public para uso no template (tabela padrão)
   componentesNormalizadosCache: ComponenteTabelaPadraoDTO[] = [];
+  private readonly valorParcelaInputMap = new WeakMap<ComponenteFormulario, string>();
   
   private readonly destroy$ = new Subject<void>();
 
@@ -560,9 +561,25 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     // Recalcula valor total do componente editado
     componente.valorTotal = componente.valorParcela * componente.quantidade;
     
-    // Recalcula totais e validações (apenas percentuais mudam)
-    this.calcularTotais();
-    this.gerarComparacao();
+    this.recalcularSimulacao();
+  }
+
+  getValorParcelaInput(comp: ComponenteFormulario): string {
+    return this.valorParcelaInputMap.get(comp) ?? this.formatarValorParcelaExibicao(comp.valorParcela);
+  }
+
+  onValorParcelaFocus(comp: ComponenteFormulario): void {
+    this.valorParcelaInputMap.set(comp, this.formatarValorParcelaEdicao(comp.valorParcela));
+  }
+
+  onValorParcelaInputChange(comp: ComponenteFormulario, valorDigitado: string): void {
+    this.valorParcelaInputMap.set(comp, valorDigitado);
+    comp.valorParcela = this.parseValorMonetario(valorDigitado);
+    this.onValorParcelaChange(comp);
+  }
+
+  onValorParcelaBlur(comp: ComponenteFormulario): void {
+    this.valorParcelaInputMap.set(comp, this.formatarValorParcelaExibicao(comp.valorParcela));
   }
 
 
@@ -580,9 +597,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     // 📅 Atualiza datas de vencimento
     this.atualizarVencimentosComponente(componente);
     
-    // Recalcula totais e validações (apenas percentuais mudam)
-    this.calcularTotais();
-    this.gerarComparacao();
+    this.recalcularSimulacao();
   }
 
   /**
@@ -592,8 +607,57 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     // 📅 Atualiza datas de vencimento
     this.atualizarVencimentosComponente(componente);
     
-    // Recalcula totais (adiantamento pode mudar)
+    // Recalcula totais, comparação e validações de aprovação automática
+    this.recalcularSimulacao();
+  }
+
+  private recalcularSimulacao(): void {
     this.calcularTotais();
+    this.gerarComparacao();
+  }
+
+  private formatarValorParcelaEdicao(valor: number | null | undefined): string {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+
+    return valor.toFixed(2).replace('.', ',');
+  }
+
+  private formatarValorParcelaExibicao(valor: number | null | undefined): string {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(valor);
+  }
+
+  private parseValorMonetario(valor: string | null | undefined): number {
+    if (!valor) {
+      return 0;
+    }
+
+    const textoLimpo = valor.trim().replace(/[^\d,.-]/g, '');
+    if (!textoLimpo) {
+      return 0;
+    }
+
+    const ultimoSeparador = Math.max(textoLimpo.lastIndexOf(','), textoLimpo.lastIndexOf('.'));
+    let normalizado = textoLimpo;
+
+    if (ultimoSeparador >= 0) {
+      const inteiro = textoLimpo.slice(0, ultimoSeparador).replace(/[.,]/g, '');
+      const decimal = textoLimpo.slice(ultimoSeparador + 1).replace(/[.,]/g, '');
+      normalizado = `${inteiro || '0'}.${decimal}`;
+    } else {
+      normalizado = textoLimpo.replace(/[.,]/g, '');
+    }
+
+    const valorNumerico = Number(normalizado);
+    return Number.isFinite(valorNumerico) ? valorNumerico : 0;
   }
 
   /**

@@ -298,21 +298,22 @@
               <p-calendar [(ngModel)]="comp.vencimento"
                           dateFormat="dd/mm/yy"
                           [showIcon]="true"
-                          (onSelect)="onVencimentoChange(comp)"
+                          (ngModelChange)="onVencimentoChange(comp)"
                           [style]="{'width': '145px'}"
                           styleClass="modern-calendar"
                           appendTo="body">
               </p-calendar>
             </td>
             <td>
-              <p-inputNumber [(ngModel)]="comp.valorParcela"
-                             mode="currency"
-                             currency="BRL"
-                             locale="pt-BR"
-                             (onInput)="onValorParcelaChange(comp)"
-                             [inputStyle]="{'width': '135px', 'text-align': 'right'}"
-                             styleClass="modern-inputnumber">
-              </p-inputNumber>
+              <input pInputText
+                     [ngModel]="getValorParcelaInput(comp)"
+                     (ngModelChange)="onValorParcelaInputChange(comp, $event)"
+                     (focus)="onValorParcelaFocus(comp)"
+                     (blur)="onValorParcelaBlur(comp)"
+                     inputmode="decimal"
+                     class="modern-input text-right currency-inline-input"
+                     style="width: 135px;"
+                     placeholder="0,00">
             </td>
             <td class="text-center">
               <span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span>
