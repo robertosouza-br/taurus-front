@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
+import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
 import { PropostaService } from '../../../core/services/proposta.service';
 import {
   PropostaSimplificadaDTO,
@@ -40,7 +41,7 @@ import {
   selector: 'app-proposta-nova',
   templateUrl: './proposta-nova.component.html',
   styleUrls: ['./proposta-nova.component.scss'],
-  providers: [MessageService, ConfirmationService]
+  providers: [MessageService]
 })
 export class PropostaNovaComponent extends BaseFormComponent implements OnInit, OnDestroy {
   // Dados da proposta
@@ -132,6 +133,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   // ✨ Public para uso no template (tabela padrão)
   componentesNormalizadosCache: ComponenteTabelaPadraoDTO[] = [];
   private readonly valorParcelaInputMap = new WeakMap<ComponenteFormulario, string>();
+  private readonly detalhamentoExpandidoMap = new WeakSet<ComponenteFormulario>();
+  private atoInicialProtegido: ComponenteFormulario | null = null;
   
   private readonly destroy$ = new Subject<void>();
 
@@ -140,7 +143,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     private router: Router,
     private propostaService: PropostaService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private appConfirmationService: AppConfirmationService
   ) {
     super();
   }
@@ -380,6 +383,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (!this.proposta) return;
 
     this.simulacaoAlterada = false;
+    this.atoInicialProtegido = null;
     
     const modalidade = this.proposta.modalidadeTabelaPadrao;
     const simulacao = this.proposta.simulacao;
@@ -495,6 +499,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     
     // 🆕 v2.2 - Separar componentes
     this.separarComponentes();
+    this.definirAtoInicialProtegido();
+  }
+
+  private definirAtoInicialProtegido(): void {
+    this.atoInicialProtegido = this.componentes.find(componente => this.isAto(componente)) ?? null;
   }
 
   /**
@@ -535,6 +544,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       .sort((a, b) => a.ordem - b.ordem);
       
     console.log(`✅ ${this.componentesDisponiveisParaAdicionar.length} componente(s) disponível(is) para adicionar (incluindo ATO)`);
+  }
+
+  private isAto(componente: ComponenteFormulario | null | undefined): boolean {
+    return !!componente?.nomeComponente?.toUpperCase().includes('ATO');
+  }
+
+  isExclusaoBloqueada(componente: ComponenteFormulario): boolean {
+    return this.atoInicialProtegido === componente;
   }
 
   /**
@@ -710,6 +727,28 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (!this.possuiDesconto && this.ajusteDiferencaDialogVisible) {
       this.fecharDialogAjusteDiferenca();
     }
+  }
+
+  possuiDetalhamentoVencimentos(componente: ComponenteFormulario): boolean {
+    return !!componente.listaVencimentos && componente.listaVencimentos.length > 1;
+  }
+
+  isDetalhamentoExpandido(componente: ComponenteFormulario): boolean {
+    return this.detalhamentoExpandidoMap.has(componente);
+  }
+
+  toggleDetalhamentoVencimentos(componente: ComponenteFormulario): void {
+    if (!this.possuiDetalhamentoVencimentos(componente)) {
+      this.detalhamentoExpandidoMap.delete(componente);
+      return;
+    }
+
+    if (this.isDetalhamentoExpandido(componente)) {
+      this.detalhamentoExpandidoMap.delete(componente);
+      return;
+    }
+
+    this.detalhamentoExpandidoMap.add(componente);
   }
 
   private formatarValorParcelaEdicao(valor: number | null | undefined): string {
@@ -1720,14 +1759,22 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Remove um componente (marca como não selecionado)
    */
   excluirComponente(componente: ComponenteFormulario): void {
-    // Confirmar antes de excluir
-    this.confirmationService.confirm({
-      message: `Deseja realmente remover o componente "${componente.nomeComponente}"?`,
-      header: 'Confirmar Remoção',
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Sim, remover',
-      rejectLabel: 'Cancelar',
-      accept: () => {
+    if (this.isExclusaoBloqueada(componente)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Remoção não permitida',
+        detail: 'O primeiro ATO carregado na tela não pode ser removido.'
+      });
+      return;
+    }
+
+    this.appConfirmationService.confirmDelete(`remover o componente "${componente.nomeComponente}" da simulação`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmado) => {
+        if (!confirmado) {
+          return;
+        }
+
         this.simulacaoAlterada = true;
         // 🗑️ REMOVER completamente do array (não apenas desmarcar)
         const index = this.componentes.indexOf(componente);
@@ -1747,8 +1794,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           summary: 'Sucesso',
           detail: `Componente "${componente.nomeComponente}" removido da simulação`
         });
-      }
-    });
+      });
   }
 
   /**

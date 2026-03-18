@@ -212,6 +212,18 @@
       margin-left: auto;
       font-size: 0.85rem;
     }
+
+    .collapse-hint {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.88);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .collapse-hint-inline {
+      color: #64748b;
+    }
   }
 
   .collapse-fade-content {
@@ -731,6 +743,10 @@
         border-color: #d1d5db;
       }
 
+      &.modalidade-header-right {
+        justify-content: flex-end;
+      }
+
       .modalidade-info {
         display: flex;
         align-items: center;
@@ -1020,12 +1036,19 @@
       }
     }
 
-    .resumo-card-diferenca .resumo-valor-group {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .resumo-card-diferenca {
+      .resumo-valor-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      &.resumo-card-diferenca-alerta {
+        animation: resumo-diferenca-pulse 1.8s ease-in-out infinite;
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.22);
+      }
     }
 
     .resumo-card-adiantamento {
@@ -1155,8 +1178,29 @@
     }
   }
 
+  @keyframes resumo-diferenca-pulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2);
+    }
+
+    35% {
+      transform: scale(1.015);
+      box-shadow: 0 0 0 0.45rem rgba(59, 130, 246, 0);
+    }
+
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     ::ng-deep .acoes-tabela-principais .atribuir-restante-button {
+      animation: none;
+    }
+
+    .resumo-simulacao-panel .resumo-card-diferenca.resumo-card-diferenca-alerta {
       animation: none;
     }
 
@@ -1690,40 +1734,51 @@
     padding: 0.875rem !important;
   }
 
-  ::ng-deep .p-accordion {
-    .p-accordion-header {
-      background: transparent;
-      border: none;
-      
-      .p-accordion-header-link {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 1.5px solid #e2e8f0;
-        color: #1e293b;
-        font-weight: 600;
-        font-size: 0.9375rem;
-        padding: 0.875rem 1.25rem;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        
-        &:hover {
-          background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-          border-color: #c7d2fe;
-          transform: translateX(4px);
-        }
+  .detalhamento-card {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    padding: 1rem 1.125rem;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  }
 
-        &:focus {
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-      }
-    }
+  .detalhamento-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
 
-    .p-accordion-content {
-      border: 1.5px solid #e2e8f0;
-      border-top: none;
-      padding: 1.25rem;
-      background: #ffffff;
-      border-radius: 0 0 8px 8px;
+  .detalhamento-titulo-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: #1e293b;
+
+    .pi {
+      color: #2563eb;
+      font-size: 0.95rem;
     }
+  }
+
+  .detalhamento-titulo {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .detalhamento-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.8rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
   }
 }
 
@@ -2138,12 +2193,27 @@
       }
     }
 
+    .action-icon-detail.p-button {
+      color: #2563eb !important;
+
+      &:enabled:hover,
+      &:enabled:focus {
+        color: #1d4ed8 !important;
+      }
+    }
+
     .action-icon-delete.p-button {
       color: #ef4444 !important;
 
       &:enabled:hover,
       &:enabled:focus {
         color: #dc2626 !important;
+      }
+
+      &:disabled {
+        color: #cbd5e1 !important;
+        opacity: 1;
+        cursor: not-allowed;
       }
     }
   }

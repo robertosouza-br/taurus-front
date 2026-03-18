@@ -38,10 +38,7 @@
   </app-page-header>
 
   <!-- Loading -->
-  <div *ngIf="carregando" class="verificando-banner">
-    <p-progressSpinner [style]="{'width':'20px','height':'20px'}" strokeWidth="4"></p-progressSpinner>
-    <span>Carregando dados da proposta...</span>
-  </div>
+  <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados da proposta..."></app-loading-spinner>
 
   <!-- Formulário -->
   <div class="proposta-form-container" *ngIf="!carregando && proposta">
@@ -84,7 +81,10 @@
             <i class="pi pi-users"></i>
             <span>Dados do Cliente e Corretor</span>
           </div>
-          <i class="pi toggle-icon" [ngClass]="dadosClienteCorretorExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          <div class="header-right">
+            <span class="collapse-hint" *ngIf="!dadosClienteCorretorExpandido">Clique para expandir</span>
+            <i class="pi toggle-icon" [ngClass]="dadosClienteCorretorExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          </div>
         </div>
       </ng-template>
 
@@ -166,6 +166,7 @@
               <span class="numero-valor">{{ proposta.numeroProposta }}</span>
               <span class="numero-tipo">Sequencial</span>
             </span>
+            <span class="collapse-hint" *ngIf="!preencherPropostaExpandido">Clique para expandir</span>
             <i class="pi toggle-icon" [ngClass]="preencherPropostaExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
           </div>
         </div>
@@ -173,12 +174,7 @@
 
       <div *ngIf="preencherPropostaExpandido" class="collapse-fade-content">
       <div class="modalidade-section">
-        <div class="modalidade-header" (click)="tabelaPadraoExpandida = !tabelaPadraoExpandida">
-          <div class="modalidade-info">
-            <span class="modalidade-label">Modalidade</span>
-            <span class="modalidade-nome">{{ modalidadeNome || modalidadeDescricao }}</span>
-          </div>
-
+        <div class="modalidade-header modalidade-header-right" (click)="tabelaPadraoExpandida = !tabelaPadraoExpandida">
           <div class="flex align-items-center gap-3">
             <span class="table-badge tabela-padrao-tag">Tabela Padrão</span>
             <i class="pi toggle-icon" [ngClass]="tabelaPadraoExpandida ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
@@ -446,7 +442,7 @@
                   <th style="width: 160px">Valor Parcela</th>
                   <th style="width: 80px" class="text-center">%</th>
                   <th style="width: 150px" class="text-right">Valor Total</th>
-                  <th style="width: 90px" class="text-center">Ações</th>
+                  <th style="width: 130px" class="text-center">Ações</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
@@ -498,22 +494,32 @@
                   <td class="text-right font-semibold">
                     <span class="money-value money-value-strong">{{ formatarMoeda(comp.valorTotal) }}</span>
                   </td>
-                  <td class="text-center">
-                    <div class="flex justify-content-center gap-1">
+                  <td class="text-right">
+                    <div class="flex justify-content-end gap-1">
+                      <button *ngIf="possuiDetalhamentoVencimentos(comp)"
+                                pButton
+                                pRipple
+                                [icon]="isDetalhamentoExpandido(comp) ? 'pi pi-calendar-minus' : 'pi pi-calendar-plus'"
+                                class="p-button-rounded p-button-text action-icon-button action-icon-detail"
+                                [pTooltip]="isDetalhamentoExpandido(comp) ? 'Ocultar detalhamento' : 'Ver detalhamento'"
+                                tooltipPosition="top"
+                                (click)="toggleDetalhamentoVencimentos(comp)"></button>
                       <button pButton pRipple icon="pi pi-copy" 
                                 class="p-button-rounded p-button-text action-icon-button action-icon-copy"
                               pTooltip="Duplicar" tooltipPosition="top"
                               (click)="duplicarComponente(comp)"></button>
                       <button pButton pRipple icon="pi pi-trash" 
                                 class="p-button-rounded p-button-text action-icon-button action-icon-delete"
-                              pTooltip="Remover" tooltipPosition="top"
+                              [disabled]="isExclusaoBloqueada(comp)"
+                              [pTooltip]="isExclusaoBloqueada(comp) ? 'O primeiro ATO carregado não pode ser removido' : 'Remover'"
+                              tooltipPosition="top"
                               (click)="excluirComponente(comp)"></button>
                     </div>
                   </td>
                 </tr>
                 <!-- Linha de Mensagens de Erro -->
                 <tr *ngIf="comp.mensagensErro && comp.mensagensErro.length > 0" class="row-mensagens-erro">
-                  <td colspan="8">
+                  <td colspan="7">
                     <div class="mensagens-erro-container">
                       <i class="pi pi-exclamation-triangle"></i>
                       <div class="mensagens-erro-lista">
@@ -525,19 +531,25 @@
                   </td>
                 </tr>
                 <!-- 📅 Linha de Detalhamento de Vencimentos -->
-                <tr *ngIf="comp.listaVencimentos && comp.listaVencimentos.length > 1" class="row-detalhamento">
-                  <td colspan="8" style="padding: 0;">
-                    <p-accordion styleClass="detalhamento-accordion">
-                      <p-accordionTab header="📋 Detalhamento de Vencimentos ({{ comp.listaVencimentos.length }} parcelas)">
-                        <div class="vencimentos-grid">
-                          <div *ngFor="let venc of comp.listaVencimentos" class="vencimento-item">
-                            <span class="vencimento-numero">Parcela {{ venc.numeroParcela }}</span>
-                            <span class="vencimento-data">{{ venc.dataVencimento | date:'dd/MM/yyyy' }}</span>
-                            <span class="vencimento-valor">{{ formatarMoeda(venc.valor) }}</span>
-                          </div>
+                <tr *ngIf="possuiDetalhamentoVencimentos(comp) && isDetalhamentoExpandido(comp)" class="row-detalhamento">
+                  <td colspan="7">
+                    <div class="detalhamento-card">
+                      <div class="detalhamento-header">
+                        <div class="detalhamento-titulo-group">
+                          <i class="pi pi-calendar"></i>
+                          <span class="detalhamento-titulo">Detalhamento de Vencimentos</span>
                         </div>
-                      </p-accordionTab>
-                    </p-accordion>
+                        <span class="detalhamento-badge">{{ comp.listaVencimentos.length }} parcelas</span>
+                      </div>
+
+                      <div class="vencimentos-grid">
+                        <div *ngFor="let venc of comp.listaVencimentos" class="vencimento-item">
+                          <span class="vencimento-numero">Parcela {{ venc.numeroParcela }}</span>
+                          <span class="vencimento-data">{{ venc.dataVencimento | date:'dd/MM/yyyy' }}</span>
+                          <span class="vencimento-valor">{{ formatarMoeda(venc.valor) }}</span>
+                        </div>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               </ng-template>
@@ -558,7 +570,8 @@
               <span class="resumo-valor">{{ formatarMoeda(valorTabela) }}</span>
             </div>
 
-            <div class="resumo-card resumo-card-diferenca">
+              <div class="resumo-card resumo-card-diferenca"
+                [class.resumo-card-diferenca-alerta]="possuiDesconto || possuiAcrescimo">
               <span class="resumo-label">Diferença</span>
               <div class="resumo-valor-group">
                 <span class="resumo-valor"
@@ -575,7 +588,7 @@
                  [class.resumo-card-total-igual]="!possuiDesconto && !possuiAcrescimo"
                  [class.resumo-card-total-menor]="possuiDesconto"
                  [class.resumo-card-total-maior]="possuiAcrescimo">
-              <span class="resumo-label">Valor Total (100,00%)</span>
+              <span class="resumo-label">Valor Total da proposta</span>
               <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
             </div>
 
@@ -602,6 +615,7 @@
             <span class="header-status-badge">
               {{ possuiViolacoesAprovacao ? 'Aprovação manual necessária' : 'Dentro dos critérios automáticos' }}
             </span>
+            <span class="collapse-hint" *ngIf="!validacoesAprovacaoExpandido">Clique para expandir</span>
             <i class="pi toggle-icon" [ngClass]="validacoesAprovacaoExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
           </div>
         </div>
@@ -714,7 +728,10 @@
             <i class="pi pi-chart-line"></i>
             <span>Relatório Comparativo</span>
           </div>
-          <i class="pi toggle-icon" [ngClass]="relatorioComparativoExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          <div class="header-right">
+            <span class="collapse-hint" *ngIf="!relatorioComparativoExpandido">Clique para expandir</span>
+            <i class="pi toggle-icon" [ngClass]="relatorioComparativoExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          </div>
         </div>
       </ng-template>
 
@@ -793,6 +810,3 @@
 
 <!-- Toast -->
 <p-toast></p-toast>
-
-<!-- Dialog de Confirmação -->
-<p-confirmDialog></p-confirmDialog>

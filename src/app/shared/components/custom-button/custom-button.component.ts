@@ -27,6 +27,7 @@ export class CustomButtonComponent {
   @Input() tooltip: string = '';
   @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'top';
   @Input() iconPos: 'left' | 'right' = 'left';
+  @Input() styleClass: string = '';
   
   /**
    * Tipo de ação do botão - aciona confirmação automática
@@ -132,6 +133,7 @@ export class CustomButtonComponent {
     if (this.text) classes.push('p-button-text');
     if (this.raised) classes.push('p-button-raised');
     if (this.rounded) classes.push('p-button-rounded');
+    if (this.styleClass) classes.push(this.styleClass);
     
     classes.push(`btn-${this.size}`);
     classes.push(`p-button-${this.severity}`);
