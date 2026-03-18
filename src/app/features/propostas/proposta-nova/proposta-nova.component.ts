@@ -753,12 +753,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       // Percentual calculado atual
       const percentualCalculado = componente.percentual;
       
-      // Calcular diferença
-      const diferenca = Math.abs(percentualCalculado - percentualAPI);
+      // Calcular diferença (positiva = acima, negativa = abaixo)
+      const diferenca = percentualCalculado - percentualAPI;
+      const diferencaAbsoluta = Math.abs(diferenca);
       
-      // Alertar se diferença for maior que 0.5%
-      if (diferenca > 0.5) {
-        const mensagem = `${componente.nomeComponente}: ${percentualCalculado.toFixed(2)}% (esperado: ${percentualAPI.toFixed(2)}% da tabela padrão)`;
+      // Alertar qualquer diferença significativa (> 0.01% para considerar arredondamento)
+      if (diferencaAbsoluta > 0.01) {
+        const direcao = diferenca > 0 ? 'acima' : 'abaixo';
+        const mensagem = `${componente.nomeComponente}: ${percentualCalculado.toFixed(2)}% está ${diferencaAbsoluta.toFixed(2)}% ${direcao} do esperado (${percentualAPI.toFixed(2)}% da tabela padrão)`;
         
         // Marcar componente com erro
         componente.mensagensErro = componente.mensagensErro || [];
@@ -847,10 +849,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       : 0;
     
     const conforme = percentualCalculado >= percentualMinimoAPI;
+    const diferenca = Math.abs(percentualCalculado - percentualMinimoAPI);
     
-    let mensagem = `O sinal representa ${percentualCalculado.toFixed(2)}% do valor da unidade`;
+    let mensagem = `Sinal (ATO + COTA SINAL): ${percentualCalculado.toFixed(2)}%`;
     if (!conforme) {
-      mensagem += `, menor que os ${percentualMinimoAPI.toFixed(2)}% do valor de arrecadação`;
+      mensagem += ` (${diferenca.toFixed(2)}% abaixo do mínimo de ${percentualMinimoAPI.toFixed(2)}%)`;
     }
     
     this.violacoesAprovacao.push({
@@ -910,16 +913,21 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       ? (valorPrimeiros13Meses / this.valorTabela) * 100 
       : 0;
     
-    const conforme = percentualCalculado >= this.configuracoesAprovacao.percentual13PrimeirosMesesMinimo;
+    const percentualMinimo = this.configuracoesAprovacao.percentual13PrimeirosMesesMinimo;
+    const conforme = percentualCalculado >= percentualMinimo;
+    const diferenca = Math.abs(percentualCalculado - percentualMinimo);
+    
+    let mensagem = `Arrecadação 13 primeiros meses: ${percentualCalculado.toFixed(2)}%`;
+    if (!conforme) {
+      mensagem += ` (${diferenca.toFixed(2)}% abaixo do mínimo de ${percentualMinimo}%)`;
+    }
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.ARRECADACAO_13_PRIMEIROS_MESES,
       status: conforme ? StatusRegraValidacao.CONFORME : StatusRegraValidacao.VIOLACAO,
       percentualCalculado,
-      percentualLimite: this.configuracoesAprovacao.percentual13PrimeirosMesesMinimo,
-      mensagem: `O percentual dos 13 primeiros meses representa ${percentualCalculado.toFixed(2)}% do valor da unidade${
-        !conforme ? `, menor que os ${this.configuracoesAprovacao.percentual13PrimeirosMesesMinimo}% do valor de arrecadação` : ''
-      }`,
+      percentualLimite: percentualMinimo,
+      mensagem,
       bloqueiaAprovacao: !conforme
     });
   }
@@ -955,16 +963,21 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       ? (valorUltimos13Meses / this.valorTabela) * 100 
       : 0;
     
-    const conforme = percentualCalculado <= this.configuracoesAprovacao.percentual13UltimosMesesMaximo;
+    const percentualMaximo = this.configuracoesAprovacao.percentual13UltimosMesesMaximo;
+    const conforme = percentualCalculado <= percentualMaximo;
+    const diferenca = Math.abs(percentualCalculado - percentualMaximo);
+    
+    let mensagem = `Arrecadação últimos 13 meses: ${percentualCalculado.toFixed(2)}%`;
+    if (!conforme) {
+      mensagem += ` (${diferenca.toFixed(2)}% acima do máximo de ${percentualMaximo}%)`;
+    }
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.ARRECADACAO_13_ULTIMOS_MESES,
       status: conforme ? StatusRegraValidacao.CONFORME : StatusRegraValidacao.VIOLACAO,
       percentualCalculado,
-      percentualLimite: this.configuracoesAprovacao.percentual13UltimosMesesMaximo,
-      mensagem: `O percentual dos últimos 13 meses representa ${percentualCalculado.toFixed(2)}% do valor da unidade${
-        !conforme ? `, maior que os ${this.configuracoesAprovacao.percentual13UltimosMesesMaximo}% do valor de arrecadação` : ''
-      }`,
+      percentualLimite: percentualMaximo,
+      mensagem,
       bloqueiaAprovacao: !conforme
     });
   }
@@ -997,10 +1010,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       : 0;
     
     const conforme = percentualCalculado <= percentualMaximoAPI;
+    const diferenca = Math.abs(percentualCalculado - percentualMaximoAPI);
     
-    let mensagem = `O percentual da última parcela representa ${percentualCalculado.toFixed(2)}% do valor da unidade`;
+    let mensagem = `Última parcela (COTA ÚNICA): ${percentualCalculado.toFixed(2)}%`;
     if (!conforme) {
-      mensagem += `, maior que os ${percentualMaximoAPI.toFixed(2)}% do valor de arrecadação`;
+      mensagem += ` (${diferenca.toFixed(2)}% acima do máximo de ${percentualMaximoAPI.toFixed(2)}%)`;
     }
     
     this.violacoesAprovacao.push({
@@ -1088,9 +1102,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
     
     const conforme = ato.valorTotal >= valorMinimoAPI;
-    const mensagem = `O valor pago no ATO ${this.formatarMoeda(ato.valorTotal)}${
-      !conforme ? ` é menor que o valor mínimo da tipologia ${this.formatarMoeda(valorMinimoAPI)}. Diferença de ${this.formatarMoeda(valorMinimoAPI - ato.valorTotal)}` : ''
-    }`;
+    const diferenca = Math.abs(ato.valorTotal - valorMinimoAPI);
+    
+    let mensagem = `ATO: ${this.formatarMoeda(ato.valorTotal)}`;
+    if (!conforme) {
+      mensagem += ` (${this.formatarMoeda(diferenca)} abaixo do mínimo de ${this.formatarMoeda(valorMinimoAPI)} para tipologia "${tipologia}")`;
+    }
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.ATO_MINIMO_TIPOLOGIA,
@@ -1131,9 +1148,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const valorMinimoAPI = 1000.00;
     
     const conforme = mensal.valorParcela >= valorMinimoAPI;
-    const mensagem = `O valor pago na MENSAL ${this.formatarMoeda(mensal.valorParcela)}${
-      !conforme ? ` é menor que ${this.formatarMoeda(valorMinimoAPI)}. Diferença de ${this.formatarMoeda(valorMinimoAPI - mensal.valorParcela)}` : ''
-    }`;
+    const diferenca = Math.abs(mensal.valorParcela - valorMinimoAPI);
+    
+    let mensagem = `COTA MENSAL: ${this.formatarMoeda(mensal.valorParcela)}`;
+    if (!conforme) {
+      mensagem += ` (${this.formatarMoeda(diferenca)} abaixo do mínimo de ${this.formatarMoeda(valorMinimoAPI)})`;
+    }
     
     this.violacoesAprovacao.push({
       tipo: TipoRegraValidacao.MENSAL_MINIMA,
