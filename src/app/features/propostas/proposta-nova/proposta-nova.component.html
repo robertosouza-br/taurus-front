@@ -378,167 +378,173 @@
         </div>
       </p-dialog>
 
-      <!-- Tabela de Simulação Editável -->
-      <div class="table-container mt-4 mb-4">
-        <p-table [value]="componentes" 
-                 styleClass="p-datatable-sm modern-table simulation-table"
-                 responsiveLayout="scroll"
-                 [scrollable]="true">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Componente</th>
-            <th style="width: 70px" class="text-center">Qtd</th>
-            <th style="width: 170px">Vencimento</th>
-            <th style="width: 160px">Valor Parcela</th>
-            <th style="width: 80px" class="text-center">%</th>
-            <th style="width: 150px" class="text-right">Valor Total</th>
-            <th style="width: 90px" class="text-center">Ações</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
-          <tr [class.row-erro]="comp.mensagensErro && comp.mensagensErro.length > 0">
-            <td>
-              <div class="cell-componente">
-                <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
-                <div class="cell-componente-meta">
-                  <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
-                  <span *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
-                        class="meta-pill meta-pill-light">{{ periodicidadeBadge }}</span>
-                </div>
-              </div>
-            </td>
-            <td class="text-center">
-              <input type="text" pInputText
-                     inputmode="numeric"
-                     pattern="[0-9]*"
-                     [(ngModel)]="comp.quantidade"
-                     (input)="onQuantidadeChange(comp)"
-                     class="modern-input text-center"
-                     style="width: 50px;"
-                     placeholder="Qtd">
-            </td>
-            <td>
-              <p-calendar [(ngModel)]="comp.vencimento"
-                          dateFormat="dd/mm/yy"
-                          [showIcon]="true"
-                          (ngModelChange)="onVencimentoChange(comp)"
-                          [style]="{'width': '145px'}"
-                          styleClass="modern-calendar"
-                          appendTo="body">
-              </p-calendar>
-            </td>
-            <td>
-              <input pInputText
-                     [ngModel]="getValorParcelaInput(comp)"
-                     (ngModelChange)="onValorParcelaInputChange(comp, $event)"
-                     (focus)="onValorParcelaFocus(comp)"
-                     (blur)="onValorParcelaBlur(comp)"
-                     inputmode="decimal"
-                     class="modern-input text-right currency-inline-input"
-                     style="width: 135px;"
-                     placeholder="0,00">
-            </td>
-            <td class="text-center">
-              <span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span>
-            </td>
-            <td class="text-right font-semibold">
-              <span class="money-value money-value-strong">{{ formatarMoeda(comp.valorTotal) }}</span>
-            </td>
-            <td class="text-center">
-              <div class="flex justify-content-center gap-1">
-                <button pButton pRipple icon="pi pi-copy" 
-                          class="p-button-rounded p-button-text action-icon-button action-icon-copy"
-                        pTooltip="Duplicar" tooltipPosition="top"
-                        (click)="duplicarComponente(comp)"></button>
-                <button pButton pRipple icon="pi pi-trash" 
-                          class="p-button-rounded p-button-text action-icon-button action-icon-delete"
-                        pTooltip="Remover" tooltipPosition="top"
-                        (click)="excluirComponente(comp)"></button>
-              </div>
-            </td>
-          </tr>
-            <!-- Linha de Mensagens de Erro -->
-            <tr *ngIf="comp.mensagensErro && comp.mensagensErro.length > 0" class="row-mensagens-erro">
-              <td colspan="8">
-                <div class="mensagens-erro-container">
-                  <i class="pi pi-exclamation-triangle"></i>
-                  <div class="mensagens-erro-lista">
-                    <div *ngFor="let mensagem of comp.mensagensErro" class="mensagem-erro">
-                      {{ mensagem }}
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <!-- 📅 Linha de Detalhamento de Vencimentos -->
-            <tr *ngIf="comp.listaVencimentos && comp.listaVencimentos.length > 1" class="row-detalhamento">
-              <td colspan="8" style="padding: 0;">
-                <p-accordion styleClass="detalhamento-accordion">
-                  <p-accordionTab header="📋 Detalhamento de Vencimentos ({{ comp.listaVencimentos.length }} parcelas)">
-                    <div class="vencimentos-grid">
-                      <div *ngFor="let venc of comp.listaVencimentos" class="vencimento-item">
-                        <span class="vencimento-numero">Parcela {{ venc.numeroParcela }}</span>
-                        <span class="vencimento-data">{{ venc.dataVencimento | date:'dd/MM/yyyy' }}</span>
-                        <span class="vencimento-valor">{{ formatarMoeda(venc.valor) }}</span>
+      <div class="simulacao-main-layout mt-4 mb-4">
+        <!-- Tabela de Simulação Editável -->
+        <div class="simulacao-table-column">
+          <div class="table-container">
+            <p-table [value]="componentes" 
+                     styleClass="p-datatable-sm modern-table simulation-table"
+                     responsiveLayout="scroll"
+                     [scrollable]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Componente</th>
+                  <th style="width: 70px" class="text-center">Qtd</th>
+                  <th style="width: 170px">Vencimento</th>
+                  <th style="width: 160px">Valor Parcela</th>
+                  <th style="width: 80px" class="text-center">%</th>
+                  <th style="width: 150px" class="text-right">Valor Total</th>
+                  <th style="width: 90px" class="text-center">Ações</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
+                <tr [class.row-erro]="comp.mensagensErro && comp.mensagensErro.length > 0">
+                  <td>
+                    <div class="cell-componente">
+                      <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
+                      <div class="cell-componente-meta">
+                        <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
+                        <span *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
+                              class="meta-pill meta-pill-light">{{ periodicidadeBadge }}</span>
                       </div>
                     </div>
-                  </p-accordionTab>
-                </p-accordion>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
+                  </td>
+                  <td class="text-center">
+                    <input type="text" pInputText
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           [(ngModel)]="comp.quantidade"
+                           (input)="onQuantidadeChange(comp)"
+                           class="modern-input text-center"
+                           style="width: 50px;"
+                           placeholder="Qtd">
+                  </td>
+                  <td>
+                    <p-calendar [(ngModel)]="comp.vencimento"
+                                dateFormat="dd/mm/yy"
+                                [showIcon]="true"
+                                (ngModelChange)="onVencimentoChange(comp)"
+                                [style]="{'width': '145px'}"
+                                styleClass="modern-calendar"
+                                appendTo="body">
+                    </p-calendar>
+                  </td>
+                  <td>
+                    <input pInputText
+                           [ngModel]="getValorParcelaInput(comp)"
+                           (ngModelChange)="onValorParcelaInputChange(comp, $event)"
+                           (focus)="onValorParcelaFocus(comp)"
+                           (blur)="onValorParcelaBlur(comp)"
+                           inputmode="decimal"
+                           class="modern-input text-right currency-inline-input"
+                           style="width: 135px;"
+                           placeholder="0,00">
+                  </td>
+                  <td class="text-center">
+                    <span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span>
+                  </td>
+                  <td class="text-right font-semibold">
+                    <span class="money-value money-value-strong">{{ formatarMoeda(comp.valorTotal) }}</span>
+                  </td>
+                  <td class="text-center">
+                    <div class="flex justify-content-center gap-1">
+                      <button pButton pRipple icon="pi pi-copy" 
+                                class="p-button-rounded p-button-text action-icon-button action-icon-copy"
+                              pTooltip="Duplicar" tooltipPosition="top"
+                              (click)="duplicarComponente(comp)"></button>
+                      <button pButton pRipple icon="pi pi-trash" 
+                                class="p-button-rounded p-button-text action-icon-button action-icon-delete"
+                              pTooltip="Remover" tooltipPosition="top"
+                              (click)="excluirComponente(comp)"></button>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Linha de Mensagens de Erro -->
+                <tr *ngIf="comp.mensagensErro && comp.mensagensErro.length > 0" class="row-mensagens-erro">
+                  <td colspan="8">
+                    <div class="mensagens-erro-container">
+                      <i class="pi pi-exclamation-triangle"></i>
+                      <div class="mensagens-erro-lista">
+                        <div *ngFor="let mensagem of comp.mensagensErro" class="mensagem-erro">
+                          {{ mensagem }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <!-- 📅 Linha de Detalhamento de Vencimentos -->
+                <tr *ngIf="comp.listaVencimentos && comp.listaVencimentos.length > 1" class="row-detalhamento">
+                  <td colspan="8" style="padding: 0;">
+                    <p-accordion styleClass="detalhamento-accordion">
+                      <p-accordionTab header="📋 Detalhamento de Vencimentos ({{ comp.listaVencimentos.length }} parcelas)">
+                        <div class="vencimentos-grid">
+                          <div *ngFor="let venc of comp.listaVencimentos" class="vencimento-item">
+                            <span class="vencimento-numero">Parcela {{ venc.numeroParcela }}</span>
+                            <span class="vencimento-data">{{ venc.dataVencimento | date:'dd/MM/yyyy' }}</span>
+                            <span class="vencimento-valor">{{ formatarMoeda(venc.valor) }}</span>
+                          </div>
+                        </div>
+                      </p-accordionTab>
+                    </p-accordion>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
 
-      <!-- Resumo Financeiro -->
-      <div class="resumo-simulacao grid">
-        <!-- Coluna 1 -->
-        <div class="col-12 md:col-4">
-          <div class="resumo-item">
-            <span class="resumo-label">Tabela Padrão</span>
-            <span class="resumo-valor">{{ formatarMoeda(valorTabela) }}</span>
+        <!-- Resumo Financeiro -->
+        <aside class="resumo-simulacao-panel">
+          <div class="resumo-simulacao-header">
+            <span class="resumo-header-eyebrow">Resumo Financeiro</span>
+            <h3 class="resumo-header-title">Visão consolidada da proposta</h3>
           </div>
-          <div class="resumo-item mt-2">
-            <span class="resumo-label">Diferença</span>
-            <span class="resumo-valor" 
-                  [class.valor-positivo]="possuiAcrescimo"
-                  [class.valor-negativo]="possuiDesconto">
-              {{ formatarMoeda(diferenca) }}
-              <p-tag *ngIf="possuiDesconto" severity="danger" value="DESCONTO" styleClass="ml-2"></p-tag>
-              <p-tag *ngIf="possuiAcrescimo" severity="success" value="ACRÉSCIMO" styleClass="ml-2"></p-tag>
-            </span>
+
+          <div class="resumo-simulacao-grid">
+            <div class="resumo-card">
+              <span class="resumo-label">Tabela Padrão</span>
+              <span class="resumo-valor">{{ formatarMoeda(valorTabela) }}</span>
+            </div>
+
+            <div class="resumo-card resumo-card-diferenca">
+              <span class="resumo-label">Diferença</span>
+              <div class="resumo-valor-group">
+                <span class="resumo-valor"
+                      [class.valor-positivo]="possuiAcrescimo"
+                      [class.valor-negativo]="possuiDesconto">
+                  {{ formatarMoeda(diferenca) }}
+                </span>
+                <p-tag *ngIf="possuiDesconto" severity="danger" value="DESCONTO"></p-tag>
+                <p-tag *ngIf="possuiAcrescimo" severity="success" value="ACRÉSCIMO"></p-tag>
+              </div>
+            </div>
+
+            <div class="resumo-card resumo-card-total">
+              <span class="resumo-label">Valor Total (100,00%)</span>
+              <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
+            </div>
+
+            <div class="resumo-card">
+              <span class="resumo-label">Valor Total</span>
+              <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
+            </div>
+
+            <div class="resumo-card">
+              <span class="resumo-label">Comissão Mesa</span>
+              <span class="resumo-valor">(-{{ formatarMoeda(0) }})</span>
+            </div>
+
+            <div class="resumo-card">
+              <span class="resumo-label">Saldo Devedor</span>
+              <span class="resumo-valor">{{ formatarMoeda(saldoDevedor) }}</span>
+            </div>
+
+            <div class="resumo-card resumo-card-adiantamento">
+              <span class="resumo-label">Adiantamento</span>
+              <span class="resumo-valor valor-adiantamento">{{ formatarMoeda(adiantamento) }}</span>
+            </div>
           </div>
-          <div class="resumo-item resumo-total mt-2">
-            <span class="resumo-label">Valor Total (100,00%)</span>
-            <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
-          </div>
-        </div>
-        
-        <!-- Coluna 2 -->
-        <div class="col-12 md:col-4">
-          <div class="resumo-item">
-            <span class="resumo-label">Valor Total</span>
-            <span class="resumo-valor">{{ formatarMoeda(valorProposta) }}</span>
-          </div>
-          <div class="resumo-item mt-2">
-            <span class="resumo-label">Comissão Mesa</span>
-            <span class="resumo-valor">(-{{ formatarMoeda(0) }})</span>
-          </div>
-          <div class="resumo-item mt-2">
-            <span class="resumo-label">Saldo Devedor</span>
-            <span class="resumo-valor">{{ formatarMoeda(saldoDevedor) }}</span>
-          </div>
-        </div>
-        
-        <!-- Coluna 3 -->
-        <div class="col-12 md:col-4">
-          <div class="resumo-item">
-            <span class="resumo-label">💰 Adiantamento</span>
-            <span class="resumo-valor" style="color: var(--primary-color); font-weight: 600;">
-              {{ formatarMoeda(adiantamento) }}
-            </span>
-          </div>
-        </div>
+        </aside>
       </div>
 
     </p-card>
