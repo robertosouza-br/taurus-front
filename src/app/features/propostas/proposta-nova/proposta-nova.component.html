@@ -600,12 +600,13 @@
           </div>
         </div>
 
-        <p-message 
-          *ngIf="possuiViolacoesAprovacao" 
-          severity="warn" 
-          text="Esta proposta possui violações que bloqueiam a aprovação automática. Será necessária aprovação manual da Diretoria Comercial."
-          styleClass="mb-3 validacoes-alerta-message">
-        </p-message>
+        <div *ngIf="possuiViolacoesAprovacao" class="alert alert-sistema mb-3 validacoes-alerta-message">
+          <i class="pi pi-shield alert-icon"></i>
+          <div class="alert-content">
+            <strong>Validação de Aprovação</strong>
+            <p>Esta proposta possui violações que bloqueiam a aprovação automática. Será necessária aprovação manual da Diretoria Comercial.</p>
+          </div>
+        </div>
 
         <p-table [value]="violacoesAprovacao" 
                  styleClass="p-datatable-sm modern-table validacoes-table"

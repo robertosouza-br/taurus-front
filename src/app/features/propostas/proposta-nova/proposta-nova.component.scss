@@ -306,26 +306,35 @@
 
   .validacoes-card {
     &.validacoes-card-alerta {
+      --validacoes-header-bg: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      --validacoes-header-color: #fff7ed;
+      --validacoes-header-border: #c2410c;
+
       .validacoes-table .p-datatable-thead > tr > th {
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: #fff7ed;
-        border-bottom: 2px solid #c2410c;
+        background: var(--validacoes-header-bg);
+        color: var(--validacoes-header-color);
+        border-bottom: 2px solid var(--validacoes-header-border);
       }
     }
 
     &.validacoes-card-ok {
+      --validacoes-header-bg: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      --validacoes-header-color: #f0fdfa;
+      --validacoes-header-border: #0f766e;
+
       .validacoes-table .p-datatable-thead > tr > th {
-        background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
-        color: #f0fdfa;
-        border-bottom: 2px solid #0f766e;
+        background: var(--validacoes-header-bg);
+        color: var(--validacoes-header-color);
+        border-bottom: 2px solid var(--validacoes-header-border);
       }
     }
   }
 
-    .validacoes-table {
+  .validacoes-table {
       .p-datatable-thead > tr > th {
         font-weight: 700;
         letter-spacing: 0.06em;
+        box-shadow: none;
       }
 
       .p-datatable-tbody > tr {
@@ -374,25 +383,20 @@
         width: 2rem;
         height: 2rem;
         border-radius: 999px;
-        border: 1px solid transparent;
         font-size: 1rem;
+        background: transparent;
+        border: none;
       }
 
       .status-conforme {
-        background: #ecfdf5;
-        border-color: #bbf7d0;
         color: #16a34a;
       }
 
       .status-violacao {
-        background: #fef2f2;
-        border-color: #fecaca;
         color: #dc2626;
       }
 
       .status-neutro {
-        background: #f8fafc;
-        border-color: #e2e8f0;
         color: #64748b;
       }
 
@@ -410,7 +414,92 @@
         color: #b91c1c !important;
         font-weight: 600;
       }
+  }
+
+  .validacoes-section {
+    ::ng-deep .validacoes-alerta-message {
+      margin-bottom: 0 !important;
+
+      .p-message {
+        border-radius: 8px;
+        border: 1px solid #fcd34d;
+        background: #fffbeb;
+        color: #92400e;
+        box-shadow: none;
+      }
+
+      .p-message-wrapper {
+        padding: 0.85rem 1rem;
+      }
+
+      .p-message-icon {
+        font-size: 0.95rem;
+        color: #d97706;
+      }
+
+      .p-message-text {
+        font-weight: 500;
+        line-height: 1.45;
+      }
     }
+  }
+
+  .alert {
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    animation: slideDown 0.3s ease-out;
+
+    .alert-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .alert-content {
+      flex: 1;
+
+      strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-size: 0.95rem;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+    }
+
+    &.alert-sistema {
+      background-color: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+
+      .alert-icon {
+        color: #ff9800;
+      }
+    }
+  }
+
+  .mb-3 {
+    margin-bottom: 1.5rem;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   // ─── Campos readonly ────────────────────────────────────────────────────
   .campo-readonly {
@@ -1442,6 +1531,41 @@
       color: #1e293b;
       font-size: 0.875rem;
     }
+  }
+
+  .validacoes-card.validacoes-card-alerta .validacoes-table.p-datatable .p-datatable-thead > tr > th {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+    color: #fff7ed !important;
+    border-bottom: 2px solid #c2410c !important;
+  }
+
+  .validacoes-card.validacoes-card-ok .validacoes-table.p-datatable .p-datatable-thead > tr > th {
+    background: #0f766e !important;
+    color: #f0fdfa !important;
+    border-bottom: 2px solid #0f766e !important;
+  }
+
+  .validacoes-table.p-datatable .status-conforme {
+    color: #16a34a !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .validacoes-table.p-datatable .status-violacao {
+    color: #dc2626 !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .validacoes-table.p-datatable .status-neutro {
+    color: #64748b !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .validacoes-table.p-datatable .p-datatable-tbody > tr.row-violacao {
+    background: linear-gradient(90deg, #fff1f2 0%, #fff7f7 100%) !important;
+    box-shadow: inset 4px 0 0 #dc2626;
   }
 
   .standard-table {
