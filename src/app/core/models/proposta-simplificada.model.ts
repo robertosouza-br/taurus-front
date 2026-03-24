@@ -212,22 +212,34 @@ export interface ComponenteSimulacaoDTO {
 
 export interface SalvarPropostaSimplificadaRequest {
   reservaId: number;
-  dataProposta: string;
-  valorTabela: number;
-  valorProposta: number;
-  desconto: number;
-  acrescimo: number;
-  area: number;
-  vagas: number;
-  dataEntrega: string;
+  dataProposta: string | null;
+  valorTabela: number | null;
+  valorProposta: number | null;
+  desconto: number | null;
+  acrescimo: number | null;
+  area: number | null;
+  vagas: number | null;
+  dataEntrega: string | null;
+  codigoModalidade?: string | null;
+  descricaoModalidade?: string | null;
+  midia?: number | null;
+  midiaOrigem?: string | null;
+  motivoCompra?: string | null;
   componentes: ComponentePropostaRequest[];
 }
 
 export interface ComponentePropostaRequest {
   codigoComponente: string;
-  quantidade: number;
-  vencimento: string;
-  valorParcela: number;
+  nomeComponente?: string | null;
+  tipoComponente?: string | null;
+  grupoComponente?: number | null;
+  quantidade: number | null;
+  periodicidade?: number | null;
+  ordem?: number | null;
+  vencimento: string | null;
+  percentual?: number | null;
+  valorParcela: number | null;
+  valorTotal?: number | null;
 }
 
 // ========================

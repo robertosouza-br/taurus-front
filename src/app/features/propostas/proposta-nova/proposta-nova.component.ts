@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import Decimal from 'decimal.js';
 import { MessageService } from 'primeng/api';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -41,6 +42,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   
   carregando = false;
   override salvando = false;
+  excluindo = false;
   gerandoPix = false;
   
   componentesTabelaPadrao: ComponenteTabelaPadraoDTO[] = [];
@@ -368,10 +370,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     
     // Normalizar componentes para v2.0 e cachear (evita reprocessamento)
     this.componentesNormalizadosCache = this.normalizarComponentes(modalidade);
-    
-    this.componentesTabelaPadrao = this.componentesNormalizadosCache
-      .filter(c => c.valor !== null && c.valor > 0)
-      .sort((a, b) => a.ordem - b.ordem);
+    this.componentesTabelaPadrao = this.montarTabelaPadrao(
+      this.componentesNormalizadosCache,
+      simulacao?.componentes ?? []
+    );
     
     if (simulacao && simulacao.componentes?.length > 0) {
       // Carregar dados da simulação existente
@@ -553,6 +555,49 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return [];
   }
 
+  private montarTabelaPadrao(
+    componentesPadrao: ComponenteTabelaPadraoDTO[],
+    componentesSimulacao: ComponenteSimulacaoDTO[] = []
+  ): ComponenteTabelaPadraoDTO[] {
+    const simulacaoPorCodigo = new Map<string, ComponenteSimulacaoDTO>();
+
+    componentesSimulacao.forEach(componente => {
+      if (!simulacaoPorCodigo.has(componente.codigoComponente)) {
+        simulacaoPorCodigo.set(componente.codigoComponente, componente);
+      }
+    });
+
+    return componentesPadrao
+      .filter(componente => componente.ativo !== false)
+      .map(componente => {
+        if (this.componenteTabelaPadraoPossuiValores(componente)) {
+          return componente;
+        }
+
+        const componenteSimulado = simulacaoPorCodigo.get(componente.codigoComponente);
+
+        if (!componenteSimulado) {
+          return componente;
+        }
+
+        return {
+          ...componente,
+          quantidade: componente.quantidade ?? componenteSimulado.quantidade ?? 1,
+          percentual: componenteSimulado.percentual ?? componente.percentual ?? 0,
+          valor: componenteSimulado.valorTotal ?? componente.valor ?? null,
+          valorParcela: componenteSimulado.valorParcela ?? componente.valorParcela ?? null,
+          dataVencimento: componenteSimulado.vencimento ?? componente.dataVencimento ?? null
+        };
+      })
+      .sort((a, b) => a.ordem - b.ordem);
+  }
+
+  private componenteTabelaPadraoPossuiValores(componente: ComponenteTabelaPadraoDTO): boolean {
+    return (componente.valor ?? 0) > 0
+      || (componente.valorParcela ?? 0) > 0
+      || !!componente.listaVencimentos?.length;
+  }
+
   /**
    * Infere o grupo do componente baseado no nome (FALLBACK para v1.0)
    */
@@ -597,7 +642,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Recalcula valor total e percentual quando valor da parcela muda
    */
   onValorParcelaChange(componente: ComponenteFormulario): void {
-    componente.valorTotal = this.arredondarMoeda(componente.valorParcela * componente.quantidade);
+    componente.valorTotal = this.calcularValorTotalComponente(componente.valorParcela, componente.quantidade);
     this.atualizarVencimentosComponente(componente);
     
     this.recalcularSimulacao();
@@ -630,7 +675,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   onQuantidadeChange(componente: ComponenteFormulario): void {
     this.simulacaoAlterada = true;
 
-    componente.valorTotal = this.arredondarMoeda(componente.valorParcela * componente.quantidade);
+    componente.valorTotal = this.calcularValorTotalComponente(componente.valorParcela, componente.quantidade);
     
     this.atualizarVencimentosComponente(componente);
     
@@ -721,36 +766,55 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       normalizado = textoLimpo.replace(/[.,]/g, '');
     }
 
-    const valorNumerico = Number(normalizado);
-    return Number.isFinite(valorNumerico) ? valorNumerico : 0;
+    try {
+      return new Decimal(normalizado).toNumber();
+    } catch {
+      return 0;
+    }
   }
 
-  private arredondarMoeda(valor: number): number {
-    return Math.round((valor + Number.EPSILON) * 100) / 100;
+  private toDecimal(valor: Decimal.Value | null | undefined, fallback: Decimal.Value = 0): Decimal {
+    try {
+      if (valor === null || valor === undefined || valor === '') {
+        return new Decimal(fallback);
+      }
+
+      return new Decimal(valor);
+    } catch {
+      return new Decimal(fallback);
+    }
   }
 
-  private valorParaCentavos(valor: number): number {
-    return Math.round((valor + Number.EPSILON) * 100);
+  private calcularValorTotalComponente(valorParcela: number, quantidade: number): number {
+    const quantidadeSegura = Number.isFinite(quantidade) ? quantidade : 0;
+    return this.toDecimal(valorParcela).mul(quantidadeSegura).toNumber();
   }
 
-  private calcularValorParcelaBase(valorTotal: number, quantidade: number): number {
-    const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 1);
-    const valorTotalCentavos = this.valorParaCentavos(valorTotal);
-    const valorBaseCentavos = Math.floor(valorTotalCentavos / quantidadeSegura);
+  private dividirValorSemArredondar(valorTotal: number, quantidade: number): number {
+    const quantidadeSegura = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
+    return this.truncarParaCentavos(this.toDecimal(valorTotal).div(quantidadeSegura)).toNumber();
+  }
 
-    return valorBaseCentavos / 100;
+  private truncarParaCentavos(valor: Decimal.Value): Decimal {
+    return this.toDecimal(valor).mul(100).trunc().div(100);
   }
 
   private distribuirValorTotalEmParcelas(valorTotal: number, quantidade: number): number[] {
     const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 1);
-    const valorTotalCentavos = this.valorParaCentavos(valorTotal);
-    const valorBaseCentavos = Math.floor(valorTotalCentavos / quantidadeSegura);
-    const parcelas = Array.from({ length: quantidadeSegura }, () => valorBaseCentavos);
-    const somaParcelasIniciais = valorBaseCentavos * (quantidadeSegura - 1);
+    const total = this.toDecimal(valorTotal).toDecimalPlaces(2);
 
-    parcelas[quantidadeSegura - 1] = valorTotalCentavos - somaParcelasIniciais;
+    if (quantidadeSegura === 1) {
+      return [total.toNumber()];
+    }
 
-    return parcelas.map(valorCentavos => valorCentavos / 100);
+    const valorBase = this.truncarParaCentavos(total.div(quantidadeSegura));
+    const parcelas = Array.from({ length: quantidadeSegura }, () => valorBase);
+    const somaParcelasFixas = valorBase.mul(quantidadeSegura - 1);
+    const ultimaParcela = total.minus(somaParcelasFixas).toDecimalPlaces(2);
+
+    parcelas[quantidadeSegura - 1] = ultimaParcela;
+
+    return parcelas.map(parcela => parcela.toNumber());
   }
 
   /**
@@ -760,8 +824,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const componentesComValor = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
     
     this.valorProposta = componentesComValor.reduce(
-      (sum, c) => sum + c.valorTotal, 0
-    );
+      (sum, c) => sum.plus(this.toDecimal(c.valorTotal)),
+      new Decimal(0)
+    ).toNumber();
     
     const houveAlteracao = this.simulacaoAlterada;
     
@@ -794,26 +859,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       }
     });
     
-    if (componentesComValor.length > 0) {
-      const somaPercentuais = componentesComValor.reduce((sum, c) => sum + c.percentual, 0);
-      const diferenca = 100 - somaPercentuais;
-      
-      if (Math.abs(diferenca) > 0.01) {
-        const ultimoParaAjustar = [...componentesComValor]
-          .reverse()
-          .find(c => !c.nomeComponente.toUpperCase().includes('ATO') && 
-                     !c.nomeComponente.toUpperCase().includes('SINAL'));
-        
-        if (ultimoParaAjustar) {
-          ultimoParaAjustar.percentual += diferenca;
-        }
-      }
-    }
     
-    // Diferença em relação à tabela padrão
-    this.diferenca = this.valorProposta - this.valorTabela;
-    this.percentualDiferenca = this.valorTabela > 0 
-      ? ((this.diferenca / this.valorTabela) * 100) 
+    const diferencaMonetaria = this.obterDiferencaMonetaria();
+
+    this.diferenca = diferencaMonetaria.toNumber();
+    this.percentualDiferenca = this.valorTabela > 0
+      ? diferencaMonetaria.div(this.valorTabela).mul(100).toNumber()
       : 0;
     
     this.possuiDesconto = this.diferenca < 0;
@@ -827,7 +878,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         return venc.getMonth() === dataReferencia.getMonth() &&
                venc.getFullYear() === dataReferencia.getFullYear();
       })
-      .reduce((sum, c) => sum + c.valorTotal, 0);
+      .reduce((sum, c) => sum.plus(this.toDecimal(c.valorTotal)), new Decimal(0))
+      .toNumber();
     
     this.saldoDevedor = this.valorProposta - this.adiantamento;
     
@@ -847,8 +899,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const vencimentos: import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] = [];
     const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 0);
     const valorTotalCalculado = valorTotal !== undefined
-      ? this.arredondarMoeda(valorTotal)
-      : this.arredondarMoeda(valorParcela * quantidadeSegura);
+      ? this.toDecimal(valorTotal).toNumber()
+      : this.calcularValorTotalComponente(valorParcela, quantidadeSegura);
     
     if (!dataBase || quantidadeSegura <= 0) {
       return vencimentos;
@@ -858,12 +910,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       vencimentos.push({
         numeroParcela: 1,
         dataVencimento: new Date(dataBase),
-        valor: valorTotalCalculado
+        valor: this.toDecimal(valorTotalCalculado).toDecimalPlaces(2).toNumber()
       });
       return vencimentos;
     }
 
     const valoresParcelas = this.distribuirValorTotalEmParcelas(valorTotalCalculado, quantidadeSegura);
+
     for (let i = 0; i < quantidadeSegura; i++) {
       const dataVencimento = new Date(dataBase);
       
@@ -1564,9 +1617,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     const quantidade = Math.max(componente.quantidade || 1, 1);
+
     this.simulacaoAlterada = true;
-    componente.valorTotal = this.arredondarMoeda(componente.valorTotal + valorRestante);
-    componente.valorParcela = this.calcularValorParcelaBase(componente.valorTotal, quantidade);
+    componente.valorTotal = this.toDecimal(componente.valorTotal)
+      .plus(valorRestante)
+      .toDecimalPlaces(2)
+      .toNumber();
+    componente.valorParcela = this.dividirValorSemArredondar(componente.valorTotal, quantidade);
 
     this.valorParcelaInputMap.set(componente, this.formatarValorParcelaExibicao(componente.valorParcela));
     this.atualizarVencimentosComponente(componente);
@@ -1722,6 +1779,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return this.componentes.some(c => c.erroValidacao);
   }
 
+  get valorPropostaIgualTabela(): boolean {
+    return this.obterDiferencaMonetaria().isZero();
+  }
+
   /**
    * Verifica se há violações na comparação
    */
@@ -1803,17 +1864,43 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (!this.validarFormulario()) {
       return;
     }
-    
-    if (this.temErrosValidacao) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Validação',
-        detail: 'Corrija os erros de validação antes de salvar'
-      });
+
+    if (!this.valorPropostaIgualTabela) {
+      this.exibirAlertaValorDivergente();
       return;
     }
-    
+
+    if (!this.validarPayloadAntesDeSalvar()) {
+      return;
+    }
+
+    const confirmacaoSalvar$ = this.possuiViolacoesAprovacao
+      ? this.appConfirmationService.confirmCustom(
+          'Proposta sujeita à aprovação',
+          'Esta proposta não atende aos critérios de aprovação automática. Ao gravar, ela será encaminhada para a área de aprovação. Deseja continuar?',
+          {
+            severity: 'warning',
+            icon: 'pi pi-exclamation-triangle',
+            confirmLabel: 'Gravar e enviar',
+            cancelLabel: 'Cancelar'
+          }
+        )
+      : this.appConfirmationService.confirmSave('Deseja salvar a proposta com os dados informados?');
+
+    confirmacaoSalvar$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.executarSalvarProposta();
+      });
+  }
+
+  private executarSalvarProposta(): void {
     const request = this.montarRequest();
+    const requerAprovacaoManual = this.possuiViolacoesAprovacao;
     this.salvando = true;
 
     this.resolverOperacaoSalvar(request).pipe(
@@ -1827,11 +1914,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         }
 
         this.messageService.add({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: response.mensagem || 'Proposta salva com sucesso!'
+          severity: requerAprovacaoManual ? 'warn' : 'success',
+          summary: requerAprovacaoManual ? 'Proposta enviada para aprovação' : 'Sucesso',
+          detail: requerAprovacaoManual
+            ? 'Proposta gravada com sucesso e encaminhada para a área de aprovação.'
+            : response.mensagem || 'Proposta salva com sucesso!'
         });
-        
+
         setTimeout(() => {
           this.router.navigate(['/propostas/lista']);
         }, 1500);
@@ -1845,6 +1934,48 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         });
       }
     });
+  }
+
+  excluirProposta(): void {
+    const propostaId = this.propostaId ?? this.proposta?.id;
+
+    if (!propostaId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Exclusão indisponível',
+        detail: 'A proposta precisa estar salva antes de poder ser excluída.'
+      });
+      return;
+    }
+
+    this.excluindo = true;
+
+    this.propostaService.excluirProposta(propostaId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.excluindo = false)
+      )
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Proposta excluída com sucesso!'
+          });
+
+          setTimeout(() => {
+            this.router.navigate(['/propostas/lista']);
+          }, 1200);
+        },
+        error: (error) => {
+          console.error('Erro ao excluir proposta:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: this.obterMensagemErroExcluir(error)
+          });
+        }
+      });
   }
 
   private resolverOperacaoSalvar(request: SalvarPropostaSimplificadaRequest): Observable<SalvarPropostaResponse> {
@@ -1893,30 +2024,149 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return 'Erro ao salvar proposta';
   }
 
+  private obterMensagemErroExcluir(error: any): string {
+    const mensagem = error?.error?.message;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      return mensagem;
+    }
+
+    if (error?.status === 404) {
+      return 'A proposta informada não foi encontrada para exclusão.';
+    }
+
+    return 'Erro ao excluir proposta';
+  }
+
   /**
    * Monta o request para salvar a proposta
    */
   private montarRequest(): SalvarPropostaSimplificadaRequest {
-    // Enviar apenas componentes com valores preenchidos
-    const componentesSelecionados = this.componentes.filter(c => c.valorParcela > 0 || c.percentual > 0);
+    const componentesSelecionados = this.componentes.filter(c => c.valorParcela > 0 || c.valorTotal > 0);
+    const modalidade: any = this.proposta?.modalidadeTabelaPadrao;
     
     return {
       reservaId: this.reservaId,
-      dataProposta: this.formatarDataISO(new Date()),
-      valorTabela: this.valorTabela,
-      valorProposta: this.valorProposta,
-      desconto: this.possuiDesconto ? Math.abs(this.diferenca) : 0,
-      acrescimo: this.possuiAcrescimo ? this.diferenca : 0,
-      area: this.proposta?.empreendimento.area || 0,
-      vagas: this.proposta?.empreendimento.vagas || 0,
-      dataEntrega: this.proposta?.empreendimento.dataEntrega || '',
-      componentes: componentesSelecionados.map(comp => ({
+      dataProposta: this.formatarDataOuNull(new Date()),
+      valorTabela: this.normalizarNumeroPayload(this.valorTabela),
+      valorProposta: this.normalizarNumeroPayload(this.valorProposta),
+      desconto: this.possuiDesconto ? this.normalizarNumeroPayload(Math.abs(this.diferenca)) : this.normalizarNumeroPayload(0),
+      acrescimo: this.possuiAcrescimo ? this.normalizarNumeroPayload(this.diferenca) : this.normalizarNumeroPayload(0),
+      area: this.normalizarNumeroOpcional(this.proposta?.empreendimento.area),
+      vagas: this.normalizarNumeroOpcional(this.proposta?.empreendimento.vagas),
+      dataEntrega: this.normalizarDataString(this.proposta?.empreendimento.dataEntrega),
+      codigoModalidade: modalidade?.codigo ?? modalidade?.CODIGO ?? null,
+      descricaoModalidade: modalidade?.descricao ?? modalidade?.DESCRICAO ?? null,
+      midia: null,
+      midiaOrigem: null,
+      motivoCompra: null,
+      componentes: componentesSelecionados.map((comp, index) => ({
         codigoComponente: comp.codigoComponente.split('_')[0],
-        quantidade: comp.quantidade,
-        vencimento: comp.vencimento ? this.formatarDataISO(comp.vencimento) : '',
-        valorParcela: comp.valorParcela
+        nomeComponente: comp.nomeComponente ?? null,
+        tipoComponente: comp.tipoComponente ?? null,
+        grupoComponente: comp.grupoComponente ?? comp.regra.grupoComponente ?? null,
+        quantidade: comp.quantidade ?? null,
+        periodicidade: comp.periodicidade ?? comp.regra.periodicidade ?? null,
+        ordem: comp.regra?.ordem ?? index + 1,
+        vencimento: comp.vencimento ? this.formatarDataOuNull(comp.vencimento) : null,
+        percentual: this.normalizarNumeroOpcional(comp.percentual),
+        valorParcela: this.normalizarNumeroPayload(comp.valorParcela),
+        valorTotal: this.normalizarNumeroPayload(comp.valorTotal)
       }))
     };
+  }
+
+  private validarPayloadAntesDeSalvar(): boolean {
+    if (!this.reservaId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validação',
+        detail: 'Reserva não identificada para salvar a proposta.'
+      });
+      return false;
+    }
+
+    if (!this.valorPropostaIgualTabela) {
+      this.exibirAlertaValorDivergente();
+      return false;
+    }
+
+    const componentesSelecionados = this.componentes.filter(c => c.valorParcela > 0 || c.valorTotal > 0);
+    if (!componentesSelecionados.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validação',
+        detail: 'Informe ao menos um componente financeiro válido para salvar a proposta.'
+      });
+      return false;
+    }
+
+    const componenteInvalido = componentesSelecionados.find(comp => {
+      return !comp.codigoComponente?.trim()
+        || !comp.quantidade
+        || !comp.vencimento
+        || comp.valorParcela === null
+        || comp.valorParcela === undefined
+        || comp.valorTotal === null
+        || comp.valorTotal === undefined;
+    });
+
+    if (componenteInvalido) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validação',
+        detail: `Revise o componente "${componenteInvalido.nomeComponente}" antes de salvar. Há campos obrigatórios não preenchidos.`
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  private formatarDataOuNull(data: Date | null | undefined): string | null {
+    if (!data) {
+      return null;
+    }
+
+    return this.formatarDataISO(data);
+  }
+
+  private normalizarDataString(data: string | null | undefined): string | null {
+    const valor = data?.trim();
+    return valor ? valor : null;
+  }
+
+  private normalizarNumeroPayload(valor: number | null | undefined): number | null {
+    if (valor === null || valor === undefined || Number.isNaN(valor)) {
+      return null;
+    }
+
+    return this.toDecimal(valor).toNumber();
+  }
+
+  private normalizarNumeroOpcional(valor: number | null | undefined): number | null {
+    if (valor === null || valor === undefined || Number.isNaN(valor)) {
+      return null;
+    }
+
+    return valor === 0 ? null : this.toDecimal(valor).toNumber();
+  }
+
+  private obterDiferencaMonetaria(): Decimal {
+    return this.toDecimal(this.valorProposta)
+      .minus(this.valorTabela)
+      .toDecimalPlaces(2);
+  }
+
+  private exibirAlertaValorDivergente(): void {
+    this.appConfirmationService.alert(
+      'Não é possível gravar a proposta',
+      `O valor total da proposta deve ser exatamente igual ao valor da Tabela Padrão. Diferença atual: ${this.formatarMoeda(this.diferenca)}.`,
+      'warning',
+      'pi pi-exclamation-triangle'
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
   }
 
   /**
@@ -2197,7 +2447,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         quantidade,
         componente.periodicidade ?? 0,
         valorParcela,
-        componente.valor ?? this.arredondarMoeda(valorParcela * quantidade)
+        componente.valor ?? this.calcularValorTotalComponente(valorParcela, quantidade)
       )
         .forEach(vencimento => {
           parcelas.push({

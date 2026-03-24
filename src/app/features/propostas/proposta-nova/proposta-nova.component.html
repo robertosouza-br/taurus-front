@@ -11,32 +11,6 @@
     [title]="proposta?.id ? 'Editar Proposta #' + proposta?.numeroProposta : 'Nova Proposta'"
     [subtitle]="proposta ? 'Bloco ' + proposta.empreendimento.bloco + ' · Unidade ' + proposta.empreendimento.unidade : 'Carregando...'"
     icon="pi pi-file-edit">
-    <div header-actions class="flex gap-2 flex-wrap">
-      <app-custom-button
-        label="Voltar"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        [outlined]="true"
-        (onClick)="voltar()">
-      </app-custom-button>
-      <app-custom-button
-        label="Gerar PIX"
-        icon="pi pi-qrcode"
-        severity="info"
-        [loading]="gerandoPix"
-        (onClick)="gerarPix()">
-      </app-custom-button>
-      <app-custom-button
-        label="Salvar Proposta"
-        icon="pi pi-save"
-        severity="success"
-        actionType="save"
-        confirmationMessage="Deseja salvar a proposta com os dados informados?"
-        [loading]="salvando"
-        [disabled]="temErrosValidacao"
-        (onClick)="salvar()">
-      </app-custom-button>
-    </div>
   </app-page-header>
 
   <!-- Loading -->
@@ -813,17 +787,29 @@
         icon="pi pi-eraser"
         severity="secondary"
         [outlined]="true"
+        [disabled]="salvando || excluindo"
         (onClick)="limparDadosInformados()">
+      </app-custom-button>
+
+      <app-custom-button
+        *ngIf="proposta.id"
+        label="Excluir Proposta"
+        icon="pi pi-trash"
+        severity="danger"
+        actionType="delete"
+        confirmationMessage="a proposta atual"
+        [outlined]="true"
+        [loading]="excluindo"
+        [disabled]="salvando"
+        (onClick)="excluirProposta()">
       </app-custom-button>
 
       <app-custom-button
         label="Gravar proposta"
         icon="pi pi-save"
         severity="success"
-        actionType="save"
-        confirmationMessage="Deseja salvar a proposta com os dados informados?"
         [loading]="salvando"
-        [disabled]="temErrosValidacao"
+        [disabled]="excluindo"
         (onClick)="salvar()">
       </app-custom-button>
     </div>

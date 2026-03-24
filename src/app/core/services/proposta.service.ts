@@ -214,6 +214,16 @@ export class PropostaService {
     return this.http.put<SalvarPropostaResponse>(`${this.baseUrl}/${propostaId}`, dados);
   }
 
+  /**
+   * Exclui proposta simplificada existente
+   * DELETE /api/v1/propostas/{id}
+   *
+   * @param propostaId ID da proposta
+   */
+  excluirProposta(propostaId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${propostaId}`);
+  }
+
   // ========================
   // COMPONENTES DISPONÍVEIS (NOVO v2.4 - 17/03/2026)
   // ========================
