@@ -35,6 +35,15 @@
     margin-top: 1.25rem;
   }
 
+  .proposta-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 1rem 0 0.5rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
   .table-badge {
     display: inline-flex;
     align-items: center;
@@ -1567,6 +1576,18 @@
 
     .status-cell {
       text-align: center;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .proposta-nova-page {
+    .proposta-footer-actions {
+      flex-direction: column;
+
+      app-custom-button {
+        width: 100%;
+      }
     }
   }
 }

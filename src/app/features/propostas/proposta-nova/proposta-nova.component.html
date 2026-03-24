@@ -30,6 +30,8 @@
         label="Salvar Proposta"
         icon="pi pi-save"
         severity="success"
+        actionType="save"
+        confirmationMessage="Deseja salvar a proposta com os dados informados?"
         [loading]="salvando"
         [disabled]="temErrosValidacao"
         (onClick)="salvar()">
@@ -804,6 +806,27 @@
       </div>
       </div>
     </p-card>
+
+    <div class="proposta-footer-actions">
+      <app-custom-button
+        label="Limpar"
+        icon="pi pi-eraser"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="limparDadosInformados()">
+      </app-custom-button>
+
+      <app-custom-button
+        label="Gravar proposta"
+        icon="pi pi-save"
+        severity="success"
+        actionType="save"
+        confirmationMessage="Deseja salvar a proposta com os dados informados?"
+        [loading]="salvando"
+        [disabled]="temErrosValidacao"
+        (onClick)="salvar()">
+      </app-custom-button>
+    </div>
 
   </div>
 </div>
