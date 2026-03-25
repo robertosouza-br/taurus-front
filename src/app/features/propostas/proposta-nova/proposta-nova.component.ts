@@ -90,6 +90,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   graficoData: any = { labels: [], datasets: [] };
   private simulacaoAlterada = false;
   private simulacaoEditadaDesdeCarregamento = false;
+  private assinaturaSimulacaoCarregada = '';
   private avisoNovaAnaliseExibido = false;
   private avisoNovaAnalisePendenteAoBlur = false;
 
@@ -170,10 +171,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return modal?.DESCRICAO ?? modal?.descricao ?? '';
   }
 
+  private get propostaSujeitaANovaAnalisePorEdicao(): boolean {
+    const status = this.proposta?.status;
+
+    return status === PropostaStatus.APROVADA
+      || status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
+  }
+
   get podeExibirBotaoFinalizar(): boolean {
     const status = this.proposta?.status;
 
-    if (status === PropostaStatus.APROVADA && this.simulacaoEditadaDesdeCarregamento) {
+    if (this.propostaSujeitaANovaAnalisePorEdicao && this.simulacaoAtualDivergeDoEstadoCarregado()) {
       return false;
     }
 
@@ -427,6 +435,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     this.simulacaoAlterada = false;
     this.simulacaoEditadaDesdeCarregamento = false;
+    this.assinaturaSimulacaoCarregada = '';
     this.avisoNovaAnaliseExibido = false;
     this.avisoNovaAnalisePendenteAoBlur = false;
     this.atoInicialProtegido = null;
@@ -492,6 +501,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         
       this.calcularTotais();
     }
+
+    this.assinaturaSimulacaoCarregada = this.gerarAssinaturaComponentes(this.componentes);
     
     this.separarComponentes();
     this.definirAtoInicialProtegido();
@@ -564,6 +575,44 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       componentesSimulacaoAtual,
       this.componentesNormalizadosCache
     );
+  }
+
+  private simulacaoAtualDivergeDoEstadoCarregado(): boolean {
+    if (!this.assinaturaSimulacaoCarregada) {
+      return false;
+    }
+
+    return this.gerarAssinaturaComponentes(this.componentes) !== this.assinaturaSimulacaoCarregada;
+  }
+
+  private gerarAssinaturaComponentes(componentes: ComponenteFormulario[]): string {
+    return JSON.stringify(
+      componentes.map(componente => ({
+        codigoComponente: componente.codigoComponente,
+        quantidade: this.normalizarQuantidadeInformada(componente.quantidade, 1),
+        vencimento: this.normalizarDataAssinatura(componente.vencimento),
+        valorParcela: this.toDecimal(componente.valorParcela ?? 0).toDecimalPlaces(2).toNumber(),
+        valorTotal: this.toDecimal(componente.valorTotal ?? 0).toDecimalPlaces(2).toNumber()
+      }))
+    );
+  }
+
+  private normalizarDataAssinatura(data: Date | string | null | undefined): string {
+    if (!data) {
+      return '';
+    }
+
+    const dataNormalizada = data instanceof Date ? data : new Date(data);
+
+    if (Number.isNaN(dataNormalizada.getTime())) {
+      return '';
+    }
+
+    return [
+      dataNormalizada.getFullYear(),
+      String(dataNormalizada.getMonth() + 1).padStart(2, '0'),
+      String(dataNormalizada.getDate()).padStart(2, '0')
+    ].join('-');
   }
 
   private definirAtoInicialProtegido(): void {
@@ -882,7 +931,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.simulacaoAlterada = true;
     this.simulacaoEditadaDesdeCarregamento = true;
 
-    if (this.proposta?.status !== PropostaStatus.APROVADA || this.avisoNovaAnaliseExibido) {
+    if (!this.propostaSujeitaANovaAnalisePorEdicao || this.avisoNovaAnaliseExibido) {
       return;
     }
 
@@ -1794,7 +1843,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.separarComponentes();
     this.definirAtoInicialProtegido();
 
-    if (houveMudancaNaSimulacao && this.proposta?.status === PropostaStatus.APROVADA) {
+    if (houveMudancaNaSimulacao && this.propostaSujeitaANovaAnalisePorEdicao) {
       this.exibirAvisoNovaAnalise();
     }
 
