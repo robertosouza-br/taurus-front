@@ -2400,15 +2400,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       )
       .subscribe({
         next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Sucesso',
-            detail: 'Proposta excluída com sucesso!'
-          });
-
-          setTimeout(() => {
-            this.router.navigate(['/propostas/lista']);
-          }, 1200);
+          this.exibirToastSucessoComLoading(
+            'Proposta excluída',
+            'Proposta excluída com sucesso!',
+            1200,
+            'Redirecionando após a exclusão da proposta...'
+          );
         },
         error: (error) => {
           console.error('Erro ao excluir proposta:', error);

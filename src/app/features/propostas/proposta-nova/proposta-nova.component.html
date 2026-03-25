@@ -243,16 +243,6 @@
           </app-custom-button>
 
           <app-custom-button
-            label="Restaurar tabela"
-            icon="pi pi-refresh"
-            severity="secondary"
-            [outlined]="true"
-            size="small"
-            [disabled]="!podeEditarSimulacao"
-            (onClick)="restaurarTabela()">
-          </app-custom-button>
-
-          <app-custom-button
             *ngIf="podeExibirBotaoAplicarTabelaPadrao"
             label="Aplicar tabela padrão"
             icon="pi pi-table"
@@ -261,6 +251,16 @@
             size="small"
             [disabled]="!podeEditarSimulacao"
             (onClick)="aplicarTabelaPadraoNaSimulacao()">
+          </app-custom-button>
+
+          <app-custom-button
+            label="Restaurar tabela"
+            icon="pi pi-refresh"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [disabled]="!podeEditarSimulacao"
+            (onClick)="restaurarTabela()">
           </app-custom-button>
 
           <app-custom-button
