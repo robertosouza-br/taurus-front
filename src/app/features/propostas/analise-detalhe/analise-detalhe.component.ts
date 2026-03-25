@@ -115,7 +115,6 @@ export class AnaliseDetalheComponent implements OnInit {
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Imóveis', icon: 'pi pi-building' },
-      { label: 'Propostas', url: '/propostas' },
       { label: 'Fila de Análise', url: '/propostas/analise' },
       { label: 'Análise da Proposta' }
     ];

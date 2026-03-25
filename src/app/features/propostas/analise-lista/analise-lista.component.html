@@ -10,26 +10,6 @@
     [actions]="[]">
   </app-page-header>
 
-  <!-- Filtro de Status -->
-  <div class="filtro-status-container mt-3 mb-2">
-    <div class="grid align-items-center">
-      <div class="col-12 md:col-auto">
-        <label class="filtro-label">Filtrar por status:</label>
-      </div>
-      <div class="col-12 md:col-4 lg:col-3">
-        <p-dropdown
-          [(ngModel)]="filtroStatus"
-          [options]="statusOpcoes"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Todos os status"
-          [style]="{ width: '100%' }"
-          (onChange)="onFiltroStatusChange()">
-        </p-dropdown>
-      </div>
-    </div>
-  </div>
-
   <!-- Tabela da Fila -->
   <app-data-table
     [data]="propostas"

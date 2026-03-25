@@ -51,7 +51,6 @@ export class AnaliseListaComponent extends BaseListComponent implements OnInit {
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Imóveis', icon: 'pi pi-building' },
-      { label: 'Propostas', url: '/propostas' },
       { label: 'Fila de Análise' }
     ];
   }

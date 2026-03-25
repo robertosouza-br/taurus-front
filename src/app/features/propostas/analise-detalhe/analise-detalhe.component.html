@@ -409,24 +409,47 @@
             </ng-template>
 
             <div class="status-panel">
-              <div class="status-badge-wrapper">
-                <p-tag
-                  [value]="getStatusLabel(p.status)"
-                  [severity]="getStatusSeverity(p.status)"
-                  styleClass="status-tag-lg">
-                </p-tag>
+              <div
+                class="status-hero"
+                [class.status-hero-pendente]="p.status === 'AGUARDANDO_ANALISE'"
+                [class.status-hero-ativo]="p.status === 'EM_ANALISE'"
+                [class.status-hero-aprovado]="p.status === 'APROVADA'"
+                [class.status-hero-reprovado]="p.status === 'REPROVADA'">
+                <span class="status-hero-label">Situação atual</span>
+
+                <div class="status-badge-wrapper">
+                  <p-tag
+                    [value]="getStatusLabel(p.status)"
+                    [severity]="getStatusSeverity(p.status)"
+                    styleClass="status-tag-lg">
+                  </p-tag>
+                </div>
+
+                <h4 class="status-hero-title">{{ getNumeroPropostaDisplay() }}</h4>
+                <p class="status-hero-description" *ngIf="p.status === 'AGUARDANDO_ANALISE'">
+                  A proposta aguarda um analista assumir o atendimento para iniciar a avaliação.
+                </p>
+                <p class="status-hero-description" *ngIf="p.status === 'EM_ANALISE'">
+                  A análise está em andamento. Revise a simulação e conclua a decisão desta proposta.
+                </p>
+                <p class="status-hero-description" *ngIf="p.status === 'APROVADA'">
+                  A proposta já foi concluída com aprovação e está pronta para seguir no fluxo.
+                </p>
+                <p class="status-hero-description" *ngIf="p.status === 'REPROVADA'">
+                  A proposta já foi concluída com reprovação e o resultado foi registrado.
+                </p>
               </div>
 
-              <div class="status-info-list">
-                <div class="status-info-item">
+              <div class="status-meta-grid">
+                <div class="status-meta-card">
                   <span class="info-label">Data da proposta</span>
                   <span class="info-value">{{ p.dataProposta | date:'dd/MM/yyyy' }}</span>
                 </div>
-                <div class="status-info-item" *ngIf="p.dataSolicitacaoAnalise">
+                <div class="status-meta-card" *ngIf="p.dataSolicitacaoAnalise">
                   <span class="info-label">Solicitada em</span>
                   <span class="info-value">{{ p.dataSolicitacaoAnalise | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
-                <div class="status-info-item" *ngIf="p.usuarioCriacao">
+                <div class="status-meta-card status-meta-card-wide" *ngIf="p.usuarioCriacao">
                   <span class="info-label">Criada por</span>
                   <span class="info-value">{{ p.usuarioCriacao }}</span>
                 </div>
@@ -436,66 +459,84 @@
             <div class="acoes-analise mt-4" *ngIf="p.status === 'AGUARDANDO_ANALISE' || p.status === 'EM_ANALISE'">
               <p-divider></p-divider>
 
-              <div *ngIf="p.status === 'AGUARDANDO_ANALISE'">
+              <div class="acao-card acao-card-start" *ngIf="p.status === 'AGUARDANDO_ANALISE'">
+                <div class="acao-card-header">
+                  <span class="acao-chip">Próximo passo</span>
+                  <h4 class="acao-title">Assumir análise</h4>
+                </div>
                 <p class="acao-instrucao">
                   <i class="pi pi-info-circle"></i>
-                  Assuma esta proposta para iniciar a análise.
+                  Assuma esta proposta para iniciar a análise e liberar as ações de decisão.
                 </p>
-                <button
-                  pButton
-                  icon="pi pi-play"
+                <app-custom-button
                   label="Iniciar Análise"
-                  class="w-full"
+                  icon="pi pi-play"
+                  severity="primary"
+                  [loading]="processando"
                   [disabled]="processando"
-                  (click)="iniciarAnalise()">
-                </button>
+                  styleClass="w-full status-action-button"
+                  (onClick)="iniciarAnalise()">
+                </app-custom-button>
               </div>
 
-              <div *ngIf="p.status === 'EM_ANALISE'">
+              <div class="acao-card acao-card-decision" *ngIf="p.status === 'EM_ANALISE'">
+                <div class="acao-card-header">
+                  <span class="acao-chip">Decisão</span>
+                  <h4 class="acao-title">Concluir parecer</h4>
+                </div>
                 <p class="acao-instrucao">
                   <i class="pi pi-info-circle"></i>
-                  Revise a simulação, valide as violações e conclua a decisão.
+                  Revise a simulação, confira as violações e registre a decisão final da análise.
                 </p>
-                <div class="action-stack">
-                  <button
-                    pButton
-                    icon="pi pi-check"
+                <div class="action-grid">
+                  <app-custom-button
                     label="Aprovar"
-                    class="p-button-success w-full"
+                    icon="pi pi-check"
+                    severity="success"
+                    [loading]="processando"
                     [disabled]="processando"
-                    (click)="confirmarAprovacao()">
-                  </button>
-                  <button
-                    pButton
-                    icon="pi pi-times"
+                    styleClass="w-full status-action-button"
+                    (onClick)="confirmarAprovacao()">
+                  </app-custom-button>
+                  <app-custom-button
                     label="Reprovar"
-                    class="p-button-danger w-full"
+                    icon="pi pi-times"
+                    severity="danger"
+                    [outlined]="true"
                     [disabled]="processando"
-                    (click)="abrirDialogReprovacao()">
-                  </button>
+                    styleClass="w-full status-action-button"
+                    (onClick)="abrirDialogReprovacao()">
+                  </app-custom-button>
                 </div>
               </div>
             </div>
 
             <div class="status-final mt-3" *ngIf="p.status === 'APROVADA' || p.status === 'REPROVADA'">
               <p-divider></p-divider>
-              <p class="text-center text-color-secondary">
-                <i class="pi" [class.pi-check-circle]="p.status === 'APROVADA'" [class.pi-times-circle]="p.status === 'REPROVADA'"></i>
-                Proposta já foi
-                <strong [class.text-green-600]="p.status === 'APROVADA'" [class.text-red-600]="p.status === 'REPROVADA'">
-                  {{ p.status === 'APROVADA' ? 'aprovada' : 'reprovada' }}
-                </strong>.
-              </p>
+              <div class="status-final-card" [class.status-final-card-danger]="p.status === 'REPROVADA'">
+                <i class="pi status-final-icon" [class.pi-check-circle]="p.status === 'APROVADA'" [class.pi-times-circle]="p.status === 'REPROVADA'"></i>
+                <div>
+                  <span class="status-final-label">Resultado registrado</span>
+                  <p class="status-final-text">
+                    A proposta foi
+                    <strong [class.text-green-600]="p.status === 'APROVADA'" [class.text-red-600]="p.status === 'REPROVADA'">
+                      {{ p.status === 'APROVADA' ? 'aprovada' : 'reprovada' }}
+                    </strong>
+                    e não possui mais ações pendentes para o analista.
+                  </p>
+                </div>
+              </div>
             </div>
           </p-card>
 
-          <button
-            pButton
-            icon="pi pi-arrow-left"
+          <app-custom-button
             label="Voltar para a Fila"
-            class="p-button-outlined w-full"
-            (click)="voltar()">
-          </button>
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            styleClass="w-full"
+            (onClick)="voltar()">
+          </app-custom-button>
         </aside>
       </div>
     </ng-container>
