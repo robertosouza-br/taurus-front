@@ -30,6 +30,7 @@ import { ConfirmationService } from '../../../shared/services/confirmation.servi
 export class AnaliseDetalheComponent implements OnInit {
   carregando = false;
   processando = false;
+  mensagemLoadingOverlay = 'Carregando dados da análise...';
 
   proposta: PropostaAnaliseDetalheDTO | null = null;
   propostaId!: number;
@@ -37,7 +38,6 @@ export class AnaliseDetalheComponent implements OnInit {
   exibirDialogReprovacao = false;
   exibirDialogGrafico = false;
   motivoReprovacao = '';
-  tentouSalvarReprovacao = false;
 
   breadcrumbItems: BreadcrumbItem[] = [];
 
@@ -112,6 +112,10 @@ export class AnaliseDetalheComponent implements OnInit {
     this.carregar();
   }
 
+  get exibirLoadingOverlay(): boolean {
+    return this.carregando || this.processando;
+  }
+
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Imóveis', icon: 'pi pi-building' },
@@ -122,6 +126,7 @@ export class AnaliseDetalheComponent implements OnInit {
 
   carregar(): void {
     this.carregando = true;
+    this.mensagemLoadingOverlay = 'Carregando dados da análise...';
     this.analiseService.buscarDetalheAnalise(this.propostaId).subscribe({
       next: (proposta) => {
         this.proposta = proposta;
@@ -398,6 +403,7 @@ export class AnaliseDetalheComponent implements OnInit {
     ).subscribe(confirmed => {
       if (!confirmed) return;
 
+      this.mensagemLoadingOverlay = 'Iniciando análise...';
       this.processando = true;
       this.analiseService.enviarParaAnalise(this.propostaId).subscribe({
         next: () => {
@@ -406,13 +412,17 @@ export class AnaliseDetalheComponent implements OnInit {
             summary: 'Análise Iniciada',
             detail: 'Análise iniciada com sucesso!'
           });
-          this.processando = false;
-          this.carregar();
+          this.mensagemLoadingOverlay = 'Atualizando dados da análise...';
+          window.setTimeout(() => {
+            this.carregar();
+            this.processando = false;
+          }, 1200);
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erro ao iniciar análise. Tente novamente.';
           this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
           this.processando = false;
+          this.mensagemLoadingOverlay = 'Carregando dados da análise...';
         }
       });
     });
@@ -426,6 +436,7 @@ export class AnaliseDetalheComponent implements OnInit {
     ).subscribe(confirmed => {
       if (!confirmed) return;
 
+      this.mensagemLoadingOverlay = 'Aprovando proposta...';
       this.processando = true;
       this.analiseService.aprovar(this.propostaId).subscribe({
         next: () => {
@@ -434,13 +445,16 @@ export class AnaliseDetalheComponent implements OnInit {
             summary: 'Proposta Aprovada',
             detail: 'Proposta aprovada com sucesso!'
           });
-          this.processando = false;
-          this.router.navigate(['/propostas/analise']);
+          this.mensagemLoadingOverlay = 'Redirecionando para a fila de análise...';
+          window.setTimeout(() => {
+            void this.router.navigate(['/propostas/analise']);
+          }, 1500);
         },
         error: (err) => {
           const msg = err?.error?.message || 'Erro ao aprovar proposta. Tente novamente.';
           this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
           this.processando = false;
+          this.mensagemLoadingOverlay = 'Carregando dados da análise...';
         }
       });
     });
@@ -448,33 +462,33 @@ export class AnaliseDetalheComponent implements OnInit {
 
   abrirDialogReprovacao(): void {
     this.motivoReprovacao = '';
-    this.tentouSalvarReprovacao = false;
     this.exibirDialogReprovacao = true;
   }
 
   confirmarReprovacao(): void {
-    this.tentouSalvarReprovacao = true;
-
-    if (!this.motivoReprovacao?.trim()) {
-      return;
-    }
-
+    this.mensagemLoadingOverlay = 'Reprovando proposta...';
     this.processando = true;
-    this.analiseService.reprovar(this.propostaId, { motivo: this.motivoReprovacao.trim() }).subscribe({
+    const motivo = this.motivoReprovacao?.trim();
+    const request = motivo ? { motivo } : {};
+
+    this.analiseService.reprovar(this.propostaId, request).subscribe({
       next: () => {
         this.exibirDialogReprovacao = false;
         this.messageService.add({
-          severity: 'warn',
+          severity: 'success',
           summary: 'Proposta Reprovada',
           detail: 'Proposta reprovada com sucesso.'
         });
-        this.processando = false;
-        this.router.navigate(['/propostas/analise']);
+        this.mensagemLoadingOverlay = 'Redirecionando para a fila de análise...';
+        window.setTimeout(() => {
+          void this.router.navigate(['/propostas/analise']);
+        }, 1500);
       },
       error: (err) => {
         const msg = err?.error?.message || 'Erro ao reprovar proposta. Tente novamente.';
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
         this.processando = false;
+        this.mensagemLoadingOverlay = 'Carregando dados da análise...';
       }
     });
   }
@@ -482,7 +496,6 @@ export class AnaliseDetalheComponent implements OnInit {
   cancelarReprovacao(): void {
     this.exibirDialogReprovacao = false;
     this.motivoReprovacao = '';
-    this.tentouSalvarReprovacao = false;
   }
 
   voltar(): void {

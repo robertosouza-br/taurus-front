@@ -1,7 +1,11 @@
 <div class="detalhe-container">
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
-  <app-loading-spinner *ngIf="carregando"></app-loading-spinner>
+  <app-loading-spinner
+    *ngIf="exibirLoadingOverlay"
+    [overlay]="true"
+    [message]="mensagemLoadingOverlay">
+  </app-loading-spinner>
 
   <ng-container *ngIf="!carregando">
     <ng-container *ngIf="proposta as p">
@@ -389,7 +393,7 @@
               <div class="card-header-clean">
                 <div>
                   <span class="section-kicker">Observações</span>
-                  <h3 class="section-heading">Anotações registradas na proposta</h3>
+                  <h3 class="section-heading">Anotações registradas na reserva</h3>
                 </div>
               </div>
             </ng-template>
@@ -425,10 +429,6 @@
                   </p-tag>
                 </div>
 
-                <h4 class="status-hero-title">{{ getNumeroPropostaDisplay() }}</h4>
-                <p class="status-hero-description" *ngIf="p.status === 'AGUARDANDO_ANALISE'">
-                  A proposta aguarda um analista assumir o atendimento para iniciar a avaliação.
-                </p>
                 <p class="status-hero-description" *ngIf="p.status === 'EM_ANALISE'">
                   A análise está em andamento. Revise a simulação e conclua a decisão desta proposta.
                 </p>
@@ -464,10 +464,13 @@
                   <span class="acao-chip">Próximo passo</span>
                   <h4 class="acao-title">Assumir análise</h4>
                 </div>
-                <p class="acao-instrucao">
-                  <i class="pi pi-info-circle"></i>
-                  Assuma esta proposta para iniciar a análise e liberar as ações de decisão.
-                </p>
+                <div class="alert alert-sistema status-alerta-message">
+                  <i class="pi pi-info-circle alert-icon"></i>
+                  <div class="alert-content">
+                    <strong>Aguardando início da análise</strong>
+                    <p>A proposta aguarda um analista assumir o atendimento para iniciar a avaliação.</p>
+                  </div>
+                </div>
                 <app-custom-button
                   label="Iniciar Análise"
                   icon="pi pi-play"
@@ -484,10 +487,13 @@
                   <span class="acao-chip">Decisão</span>
                   <h4 class="acao-title">Concluir parecer</h4>
                 </div>
-                <p class="acao-instrucao">
-                  <i class="pi pi-info-circle"></i>
-                  Revise a simulação, confira as violações e registre a decisão final da análise.
-                </p>
+                <div class="alert alert-sistema status-alerta-message">
+                  <i class="pi pi-info-circle alert-icon"></i>
+                  <div class="alert-content">
+                    <strong>Decisão pendente</strong>
+                    <p>Revise a simulação, confira as violações e registre a decisão final da análise.</p>
+                  </div>
+                </div>
                 <div class="action-grid">
                   <app-custom-button
                     label="Aprovar"
@@ -528,15 +534,6 @@
               </div>
             </div>
           </p-card>
-
-          <app-custom-button
-            label="Voltar para a Fila"
-            icon="pi pi-arrow-left"
-            severity="secondary"
-            [outlined]="true"
-            styleClass="w-full"
-            (onClick)="voltar()">
-          </app-custom-button>
         </aside>
       </div>
     </ng-container>
@@ -548,45 +545,54 @@
   [(visible)]="exibirDialogReprovacao"
   [modal]="true"
   [closable]="!processando"
-  [style]="{ width: '500px' }"
+  [style]="{ width: '560px' }"
   [breakpoints]="{ '960px': '75vw', '640px': '90vw' }"
+  styleClass="reprovacao-modal"
   (onHide)="cancelarReprovacao()">
 
-  <div class="p-3">
-    <p class="mb-3 text-color-secondary">
-      Informe o motivo da reprovação da proposta
-      <strong>{{ getNumeroPropostaDisplay() }}</strong>.
-    </p>
+  <div class="reprovacao-modal-body">
+    <div class="alert alert-sistema reprovacao-alerta-message">
+      <i class="pi pi-exclamation-triangle alert-icon"></i>
+      <div class="alert-content">
+        <strong>Atenção</strong>
+        <p>Ao reprovar a proposta, a decisão será registrada no fluxo da análise. Informe um motivo claro para orientar o retorno ao time responsável.</p>
+      </div>
+    </div>
 
-    <app-input-textarea
-      id="motivoReprovacao"
-      label="Motivo da Reprovação"
-      [(ngModel)]="motivoReprovacao"
-      [required]="true"
-      [showValidation]="tentouSalvarReprovacao && !motivoReprovacao.trim()"
-      errorMessage="Informe o motivo da reprovação"
-      [rows]="4"
-      [autoResize]="true"
-      placeholder="Descreva o motivo da reprovação...">
-    </app-input-textarea>
+    <div class="reprovacao-form-panel">
+      <p class="reprovacao-modal-description">
+        Informe o motivo da reprovação da proposta
+        <strong>{{ getNumeroPropostaDisplay() }}</strong>.
+      </p>
+
+      <app-input-textarea
+        id="motivoReprovacao"
+        label="Justificativa da Reprovação"
+        [(ngModel)]="motivoReprovacao"
+        [rows]="4"
+        [autoResize]="true"
+        placeholder="Descreva a justificativa da reprovação, se necessário...">
+      </app-input-textarea>
+    </div>
   </div>
 
   <ng-template pTemplate="footer">
-    <button
-      pButton
-      label="Cancelar"
-      icon="pi pi-times"
-      class="p-button-text"
-      [disabled]="processando"
-      (click)="cancelarReprovacao()">
-    </button>
-    <button
-      pButton
-      label="Confirmar Reprovação"
-      icon="pi pi-check"
-      class="p-button-danger"
-      [loading]="processando"
-      (click)="confirmarReprovacao()">
-    </button>
+    <div class="modal-footer-actions">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="processando"
+        (onClick)="cancelarReprovacao()">
+      </app-custom-button>
+      <app-custom-button
+        label="Confirmar Reprovação"
+        icon="pi pi-ban"
+        severity="danger"
+        [loading]="processando"
+        (onClick)="confirmarReprovacao()">
+      </app-custom-button>
+    </div>
   </ng-template>
 </p-dialog>

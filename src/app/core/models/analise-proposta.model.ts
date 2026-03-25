@@ -234,7 +234,7 @@ export interface AprovarPropostaRequest {
 }
 
 export interface ReprovarPropostaRequest {
-  motivo: string;
+  motivo?: string;
 }
 
 // ========================

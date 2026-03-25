@@ -96,7 +96,7 @@ export class AnalisePropostaService {
    * POST /api/v1/propostas/{id}/reprovar
    *
    * @param id ID da proposta
-   * @param request Motivo obrigatório da reprovação
+   * @param request Justificativa opcional da reprovação
    */
   reprovar(id: number, request: ReprovarPropostaRequest): Observable<AnaliseAcaoResponse> {
     return this.http.post<AnaliseAcaoResponse>(`${this.baseUrl}/${id}/reprovar`, request);

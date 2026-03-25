@@ -14,7 +14,11 @@
   </app-page-header>
 
   <!-- Loading -->
-  <app-loading-spinner *ngIf="carregando" [overlay]="true" message="Carregando dados da proposta..."></app-loading-spinner>
+  <app-loading-spinner
+    *ngIf="exibirLoadingOverlay"
+    [overlay]="true"
+    [message]="mensagemLoadingOverlay">
+  </app-loading-spinner>
 
   <!-- Formulário -->
   <div class="proposta-form-container" *ngIf="!carregando && proposta">

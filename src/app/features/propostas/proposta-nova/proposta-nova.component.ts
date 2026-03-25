@@ -45,6 +45,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   finalizando = false;
   excluindo = false;
   gerandoPix = false;
+  redirecionandoAposSucesso = false;
+  mensagemLoadingTransicao = '';
   
   componentesTabelaPadrao: ComponenteTabelaPadraoDTO[] = [];
   componentes: ComponenteFormulario[] = [];
@@ -87,6 +89,30 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   comparacao: ComparacaoMetricaDTO[] = [];
   graficoData: any = { labels: [], datasets: [] };
   private simulacaoAlterada = false;
+
+  get exibirLoadingOverlay(): boolean {
+    return this.carregando || this.salvando || this.finalizando || this.excluindo || this.redirecionandoAposSucesso;
+  }
+
+  get mensagemLoadingOverlay(): string {
+    if (this.carregando) {
+      return 'Carregando dados da proposta...';
+    }
+
+    if (this.salvando) {
+      return 'Salvando proposta...';
+    }
+
+    if (this.finalizando) {
+      return 'Finalizando proposta...';
+    }
+
+    if (this.excluindo) {
+      return 'Excluindo proposta...';
+    }
+
+    return this.mensagemLoadingTransicao || 'Processando...';
+  }
   
   violacoesAprovacao: RegraValidacaoDTO[] = [];
   configuracoesAprovacao: ConfiguracoesAprovacaoDTO = {
@@ -1572,7 +1598,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.fecharDialogAjusteDiferenca();
     
     this.messageService.add({
-      severity: 'info',
+      severity: 'success',
       summary: 'Tabela Restaurada',
       detail: 'Os valores foram restaurados para a tabela padrão'
     });
@@ -1990,37 +2016,25 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         const statusFinal = response.status;
         const possuiViolacoes = this.possuiViolacoesAprovacao;
 
-        this.messageService.add({
-          severity: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
-            ? 'warn'
-            : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
-              ? 'success'
-              : statusFinal === PropostaStatus.RASCUNHO && possuiViolacoes
-                ? 'warn'
-                : statusFinal === PropostaStatus.RASCUNHO
-                  ? 'success'
-                  : 'info',
-          summary: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
-            ? 'Proposta enviada para aprovação'
-            : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
-              ? 'Proposta aprovada automaticamente'
-              : statusFinal === PropostaStatus.RASCUNHO
-                ? 'Rascunho salvo'
-                : 'Sucesso',
-          detail: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
-            ? (response.mensagem || 'Proposta gravada com sucesso e encaminhada para a área de aprovação.')
-            : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
-              ? (response.mensagem || 'Proposta gravada com sucesso e aprovada automaticamente.')
-              : statusFinal === PropostaStatus.RASCUNHO
-                ? (response.mensagem || (possuiViolacoes
-                    ? 'Proposta salva como rascunho. Há violações que exigirão aprovação manual ao finalizar.'
-                    : 'Proposta salva como rascunho com sucesso!'))
-                : (response.mensagem || 'Proposta salva com sucesso!')
-        });
+        const summary = statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+          ? 'Proposta enviada para aprovação'
+          : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
+            ? 'Proposta aprovada automaticamente'
+            : statusFinal === PropostaStatus.RASCUNHO
+              ? 'Rascunho salvo'
+              : 'Sucesso';
 
-        setTimeout(() => {
-          this.router.navigate(['/propostas/lista']);
-        }, 1500);
+        const detail = statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+          ? (response.mensagem || 'Proposta gravada com sucesso e encaminhada para a área de aprovação.')
+          : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
+            ? (response.mensagem || 'Proposta gravada com sucesso e aprovada automaticamente.')
+            : statusFinal === PropostaStatus.RASCUNHO
+              ? (response.mensagem || (possuiViolacoes
+                  ? 'Proposta salva como rascunho. Há violações que exigirão aprovação manual ao finalizar.'
+                  : 'Proposta salva como rascunho com sucesso!'))
+              : (response.mensagem || 'Proposta salva com sucesso!');
+
+        this.exibirToastSucessoComLoading(summary, detail);
       },
       error: (error) => {
         console.error('Erro ao salvar proposta:', error);
@@ -2059,19 +2073,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
           const statusFinal = response.status;
 
-          this.messageService.add({
-            severity: statusFinal === PropostaStatus.AGUARDANDO_ANALISE ? 'warn' : 'success',
-            summary: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+          this.exibirToastSucessoComLoading(
+            statusFinal === PropostaStatus.AGUARDANDO_ANALISE
               ? 'Proposta enviada para aprovação'
               : 'Proposta aprovada automaticamente',
-            detail: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+            statusFinal === PropostaStatus.AGUARDANDO_ANALISE
               ? 'Proposta finalizada com sucesso e encaminhada para a área de aprovação.'
-              : 'Proposta finalizada com sucesso e aprovada automaticamente.'
-          });
-
-          setTimeout(() => {
-            this.router.navigate(['/propostas/lista']);
-          }, 1500);
+              : 'Proposta finalizada com sucesso e aprovada automaticamente.',
+            1500,
+            'Redirecionando para a lista de propostas...'
+          );
         },
         error: (error) => {
           console.error('Erro ao finalizar proposta:', error);
@@ -2170,6 +2181,29 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'Erro ao salvar proposta';
+  }
+
+  private exibirToastSucessoComLoading(
+    summary: string,
+    detail: string,
+    delayMs: number = 1500,
+    mensagemLoading: string = 'Redirecionando para a lista de propostas...'
+  ): void {
+    this.redirecionandoAposSucesso = true;
+    this.mensagemLoadingTransicao = mensagemLoading;
+
+    this.messageService.add({
+      severity: 'success',
+      summary,
+      detail
+    });
+
+    window.setTimeout(() => {
+      void this.router.navigate(['/propostas/lista']).finally(() => {
+        this.redirecionandoAposSucesso = false;
+        this.mensagemLoadingTransicao = '';
+      });
+    }, delayMs);
   }
 
   private obterMensagemErroExcluir(error: any): string {
