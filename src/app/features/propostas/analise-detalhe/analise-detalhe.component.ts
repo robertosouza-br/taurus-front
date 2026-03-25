@@ -28,6 +28,8 @@ import { ConfirmationService } from '../../../shared/services/confirmation.servi
   styleUrls: ['./analise-detalhe.component.scss']
 })
 export class AnaliseDetalheComponent implements OnInit {
+  private static readonly MOTIVO_REPROVACAO_PADRAO = 'Nenhuma observação informada para essa reprovação';
+
   carregando = false;
   processando = false;
   mensagemLoadingOverlay = 'Carregando dados da análise...';
@@ -783,8 +785,8 @@ export class AnaliseDetalheComponent implements OnInit {
   confirmarReprovacao(): void {
     this.mensagemLoadingOverlay = 'Reprovando proposta...';
     this.processando = true;
-    const motivo = this.motivoReprovacao?.trim();
-    const request = motivo ? { motivo } : {};
+    const motivo = this.motivoReprovacao?.trim() || AnaliseDetalheComponent.MOTIVO_REPROVACAO_PADRAO;
+    const request = { motivo };
 
     this.analiseService.reprovar(this.propostaId, request).subscribe({
       next: () => {
