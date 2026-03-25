@@ -233,7 +233,7 @@
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
-                      <tr [class.row-alterada]="isComponenteAlterado(comp.codigoComponente)">
+                      <tr [class.row-alterada]="isComponenteAlterado(comp.codigoComponente)" [class.row-erro]="getMensagensErroComponente(comp).length > 0">
                         <td>
                           <div class="cell-componente">
                             <div class="cell-componente-topline">
@@ -254,8 +254,20 @@
                         <td class="text-center cell-quantidade">{{ getNumeroParcelasLabel(comp) }}</td>
                         <td class="cell-date">{{ getDataReferenciaComponente(comp) | date:'dd/MM/yyyy' }}</td>
                         <td class="text-right cell-money">{{ comp.valorParcela | currency:'BRL':'symbol':'1.2-2' }}</td>
-                        <td class="text-center"><span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span></td>
+                        <td class="text-center"><span class="percent-chip">{{ formatarPercentual(getPercentualComponenteNaProposta(comp)) }}</span></td>
                         <td class="text-right font-semibold cell-money cell-money-total">{{ comp.valorTotal | currency:'BRL':'symbol':'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="getMensagensErroComponente(comp).length > 0" class="row-mensagens-erro">
+                        <td colspan="6">
+                          <div class="mensagens-erro-container">
+                            <i class="pi pi-exclamation-triangle"></i>
+                            <div class="mensagens-erro-lista">
+                              <div *ngFor="let mensagem of getMensagensErroComponente(comp)" class="mensagem-erro">
+                                {{ mensagem }}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
@@ -370,14 +382,14 @@
                 </ng-template>
                 <ng-template pTemplate="body" let-validacao>
                   <tr [ngClass]="getClasseValidacao(validacao)">
-                    <td class="text-center">
-                      <span class="status-indicator" [ngClass]="getClasseValidacao(validacao)">
-                        <i [class]="getIconeValidacao(validacao)"></i>
+                    <td class="text-center status-cell-violado">
+                      <span class="status-indicator validacao-erro">
+                        <i class="pi pi-times-circle"></i>
                       </span>
+                      <span class="status-text-violado">Violado</span>
                     </td>
                     <td>
-                      <div class="validacao-regra">{{ formatarRegraValidacao(validacao.regra) }}</div>
-                      <small *ngIf="validacao.bloqueante" class="validacao-bloqueante">Bloqueia aprovação automática</small>
+                      <div class="validacao-regra">{{ formatarRegraValidacao(validacao.regra, validacao.campo) }}</div>
                     </td>
                     <td class="text-right">{{ formatarValorValidacao(validacao.valorEncontrado, validacao) }}</td>
                     <td class="text-right">{{ formatarValorValidacao(validacao.valorEsperado, validacao) }}</td>

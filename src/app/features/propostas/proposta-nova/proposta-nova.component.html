@@ -447,6 +447,7 @@
                            pattern="[0-9]*"
                            [(ngModel)]="comp.quantidade"
                            (input)="onQuantidadeChange(comp)"
+                            (blur)="onCampoSimulacaoBlur()"
                             [disabled]="!podeEditarSimulacao"
                            class="modern-input text-center"
                            style="width: 50px;"
@@ -457,6 +458,7 @@
                                 dateFormat="dd/mm/yy"
                                 [showIcon]="true"
                                 (ngModelChange)="onVencimentoChange(comp)"
+                                (onBlur)="onCampoSimulacaoBlur()"
                                 [disabled]="!podeEditarSimulacao"
                                 [style]="{'width': '145px'}"
                                 styleClass="modern-calendar"
@@ -476,7 +478,7 @@
                            placeholder="0,00">
                   </td>
                   <td class="text-center">
-                    <span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span>
+                    <span class="percent-chip">{{ formatarPercentual(getPercentualComponenteNaProposta(comp)) }}</span>
                   </td>
                   <td class="text-right font-semibold">
                     <span class="money-value money-value-strong">{{ formatarMoeda(comp.valorTotal) }}</span>

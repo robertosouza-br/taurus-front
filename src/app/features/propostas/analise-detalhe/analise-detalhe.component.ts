@@ -45,6 +45,7 @@ export class AnaliseDetalheComponent implements OnInit {
   componentesSimulacao: ComponenteAnaliseDTO[] = [];
   validacoesExibicao: ValidacaoAnaliseDTO[] = [];
   validacoesVioladasExibicao: ValidacaoAnaliseDTO[] = [];
+  validacoesComponentesExibicao: ValidacaoAnaliseDTO[] = [];
   graficoData: any = { labels: [], datasets: [] };
 
   STATUS_ANALISE_LABELS = STATUS_ANALISE_LABELS;
@@ -151,9 +152,323 @@ export class AnaliseDetalheComponent implements OnInit {
       .sort((a, b) => this.ordenarComponentes(a, b));
 
     this.componentesTabelaPadrao = this.montarTabelaPadrao(tabelaPadrao, this.componentesSimulacao);
-    this.validacoesExibicao = this.montarValidacoesExibicao();
+    this.executarValidacoesComponentesSimulacao();
+    this.validacoesExibicao = this.unificarValidacoesExibicao(this.montarValidacoesExibicao());
     this.validacoesVioladasExibicao = this.validacoesExibicao.filter(validacao => this.isValidacaoViolada(validacao));
     this.graficoData = this.getGraficoData();
+  }
+
+  private executarValidacoesComponentesSimulacao(): void {
+    this.validacoesComponentesExibicao = [];
+
+    this.componentesSimulacao.forEach(componente => {
+      componente.mensagensErro = [];
+      componente.erroValidacao = null;
+    });
+
+    this.validarPercentuaisComponentesSimulacao();
+    this.validarSinalMinimoComponentesSimulacao();
+    this.validarAtoMinimoComponentesSimulacao();
+    this.validarMensalMinimaComponentesSimulacao();
+    this.validarUltimaParcelaMaximaComponentesSimulacao();
+  }
+
+  private unificarValidacoesExibicao(validacoesBackend: ValidacaoAnaliseDTO[]): ValidacaoAnaliseDTO[] {
+    const regrasBackend = new Set(
+      validacoesBackend
+        .map(validacao => this.getChaveSemanticaValidacao(validacao))
+        .filter(Boolean)
+    );
+
+    const validacoesLocaisFiltradas = this.validacoesComponentesExibicao.filter(validacao => {
+      const chaveSemantica = this.getChaveSemanticaValidacao(validacao);
+      return chaveSemantica === 'PERCENTUAL_COMPONENTE' || !regrasBackend.has(chaveSemantica);
+    });
+
+    const validacoes = [...validacoesBackend, ...validacoesLocaisFiltradas];
+    const chaves = new Set<string>();
+
+    return validacoes.filter(validacao => {
+      const chave = [
+        this.getChaveSemanticaValidacao(validacao),
+        (validacao.campo || '').toUpperCase(),
+        validacao.mensagem || ''
+      ].join('|');
+
+      if (chaves.has(chave)) {
+        return false;
+      }
+
+      chaves.add(chave);
+      return true;
+    });
+  }
+
+  private getChaveSemanticaValidacao(validacao: ValidacaoAnaliseDTO): string {
+    const regra = (validacao.regra || '').toUpperCase();
+
+    if (regra.includes('ATO_MINIMO')) {
+      return 'ATO_MINIMO_TIPOLOGIA';
+    }
+
+    if (regra.includes('PRIMEIROS_13_MESES')) {
+      return 'PRIMEIROS_13_MESES';
+    }
+
+    if (regra.includes('ULTIMOS_13_MESES')) {
+      return 'ULTIMOS_13_MESES';
+    }
+
+    if (regra.includes('MENSAL_MINIMA') || regra.includes('MENSAL_MINIMO')) {
+      return 'MENSAL_MINIMA';
+    }
+
+    if (regra.includes('SINAL')) {
+      return 'SINAL_MINIMO';
+    }
+
+    if (regra.includes('ULTIMA_PARCELA')) {
+      return 'ULTIMA_PARCELA_MAXIMA';
+    }
+
+    if (regra.includes('PERCENTUAL_COMPONENTE')) {
+      return 'PERCENTUAL_COMPONENTE';
+    }
+
+    return regra;
+  }
+
+  private validarPercentuaisComponentesSimulacao(): void {
+    this.componentesSimulacao.forEach(componente => {
+      const nomeUpper = (componente.nomeComponente || '').toUpperCase();
+
+      if (nomeUpper.includes('ATO') || nomeUpper.includes('SINAL')) {
+        return;
+      }
+
+      const percentualEsperado = this.getPercentualEsperadoComponente(componente);
+      if (percentualEsperado === null || percentualEsperado === 0) {
+        return;
+      }
+
+      const percentualCalculado = this.getPercentualComponenteNaProposta(componente);
+      const diferenca = percentualCalculado - percentualEsperado;
+      const diferencaAbsoluta = Math.abs(diferenca);
+
+      if (diferencaAbsoluta <= 0.01) {
+        return;
+      }
+
+      const direcao = diferenca > 0 ? 'acima' : 'abaixo';
+      const mensagem = `${componente.nomeComponente}: ${percentualCalculado.toFixed(2)}% está ${diferencaAbsoluta.toFixed(2)}% ${direcao} do esperado (${percentualEsperado.toFixed(2)}% da tabela padrão)`;
+      this.adicionarMensagemErroComponente(componente, mensagem);
+      this.registrarValidacaoComponenteExibicao({
+        campo: componente.nomeComponente,
+        regra: 'PERCENTUAL_COMPONENTE',
+        tipo: 'ERRO',
+        nivel: 'ERRO',
+        valorEncontrado: percentualCalculado,
+        valorEsperado: percentualEsperado,
+        mensagem,
+        bloqueante: false
+      });
+    });
+  }
+
+  private validarSinalMinimoComponentesSimulacao(): void {
+    const componentesAto = this.componentesSimulacao.filter(componente =>
+      (componente.nomeComponente || '').toUpperCase().includes('ATO')
+    );
+    const componentesSinal = this.componentesSimulacao.filter(componente =>
+      (componente.nomeComponente || '').toUpperCase().includes('SINAL')
+    );
+
+    if (!componentesSinal.length) {
+      return;
+    }
+
+    const percentualMinimo = this.getPercentualEsperadoComponente(componentesSinal[0]) ?? 5;
+    const totalSinal = [...componentesAto, ...componentesSinal]
+      .reduce((soma, componente) => soma.plus(this.toDecimal(componente.valorTotal ?? 0)), new Decimal(0));
+
+    const valorTabela = this.getValorTabelaPadrao();
+    const percentualCalculado = valorTabela > 0
+      ? totalSinal.div(valorTabela).mul(100).toNumber()
+      : 0;
+
+    if (percentualCalculado >= percentualMinimo) {
+      return;
+    }
+
+    const diferenca = Math.abs(percentualCalculado - percentualMinimo);
+    const mensagem = `Sinal (ATO + COTA SINAL): ${percentualCalculado.toFixed(2)}% (${diferenca.toFixed(2)}% abaixo do mínimo de ${percentualMinimo.toFixed(2)}%)`;
+
+    componentesAto.forEach(componente => this.adicionarMensagemErroComponente(componente, mensagem));
+    componentesSinal.forEach(componente => this.adicionarMensagemErroComponente(componente, mensagem));
+    this.registrarValidacaoComponenteExibicao({
+      regra: 'SINAL_MINIMO',
+      tipo: 'ERRO',
+      nivel: 'ERRO',
+      valorEncontrado: percentualCalculado,
+      valorEsperado: percentualMinimo,
+      mensagem,
+      bloqueante: true
+    });
+  }
+
+  private validarAtoMinimoComponentesSimulacao(): void {
+    const ato = this.componentesSimulacao.find(componente =>
+      (componente.nomeComponente || '').toUpperCase().includes('ATO')
+    );
+
+    if (!ato) {
+      return;
+    }
+
+    const valorMinimo = this.getValorEsperadoComponente(ato);
+    if (valorMinimo === null || valorMinimo <= 0) {
+      return;
+    }
+
+    const valorAtual = Number(ato.valorTotal ?? 0);
+    if (valorAtual >= valorMinimo) {
+      return;
+    }
+
+    const tipologia = this.proposta?.empreendimento?.tipologia || '';
+    const diferenca = Math.abs(valorAtual - valorMinimo);
+    const mensagem = `ATO: ${this.formatarMoeda(valorAtual)} (${this.formatarMoeda(diferenca)} abaixo do mínimo de ${this.formatarMoeda(valorMinimo)} para tipologia "${tipologia}")`;
+    this.adicionarMensagemErroComponente(ato, mensagem);
+    this.registrarValidacaoComponenteExibicao({
+      campo: ato.nomeComponente,
+      regra: 'ATO_MINIMO_TIPOLOGIA',
+      tipo: 'ERRO',
+      nivel: 'ERRO',
+      valorEncontrado: valorAtual,
+      valorEsperado: valorMinimo,
+      mensagem,
+      bloqueante: true
+    });
+  }
+
+  private validarMensalMinimaComponentesSimulacao(): void {
+    const mensal = this.componentesSimulacao.find(componente =>
+      (componente.nomeComponente || '').toUpperCase().includes('MENSAL')
+    );
+
+    if (!mensal) {
+      return;
+    }
+
+    const valorMinimo = 1000;
+    const valorParcela = Number(mensal.valorParcela ?? 0);
+
+    if (valorParcela >= valorMinimo) {
+      return;
+    }
+
+    const diferenca = Math.abs(valorParcela - valorMinimo);
+    const mensagem = `COTA MENSAL: ${this.formatarMoeda(valorParcela)} (${this.formatarMoeda(diferenca)} abaixo do mínimo de ${this.formatarMoeda(valorMinimo)})`;
+    this.adicionarMensagemErroComponente(mensal, mensagem);
+    this.registrarValidacaoComponenteExibicao({
+      campo: mensal.nomeComponente,
+      regra: 'MENSAL_MINIMA',
+      tipo: 'ERRO',
+      nivel: 'ERRO',
+      valorEncontrado: valorParcela,
+      valorEsperado: valorMinimo,
+      mensagem,
+      bloqueante: true
+    });
+  }
+
+  private validarUltimaParcelaMaximaComponentesSimulacao(): void {
+    const cotaUnica = this.componentesSimulacao.find(componente => {
+      const nomeUpper = (componente.nomeComponente || '').toUpperCase();
+      return nomeUpper.includes('UNICA') || nomeUpper.includes('ÚLTIMA');
+    });
+
+    if (!cotaUnica) {
+      return;
+    }
+
+    const percentualMaximo = this.getPercentualEsperadoComponente(cotaUnica);
+    if (percentualMaximo === null || percentualMaximo <= 0) {
+      return;
+    }
+
+    const valorTabela = this.getValorTabelaPadrao();
+    const percentualCalculado = valorTabela > 0
+      ? Number(((Number(cotaUnica.valorTotal ?? 0) / valorTabela) * 100).toFixed(2))
+      : 0;
+
+    if (percentualCalculado <= percentualMaximo) {
+      return;
+    }
+
+    const diferenca = Math.abs(percentualCalculado - percentualMaximo);
+    const mensagem = `Última parcela (COTA ÚNICA): ${percentualCalculado.toFixed(2)}% (${diferenca.toFixed(2)}% acima do máximo de ${percentualMaximo.toFixed(2)}%)`;
+    this.adicionarMensagemErroComponente(cotaUnica, mensagem);
+    this.registrarValidacaoComponenteExibicao({
+      campo: cotaUnica.nomeComponente,
+      regra: 'ULTIMA_PARCELA_MAXIMA',
+      tipo: 'ERRO',
+      nivel: 'ERRO',
+      valorEncontrado: percentualCalculado,
+      valorEsperado: percentualMaximo,
+      mensagem,
+      bloqueante: true
+    });
+  }
+
+  private adicionarMensagemErroComponente(componente: ComponenteAnaliseDTO, mensagem: string): void {
+    componente.mensagensErro = componente.mensagensErro || [];
+
+    if (componente.mensagensErro.includes(mensagem)) {
+      return;
+    }
+
+    componente.mensagensErro.push(mensagem);
+    componente.erroValidacao = componente.erroValidacao || mensagem;
+  }
+
+  private registrarValidacaoComponenteExibicao(validacao: ValidacaoAnaliseDTO): void {
+    this.validacoesComponentesExibicao.push(validacao);
+  }
+
+  private getComponenteTabelaPadraoCorrespondente(componente: ComponenteAnaliseDTO): ComponenteAnaliseDTO | undefined {
+    const codigoComponente = componente.codigoComponente;
+
+    if (codigoComponente) {
+      const encontradoPorCodigo = this.componentesTabelaPadrao.find(item => item.codigoComponente === codigoComponente);
+      if (encontradoPorCodigo) {
+        return encontradoPorCodigo;
+      }
+    }
+
+    return this.componentesTabelaPadrao.find(item => item.nomeComponente === componente.nomeComponente);
+  }
+
+  private getPercentualEsperadoComponente(componente: ComponenteAnaliseDTO): number | null {
+    const correspondente = this.getComponenteTabelaPadraoCorrespondente(componente);
+    const percentual = correspondente?.percentual;
+
+    if (percentual === null || percentual === undefined) {
+      return null;
+    }
+
+    return Number(percentual);
+  }
+
+  private getValorEsperadoComponente(componente: ComponenteAnaliseDTO): number | null {
+    const correspondente = this.getComponenteTabelaPadraoCorrespondente(componente);
+    const valor = correspondente?.valorTotal ?? correspondente?.valor;
+
+    if (valor === null || valor === undefined) {
+      return null;
+    }
+
+    return Number(valor);
   }
 
   private montarValidacoesExibicao(): ValidacaoAnaliseDTO[] {
@@ -191,8 +506,8 @@ export class AnaliseDetalheComponent implements OnInit {
 
     const valorEsperado = validacao.valorEsperado ?? null;
     const mensagem = periodo === 'primeiros'
-      ? `O percentual dos primeiros 13 meses representa ${percentualCalculado.toFixed(4)}%`
-      : `O percentual dos últimos 13 meses representa ${percentualCalculado.toFixed(4)}%`;
+      ? `O percentual dos primeiros 13 meses representa ${percentualCalculado.toFixed(2)}%`
+      : `O percentual dos últimos 13 meses representa ${percentualCalculado.toFixed(2)}%`;
 
     return {
       ...validacao,
@@ -562,6 +877,21 @@ export class AnaliseDetalheComponent implements OnInit {
     return `${Number(valor ?? 0).toFixed(2)}%`;
   }
 
+  getPercentualComponenteNaProposta(componente: ComponenteAnaliseDTO): number {
+    const valorTotal = this.toDecimal(componente?.valorTotal ?? 0);
+    const valorProposta = this.getValorSimulacao();
+
+    if (valorProposta <= 0 || valorTotal.lte(0)) {
+      return 0;
+    }
+
+    return valorTotal
+      .div(valorProposta)
+      .mul(100)
+      .toDecimalPlaces(2)
+      .toNumber();
+  }
+
   getGrupoComponenteLabel(grupo?: number | null): string {
     if (grupo === null || grupo === undefined) {
       return 'Componente';
@@ -678,6 +1008,22 @@ export class AnaliseDetalheComponent implements OnInit {
     return `${quantidade}x`;
   }
 
+  getMensagensErroComponente(componente: ComponenteAnaliseDTO): string[] {
+    return componente.mensagensErro ?? [];
+  }
+
+  private toDecimal(valor: Decimal.Value | null | undefined, fallback: Decimal.Value = 0): Decimal {
+    try {
+      if (valor === null || valor === undefined || valor === '') {
+        return new Decimal(fallback);
+      }
+
+      return new Decimal(valor);
+    } catch {
+      return new Decimal(fallback);
+    }
+  }
+
   getClasseValidacao(validacao: ValidacaoAnaliseDTO): string {
     const nivel = this.getNivelValidacao(validacao);
     return `validacao-${nivel}`;
@@ -711,7 +1057,11 @@ export class AnaliseDetalheComponent implements OnInit {
     return 'pi pi-info-circle';
   }
 
-  formatarRegraValidacao(regra?: string): string {
+  formatarRegraValidacao(regra?: string, campo?: string): string {
+    if ((regra || '').toUpperCase() === 'PERCENTUAL_COMPONENTE') {
+      return campo ? `Percentual de ${campo}` : 'Percentual do Componente';
+    }
+
     if (!regra) {
       return 'Regra de negócio';
     }
@@ -729,7 +1079,7 @@ export class AnaliseDetalheComponent implements OnInit {
     }
 
     if (this.validacaoRepresentaPercentual(validacao)) {
-      return `${Number(valor).toFixed(4)}%`;
+      return `${Number(valor).toFixed(2)}%`;
     }
 
     return this.formatarMoeda(valor);
@@ -865,6 +1215,7 @@ export class AnaliseDetalheComponent implements OnInit {
     }
 
     return regra.includes('MESES')
+      || regra.includes('PERCENTUAL_COMPONENTE')
       || regra.includes('PARCELA')
       || regra.includes('SINAL');
   }
@@ -1033,18 +1384,6 @@ export class AnaliseDetalheComponent implements OnInit {
       month: 'short',
       year: '2-digit'
     }).replace('.', '');
-  }
-
-  private toDecimal(valor: Decimal.Value | null | undefined, fallback: Decimal.Value = 0): Decimal {
-    try {
-      if (valor === null || valor === undefined || valor === '') {
-        return new Decimal(fallback);
-      }
-
-      return new Decimal(valor);
-    } catch {
-      return new Decimal(fallback);
-    }
   }
 
   private calcularValorTotalComponente(valorParcela: number, quantidade: number): number {

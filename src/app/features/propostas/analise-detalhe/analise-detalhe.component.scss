@@ -549,6 +549,57 @@
   box-shadow: inset 4px 0 0 #f59e0b;
 }
 
+:host ::ng-deep .financial-table .p-datatable-tbody > tr.row-erro > td {
+  background: linear-gradient(90deg, #fff7f7 0%, #fffdfd 100%);
+}
+
+:host ::ng-deep .financial-table .p-datatable-tbody > tr.row-erro > td:first-child {
+  box-shadow: inset 4px 0 0 #ef4444;
+}
+
+:host ::ng-deep .financial-table .p-datatable-tbody > tr.row-erro .percent-chip {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.row-mensagens-erro {
+  td {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.9rem !important;
+    background: #fff8f8 !important;
+    border-top: none !important;
+  }
+
+  .mensagens-erro-container {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #9f1239;
+
+    i {
+      margin-top: 0.1rem;
+      font-size: 1rem;
+      color: #e11d48;
+    }
+  }
+
+  .mensagens-erro-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .mensagem-erro {
+    font-size: 0.86rem;
+    line-height: 1.45;
+    font-weight: 500;
+  }
+}
+
 .cell-componente {
   display: flex;
   flex-direction: column;
@@ -835,6 +886,22 @@
 .validacao-bloqueante {
   color: #b91c1c;
   font-weight: 600;
+}
+
+.status-cell-violado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.status-text-violado {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b91c1c;
 }
 
 .status-indicator {

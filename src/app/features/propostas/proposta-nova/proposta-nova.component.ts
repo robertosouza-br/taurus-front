@@ -89,6 +89,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   comparacao: ComparacaoMetricaDTO[] = [];
   graficoData: any = { labels: [], datasets: [] };
   private simulacaoAlterada = false;
+  private simulacaoEditadaDesdeCarregamento = false;
+  private avisoNovaAnaliseExibido = false;
+  private avisoNovaAnalisePendenteAoBlur = false;
 
   get exibirLoadingOverlay(): boolean {
     return this.carregando || this.salvando || this.finalizando || this.excluindo || this.redirecionandoAposSucesso;
@@ -169,6 +172,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get podeExibirBotaoFinalizar(): boolean {
     const status = this.proposta?.status;
+
+    if (status === PropostaStatus.APROVADA && this.simulacaoEditadaDesdeCarregamento) {
+      return false;
+    }
 
     return status === PropostaStatus.APROVADA_AUTOMATICAMENTE
       || status === PropostaStatus.APROVADA;
@@ -415,6 +422,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (!this.proposta) return;
 
     this.simulacaoAlterada = false;
+    this.simulacaoEditadaDesdeCarregamento = false;
+    this.avisoNovaAnaliseExibido = false;
+    this.avisoNovaAnalisePendenteAoBlur = false;
     this.atoInicialProtegido = null;
     
     const modalidade = this.proposta.modalidadeTabelaPadrao;
@@ -430,6 +440,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     );
     
     if (simulacao && simulacao.componentes?.length > 0) {
+      this.simulacaoAlterada = this.simulacaoPersistidaDivergeDaTabela(
+        simulacao.componentes,
+        this.componentesNormalizadosCache
+      );
+
       // Carregar dados da simulação existente
       this.componentes = simulacao.componentes.map(comp => {
         const regra = this.componentesNormalizadosCache.find(
@@ -652,6 +667,50 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       || !!componente.listaVencimentos?.length;
   }
 
+  private simulacaoPersistidaDivergeDaTabela(
+    componentesSimulacao: ComponenteSimulacaoDTO[],
+    componentesPadrao: ComponenteTabelaPadraoDTO[]
+  ): boolean {
+    const componentesPadraoAtivos = componentesPadrao.filter(componente => componente.ativo !== false);
+    const componentesPadraoPorCodigo = new Map(
+      componentesPadraoAtivos.map(componente => [componente.codigoComponente, componente])
+    );
+
+    const componentesComValorPadrao = componentesPadraoAtivos.filter(componente =>
+      this.componenteTabelaPadraoPossuiValores(componente)
+    );
+
+    if (componentesSimulacao.length !== componentesComValorPadrao.length) {
+      return true;
+    }
+
+    return componentesSimulacao.some(componenteSimulado => {
+      const componentePadrao = componentesPadraoPorCodigo.get(componenteSimulado.codigoComponente);
+
+      if (!componentePadrao) {
+        return true;
+      }
+
+      const quantidadePadrao = this.normalizarQuantidadeInformada(componentePadrao.quantidade, 1);
+      const quantidadeSimulada = this.normalizarQuantidadeInformada(componenteSimulado.quantidade, 1);
+
+      if (quantidadePadrao !== quantidadeSimulada) {
+        return true;
+      }
+
+      const valorPadrao = this.toDecimal(componentePadrao.valor ?? 0);
+      const valorSimulado = this.toDecimal(componenteSimulado.valorTotal ?? 0);
+      if (valorPadrao.minus(valorSimulado).abs().gt(0.01)) {
+        return true;
+      }
+
+      const valorParcelaPadrao = this.toDecimal(componentePadrao.valorParcela ?? 0);
+      const valorParcelaSimulada = this.toDecimal(componenteSimulado.valorParcela ?? 0);
+
+      return valorParcelaPadrao.minus(valorParcelaSimulada).abs().gt(0.01);
+    });
+  }
+
   /**
    * Infere o grupo do componente baseado no nome (FALLBACK para v1.0)
    */
@@ -721,7 +780,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     this.valorParcelaInputMap.set(comp, valorDigitado);
     comp.valorParcela = this.parseValorMonetario(valorDigitado);
-    this.simulacaoAlterada = true;
+    this.marcarSimulacaoComoEditada(true);
     this.onValorParcelaChange(comp);
   }
 
@@ -732,6 +791,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     this.valorParcelaInputMap.set(comp, this.formatarValorParcelaExibicao(comp.valorParcela));
+    this.onCampoSimulacaoBlur();
   }
 
 
@@ -744,7 +804,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
 
-    this.simulacaoAlterada = true;
+    this.marcarSimulacaoComoEditada(true);
 
     componente.quantidade = this.normalizarQuantidadeInformada(componente.quantidade);
 
@@ -763,7 +823,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
 
-    this.simulacaoAlterada = true;
+    this.marcarSimulacaoComoEditada(true);
 
     this.atualizarVencimentosComponente(componente);
     
@@ -779,6 +839,45 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (!this.possuiDesconto && this.ajusteDiferencaDialogVisible) {
       this.fecharDialogAjusteDiferenca();
     }
+  }
+
+  onCampoSimulacaoBlur(): void {
+    if (!this.avisoNovaAnalisePendenteAoBlur) {
+      return;
+    }
+
+    this.avisoNovaAnalisePendenteAoBlur = false;
+    this.exibirAvisoNovaAnalise();
+  }
+
+  private marcarSimulacaoComoEditada(exibirAvisoAoPerderFoco: boolean = false): void {
+    this.simulacaoAlterada = true;
+    this.simulacaoEditadaDesdeCarregamento = true;
+
+    if (this.proposta?.status !== PropostaStatus.APROVADA || this.avisoNovaAnaliseExibido) {
+      return;
+    }
+
+    if (exibirAvisoAoPerderFoco) {
+      this.avisoNovaAnalisePendenteAoBlur = true;
+      return;
+    }
+
+    this.exibirAvisoNovaAnalise();
+  }
+
+  private exibirAvisoNovaAnalise(): void {
+    if (this.avisoNovaAnaliseExibido) {
+      return;
+    }
+
+    this.avisoNovaAnaliseExibido = true;
+    this.appConfirmationService.alert(
+      'Nova análise necessária',
+      'Esta alteração na simulação deixará a proposta sujeita a uma nova análise antes da finalização.',
+      'warning',
+      'pi pi-exclamation-triangle'
+    ).subscribe();
   }
 
   possuiDetalhamentoVencimentos(componente: ComponenteFormulario): boolean {
@@ -1660,7 +1759,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
 
-    this.simulacaoAlterada = true;
+    this.marcarSimulacaoComoEditada();
     const index = this.componentes.indexOf(componente);
     const novoComponente: ComponenteFormulario = {
       ...componente,
@@ -1719,7 +1818,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     const quantidade = Math.max(componente.quantidade || 1, 1);
 
-    this.simulacaoAlterada = true;
+    this.marcarSimulacaoComoEditada();
     componente.valorTotal = this.toDecimal(componente.valorTotal)
       .plus(valorRestante)
       .toDecimalPlaces(2)
@@ -1766,7 +1865,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           return;
         }
 
-        this.simulacaoAlterada = true;
+        this.marcarSimulacaoComoEditada();
         const index = this.componentes.indexOf(componente);
         if (index > -1) {
           this.componentes.splice(index, 1);
@@ -1791,7 +1890,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Adiciona um componente disponível à simulação
    */
   adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
-    this.simulacaoAlterada = true;
+    this.marcarSimulacaoComoEditada();
     const hoje = new Date();
     const vencimentoInicial = new Date(hoje);
     
@@ -1894,6 +1993,20 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get valorPropostaIgualTabela(): boolean {
     return this.obterDiferencaMonetaria().isZero();
+  }
+
+  getPercentualComponenteNaProposta(componente: ComponenteFormulario): number {
+    const valorTotal = this.toDecimal(componente?.valorTotal ?? 0);
+
+    if (this.valorProposta <= 0 || valorTotal.lte(0)) {
+      return 0;
+    }
+
+    return valorTotal
+      .div(this.valorProposta)
+      .mul(100)
+      .toDecimalPlaces(2)
+      .toNumber();
   }
 
   /**

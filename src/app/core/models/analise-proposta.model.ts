@@ -123,6 +123,8 @@ export interface ComponenteAnaliseDTO {
   ordem?: number;
   ativo?: boolean;
   listaVencimentos?: VencimentoAnaliseDTO[];
+  erroValidacao?: string | null;
+  mensagensErro?: string[];
 }
 
 export interface VencimentoAnaliseDTO {
