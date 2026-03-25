@@ -1,338 +1,470 @@
 <div class="detalhe-container">
-  <!-- Breadcrumb -->
   <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
-  <!-- Loading -->
   <app-loading-spinner *ngIf="carregando"></app-loading-spinner>
 
   <ng-container *ngIf="!carregando">
     <ng-container *ngIf="proposta as p">
-      <!-- Page Header -->
       <app-page-header
-        [title]="'Proposta ' + p.numeroProposta"
-      subtitle="Análise e decisão da proposta"
-      icon="pi pi-clipboard"
-      [actions]="headerActions">
+        [title]="getTituloPagina()"
+        subtitle="Análise e decisão da proposta"
+        icon="pi pi-clipboard">
+        <ng-container pageHeaderExtra>
+          <p-tag
+            class="ml-2"
+            [value]="getStatusLabel(p.status)"
+            [severity]="getStatusSeverity(p.status)">
+          </p-tag>
+        </ng-container>
+      </app-page-header>
 
-      <!-- Status badge no header -->
-      <ng-container pageHeaderExtra>
-        <p-tag
-          class="ml-2"
-          [value]="getStatusLabel(p.status)"
-          [severity]="getStatusSeverity(p.status)">
-        </p-tag>
-      </ng-container>
-    </app-page-header>
+      <div class="analise-layout mt-3">
+        <div class="analise-main">
+          <p-card styleClass="mb-3 card-flat">
+            <ng-template pTemplate="header">
+              <div class="card-header-clean">
+                <div>
+                  <span class="section-kicker">Visão Geral</span>
+                  <h3 class="section-heading">Quem é o cliente e qual unidade está sendo analisada</h3>
+                </div>
+              </div>
+            </ng-template>
 
-    <!-- Grid principal -->
-    <div class="grid mt-3">
+            <div class="overview-grid">
+              <section class="overview-panel">
+                <span class="overview-title">Empreendimento</span>
+                <div class="overview-list">
+                  <div class="overview-row">
+                    <span class="overview-label">Empreendimento</span>
+                    <span class="overview-value">{{ p.empreendimento.nomeEmpreendimento }}</span>
+                  </div>
+                  <div class="overview-row two-cols">
+                    <div>
+                      <span class="overview-label">Bloco</span>
+                      <span class="overview-value">{{ p.empreendimento.bloco || '-' }}</span>
+                    </div>
+                    <div>
+                      <span class="overview-label">Unidade</span>
+                      <span class="overview-value">{{ p.empreendimento.unidade }}</span>
+                    </div>
+                  </div>
+                  <div class="overview-row two-cols">
+                    <div>
+                      <span class="overview-label">Tipo</span>
+                      <span class="overview-value">{{ p.empreendimento.tipoUnidade || '-' }}</span>
+                    </div>
+                    <div>
+                      <span class="overview-label">Tipologia</span>
+                      <span class="overview-value">{{ p.empreendimento.tipologia }}</span>
+                    </div>
+                  </div>
+                  <div class="overview-row">
+                    <span class="overview-label">Valor da unidade</span>
+                    <span class="overview-value destaque">{{ p.empreendimento.valorUnidade | currency:'BRL':'symbol':'1.2-2' }}</span>
+                  </div>
+                </div>
+              </section>
 
-      <!-- Coluna esquerda: dados da proposta -->
-      <div class="col-12 lg:col-8">
+              <section class="overview-panel">
+                <span class="overview-title">Cliente e Origem</span>
+                <div class="overview-list">
+                  <div class="overview-row">
+                    <span class="overview-label">Cliente</span>
+                    <span class="overview-value">{{ getNomeCliente() }}</span>
+                  </div>
+                  <div class="overview-row">
+                    <span class="overview-label">CPF / CNPJ</span>
+                    <span class="overview-value">{{ formatarCpfCnpj(getCpfCnpjCliente()) || '-' }}</span>
+                  </div>
+                  <div class="overview-row" *ngIf="p.corretor?.nome">
+                    <span class="overview-label">Corretor</span>
+                    <span class="overview-value">{{ p.corretor?.nome }}</span>
+                  </div>
+                  <div class="overview-row" *ngIf="p.imobiliariaPrincipal?.nome">
+                    <span class="overview-label">Imobiliária</span>
+                    <span class="overview-value">{{ p.imobiliariaPrincipal?.nome }}</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </p-card>
 
-        <!-- Card: Empreendimento e Unidade -->
-        <p-card styleClass="mb-3">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-building card-header-icon"></i>
-              <span>Empreendimento e Unidade</span>
-            </div>
-          </ng-template>
+          <p-card styleClass="mb-3 card-flat">
+            <ng-template pTemplate="header">
+              <div class="card-header-clean">
+                <div>
+                  <span class="section-kicker">Estrutura Financeira</span>
+                  <h3 class="section-heading">Compare a referência com a simulação enviada</h3>
+                </div>
+              </div>
+            </ng-template>
 
-          <div class="grid">
-            <div class="col-12 md:col-6">
-              <div class="info-item">
-                <span class="info-label">Empreendimento</span>
-                <span class="info-value">{{ p.empreendimento.nomeEmpreendimento }}</span>
-              </div>
-            </div>
-            <div class="col-12 md:col-3">
-              <div class="info-item">
-                <span class="info-label">Bloco</span>
-                <span class="info-value">{{ p.empreendimento.bloco || '-' }}</span>
-              </div>
-            </div>
-            <div class="col-12 md:col-3">
-              <div class="info-item">
-                <span class="info-label">Unidade</span>
-                <span class="info-value">{{ p.empreendimento.unidade }}</span>
-              </div>
-            </div>
-            <div class="col-12 md:col-6">
-              <div class="info-item">
-                <span class="info-label">Tipologia</span>
-                <span class="info-value">{{ p.empreendimento.tipologia }}</span>
-              </div>
-            </div>
-            <div class="col-12 md:col-6">
-              <div class="info-item">
-                <span class="info-label">Valor da Unidade</span>
-                <span class="info-value destaque">
-                  {{ p.empreendimento.valorUnidade | currency:'BRL':'symbol':'1.2-2' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </p-card>
+            <p-accordion [multiple]="true" styleClass="analise-accordion">
+              <p-accordionTab>
+                <ng-template pTemplate="header">
+                  <div class="accordion-header-content">
+                    <div class="accordion-header-main">
+                      <span class="accordion-title-badge accordion-title-badge-neutral">Base</span>
+                      <div>
+                        <span class="accordion-title">Tabela Padrão</span>
+                        <span class="accordion-subtitle">Referência comercial do empreendimento</span>
+                      </div>
+                    </div>
+                    <div class="accordion-header-side">
+                      <span class="accordion-chip">{{ componentesTabelaPadrao.length }} itens</span>
+                    </div>
+                  </div>
+                </ng-template>
 
-        <!-- Card: Cliente -->
-        <p-card styleClass="mb-3">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-user card-header-icon"></i>
-              <span>Dados do Cliente</span>
-            </div>
-          </ng-template>
+                <div class="table-shell table-shell-neutral">
+                  <div class="table-toolbar">
+                    <div>
+                      <span class="table-toolbar-kicker">Referência</span>
+                      <strong class="table-toolbar-title">{{ componentesTabelaPadrao.length }} componentes comerciais</strong>
+                    </div>
+                    <div class="table-toolbar-metrics">
+                      <span class="toolbar-chip">Total {{ formatarMoeda(getValorTabelaPadrao()) }}</span>
+                    </div>
+                  </div>
 
-          <div class="grid">
-            <div class="col-12 md:col-8">
-              <div class="info-item">
-                <span class="info-label">Nome</span>
-                <span class="info-value">{{ p.cliente.nomeCliente }}</span>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <div class="info-item">
-                <span class="info-label">CPF / CNPJ</span>
-                <span class="info-value">{{ formatarCpfCnpj(p.cliente.cpfCnpjCliente) }}</span>
-              </div>
-            </div>
-          </div>
-        </p-card>
+                  <p-table
+                    [value]="componentesTabelaPadrao"
+                    styleClass="p-datatable-sm modern-table financial-table"
+                    responsiveLayout="scroll"
+                    [scrollable]="true"
+                    scrollHeight="28rem">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th>Componente</th>
+                        <th style="width: 70px" class="text-center">Qtd</th>
+                        <th style="width: 150px">Vencimento</th>
+                        <th style="width: 150px" class="text-right">Valor Parcela</th>
+                        <th style="width: 90px" class="text-center">%</th>
+                        <th style="width: 150px" class="text-right">Valor Total</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
+                      <tr>
+                        <td>
+                          <div class="cell-componente">
+                            <div class="cell-componente-topline">
+                              <span class="row-index">{{ rowIndex + 1 }}</span>
+                              <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
+                            </div>
+                            <div class="cell-componente-meta">
+                              <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
+                              <span
+                                *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
+                                class="meta-pill meta-pill-light">
+                                {{ periodicidadeBadge }}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="text-center cell-quantidade">{{ getNumeroParcelasLabel(comp) }}</td>
+                        <td class="cell-date">{{ getDataReferenciaComponente(comp) | date:'dd/MM/yyyy' }}</td>
+                        <td class="text-right cell-money">{{ comp.valorParcela | currency:'BRL':'symbol':'1.2-2' }}</td>
+                        <td class="text-center"><span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span></td>
+                        <td class="text-right font-semibold cell-money cell-money-total">{{ comp.valorTotal | currency:'BRL':'symbol':'1.2-2' }}</td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="6">
+                          <div class="table-empty-state">Nenhum componente encontrado na tabela padrão.</div>
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              </p-accordionTab>
 
-        <!-- Card: Comparação Financeira -->
-        <p-card styleClass="mb-3" *ngIf="p.comparacao">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-chart-bar card-header-icon"></i>
-              <span>Comparação Financeira</span>
-              <p-tag
-                *ngIf="p.comparacao.possuiAlteracoes"
-                value="Com alterações"
-                severity="warning"
-                class="ml-auto">
-              </p-tag>
-              <p-tag
-                *ngIf="!p.comparacao.possuiAlteracoes"
-                value="Conforme tabela"
-                severity="success"
-                class="ml-auto">
-              </p-tag>
-            </div>
-          </ng-template>
+              <p-accordionTab>
+                <ng-template pTemplate="header">
+                  <div class="accordion-header-content">
+                    <div class="accordion-header-main">
+                      <span class="accordion-title-badge accordion-title-badge-highlight">Análise</span>
+                      <div>
+                        <span class="accordion-title">Simulação da Proposta</span>
+                        <span class="accordion-subtitle">Versão enviada para aprovação</span>
+                      </div>
+                    </div>
+                    <div class="accordion-header-side">
+                      <span class="accordion-chip accordion-chip-highlight">{{ componentesSimulacao.length }} itens</span>
+                      <span class="accordion-chip" *ngIf="p.comparacao?.componentesAlterados?.length">
+                        {{ p.comparacao?.componentesAlterados?.length }} alterados
+                      </span>
+                    </div>
+                  </div>
+                </ng-template>
 
-          <div class="grid">
-            <div class="col-12 md:col-4">
-              <div class="comparacao-card">
-                <span class="comparacao-label">Tabela Padrão</span>
-                <span class="comparacao-valor">
-                  {{ p.comparacao.valorTabelaPadrao | currency:'BRL':'symbol':'1.2-2' }}
-                </span>
+                <div class="table-shell table-shell-highlight">
+                  <div class="table-toolbar">
+                    <div>
+                      <span class="table-toolbar-kicker">Proposta enviada</span>
+                      <strong class="table-toolbar-title">{{ componentesSimulacao.length }} componentes simulados</strong>
+                    </div>
+                    <div class="table-toolbar-metrics">
+                      <span class="toolbar-chip toolbar-chip-emphasis">Total {{ formatarMoeda(getValorSimulacao()) }}</span>
+                      <span class="toolbar-chip" *ngIf="p.comparacao?.componentesAlterados?.length">
+                        {{ p.comparacao?.componentesAlterados?.length }} alterados
+                      </span>
+                    </div>
+                  </div>
+
+                  <p-table
+                    [value]="componentesSimulacao"
+                    styleClass="p-datatable-sm modern-table financial-table"
+                    responsiveLayout="scroll"
+                    [scrollable]="true"
+                    scrollHeight="28rem">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th>Componente</th>
+                        <th style="width: 70px" class="text-center">Qtd</th>
+                        <th style="width: 150px">Vencimento</th>
+                        <th style="width: 150px" class="text-right">Valor Parcela</th>
+                        <th style="width: 90px" class="text-center">%</th>
+                        <th style="width: 150px" class="text-right">Valor Total</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-comp let-rowIndex="rowIndex">
+                      <tr [class.row-alterada]="isComponenteAlterado(comp.codigoComponente)">
+                        <td>
+                          <div class="cell-componente">
+                            <div class="cell-componente-topline">
+                              <span class="row-index">{{ rowIndex + 1 }}</span>
+                              <span class="cell-componente-titulo">{{ comp.nomeComponente }}</span>
+                              <span *ngIf="isComponenteAlterado(comp.codigoComponente)" class="alteracao-badge">Alterado</span>
+                            </div>
+                            <div class="cell-componente-meta">
+                              <span class="meta-pill meta-pill-neutral">{{ getGrupoComponenteLabel(comp.grupoComponente) }}</span>
+                              <span
+                                *ngIf="getPeriodicidadeBadgeLabel(comp.grupoComponente, comp.periodicidade) as periodicidadeBadge"
+                                class="meta-pill meta-pill-light">
+                                {{ periodicidadeBadge }}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="text-center cell-quantidade">{{ getNumeroParcelasLabel(comp) }}</td>
+                        <td class="cell-date">{{ getDataReferenciaComponente(comp) | date:'dd/MM/yyyy' }}</td>
+                        <td class="text-right cell-money">{{ comp.valorParcela | currency:'BRL':'symbol':'1.2-2' }}</td>
+                        <td class="text-center"><span class="percent-chip">{{ formatarPercentual(comp.percentual) }}</span></td>
+                        <td class="text-right font-semibold cell-money cell-money-total">{{ comp.valorTotal | currency:'BRL':'symbol':'1.2-2' }}</td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="6">
+                          <div class="table-empty-state">Nenhum componente encontrado na simulação da proposta.</div>
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              </p-accordionTab>
+            </p-accordion>
+          </p-card>
+
+          <p-card styleClass="mb-3 card-flat">
+            <ng-template pTemplate="header">
+              <div class="card-header-clean">
+                <div>
+                  <span class="section-kicker">Curva Financeira</span>
+                  <h3 class="section-heading">Comparativo mensal por vencimento</h3>
+                </div>
               </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <div class="comparacao-card">
-                <span class="comparacao-label">Simulação da Proposta</span>
-                <span class="comparacao-valor">
-                  {{ p.comparacao.valorSimulacao | currency:'BRL':'symbol':'1.2-2' }}
-                </span>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-                <div class="comparacao-card" [ngClass]="p.comparacao.possuiAlteracoes ? 'comparacao-diferenca' : 'comparacao-ok'">
-                  <span class="comparacao-label">Diferença</span>
-                  <span class="comparacao-valor">
-                    {{ getDiferenca() | currency:'BRL':'symbol':'1.2-2' }}
+            </ng-template>
+
+            <div class="grafico-section">
+              <div class="grafico-header-row">
+                <div class="grafico-legenda">
+                  <span class="legenda-item">
+                    <span class="legenda-cor legenda-limite"></span>
+                    Tabela Padrão
                   </span>
-                  <span class="comparacao-percentual" *ngIf="p.comparacao.possuiAlteracoes">
-                    ({{ p.comparacao.percentualDiferenca | number:'1.2-2' }}%)
-                </span>
+                  <span class="legenda-item">
+                    <span class="legenda-cor legenda-proposta"></span>
+                    Simulação
+                  </span>
+                  <span class="legenda-item">
+                    <span class="legenda-cor legenda-diferenca"></span>
+                    Divergência
+                  </span>
+                </div>
+                <button pButton type="button" class="p-button-text p-button-sm p-button-rounded grafico-expandir" icon="pi pi-window-maximize" (click)="abrirDialogGrafico()"></button>
+              </div>
+              <div class="grafico-wrapper grafico-wrapper-tall">
+                <p-chart type="line" [data]="graficoData" [options]="graficoOptions" height="360px"></p-chart>
               </div>
             </div>
-          </div>
-        </p-card>
+          </p-card>
 
-        <!-- Card: Simulação da Proposta -->
-        <p-card styleClass="mb-3" *ngIf="p.simulacaoProposta">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-file-edit card-header-icon"></i>
-              <span>Simulação da Proposta</span>
+          <p-dialog
+            header="Comparativo Mensal por Vencimento"
+            [(visible)]="exibirDialogGrafico"
+            [modal]="true"
+            [maximizable]="true"
+            [style]="{ width: '92vw' }"
+            [breakpoints]="{ '1200px': '95vw', '640px': '98vw' }"
+            styleClass="grafico-modal">
+            <div class="grafico-modal-body">
+              <div class="grafico-legenda mb-3">
+                <span class="legenda-item">
+                  <span class="legenda-cor legenda-limite"></span>
+                  Tabela Padrão
+                </span>
+                <span class="legenda-item">
+                  <span class="legenda-cor legenda-proposta"></span>
+                  Simulação
+                </span>
+                <span class="legenda-item">
+                  <span class="legenda-cor legenda-diferenca"></span>
+                  Divergência
+                </span>
+              </div>
+              <div class="grafico-wrapper grafico-wrapper-modal">
+                <p-chart type="line" [data]="graficoData" [options]="graficoOptions" height="100%"></p-chart>
+              </div>
             </div>
-          </ng-template>
+          </p-dialog>
 
-          <div class="grid mb-2" *ngIf="p.simulacaoProposta.resumo">
-            <div class="col-12 md:col-4">
-              <div class="info-item">
-                <span class="info-label">Valor do Ato</span>
-                <span class="info-value">
-                  {{ p.simulacaoProposta.resumo.valorAto | currency:'BRL':'symbol':'1.2-2' }}
-                </span>
+          <p-card styleClass="mb-3 card-flat" *ngIf="validacoesVioladasExibicao?.length">
+            <ng-template pTemplate="header">
+              <div class="card-header-clean danger-header">
+                <div>
+                  <span class="section-kicker">Validações de Negócio</span>
+                  <h3 class="section-heading">Somente regras violadas</h3>
+                </div>
               </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <div class="info-item">
-                <span class="info-label">Valor Mínimo do Ato</span>
-                <span class="info-value">
-                  {{ p.simulacaoProposta.resumo.valorMinimoAto | currency:'BRL':'symbol':'1.2-2' }}
-                </span>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <div class="info-item">
-                <span class="info-label">Valor Total</span>
-                <span class="info-value destaque">
-                  {{ p.simulacaoProposta.resumo.valorTotal | currency:'BRL':'symbol':'1.2-2' }}
-                </span>
-              </div>
-            </div>
-          </div>
+            </ng-template>
 
-          <!-- Componentes da Simulação -->
-          <div *ngIf="p.simulacaoProposta.componentes?.length">
-            <p-divider></p-divider>
-            <h4 class="componentes-title">Componentes</h4>
-            <div class="componentes-lista">
-              <div
-                *ngFor="let comp of p.simulacaoProposta.componentes"
-                class="componente-item">
-                <div class="grid align-items-center">
-                  <div class="col-12 md:col-5">
-                    <span class="componente-nome">{{ comp.nomeComponente }}</span>
-                  </div>
-                  <div class="col-6 md:col-2 text-center">
-                    <span class="componente-info">{{ comp.quantidade }}x</span>
-                  </div>
-                  <div class="col-6 md:col-2 text-center">
-                    <span class="componente-info">
-                      {{ comp.valorParcela | currency:'BRL':'symbol':'1.2-2' }}
-                    </span>
-                  </div>
-                  <div class="col-12 md:col-3 text-right">
-                    <span class="componente-total">
-                      {{ comp.valorTotal | currency:'BRL':'symbol':'1.2-2' }}
-                    </span>
-                  </div>
+            <div class="table-shell table-shell-danger">
+              <div class="table-toolbar">
+                <div>
+                  <span class="table-toolbar-kicker">Regras críticas</span>
+                  <strong class="table-toolbar-title">{{ validacoesVioladasExibicao.length }} validações exigem atenção</strong>
+                </div>
+                <div class="table-toolbar-metrics">
+                  <span class="toolbar-chip toolbar-chip-danger">{{ validacoesVioladasExibicao.length }} violadas</span>
+                  <span class="toolbar-chip" *ngIf="getTotalValidacoesBloqueantes()">
+                    {{ getTotalValidacoesBloqueantes() }} bloqueantes
+                  </span>
+                </div>
+              </div>
+
+              <p-table [value]="validacoesVioladasExibicao" styleClass="p-datatable-sm modern-table validacoes-table" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 80px" class="text-center">Status</th>
+                    <th style="width: 180px">Regra</th>
+                    <th style="width: 160px" class="text-right">Calculado</th>
+                    <th style="width: 160px" class="text-right">Limite</th>
+                    <th>Mensagem</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-validacao>
+                  <tr [ngClass]="getClasseValidacao(validacao)">
+                    <td class="text-center">
+                      <span class="status-indicator" [ngClass]="getClasseValidacao(validacao)">
+                        <i [class]="getIconeValidacao(validacao)"></i>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="validacao-regra">{{ formatarRegraValidacao(validacao.regra) }}</div>
+                      <small *ngIf="validacao.bloqueante" class="validacao-bloqueante">Bloqueia aprovação automática</small>
+                    </td>
+                    <td class="text-right">{{ formatarValorValidacao(validacao.valorEncontrado, validacao) }}</td>
+                    <td class="text-right">{{ formatarValorValidacao(validacao.valorEsperado, validacao) }}</td>
+                    <td>{{ validacao.mensagem }}</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </p-card>
+
+          <p-card styleClass="mb-3 card-flat" *ngIf="p.observacoes">
+            <ng-template pTemplate="header">
+              <div class="card-header-clean">
+                <div>
+                  <span class="section-kicker">Observações</span>
+                  <h3 class="section-heading">Anotações registradas na proposta</h3>
+                </div>
+              </div>
+            </ng-template>
+            <p class="observacoes-texto">{{ p.observacoes }}</p>
+          </p-card>
+        </div>
+
+        <aside class="analise-sidebar">
+          <p-card styleClass="mb-3 card-flat sidebar-card">
+            <ng-template pTemplate="header">
+              <div class="card-header-clean compact-header">
+                <div>
+                  <span class="section-kicker">Status da Análise</span>
+                  <h3 class="section-heading">Próxima ação do analista</h3>
+                </div>
+              </div>
+            </ng-template>
+
+            <div class="status-panel">
+              <div class="status-badge-wrapper">
+                <p-tag
+                  [value]="getStatusLabel(p.status)"
+                  [severity]="getStatusSeverity(p.status)"
+                  styleClass="status-tag-lg">
+                </p-tag>
+              </div>
+
+              <div class="status-info-list">
+                <div class="status-info-item">
+                  <span class="info-label">Data da proposta</span>
+                  <span class="info-value">{{ p.dataProposta | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="status-info-item" *ngIf="p.dataSolicitacaoAnalise">
+                  <span class="info-label">Solicitada em</span>
+                  <span class="info-value">{{ p.dataSolicitacaoAnalise | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="status-info-item" *ngIf="p.usuarioCriacao">
+                  <span class="info-label">Criada por</span>
+                  <span class="info-value">{{ p.usuarioCriacao }}</span>
                 </div>
               </div>
             </div>
-          </div>
-        </p-card>
 
-        <!-- Card: Validações -->
-        <p-card styleClass="mb-3" *ngIf="p.validacoes?.length">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-exclamation-triangle card-header-icon text-warning"></i>
-              <span>Validações de Negócio</span>
-            </div>
-          </ng-template>
+            <div class="acoes-analise mt-4" *ngIf="p.status === 'AGUARDANDO_ANALISE' || p.status === 'EM_ANALISE'">
+              <p-divider></p-divider>
 
-          <div class="validacoes-lista">
-            <div
-              *ngFor="let v of p.validacoes"
-              class="validacao-item"
-              [ngClass]="'validacao-' + (v.nivel?.toLowerCase() || 'info')">
-              <i class="pi"
-                [class.pi-times-circle]="v.nivel === 'ERRO'"
-                [class.pi-exclamation-triangle]="v.nivel === 'ALERTA'"
-                [class.pi-info-circle]="v.nivel === 'INFO' || !v.nivel">
-              </i>
-              <span>{{ v.mensagem }}</span>
-            </div>
-          </div>
-        </p-card>
+              <div *ngIf="p.status === 'AGUARDANDO_ANALISE'">
+                <p class="acao-instrucao">
+                  <i class="pi pi-info-circle"></i>
+                  Assuma esta proposta para iniciar a análise.
+                </p>
+                <button
+                  pButton
+                  icon="pi pi-play"
+                  label="Iniciar Análise"
+                  class="w-full"
+                  [disabled]="processando"
+                  (click)="iniciarAnalise()">
+                </button>
+              </div>
 
-        <!-- Observações da proposta -->
-        <p-card styleClass="mb-3" *ngIf="p.observacoes">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-comment card-header-icon"></i>
-              <span>Observações</span>
-            </div>
-          </ng-template>
-          <p class="observacoes-texto">{{ p.observacoes }}</p>
-        </p-card>
-
-      </div>
-
-      <!-- Coluna direita: painel de status e ações -->
-      <div class="col-12 lg:col-4">
-
-        <!-- Card: Status da Análise -->
-        <p-card styleClass="mb-3">
-          <ng-template pTemplate="header">
-            <div class="card-header-custom">
-              <i class="pi pi-info-circle card-header-icon"></i>
-              <span>Status da Análise</span>
-            </div>
-          </ng-template>
-
-          <div class="status-panel">
-            <div class="status-badge-wrapper">
-              <p-tag
-                [value]="getStatusLabel(p.status)"
-                [severity]="getStatusSeverity(p.status)"
-                styleClass="status-tag-lg">
-              </p-tag>
-            </div>
-
-            <div class="info-item mt-3" *ngIf="p.dataSolicitacaoAnalise">
-              <span class="info-label">Solicitado em</span>
-              <span class="info-value">
-                {{ p.dataSolicitacaoAnalise | date:'dd/MM/yyyy HH:mm' }}
-              </span>
-            </div>
-
-            <div class="info-item mt-2" *ngIf="p.usuarioSolicitacaoAnalise">
-              <span class="info-label">Solicitado por</span>
-              <span class="info-value">{{ p.usuarioSolicitacaoAnalise }}</span>
-            </div>
-
-            <div class="info-item mt-2">
-              <span class="info-label">Data da Proposta</span>
-              <span class="info-value">{{ p.dataProposta | date:'dd/MM/yyyy' }}</span>
-            </div>
-          </div>
-
-          <!-- Ações de análise -->
-          <div class="acoes-analise mt-4" *ngIf="p.status === 'AGUARDANDO_ANALISE' || p.status === 'EM_ANALISE'">
-            <p-divider></p-divider>
-
-            <!-- Iniciar Análise -->
-            <div *ngIf="p.status === 'AGUARDANDO_ANALISE'">
-              <p class="acao-instrucao">
-                <i class="pi pi-info-circle"></i>
-                Clique em <strong>Iniciar Análise</strong> para assumir a análise desta proposta.
-              </p>
-              <button
-                pButton
-                icon="pi pi-play"
-                label="Iniciar Análise"
-                class="w-full"
-                [disabled]="processando"
-                (click)="iniciarAnalise()">
-              </button>
-            </div>
-
-            <!-- Aprovar / Reprovar -->
-            <div *ngIf="p.status === 'EM_ANALISE'">
-              <p class="acao-instrucao">
-                <i class="pi pi-info-circle"></i>
-                Analise os dados e registre sua decisão.
-              </p>
-              <div class="grid">
-                <div class="col-12">
+              <div *ngIf="p.status === 'EM_ANALISE'">
+                <p class="acao-instrucao">
+                  <i class="pi pi-info-circle"></i>
+                  Revise a simulação, valide as violações e conclua a decisão.
+                </p>
+                <div class="action-stack">
                   <button
                     pButton
                     icon="pi pi-check"
                     label="Aprovar"
-                    class="p-button-success w-full mb-2"
+                    class="p-button-success w-full"
                     [disabled]="processando"
                     (click)="confirmarAprovacao()">
                   </button>
-                </div>
-                <div class="col-12">
                   <button
                     pButton
                     icon="pi pi-times"
@@ -344,41 +476,32 @@
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Status final -->
-          <div class="status-final mt-3" *ngIf="p.status === 'APROVADA' || p.status === 'REPROVADA'">
-            <p-divider></p-divider>
-            <p class="text-center text-color-secondary">
-              <i class="pi"
-                [class.pi-check-circle]="p.status === 'APROVADA'"
-                [class.pi-times-circle]="p.status === 'REPROVADA'">
-              </i>
-              Proposta já foi
-              <strong [class.text-green-600]="p.status === 'APROVADA'" [class.text-red-600]="p.status === 'REPROVADA'">
-                {{ p.status === 'APROVADA' ? 'aprovada' : 'reprovada' }}
-              </strong>.
-            </p>
-          </div>
-        </p-card>
+            <div class="status-final mt-3" *ngIf="p.status === 'APROVADA' || p.status === 'REPROVADA'">
+              <p-divider></p-divider>
+              <p class="text-center text-color-secondary">
+                <i class="pi" [class.pi-check-circle]="p.status === 'APROVADA'" [class.pi-times-circle]="p.status === 'REPROVADA'"></i>
+                Proposta já foi
+                <strong [class.text-green-600]="p.status === 'APROVADA'" [class.text-red-600]="p.status === 'REPROVADA'">
+                  {{ p.status === 'APROVADA' ? 'aprovada' : 'reprovada' }}
+                </strong>.
+              </p>
+            </div>
+          </p-card>
 
-        <!-- Botão Voltar -->
-        <button
-          pButton
-          icon="pi pi-arrow-left"
-          label="Voltar para a Fila"
-          class="p-button-outlined w-full"
-          (click)="voltar()">
-        </button>
-
+          <button
+            pButton
+            icon="pi pi-arrow-left"
+            label="Voltar para a Fila"
+            class="p-button-outlined w-full"
+            (click)="voltar()">
+          </button>
+        </aside>
       </div>
-    </div>
     </ng-container>
   </ng-container>
-
 </div>
 
-<!-- Dialog: Reprovar Proposta -->
 <p-dialog
   header="Reprovar Proposta"
   [(visible)]="exibirDialogReprovacao"
@@ -391,7 +514,7 @@
   <div class="p-3">
     <p class="mb-3 text-color-secondary">
       Informe o motivo da reprovação da proposta
-      <strong>{{ proposta?.numeroProposta }}</strong>.
+      <strong>{{ getNumeroPropostaDisplay() }}</strong>.
     </p>
 
     <app-input-textarea

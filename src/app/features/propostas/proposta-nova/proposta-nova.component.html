@@ -716,10 +716,15 @@
         <!-- Gráfico -->
         <div class="col-12 lg:col-7">
           <div class="grafico-section">
-            <h4 class="section-title">Curva Acumulada por Vencimento</h4>
-            <p class="section-description">
-              Compare a evolução do valor acumulado entre a Tabela Padrão e a Simulação ao longo das datas de vencimento.
-            </p>
+            <div class="grafico-header-row">
+              <div>
+                <h4 class="section-title">Comparativo Mensal por Vencimento</h4>
+                <p class="section-description">
+                  Compare a soma das parcelas previstas em cada mês entre a Tabela Padrão e a Simulação.
+                </p>
+              </div>
+              <button pButton type="button" class="p-button-text p-button-sm p-button-rounded grafico-expandir" icon="pi pi-window-maximize" (click)="abrirDialogGrafico()"></button>
+            </div>
             <div class="grafico-legenda">
               <span class="legenda-item">
                 <span class="legenda-cor legenda-limite"></span>
@@ -729,12 +734,45 @@
                 <span class="legenda-cor legenda-proposta"></span>
                 Simulação
               </span>
+              <span class="legenda-item">
+                <span class="legenda-cor legenda-diferenca"></span>
+                Divergência
+              </span>
             </div>
             <div class="grafico-wrapper">
               <p-chart type="line" [data]="graficoData" [options]="graficoOptions" height="300px"></p-chart>
             </div>
           </div>
         </div>
+
+        <p-dialog
+          header="Comparativo Mensal por Vencimento"
+          [(visible)]="exibirDialogGrafico"
+          [modal]="true"
+          [maximizable]="true"
+          [style]="{ width: '92vw' }"
+          [breakpoints]="{ '1200px': '95vw', '640px': '98vw' }"
+          styleClass="grafico-modal">
+          <div class="grafico-modal-body">
+            <div class="grafico-legenda mb-3">
+              <span class="legenda-item">
+                <span class="legenda-cor legenda-limite"></span>
+                Tabela Padrão
+              </span>
+              <span class="legenda-item">
+                <span class="legenda-cor legenda-proposta"></span>
+                Simulação
+              </span>
+              <span class="legenda-item">
+                <span class="legenda-cor legenda-diferenca"></span>
+                Divergência
+              </span>
+            </div>
+            <div class="grafico-wrapper grafico-wrapper-modal">
+              <p-chart type="line" [data]="graficoData" [options]="graficoOptions" height="100%"></p-chart>
+            </div>
+          </div>
+        </p-dialog>
 
         <!-- Comparação -->
         <div class="col-12 lg:col-5">
@@ -783,12 +821,12 @@
 
     <div class="proposta-footer-actions">
       <app-custom-button
-        label="Limpar"
-        icon="pi pi-eraser"
+        label="Cancelar"
+        icon="pi pi-times"
         severity="secondary"
         [outlined]="true"
         [disabled]="salvando || finalizando || excluindo"
-        (onClick)="limparDadosInformados()">
+        (onClick)="confirmarCancelamento()">
       </app-custom-button>
 
       <app-custom-button
@@ -805,6 +843,7 @@
       </app-custom-button>
 
       <app-custom-button
+        *ngIf="podeExibirBotaoFinalizar"
         label="Finalizar Proposta"
         icon="pi pi-check"
         severity="primary"

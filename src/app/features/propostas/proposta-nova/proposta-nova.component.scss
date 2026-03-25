@@ -1528,18 +1528,64 @@
         border-radius: 3px;
 
         &.legenda-limite {
-          background: #64748b;
+          background: #2563eb;
         }
 
         &.legenda-proposta {
-          background: #667eea;
+          background: #16a34a;
+        }
+
+        &.legenda-diferenca {
+          background: #dc2626;
         }
       }
     }
   }
 
+  .grafico-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  :host ::ng-deep .grafico-expandir.p-button {
+    padding: 0.15rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+
+  :host ::ng-deep .grafico-expandir.p-button:hover,
+  :host ::ng-deep .grafico-expandir.p-button:focus,
+  :host ::ng-deep .grafico-expandir.p-button:active {
+    border: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+
+  :host ::ng-deep .grafico-expandir.p-button .pi {
+    font-size: 1.2rem;
+    color: #000000 !important;
+  }
+
   .grafico-wrapper {
     height: 300px;
+  }
+
+  .grafico-wrapper-modal {
+    height: 72vh;
+  }
+
+  .grafico-modal-body {
+    padding-top: 0.5rem;
   }
 
   .comparacao-section {

@@ -61,6 +61,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   codigoComponenteAjusteDiferenca: string | null = null;
   opcoesAjusteDiferencaFiltradas: Array<{ label: string; value: string }> = [];
   ajusteDiferencaDialogVisible = false;
+  exibirDialogGrafico = false;
   readonly adicionarComponenteAutocompleteOverlayOptions = {
     styleClass: 'adicionar-componente-autocomplete-overlay',
     contentStyleClass: 'adicionar-componente-autocomplete-overlay-content',
@@ -138,6 +139,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   get modalidadeDescricao(): string {
     const modal: any = this.proposta?.modalidadeTabelaPadrao;
     return modal?.DESCRICAO ?? modal?.descricao ?? '';
+  }
+
+  get podeExibirBotaoFinalizar(): boolean {
+    const status = this.proposta?.status;
+
+    return status === PropostaStatus.APROVADA_AUTOMATICAMENTE
+      || status === PropostaStatus.APROVADA;
   }
 
   getGrupoComponenteLabel(grupo?: number | null): string {
@@ -676,6 +684,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   onQuantidadeChange(componente: ComponenteFormulario): void {
     this.simulacaoAlterada = true;
 
+    componente.quantidade = this.normalizarQuantidadeInformada(componente.quantidade);
+
     componente.valorTotal = this.calcularValorTotalComponente(componente.valorParcela, componente.quantidade);
     
     this.atualizarVencimentosComponente(componente);
@@ -787,12 +797,12 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   private calcularValorTotalComponente(valorParcela: number, quantidade: number): number {
-    const quantidadeSegura = Number.isFinite(quantidade) ? quantidade : 0;
+    const quantidadeSegura = this.normalizarQuantidadeInformada(quantidade, 0);
     return this.toDecimal(valorParcela).mul(quantidadeSegura).toNumber();
   }
 
   private dividirValorSemArredondar(valorTotal: number, quantidade: number): number {
-    const quantidadeSegura = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
+    const quantidadeSegura = this.normalizarQuantidadeInformada(quantidade);
     return this.truncarParaCentavos(this.toDecimal(valorTotal).div(quantidadeSegura)).toNumber();
   }
 
@@ -801,7 +811,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   private distribuirValorTotalEmParcelas(valorTotal: number, quantidade: number): number[] {
-    const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 1);
+    const quantidadeSegura = this.normalizarQuantidadeInformada(quantidade);
     const total = this.toDecimal(valorTotal).toDecimalPlaces(2);
 
     if (quantidadeSegura === 1) {
@@ -898,7 +908,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     valorTotal?: number
   ): import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] {
     const vencimentos: import('../../../core/models/proposta-simplificada.model').VencimentoDTO[] = [];
-    const quantidadeSegura = Math.max(Math.trunc(quantidade || 0), 0);
+    const quantidadeSegura = this.normalizarQuantidadeInformada(quantidade, 0);
     const valorTotalCalculado = valorTotal !== undefined
       ? this.toDecimal(valorTotal).toNumber()
       : this.calcularValorTotalComponente(valorParcela, quantidadeSegura);
@@ -939,6 +949,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Chamado quando usuário altera vencimento, quantidade ou periodicidade
    */
   atualizarVencimentosComponente(componente: ComponenteFormulario): void {
+    componente.quantidade = this.normalizarQuantidadeInformada(componente.quantidade, 0);
+
     if (!componente.vencimento || !componente.quantidade || componente.periodicidade === undefined) {
       componente.listaVencimentos = [];
       return;
@@ -951,6 +963,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       componente.valorParcela,
       componente.valorTotal
     );
+  }
+
+  private normalizarQuantidadeInformada(quantidade: number | string | null | undefined, fallback: number = 1): number {
+    const quantidadeNormalizada = Number(quantidade);
+
+    if (!Number.isFinite(quantidadeNormalizada)) {
+      return fallback;
+    }
+
+    return Math.max(Math.trunc(quantidadeNormalizada), fallback);
   }
 
   /**
@@ -2477,14 +2499,30 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         position: 'top' as const
       },
       tooltip: {
+        filter: (context: any) => context.dataset?.label !== 'Divergência',
         callbacks: {
           label: (context: any) => {
             const label = context.dataset?.label || '';
             const valor = Number(context.parsed?.y || 0);
             return `${label}: ${this.formatarMoeda(valor)}`;
+          },
+          afterBody: (items: any[]) => {
+            const dataIndex = items?.[0]?.dataIndex;
+            if (dataIndex === null || dataIndex === undefined) {
+              return [];
+            }
+
+            const diferenca = this.getDiferencaGraficoPorIndice(dataIndex);
+
+            if (diferenca === null) {
+              return [];
+            }
+
+            const direcao = diferenca > 0 ? 'simulação acima' : 'tabela padrão acima';
+            return [`Diferença: ${this.formatarMoeda(Math.abs(diferenca))} (${direcao})`];
           }
         }
-      }
+      },
     },
     scales: {
       y: {
@@ -2502,9 +2540,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   getGraficoData(): any {
     const parcelasTabelaPadrao = this.extrairParcelasTabelaPadrao();
     const parcelasSimulacao = this.extrairParcelasSimulacao();
-    const chaves = this.gerarChavesMeses(parcelasTabelaPadrao, parcelasSimulacao);
-    const serieTabelaPadrao = this.construirSerieAcumulada(parcelasTabelaPadrao, chaves);
-    const serieSimulacao = this.construirSerieAcumulada(parcelasSimulacao, chaves);
+    const intervaloProposta = this.obterIntervaloMesesProposta(parcelasSimulacao, parcelasTabelaPadrao);
+    const chaves = this.gerarChavesMeses(intervaloProposta);
+    const serieTabelaPadrao = this.construirSerieMensal(parcelasTabelaPadrao, chaves, intervaloProposta);
+    const serieSimulacao = this.construirSerieMensal(parcelasSimulacao, chaves, intervaloProposta);
+    const marcadoresDiferenca = this.construirMarcadoresDiferenca(serieTabelaPadrao, serieSimulacao);
     const labels = this.gerarLabelsAcumulados(chaves);
 
     return {
@@ -2513,8 +2553,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         {
           label: 'Tabela Padrão',
           data: serieTabelaPadrao,
-          borderColor: '#64748b',
-          backgroundColor: 'rgba(100, 116, 139, 0.12)',
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.12)',
           borderDash: [5, 5],
           fill: false,
           pointRadius: 3,
@@ -2524,12 +2564,25 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         {
           label: 'Simulação',
           data: serieSimulacao,
-          borderColor: '#667eea',
-          backgroundColor: 'rgba(102, 126, 234, 0.16)',
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22, 163, 74, 0.16)',
           fill: true,
           pointRadius: 3,
           pointHoverRadius: 5,
           tension: 0.25
+        },
+        {
+          label: 'Divergência',
+          data: marcadoresDiferenca,
+          borderColor: '#dc2626',
+          backgroundColor: '#dc2626',
+          pointBackgroundColor: '#dc2626',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 6,
+          showLine: false,
+          fill: false
         }
       ]
     };
@@ -2537,6 +2590,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   private atualizarGrafico(): void {
     this.graficoData = this.getGraficoData();
+  }
+
+  abrirDialogGrafico(): void {
+    this.exibirDialogGrafico = true;
   }
 
   private gerarLabelsAcumulados(chaves: string[]): string[] {
@@ -2616,7 +2673,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return parcelas;
   }
 
-  private construirSerieAcumulada(parcelas: Array<{ data: Date; valor: number }>, chavesBase: string[]): number[] {
+  private construirSerieMensal(
+    parcelas: Array<{ data: Date; valor: number }>,
+    chavesBase: string[],
+    intervalo?: { inicio: Date; fim: Date } | null
+  ): number[] {
     if (!chavesBase.length) {
       return [0];
     }
@@ -2628,38 +2689,24 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         return;
       }
 
+       if (intervalo && !this.estaDentroDoIntervaloMensal(parcela.data, intervalo)) {
+        return;
+      }
+
       const chave = `${parcela.data.getFullYear()}-${String(parcela.data.getMonth() + 1).padStart(2, '0')}`;
       valoresPorMes.set(chave, (valoresPorMes.get(chave) ?? 0) + parcela.valor);
     });
-    let acumulado = 0;
-
-    return chavesBase.map(chave => {
-      acumulado += valoresPorMes.get(chave) ?? 0;
-      return Number(acumulado.toFixed(2));
-    });
+    return chavesBase.map(chave => Number(((valoresPorMes.get(chave) ?? 0)).toFixed(2)));
   }
 
-  private gerarChavesMeses(
-    parcelasTabelaPadrao: Array<{ data: Date; valor: number }>,
-    parcelasSimulacao: Array<{ data: Date; valor: number }>
-  ): string[] {
-    const todasParcelas = [...parcelasTabelaPadrao, ...parcelasSimulacao]
-      .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
-      .sort((a, b) => a.data.getTime() - b.data.getTime());
-
-    if (!todasParcelas.length) {
+  private gerarChavesMeses(intervalo: { inicio: Date; fim: Date } | null): string[] {
+    if (!intervalo) {
       return [];
     }
 
-    const primeiraData = new Date(todasParcelas[0].data.getFullYear(), todasParcelas[0].data.getMonth(), 1);
-    const ultimaData = new Date(
-      todasParcelas[todasParcelas.length - 1].data.getFullYear(),
-      todasParcelas[todasParcelas.length - 1].data.getMonth(),
-      1
-    );
-
     const chaves: string[] = [];
-    const cursor = new Date(primeiraData);
+    const cursor = new Date(intervalo.inicio);
+    const ultimaData = new Date(intervalo.fim);
 
     while (cursor <= ultimaData) {
       chaves.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`);
@@ -2667,6 +2714,54 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return chaves;
+  }
+
+  private obterIntervaloMesesProposta(
+    parcelasSimulacao: Array<{ data: Date; valor: number }>,
+    parcelasTabelaPadrao: Array<{ data: Date; valor: number }>
+  ): { inicio: Date; fim: Date } | null {
+    const base = parcelasSimulacao.length ? parcelasSimulacao : parcelasTabelaPadrao;
+    const parcelasOrdenadas = base
+      .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
+      .sort((a, b) => a.data.getTime() - b.data.getTime());
+
+    if (!parcelasOrdenadas.length) {
+      return null;
+    }
+
+    const primeira = parcelasOrdenadas[0].data;
+    const ultima = parcelasOrdenadas[parcelasOrdenadas.length - 1].data;
+
+    return {
+      inicio: new Date(primeira.getFullYear(), primeira.getMonth(), 1),
+      fim: new Date(ultima.getFullYear(), ultima.getMonth(), 1)
+    };
+  }
+
+  private estaDentroDoIntervaloMensal(data: Date, intervalo: { inicio: Date; fim: Date }): boolean {
+    const dataMes = new Date(data.getFullYear(), data.getMonth(), 1);
+    return dataMes >= intervalo.inicio && dataMes <= intervalo.fim;
+  }
+
+  private construirMarcadoresDiferenca(serieTabelaPadrao: number[], serieSimulacao: number[]): Array<number | null> {
+    return serieTabelaPadrao.map((valorTabelaPadrao, index) => {
+      const valorSimulacao = serieSimulacao[index] ?? 0;
+      const possuiDiferenca = Math.abs(valorTabelaPadrao - valorSimulacao) > 0.009;
+
+      if (!possuiDiferenca) {
+        return null;
+      }
+
+      return Number(Math.max(valorTabelaPadrao, valorSimulacao).toFixed(2));
+    });
+  }
+
+  private getDiferencaGraficoPorIndice(indice: number): number | null {
+    const tabelaPadrao = Number(this.graficoData?.datasets?.[0]?.data?.[indice] ?? 0);
+    const simulacao = Number(this.graficoData?.datasets?.[1]?.data?.[indice] ?? 0);
+    const diferenca = Number((simulacao - tabelaPadrao).toFixed(2));
+
+    return Math.abs(diferenca) > 0.009 ? diferenca : null;
   }
 
   private formatarMesAno(chave: string): string {
@@ -2682,6 +2777,27 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   /**
    * Navega de volta para a lista
    */
+  confirmarCancelamento(): void {
+    this.appConfirmationService.confirmCustom(
+      'Cancelar edição',
+      'Deseja cancelar e voltar para a listagem de propostas? As alterações não salvas serão perdidas.',
+      {
+        severity: 'warning',
+        icon: 'pi pi-exclamation-triangle',
+        confirmLabel: 'Cancelar proposta',
+        cancelLabel: 'Continuar editando'
+      }
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.voltar();
+      });
+  }
+
   voltar(): void {
     this.router.navigate(['/propostas/lista']);
   }
