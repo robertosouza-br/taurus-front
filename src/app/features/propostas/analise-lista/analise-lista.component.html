@@ -1,0 +1,71 @@
+<div class="lista-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Fila de Análise"
+    subtitle="Propostas aguardando ou em processo de análise"
+    icon="pi pi-clipboard"
+    [actions]="[]">
+  </app-page-header>
+
+  <!-- Filtro de Status -->
+  <div class="filtro-status-container mt-3 mb-2">
+    <div class="grid align-items-center">
+      <div class="col-12 md:col-auto">
+        <label class="filtro-label">Filtrar por status:</label>
+      </div>
+      <div class="col-12 md:col-4 lg:col-3">
+        <p-dropdown
+          [(ngModel)]="filtroStatus"
+          [options]="statusOpcoes"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos os status"
+          [style]="{ width: '100%' }"
+          (onChange)="onFiltroStatusChange()">
+        </p-dropdown>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela da Fila -->
+  <app-data-table
+    [data]="propostas"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRegistros"
+    [loading]="carregando"
+    [lazy]="true"
+    [rows]="itensPorPagina"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    emptyMessage="Nenhuma proposta encontrada na fila de análise"
+    (onLazyLoad)="onLazyLoad($event)"
+    (onSearch)="onBuscar($event)">
+
+    <!-- Template para Status -->
+    <ng-template appTableTemplate="status" let-item="rowData">
+      <p-tag
+        [value]="getStatusLabel(item.status)"
+        [severity]="getStatusSeverity(item.status)">
+      </p-tag>
+    </ng-template>
+
+    <!-- Template para CPF/CNPJ -->
+    <ng-template appTableTemplate="cpfCnpj" let-item="rowData">
+      {{ formatarCpfCnpj(item.cpfCnpjCliente) }}
+    </ng-template>
+
+    <!-- Template para Data Solicitação -->
+    <ng-template appTableTemplate="dataSolicitacao" let-item="rowData">
+      <span *ngIf="item.dataSolicitacaoAnalise; else semData">
+        {{ item.dataSolicitacaoAnalise | date:'dd/MM/yyyy HH:mm' }}
+      </span>
+      <ng-template #semData>
+        <span class="text-color-secondary">-</span>
+      </ng-template>
+    </ng-template>
+
+  </app-data-table>
+</div>

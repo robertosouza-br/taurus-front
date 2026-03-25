@@ -787,7 +787,7 @@
         icon="pi pi-eraser"
         severity="secondary"
         [outlined]="true"
-        [disabled]="salvando || excluindo"
+        [disabled]="salvando || finalizando || excluindo"
         (onClick)="limparDadosInformados()">
       </app-custom-button>
 
@@ -800,8 +800,18 @@
         confirmationMessage="a proposta atual"
         [outlined]="true"
         [loading]="excluindo"
-        [disabled]="salvando"
+        [disabled]="salvando || finalizando"
         (onClick)="excluirProposta()">
+      </app-custom-button>
+
+      <app-custom-button
+        label="Finalizar Proposta"
+        icon="pi pi-check"
+        severity="primary"
+        [outlined]="true"
+        [loading]="finalizando"
+        [disabled]="salvando || excluindo"
+        (onClick)="finalizarProposta()">
       </app-custom-button>
 
       <app-custom-button
@@ -809,7 +819,7 @@
         icon="pi pi-save"
         severity="success"
         [loading]="salvando"
-        [disabled]="excluindo"
+        [disabled]="excluindo || finalizando"
         (onClick)="salvar()">
       </app-custom-button>
     </div>

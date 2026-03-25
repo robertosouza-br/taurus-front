@@ -33,6 +33,25 @@ const routes: Routes = [
           permissoes: [Permissao.INCLUIR]
         }
       },
+      // Fila de Análise de Propostas
+      {
+        path: 'analise',
+        data: {
+          funcionalidade: Funcionalidade.PROPOSTA,
+          permissoes: [Permissao.APROVAR, Permissao.REPROVAR],
+          qualquerPermissao: true
+        },
+        children: [
+          {
+            path: '',
+            loadChildren: () => import('./analise-lista/analise-lista.module').then(m => m.AnaliseListaModule)
+          },
+          {
+            path: ':id',
+            loadChildren: () => import('./analise-detalhe/analise-detalhe.module').then(m => m.AnaliseDetalheModule)
+          }
+        ]
+      },
       // Compatibilidade com rotas antigas - redirecionam para nova rota unificada
       {
         path: 'step1',

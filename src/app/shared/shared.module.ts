@@ -30,6 +30,7 @@ import { MessageModule } from 'primeng/message';
 import { StepsModule } from 'primeng/steps';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AccordionModule } from 'primeng/accordion';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -68,6 +69,7 @@ import { UnidadeDetalhesDialogComponent } from './components/unidade-detalhes-di
 import { MultiSelectComponent } from './components/multi-select/multi-select.component';
 import { UploadArquivosComponent } from './components/upload-arquivos/upload-arquivos.component';
 import { CountdownTimerComponent } from './components/countdown-timer/countdown-timer.component';
+import { PropostaStatusCardComponent } from './components/proposta-status-card/proposta-status-card.component';
 import { CalendarModule } from 'primeng/calendar';
 
 /**
@@ -111,6 +113,7 @@ import { CalendarModule } from 'primeng/calendar';
     UnidadeDetalhesDialogComponent,
     MultiSelectComponent,
     UploadArquivosComponent,
+    PropostaStatusCardComponent,
     CountdownTimerComponent
   ],
   imports: [
@@ -144,6 +147,7 @@ import { CalendarModule } from 'primeng/calendar';
     MessageModule,
     StepsModule,
     InputNumberModule,
+    ProgressSpinnerModule,
     AccordionModule,
     ImageCropperComponent
   ],
@@ -183,6 +187,7 @@ import { CalendarModule } from 'primeng/calendar';
     SearchFilterComponent,
     UnidadeDetalhesDialogComponent,
     MultiSelectComponent,
+    PropostaStatusCardComponent,
     UploadArquivosComponent,
     CountdownTimerComponent,
     // PrimeNG modules necessários pelos componentes
@@ -205,6 +210,7 @@ import { CalendarModule } from 'primeng/calendar';
     ButtonModule,
     InputTextModule,
     StepsModule,
+    ProgressSpinnerModule,
     InputNumberModule,
     AccordionModule,
     // Image Cropper (componente standalone)

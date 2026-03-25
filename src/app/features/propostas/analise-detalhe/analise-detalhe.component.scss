@@ -1,0 +1,218 @@
+.detalhe-container {
+  padding: 0 0.5rem;
+}
+
+/* Cards */
+:host ::ng-deep .p-card .p-card-body {
+  padding: 1rem 1.25rem;
+}
+
+.card-header-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--surface-section, #f8f9fa);
+  border-bottom: 1px solid var(--surface-border, #e0e0e0);
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  color: var(--text-color, #333);
+}
+
+.card-header-icon {
+  font-size: 1rem;
+  color: var(--primary-color, #3b82f6);
+}
+
+/* Itens de informação */
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-color-secondary, #6c757d);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: var(--text-color, #333);
+}
+
+.info-value.destaque {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+}
+
+/* Comparação Financeira */
+.comparacao-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface-section, #f8f9fa);
+  border: 1px solid var(--surface-border, #e0e0e0);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.comparacao-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-color-secondary, #6c757d);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.comparacao-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color, #333);
+}
+
+.comparacao-percentual {
+  font-size: 0.8rem;
+  color: var(--orange-500, #f97316);
+  margin-top: 0.2rem;
+}
+
+.comparacao-diferenca {
+  border-color: var(--orange-200, #fed7aa);
+  background: var(--orange-50, #fff7ed);
+}
+
+.comparacao-diferenca .comparacao-valor {
+  color: var(--orange-600, #ea580c);
+}
+
+.comparacao-ok {
+  border-color: var(--green-200, #bbf7d0);
+  background: var(--green-50, #f0fdf4);
+}
+
+.comparacao-ok .comparacao-valor {
+  color: var(--green-600, #16a34a);
+}
+
+/* Componentes */
+.componentes-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color-secondary, #6c757d);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.componentes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.componente-item {
+  background: var(--surface-ground, #f4f6f8);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+}
+
+.componente-nome {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.componente-info {
+  font-size: 0.88rem;
+  color: var(--text-color-secondary, #6c757d);
+}
+
+.componente-total {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--primary-color, #3b82f6);
+}
+
+/* Validações */
+.validacoes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.validacao-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.validacao-erro {
+  background: var(--red-50, #fef2f2);
+  border-left: 3px solid var(--red-500, #ef4444);
+  color: var(--red-700, #b91c1c);
+}
+
+.validacao-alerta {
+  background: var(--yellow-50, #fefce8);
+  border-left: 3px solid var(--yellow-500, #eab308);
+  color: var(--yellow-700, #a16207);
+}
+
+.validacao-info {
+  background: var(--blue-50, #eff6ff);
+  border-left: 3px solid var(--blue-500, #3b82f6);
+  color: var(--blue-700, #1d4ed8);
+}
+
+/* Observações */
+.observacoes-texto {
+  margin: 0;
+  color: var(--text-color, #333);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Painel lateral de Status */
+.status-panel {
+  text-align: center;
+}
+
+.status-badge-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 0;
+}
+
+:host ::ng-deep .status-tag-lg.p-tag {
+  font-size: 0.9rem;
+  padding: 0.4rem 1rem;
+}
+
+.acao-instrucao {
+  font-size: 0.88rem;
+  color: var(--text-color-secondary, #6c757d);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  line-height: 1.5;
+}
+
+.text-warning {
+  color: var(--yellow-500, #eab308) !important;
+}
+
+/* Responsivo mobile */
+@media (max-width: 576px) {
+  .comparacao-card {
+    margin-bottom: 0.5rem;
+  }
+}

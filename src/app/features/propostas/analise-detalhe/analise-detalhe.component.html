@@ -1,0 +1,428 @@
+<div class="detalhe-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Loading -->
+  <app-loading-spinner *ngIf="carregando"></app-loading-spinner>
+
+  <ng-container *ngIf="!carregando">
+    <ng-container *ngIf="proposta as p">
+      <!-- Page Header -->
+      <app-page-header
+        [title]="'Proposta ' + p.numeroProposta"
+      subtitle="Análise e decisão da proposta"
+      icon="pi pi-clipboard"
+      [actions]="headerActions">
+
+      <!-- Status badge no header -->
+      <ng-container pageHeaderExtra>
+        <p-tag
+          class="ml-2"
+          [value]="getStatusLabel(p.status)"
+          [severity]="getStatusSeverity(p.status)">
+        </p-tag>
+      </ng-container>
+    </app-page-header>
+
+    <!-- Grid principal -->
+    <div class="grid mt-3">
+
+      <!-- Coluna esquerda: dados da proposta -->
+      <div class="col-12 lg:col-8">
+
+        <!-- Card: Empreendimento e Unidade -->
+        <p-card styleClass="mb-3">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-building card-header-icon"></i>
+              <span>Empreendimento e Unidade</span>
+            </div>
+          </ng-template>
+
+          <div class="grid">
+            <div class="col-12 md:col-6">
+              <div class="info-item">
+                <span class="info-label">Empreendimento</span>
+                <span class="info-value">{{ p.empreendimento.nomeEmpreendimento }}</span>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <div class="info-item">
+                <span class="info-label">Bloco</span>
+                <span class="info-value">{{ p.empreendimento.bloco || '-' }}</span>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <div class="info-item">
+                <span class="info-label">Unidade</span>
+                <span class="info-value">{{ p.empreendimento.unidade }}</span>
+              </div>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="info-item">
+                <span class="info-label">Tipologia</span>
+                <span class="info-value">{{ p.empreendimento.tipologia }}</span>
+              </div>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="info-item">
+                <span class="info-label">Valor da Unidade</span>
+                <span class="info-value destaque">
+                  {{ p.empreendimento.valorUnidade | currency:'BRL':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Card: Cliente -->
+        <p-card styleClass="mb-3">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-user card-header-icon"></i>
+              <span>Dados do Cliente</span>
+            </div>
+          </ng-template>
+
+          <div class="grid">
+            <div class="col-12 md:col-8">
+              <div class="info-item">
+                <span class="info-label">Nome</span>
+                <span class="info-value">{{ p.cliente.nomeCliente }}</span>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="info-item">
+                <span class="info-label">CPF / CNPJ</span>
+                <span class="info-value">{{ formatarCpfCnpj(p.cliente.cpfCnpjCliente) }}</span>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Card: Comparação Financeira -->
+        <p-card styleClass="mb-3" *ngIf="p.comparacao">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-chart-bar card-header-icon"></i>
+              <span>Comparação Financeira</span>
+              <p-tag
+                *ngIf="p.comparacao.possuiAlteracoes"
+                value="Com alterações"
+                severity="warning"
+                class="ml-auto">
+              </p-tag>
+              <p-tag
+                *ngIf="!p.comparacao.possuiAlteracoes"
+                value="Conforme tabela"
+                severity="success"
+                class="ml-auto">
+              </p-tag>
+            </div>
+          </ng-template>
+
+          <div class="grid">
+            <div class="col-12 md:col-4">
+              <div class="comparacao-card">
+                <span class="comparacao-label">Tabela Padrão</span>
+                <span class="comparacao-valor">
+                  {{ p.comparacao.valorTabelaPadrao | currency:'BRL':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="comparacao-card">
+                <span class="comparacao-label">Simulação da Proposta</span>
+                <span class="comparacao-valor">
+                  {{ p.comparacao.valorSimulacao | currency:'BRL':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+                <div class="comparacao-card" [ngClass]="p.comparacao.possuiAlteracoes ? 'comparacao-diferenca' : 'comparacao-ok'">
+                  <span class="comparacao-label">Diferença</span>
+                  <span class="comparacao-valor">
+                    {{ getDiferenca() | currency:'BRL':'symbol':'1.2-2' }}
+                  </span>
+                  <span class="comparacao-percentual" *ngIf="p.comparacao.possuiAlteracoes">
+                    ({{ p.comparacao.percentualDiferenca | number:'1.2-2' }}%)
+                </span>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Card: Simulação da Proposta -->
+        <p-card styleClass="mb-3" *ngIf="p.simulacaoProposta">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-file-edit card-header-icon"></i>
+              <span>Simulação da Proposta</span>
+            </div>
+          </ng-template>
+
+          <div class="grid mb-2" *ngIf="p.simulacaoProposta.resumo">
+            <div class="col-12 md:col-4">
+              <div class="info-item">
+                <span class="info-label">Valor do Ato</span>
+                <span class="info-value">
+                  {{ p.simulacaoProposta.resumo.valorAto | currency:'BRL':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="info-item">
+                <span class="info-label">Valor Mínimo do Ato</span>
+                <span class="info-value">
+                  {{ p.simulacaoProposta.resumo.valorMinimoAto | currency:'BRL':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="info-item">
+                <span class="info-label">Valor Total</span>
+                <span class="info-value destaque">
+                  {{ p.simulacaoProposta.resumo.valorTotal | currency:'BRL':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Componentes da Simulação -->
+          <div *ngIf="p.simulacaoProposta.componentes?.length">
+            <p-divider></p-divider>
+            <h4 class="componentes-title">Componentes</h4>
+            <div class="componentes-lista">
+              <div
+                *ngFor="let comp of p.simulacaoProposta.componentes"
+                class="componente-item">
+                <div class="grid align-items-center">
+                  <div class="col-12 md:col-5">
+                    <span class="componente-nome">{{ comp.nomeComponente }}</span>
+                  </div>
+                  <div class="col-6 md:col-2 text-center">
+                    <span class="componente-info">{{ comp.quantidade }}x</span>
+                  </div>
+                  <div class="col-6 md:col-2 text-center">
+                    <span class="componente-info">
+                      {{ comp.valorParcela | currency:'BRL':'symbol':'1.2-2' }}
+                    </span>
+                  </div>
+                  <div class="col-12 md:col-3 text-right">
+                    <span class="componente-total">
+                      {{ comp.valorTotal | currency:'BRL':'symbol':'1.2-2' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Card: Validações -->
+        <p-card styleClass="mb-3" *ngIf="p.validacoes?.length">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-exclamation-triangle card-header-icon text-warning"></i>
+              <span>Validações de Negócio</span>
+            </div>
+          </ng-template>
+
+          <div class="validacoes-lista">
+            <div
+              *ngFor="let v of p.validacoes"
+              class="validacao-item"
+              [ngClass]="'validacao-' + (v.nivel?.toLowerCase() || 'info')">
+              <i class="pi"
+                [class.pi-times-circle]="v.nivel === 'ERRO'"
+                [class.pi-exclamation-triangle]="v.nivel === 'ALERTA'"
+                [class.pi-info-circle]="v.nivel === 'INFO' || !v.nivel">
+              </i>
+              <span>{{ v.mensagem }}</span>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Observações da proposta -->
+        <p-card styleClass="mb-3" *ngIf="p.observacoes">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-comment card-header-icon"></i>
+              <span>Observações</span>
+            </div>
+          </ng-template>
+          <p class="observacoes-texto">{{ p.observacoes }}</p>
+        </p-card>
+
+      </div>
+
+      <!-- Coluna direita: painel de status e ações -->
+      <div class="col-12 lg:col-4">
+
+        <!-- Card: Status da Análise -->
+        <p-card styleClass="mb-3">
+          <ng-template pTemplate="header">
+            <div class="card-header-custom">
+              <i class="pi pi-info-circle card-header-icon"></i>
+              <span>Status da Análise</span>
+            </div>
+          </ng-template>
+
+          <div class="status-panel">
+            <div class="status-badge-wrapper">
+              <p-tag
+                [value]="getStatusLabel(p.status)"
+                [severity]="getStatusSeverity(p.status)"
+                styleClass="status-tag-lg">
+              </p-tag>
+            </div>
+
+            <div class="info-item mt-3" *ngIf="p.dataSolicitacaoAnalise">
+              <span class="info-label">Solicitado em</span>
+              <span class="info-value">
+                {{ p.dataSolicitacaoAnalise | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <div class="info-item mt-2" *ngIf="p.usuarioSolicitacaoAnalise">
+              <span class="info-label">Solicitado por</span>
+              <span class="info-value">{{ p.usuarioSolicitacaoAnalise }}</span>
+            </div>
+
+            <div class="info-item mt-2">
+              <span class="info-label">Data da Proposta</span>
+              <span class="info-value">{{ p.dataProposta | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <!-- Ações de análise -->
+          <div class="acoes-analise mt-4" *ngIf="p.status === 'AGUARDANDO_ANALISE' || p.status === 'EM_ANALISE'">
+            <p-divider></p-divider>
+
+            <!-- Iniciar Análise -->
+            <div *ngIf="p.status === 'AGUARDANDO_ANALISE'">
+              <p class="acao-instrucao">
+                <i class="pi pi-info-circle"></i>
+                Clique em <strong>Iniciar Análise</strong> para assumir a análise desta proposta.
+              </p>
+              <button
+                pButton
+                icon="pi pi-play"
+                label="Iniciar Análise"
+                class="w-full"
+                [disabled]="processando"
+                (click)="iniciarAnalise()">
+              </button>
+            </div>
+
+            <!-- Aprovar / Reprovar -->
+            <div *ngIf="p.status === 'EM_ANALISE'">
+              <p class="acao-instrucao">
+                <i class="pi pi-info-circle"></i>
+                Analise os dados e registre sua decisão.
+              </p>
+              <div class="grid">
+                <div class="col-12">
+                  <button
+                    pButton
+                    icon="pi pi-check"
+                    label="Aprovar"
+                    class="p-button-success w-full mb-2"
+                    [disabled]="processando"
+                    (click)="confirmarAprovacao()">
+                  </button>
+                </div>
+                <div class="col-12">
+                  <button
+                    pButton
+                    icon="pi pi-times"
+                    label="Reprovar"
+                    class="p-button-danger w-full"
+                    [disabled]="processando"
+                    (click)="abrirDialogReprovacao()">
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status final -->
+          <div class="status-final mt-3" *ngIf="p.status === 'APROVADA' || p.status === 'REPROVADA'">
+            <p-divider></p-divider>
+            <p class="text-center text-color-secondary">
+              <i class="pi"
+                [class.pi-check-circle]="p.status === 'APROVADA'"
+                [class.pi-times-circle]="p.status === 'REPROVADA'">
+              </i>
+              Proposta já foi
+              <strong [class.text-green-600]="p.status === 'APROVADA'" [class.text-red-600]="p.status === 'REPROVADA'">
+                {{ p.status === 'APROVADA' ? 'aprovada' : 'reprovada' }}
+              </strong>.
+            </p>
+          </div>
+        </p-card>
+
+        <!-- Botão Voltar -->
+        <button
+          pButton
+          icon="pi pi-arrow-left"
+          label="Voltar para a Fila"
+          class="p-button-outlined w-full"
+          (click)="voltar()">
+        </button>
+
+      </div>
+    </div>
+    </ng-container>
+  </ng-container>
+
+</div>
+
+<!-- Dialog: Reprovar Proposta -->
+<p-dialog
+  header="Reprovar Proposta"
+  [(visible)]="exibirDialogReprovacao"
+  [modal]="true"
+  [closable]="!processando"
+  [style]="{ width: '500px' }"
+  [breakpoints]="{ '960px': '75vw', '640px': '90vw' }"
+  (onHide)="cancelarReprovacao()">
+
+  <div class="p-3">
+    <p class="mb-3 text-color-secondary">
+      Informe o motivo da reprovação da proposta
+      <strong>{{ proposta?.numeroProposta }}</strong>.
+    </p>
+
+    <app-input-textarea
+      id="motivoReprovacao"
+      label="Motivo da Reprovação"
+      [(ngModel)]="motivoReprovacao"
+      [required]="true"
+      [showValidation]="tentouSalvarReprovacao && !motivoReprovacao.trim()"
+      errorMessage="Informe o motivo da reprovação"
+      [rows]="4"
+      [autoResize]="true"
+      placeholder="Descreva o motivo da reprovação...">
+    </app-input-textarea>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      label="Cancelar"
+      icon="pi pi-times"
+      class="p-button-text"
+      [disabled]="processando"
+      (click)="cancelarReprovacao()">
+    </button>
+    <button
+      pButton
+      label="Confirmar Reprovação"
+      icon="pi pi-check"
+      class="p-button-danger"
+      [loading]="processando"
+      (click)="confirmarReprovacao()">
+    </button>
+  </ng-template>
+</p-dialog>

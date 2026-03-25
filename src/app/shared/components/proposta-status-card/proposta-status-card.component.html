@@ -1,0 +1,99 @@
+<p-card styleClass="proposta-status-card">
+  <ng-template pTemplate="header">
+    <div class="card-header-custom">
+      <i [class]="getStatusIcon() + ' card-header-icon'"></i>
+      <span>{{ titulo }}</span>
+    </div>
+  </ng-template>
+
+  <!-- Loading -->
+  <div *ngIf="carregando" class="status-loading">
+    <p-progressSpinner 
+      styleClass="custom-spinner" 
+      strokeWidth="4" 
+      [style]="{ width: '50px', height: '50px' }">
+    </p-progressSpinner>
+    <p class="text-color-secondary mt-2">Carregando status...</p>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div *ngIf="!carregando" class="status-content">
+    <!-- Badge de status -->
+    <div class="status-badge-wrapper">
+      <p-tag 
+        [value]="getStatusLabel()" 
+        [severity]="getStatusSeverity()"
+        styleClass="status-tag-large">
+      </p-tag>
+    </div>
+
+    <!-- Descrição do status -->
+    <p class="status-descricao text-color-secondary">
+      {{ getStatusDescricao() }}
+    </p>
+
+    <!-- Ações: Não iniciada -->
+    <div *ngIf="exibirBotaoIniciar()" class="status-actions mt-3">
+      <p-divider></p-divider>
+      <button 
+        pButton 
+        icon="pi pi-plus"
+        label="Iniciar Proposta" 
+        class="p-button-success w-full"
+        [disabled]="processando"
+        [loading]="processando"
+        (click)="iniciar()">
+      </button>
+    </div>
+
+    <!-- Ações: Rascunho -->
+    <div *ngIf="exibirBotoesRascunho()" class="status-actions mt-3">
+      <p-divider></p-divider>
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <button 
+            pButton 
+            icon="pi pi-pencil"
+            label="Continuar Edição" 
+            class="p-button-outlined w-full"
+            [disabled]="processando"
+            (click)="continuar()">
+          </button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button 
+            pButton 
+            icon="pi pi-check"
+            label="Finalizar Proposta" 
+            class="p-button-primary w-full"
+            [disabled]="processando"
+            [loading]="processando"
+            (click)="finalizar()">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ações: Rascunho ou Reprovada (Exclusão) -->
+    <div *ngIf="exibirBotaoExcluir()" class="status-actions mt-2">
+      <button 
+        pButton 
+        icon="pi pi-trash"
+        label="Excluir Proposta" 
+        class="p-button-outlined p-button-danger w-full"
+        [disabled]="processando"
+        [loading]="processando"
+        (click)="excluir()">
+      </button>
+    </div>
+
+    <!-- Info adicional para status sem ações -->
+    <div *ngIf="exibirApenasBadge()" class="status-info mt-3">
+      <p-divider></p-divider>
+      <p class="text-center text-sm text-color-secondary">
+        <i class="pi pi-info-circle mr-1"></i>
+        Nenhuma ação disponível para este status.
+      </p>
+    </div>
+  </div>
+</p-card>

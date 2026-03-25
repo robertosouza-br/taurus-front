@@ -212,6 +212,7 @@ export interface ComponenteSimulacaoDTO {
 
 export interface SalvarPropostaSimplificadaRequest {
   reservaId: number;
+  solicitarAnalise?: boolean | null;
   dataProposta: string | null;
   valorTabela: number | null;
   valorProposta: number | null;
@@ -248,8 +249,11 @@ export interface ComponentePropostaRequest {
 
 export interface SalvarPropostaResponse {
   id: number;
+  reservaId?: number;
   numeroProposta: string;
   status: PropostaStatus;
+  dataCriacao?: string;
+  dataAlteracao?: string;
   mensagem: string;
 }
 
@@ -257,22 +261,69 @@ export interface SalvarPropostaResponse {
 // ENUMERAÇÕES
 // ========================
 
+/**
+ * Status da Proposta conforme Mapa de Integração - Status da Proposta (Escopo Inicial)
+ * 
+ * ESCOPO INICIAL:
+ * - RASCUNHO: Proposta em elaboração
+ * - AGUARDANDO_ANALISE: Proposta finalizada aguardando análise (simulação difere da tabela)
+ * - APROVADA_AUTOMATICAMENTE: Proposta aprovada automaticamente (simulação segue tabela)
+ * 
+ * ESCOPO FUTURO (já mapeados):
+ * - EM_ANALISE, APROVADA, REPROVADA, EM_NEGOCIACAO, FINALIZADA, CANCELADA
+ */
 export enum PropostaStatus {
+  // Escopo inicial
+  RASCUNHO = 'RASCUNHO',
+  AGUARDANDO_ANALISE = 'AGUARDANDO_ANALISE',
+  APROVADA_AUTOMATICAMENTE = 'APROVADA_AUTOMATICAMENTE',
+  
+  // Escopo futuro / legado
   EM_ANALISE = 'EM_ANALISE',
   APROVADA = 'APROVADA',
-  REPROVADA = 'REPROVADA'
+  REPROVADA = 'REPROVADA',
+  EM_NEGOCIACAO = 'EM_NEGOCIACAO',
+  FINALIZADA = 'FINALIZADA',
+  CANCELADA = 'CANCELADA'
 }
 
-export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus, string> = {
+/**
+ * Status de tela especial "Não iniciada"
+ * Usado quando não existe proposta para a reserva (404 em GET /propostas/reserva/{reservaId})
+ */
+export const STATUS_NAO_INICIADA = 'NAO_INICIADA';
+export type StatusTelaProposta = PropostaStatus | typeof STATUS_NAO_INICIADA;
+
+export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus | typeof STATUS_NAO_INICIADA, string> = {
+  // Escopo inicial
+  [STATUS_NAO_INICIADA]: 'Não iniciada',
+  [PropostaStatus.RASCUNHO]: 'Rascunho',
+  [PropostaStatus.AGUARDANDO_ANALISE]: 'Aguardando Análise',
+  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'Aprovada Automaticamente',
+  
+  // Escopo futuro / legado
   [PropostaStatus.EM_ANALISE]: 'Em Análise',
   [PropostaStatus.APROVADA]: 'Aprovada',
-  [PropostaStatus.REPROVADA]: 'Reprovada'
+  [PropostaStatus.REPROVADA]: 'Reprovada',
+  [PropostaStatus.EM_NEGOCIACAO]: 'Em Negociação',
+  [PropostaStatus.FINALIZADA]: 'Finalizada',
+  [PropostaStatus.CANCELADA]: 'Cancelada'
 };
 
-export const PROPOSTA_STATUS_SEVERITY: Record<PropostaStatus, 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast'> = {
+export const PROPOSTA_STATUS_SEVERITY: Record<PropostaStatus | typeof STATUS_NAO_INICIADA, 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast'> = {
+  // Escopo inicial
+  [STATUS_NAO_INICIADA]: 'secondary',
+  [PropostaStatus.RASCUNHO]: 'info',
+  [PropostaStatus.AGUARDANDO_ANALISE]: 'warning',
+  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'success',
+  
+  // Escopo futuro / legado
   [PropostaStatus.EM_ANALISE]: 'warning',
   [PropostaStatus.APROVADA]: 'success',
-  [PropostaStatus.REPROVADA]: 'danger'
+  [PropostaStatus.REPROVADA]: 'danger',
+  [PropostaStatus.EM_NEGOCIACAO]: 'info',
+  [PropostaStatus.FINALIZADA]: 'contrast',
+  [PropostaStatus.CANCELADA]: 'secondary'
 };
 
 // ========================
@@ -418,4 +469,83 @@ export interface ComponenteDisponivelDTO {
   prazoMesesPadrao: number | null;   // Prazo total em meses
   ativo: boolean;                    // Disponível para uso
   ordem: number | null;              // Ordem de apresentação
+}
+
+// ========================
+// GESTÃO DE STATUS (ESCOPO INICIAL)
+// Mapa de Integração - Status da Proposta
+// ========================
+
+/**
+ * DTO de Proposta Por Reserva
+ * Endpoint: GET /api/v1/propostas/reserva/{reservaId}
+ * 
+ * Retorna dados resumidos da proposta vinculada a uma reserva
+ * Se retornar 404, considerar status de tela = "Não iniciada"
+ */
+export interface PropostaPorReservaDTO {
+  id: number;
+  reservaId: number;
+  nomeEmpreendimento: string;
+  bloco: string;
+  unidade: string;
+  tipologia: string;
+  nomeCliente: string;
+  cpfCnpjCliente: string;
+  status: PropostaStatus;
+  dataCriacao: string;
+  dataAlteracao: string;
+}
+
+/**
+ * Request para Criar Proposta
+ * Endpoint: POST /api/v1/propostas
+ */
+export interface CriarPropostaStatusRequest {
+  reservaId: number;
+  dataProposta: string;            // formato: YYYY-MM-DD
+  valorTabela: number;
+  valorProposta: number;
+  codigoModalidade: string;
+  descricaoModalidade: string;
+  componentes: ComponenteCriacaoDTO[];
+}
+
+export interface ComponenteCriacaoDTO {
+  codigoComponente: string;
+  nomeComponente: string;
+  quantidade: number;
+  valor: number;
+  valorParcela: number;
+}
+
+/**
+ * Response de Criar Proposta (201)
+ * Endpoint: POST /api/v1/propostas
+ * 
+ * Backend decide automaticamente o status baseado na comparação com tabela padrão:
+ * - requerAprovacao = false → APROVADA_AUTOMATICAMENTE (conforme tabela)
+ * - requerAprovacao = true → AGUARDANDO_ANALISE (difere da tabela)
+ */
+export interface CriarPropostaStatusResponse {
+  propostaId: number;
+  numeroProposta: string;
+  status: PropostaStatus; // AGUARDANDO_ANALISE ou APROVADA_AUTOMATICAMENTE
+  requerAprovacao: boolean; // true = difere da tabela, false = conforme tabela
+  mensagem: string;
+}
+
+/**
+ * Response de Finalizar Proposta (200)
+ * Endpoint: POST /api/v1/propostas/{id}/finalizar
+ * 
+ * Status retornado depende da validação automática:
+ * - AGUARDANDO_ANALISE: quando simulação difere da tabela padrão
+ * - APROVADA_AUTOMATICAMENTE: quando simulação segue tabela padrão
+ */
+export interface FinalizarPropostaStatusResponse {
+  id: number;
+  reservaId: number;
+  status: PropostaStatus;          // AGUARDANDO_ANALISE ou APROVADA_AUTOMATICAMENTE
+  dataAlteracao: string;
 }

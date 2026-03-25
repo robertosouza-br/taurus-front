@@ -1,0 +1,146 @@
+:host ::ng-deep {
+  .proposta-status-card {
+    .card-header-custom {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      background: var(--surface-50);
+      border-bottom: 1px solid var(--surface-border);
+
+      .card-header-icon {
+        font-size: 1.25rem;
+        color: var(--primary-color);
+      }
+
+      span {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 1rem;
+      }
+    }
+
+    .p-card-body {
+      padding: 0;
+    }
+
+    .p-card-content {
+      padding: 1.5rem;
+    }
+  }
+
+  .status-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+
+    .custom-spinner {
+      ::ng-deep .p-progress-spinner-circle {
+        stroke: var(--primary-color);
+      }
+    }
+  }
+
+  .status-content {
+    .status-badge-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+
+      .status-tag-large {
+        font-size: 1rem;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+      }
+    }
+
+    .status-descricao {
+      text-align: center;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0 1rem;
+    }
+
+    .status-actions {
+      .p-divider {
+        margin: 1.5rem 0 1rem 0;
+      }
+
+      .grid {
+        margin: 0;
+        gap: 0.75rem;
+
+        > .col-12 {
+          padding: 0;
+        }
+      }
+    }
+
+    .status-info {
+      .p-divider {
+        margin: 1rem 0;
+      }
+
+      p {
+        margin: 0;
+        
+        i {
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  :host ::ng-deep {
+    .proposta-status-card {
+      .card-header-custom {
+        padding: 0.75rem 1rem;
+
+        .card-header-icon {
+          font-size: 1rem;
+        }
+
+        span {
+          font-size: 0.9rem;
+        }
+      }
+
+      .p-card-content {
+        padding: 1rem;
+      }
+    }
+
+    .status-content {
+      .status-badge-wrapper {
+        .status-tag-large {
+          font-size: 0.9rem;
+          padding: 0.4rem 1rem;
+        }
+      }
+
+      .status-descricao {
+        font-size: 0.9rem;
+        padding: 0;
+      }
+
+      .status-actions {
+        .grid {
+          gap: 0.5rem;
+
+          > .col-12 {
+            margin-bottom: 0.5rem;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}

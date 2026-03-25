@@ -42,6 +42,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   
   carregando = false;
   override salvando = false;
+  finalizando = false;
   excluindo = false;
   gerandoPix = false;
   
@@ -1885,7 +1886,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             cancelLabel: 'Cancelar'
           }
         )
-      : this.appConfirmationService.confirmSave('Deseja salvar a proposta com os dados informados?');
+      : this.appConfirmationService.confirmSave(
+          'Deseja salvar a proposta como rascunho com os dados informados?'
+        );
 
     confirmacaoSalvar$
       .pipe(takeUntil(this.destroy$))
@@ -1894,13 +1897,61 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           return;
         }
 
-        this.executarSalvarProposta();
+        this.executarSalvarProposta(this.possuiViolacoesAprovacao);
       });
   }
 
-  private executarSalvarProposta(): void {
-    const request = this.montarRequest();
-    const requerAprovacaoManual = this.possuiViolacoesAprovacao;
+  finalizarProposta(): void {
+    this.tentouSalvar = true;
+
+    if (!this.validarFormulario()) {
+      return;
+    }
+
+    if (!this.valorPropostaIgualTabela) {
+      this.exibirAlertaValorDivergente();
+      return;
+    }
+
+    if (!this.validarPayloadAntesDeSalvar()) {
+      return;
+    }
+
+    const confirmacaoFinalizar$ = this.possuiViolacoesAprovacao
+      ? this.appConfirmationService.confirmCustom(
+          'Proposta sujeita à aprovação',
+          'Esta proposta não atende aos critérios de aprovação automática. Ao finalizar, ela será encaminhada para a área de aprovação. Deseja continuar?',
+          {
+            severity: 'warning',
+            icon: 'pi pi-exclamation-triangle',
+            confirmLabel: 'Finalizar e enviar',
+            cancelLabel: 'Cancelar'
+          }
+        )
+      : this.appConfirmationService.confirmCustom(
+          'Finalizar proposta',
+          'Deseja finalizar a proposta? O status final será definido pelo backend.',
+          {
+            severity: 'info',
+            icon: 'pi pi-check-circle',
+            confirmLabel: 'Finalizar',
+            cancelLabel: 'Cancelar'
+          }
+        );
+
+    confirmacaoFinalizar$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.executarFinalizacaoProposta();
+      });
+  }
+
+  private executarSalvarProposta(solicitarAnalise: boolean = false): void {
+    const request = this.montarRequest(solicitarAnalise);
     this.salvando = true;
 
     this.resolverOperacaoSalvar(request).pipe(
@@ -1911,14 +1962,38 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         this.propostaId = response.id;
         if (this.proposta) {
           this.proposta.id = response.id;
+          this.proposta.status = response.status ?? this.proposta.status;
         }
 
+        const statusFinal = response.status;
+        const possuiViolacoes = this.possuiViolacoesAprovacao;
+
         this.messageService.add({
-          severity: requerAprovacaoManual ? 'warn' : 'success',
-          summary: requerAprovacaoManual ? 'Proposta enviada para aprovação' : 'Sucesso',
-          detail: requerAprovacaoManual
-            ? 'Proposta gravada com sucesso e encaminhada para a área de aprovação.'
-            : response.mensagem || 'Proposta salva com sucesso!'
+          severity: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+            ? 'warn'
+            : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
+              ? 'success'
+              : statusFinal === PropostaStatus.RASCUNHO && possuiViolacoes
+                ? 'warn'
+                : statusFinal === PropostaStatus.RASCUNHO
+                  ? 'success'
+                  : 'info',
+          summary: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+            ? 'Proposta enviada para aprovação'
+            : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
+              ? 'Proposta aprovada automaticamente'
+              : statusFinal === PropostaStatus.RASCUNHO
+                ? 'Rascunho salvo'
+                : 'Sucesso',
+          detail: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+            ? (response.mensagem || 'Proposta gravada com sucesso e encaminhada para a área de aprovação.')
+            : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
+              ? (response.mensagem || 'Proposta gravada com sucesso e aprovada automaticamente.')
+              : statusFinal === PropostaStatus.RASCUNHO
+                ? (response.mensagem || (possuiViolacoes
+                    ? 'Proposta salva como rascunho. Há violações que exigirão aprovação manual ao finalizar.'
+                    : 'Proposta salva como rascunho com sucesso!'))
+                : (response.mensagem || 'Proposta salva com sucesso!')
         });
 
         setTimeout(() => {
@@ -1934,6 +2009,57 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         });
       }
     });
+  }
+
+  private executarFinalizacaoProposta(): void {
+    const request = this.montarRequest(false);
+    this.finalizando = true;
+
+    this.resolverOperacaoSalvar(request)
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((response) => {
+          this.propostaId = response.id;
+          if (this.proposta) {
+            this.proposta.id = response.id;
+            this.proposta.status = response.status ?? this.proposta.status;
+          }
+
+          return this.propostaService.finalizarProposta(response.id);
+        }),
+        finalize(() => this.finalizando = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (this.proposta) {
+            this.proposta.status = response.status ?? this.proposta.status;
+          }
+
+          const statusFinal = response.status;
+
+          this.messageService.add({
+            severity: statusFinal === PropostaStatus.AGUARDANDO_ANALISE ? 'warn' : 'success',
+            summary: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+              ? 'Proposta enviada para aprovação'
+              : 'Proposta aprovada automaticamente',
+            detail: statusFinal === PropostaStatus.AGUARDANDO_ANALISE
+              ? 'Proposta finalizada com sucesso e encaminhada para a área de aprovação.'
+              : 'Proposta finalizada com sucesso e aprovada automaticamente.'
+          });
+
+          setTimeout(() => {
+            this.router.navigate(['/propostas/lista']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Erro ao finalizar proposta:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: this.obterMensagemErroSalvar(error)
+          });
+        }
+      });
   }
 
   excluirProposta(): void {
@@ -2041,12 +2167,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   /**
    * Monta o request para salvar a proposta
    */
-  private montarRequest(): SalvarPropostaSimplificadaRequest {
+  private montarRequest(solicitarAnalise: boolean = false): SalvarPropostaSimplificadaRequest {
     const componentesSelecionados = this.componentes.filter(c => c.valorParcela > 0 || c.valorTotal > 0);
     const modalidade: any = this.proposta?.modalidadeTabelaPadrao;
     
     return {
       reservaId: this.reservaId,
+      solicitarAnalise,
       dataProposta: this.formatarDataOuNull(new Date()),
       valorTabela: this.normalizarNumeroPayload(this.valorTabela),
       valorProposta: this.normalizarNumeroPayload(this.valorProposta),

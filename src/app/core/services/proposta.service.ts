@@ -14,7 +14,11 @@ import {
   SalvarPropostaSimplificadaRequest,
   SalvarPropostaResponse,
   CalcularComponentesResponse,
-  ComponenteDisponivelDTO
+  ComponenteDisponivelDTO,
+  PropostaPorReservaDTO,
+  CriarPropostaStatusRequest,
+  CriarPropostaStatusResponse,
+  FinalizarPropostaStatusResponse
 } from '../models/proposta-simplificada.model';
 
 /**
@@ -282,6 +286,68 @@ export class PropostaService {
     return this.http.get<CalcularComponentesResponse>(
       `${this.baseUrl}/modalidade/${modalidadeId}/calcular-componentes`,
       { params }
+    );
+  }
+
+  // ========================
+  // GESTÃO DE STATUS (ESCOPO INICIAL)
+  // Mapa de Integração - Status da Proposta
+  // ========================
+
+  /**
+   * Consulta proposta por reserva (para definir status na tela)
+   * GET /api/v1/propostas/reserva/{reservaId}
+   * 
+   * REGRA DE TELA:
+   * - 200: usar `status` retornado pelo backend
+   * - 404: exibir "Não iniciada"
+   * 
+   * @param reservaId ID da reserva
+   */
+  consultarPropostaPorReserva(reservaId: number): Observable<PropostaPorReservaDTO> {
+    return this.http.get<PropostaPorReservaDTO>(`${this.baseUrl}/reserva/${reservaId}`);
+  }
+
+  /**
+   * Cria uma nova proposta (decisão automática de status pelo backend)
+   * POST /api/v1/propostas
+   * 
+   * REGRA DE TELA:
+   * - Se requerAprovacao = false: Exibir "Aprovada Automaticamente" (status = APROVADA_AUTOMATICAMENTE)
+   * - Se requerAprovacao = true: Exibir confirmação antes de salvar
+   *   → "Esta proposta não atende aos critérios de aprovação automática. 
+   *      Ao gravar, ela será encaminhada para a área de aprovação. Deseja continuar?"
+   *   → Se confirmar: Salvar com status = AGUARDANDO_ANALISE
+   *   → Se cancelar: Não salvar
+   * 
+   * DECISÃO DO BACKEND:
+   * - requerAprovacao = false → status = APROVADA_AUTOMATICAMENTE (simulação conforme tabela)
+   * - requerAprovacao = true → status = AGUARDANDO_ANALISE (simulação difere da tabela)
+   * 
+   * @param dados Dados da proposta
+   */
+  criarPropostaStatus(dados: CriarPropostaStatusRequest): Observable<CriarPropostaStatusResponse> {
+    return this.http.post<CriarPropostaStatusResponse>(this.baseUrl, dados);
+  }
+
+  /**
+   * Finaliza proposta (decisão automática de status pelo backend)
+   * POST /api/v1/propostas/{id}/finalizar
+   * 
+   * REGRA DE TELA:
+   * - Se status = AGUARDANDO_ANALISE, exibir "Aguardando Análise"
+   * - Se status = APROVADA_AUTOMATICAMENTE, exibir "Aprovada Automaticamente"
+   * 
+   * DECISÃO DO BACKEND:
+   * - AGUARDANDO_ANALISE: quando simulação NÃO segue tabela padrão
+   * - APROVADA_AUTOMATICAMENTE: quando simulação segue tabela padrão
+   * 
+   * @param propostaId ID da proposta
+   */
+  finalizarProposta(propostaId: number): Observable<FinalizarPropostaStatusResponse> {
+    return this.http.post<FinalizarPropostaStatusResponse>(
+      `${this.baseUrl}/${propostaId}/finalizar`,
+      {}
     );
   }
 }
