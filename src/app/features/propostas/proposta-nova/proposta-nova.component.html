@@ -238,7 +238,7 @@
             severity="primary"
             [outlined]="true"
             size="small"
-            [disabled]="componentesDisponiveisParaAdicionar.length === 0"
+            [disabled]="!podeEditarSimulacao || componentesDisponiveisParaAdicionar.length === 0"
             (onClick)="abrirDialogAdicionarComponente()">
           </app-custom-button>
 
@@ -248,6 +248,7 @@
             severity="secondary"
             [outlined]="true"
             size="small"
+            [disabled]="!podeEditarSimulacao"
             (onClick)="restaurarTabela()">
           </app-custom-button>
 
@@ -258,6 +259,7 @@
             severity="warning"
             size="small"
             styleClass="atribuir-restante-button"
+            [disabled]="!podeEditarSimulacao"
             (onClick)="abrirDialogAjusteDiferenca()">
           </app-custom-button>
         </div>
@@ -317,6 +319,7 @@
               placeholder="Busque um componente"
               [emptyMessage]="'Nenhum componente disponível'"
               [appendTo]="'body'"
+              [disabled]="!podeEditarSimulacao"
               [overlayOptions]="adicionarComponenteAutocompleteOverlayOptions"
               panelStyleClass="app-autocomplete-panel adicionar-componente-autocomplete-panel"
               (completeMethod)="filtrarComponentesDisponiveis($event)"
@@ -378,6 +381,7 @@
                     placeholder="Escolha o componente"
                     [emptyMessage]="'Nenhum componente encontrado'"
                     [appendTo]="'body'"
+                    [disabled]="!podeEditarSimulacao"
                     [overlayOptions]="ajusteDiferencaAutocompleteOverlayOptions"
                     panelStyleClass="app-autocomplete-panel ajuste-diferenca-autocomplete-panel"
                     (completeMethod)="filtrarOpcoesAjusteDiferenca($event)"
@@ -399,7 +403,7 @@
                     icon="pi pi-check"
                     severity="warning"
                     size="small"
-                    [disabled]="!codigoComponenteAjusteDiferenca"
+                    [disabled]="!podeEditarSimulacao || !codigoComponenteAjusteDiferenca"
                     (onClick)="aplicarDiferencaRestante()">
                   </app-custom-button>
                 </div>
@@ -443,6 +447,7 @@
                            pattern="[0-9]*"
                            [(ngModel)]="comp.quantidade"
                            (input)="onQuantidadeChange(comp)"
+                            [disabled]="!podeEditarSimulacao"
                            class="modern-input text-center"
                            style="width: 50px;"
                            placeholder="Qtd">
@@ -452,6 +457,7 @@
                                 dateFormat="dd/mm/yy"
                                 [showIcon]="true"
                                 (ngModelChange)="onVencimentoChange(comp)"
+                                [disabled]="!podeEditarSimulacao"
                                 [style]="{'width': '145px'}"
                                 styleClass="modern-calendar"
                                 appendTo="body">
@@ -464,6 +470,7 @@
                            (focus)="onValorParcelaFocus(comp)"
                            (blur)="onValorParcelaBlur(comp)"
                            inputmode="decimal"
+                            [disabled]="!podeEditarSimulacao"
                            class="modern-input text-right currency-inline-input"
                            style="width: 135px;"
                            placeholder="0,00">
@@ -486,12 +493,13 @@
                                 (click)="toggleDetalhamentoVencimentos(comp)"></button>
                       <button pButton pRipple icon="pi pi-copy" 
                                 class="p-button-rounded p-button-text action-icon-button action-icon-copy"
+                              [disabled]="!podeEditarSimulacao"
                               pTooltip="Duplicar" tooltipPosition="top"
                               (click)="duplicarComponente(comp)"></button>
                       <button pButton pRipple icon="pi pi-trash" 
                                 class="p-button-rounded p-button-text action-icon-button action-icon-delete"
-                              [disabled]="isExclusaoBloqueada(comp)"
-                              [pTooltip]="isExclusaoBloqueada(comp) ? 'O primeiro ATO carregado não pode ser removido' : 'Remover'"
+                              [disabled]="!podeEditarSimulacao || isExclusaoBloqueada(comp)"
+                              [pTooltip]="!podeEditarSimulacao ? 'Simulação bloqueada para proposta aguardando análise' : (isExclusaoBloqueada(comp) ? 'O primeiro ATO carregado não pode ser removido' : 'Remover')"
                               tooltipPosition="top"
                               (click)="excluirComponente(comp)"></button>
                     </div>
@@ -671,7 +679,7 @@
       </app-custom-button>
 
       <app-custom-button
-        *ngIf="proposta.id"
+        *ngIf="!propostaBloqueadaParaAnalise && proposta.id"
         label="Excluir Proposta"
         icon="pi pi-trash"
         severity="danger"
@@ -684,7 +692,7 @@
       </app-custom-button>
 
       <app-custom-button
-        *ngIf="podeExibirBotaoFinalizar"
+        *ngIf="!propostaBloqueadaParaAnalise && podeExibirBotaoFinalizar"
         label="Finalizar Proposta"
         icon="pi pi-check"
         severity="primary"
@@ -695,6 +703,7 @@
       </app-custom-button>
 
       <app-custom-button
+        *ngIf="!propostaBloqueadaParaAnalise"
         label="Gravar proposta"
         icon="pi pi-save"
         severity="success"

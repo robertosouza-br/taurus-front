@@ -174,6 +174,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       || status === PropostaStatus.APROVADA;
   }
 
+  get propostaBloqueadaParaAnalise(): boolean {
+    const status = this.proposta?.status;
+
+    return status === PropostaStatus.AGUARDANDO_ANALISE
+      || status === PropostaStatus.EM_ANALISE;
+  }
+
+  get podeEditarSimulacao(): boolean {
+    return !this.propostaBloqueadaParaAnalise;
+  }
+
   getGrupoComponenteLabel(grupo?: number | null): string {
     if (grupo === null || grupo === undefined) {
       return 'Componente';
@@ -238,11 +249,19 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   abrirDialogAjusteDiferenca(): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.opcoesAjusteDiferencaFiltradas = [...this.opcoesAjusteDiferenca];
     this.ajusteDiferencaDialogVisible = true;
   }
 
   abrirDialogAdicionarComponente(): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.onDropdownClickComponentes();
     this.adicionarComponenteDialogVisible = true;
   }
@@ -688,10 +707,18 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   onValorParcelaFocus(comp: ComponenteFormulario): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.valorParcelaInputMap.set(comp, this.formatarValorParcelaEdicao(comp.valorParcela));
   }
 
   onValorParcelaInputChange(comp: ComponenteFormulario, valorDigitado: string): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.valorParcelaInputMap.set(comp, valorDigitado);
     comp.valorParcela = this.parseValorMonetario(valorDigitado);
     this.simulacaoAlterada = true;
@@ -699,6 +726,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   onValorParcelaBlur(comp: ComponenteFormulario): void {
+    if (!this.podeEditarSimulacao) {
+      this.valorParcelaInputMap.set(comp, this.formatarValorParcelaExibicao(comp.valorParcela));
+      return;
+    }
+
     this.valorParcelaInputMap.set(comp, this.formatarValorParcelaExibicao(comp.valorParcela));
   }
 
@@ -708,6 +740,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Recalcula valor total e percentual quando quantidade muda
    */
   onQuantidadeChange(componente: ComponenteFormulario): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.simulacaoAlterada = true;
 
     componente.quantidade = this.normalizarQuantidadeInformada(componente.quantidade);
@@ -723,6 +759,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Manipula mudança de data de vencimento
    */
   onVencimentoChange(componente: ComponenteFormulario): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.simulacaoAlterada = true;
 
     this.atualizarVencimentosComponente(componente);
@@ -1591,6 +1631,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Restaura valores da tabela padrão
    */
   restaurarTabela(): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.inicializarComponentes();
     this.calcularTotais();
     this.gerarComparacao();
@@ -1612,6 +1656,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Duplica um componente
    */
   duplicarComponente(componente: ComponenteFormulario): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.simulacaoAlterada = true;
     const index = this.componentes.indexOf(componente);
     const novoComponente: ComponenteFormulario = {
@@ -1634,6 +1682,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   aplicarDiferencaRestante(): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     const valorRestante = this.valorRestanteParaAjuste;
 
     if (valorRestante <= 0.01) {
@@ -1694,6 +1746,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Remove um componente (marca como não selecionado)
    */
   excluirComponente(componente: ComponenteFormulario): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     if (this.isExclusaoBloqueada(componente)) {
       this.messageService.add({
         severity: 'warn',
@@ -1801,6 +1857,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Evento disparado ao selecionar componente no autocomplete
    */
   onComponenteSelecionado(event: any): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     const componente = event as ComponenteTabelaPadraoDTO;
     
     if (componente) {
@@ -1818,6 +1878,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Mostra todos os componentes ao clicar no dropdown
    */
   onDropdownClickComponentes(): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
     this.componentesFiltrados = [...this.componentesDisponiveisParaAdicionar];
   }
 
