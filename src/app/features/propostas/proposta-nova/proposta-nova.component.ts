@@ -192,6 +192,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return !this.propostaBloqueadaParaAnalise;
   }
 
+  get podeExibirBotaoAplicarTabelaPadrao(): boolean {
+    return !!this.proposta?.simulacao?.componentes?.length;
+  }
+
   getGrupoComponenteLabel(grupo?: number | null): string {
     if (grupo === null || grupo === undefined) {
       return 'Componente';
@@ -455,6 +459,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           codigoComponente: comp.codigoComponente,
           nomeComponente: comp.nomeComponente,
           tipoComponente: comp.tipoComponente,
+          grupoComponente: regra.grupoComponente,
+          periodicidade: regra.periodicidade,
           quantidade: comp.quantidade,
           vencimento: comp.vencimento ? new Date(comp.vencimento) : null,
           valorParcela: comp.valorParcela,
@@ -482,60 +488,82 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       this.possuiDesconto = simulacao.possuiDesconto;
       this.possuiAcrescimo = simulacao.possuiAcrescimo;
     } else {
-      this.componentes = this.componentesNormalizadosCache
-        .sort((a, b) => a.ordem - b.ordem)
-        .map(regra => {
-          const temValor = regra.valor !== null && regra.valor > 0;
-          const valorTotal = temValor ? (regra.valor ?? 0) : 0;
-          const valorParcela = temValor ? (regra.valorParcela ?? 0) : 0;
-          const percentual = temValor ? (regra.percentual ?? 0) : 0;
-          
-          const vencimento = regra.dataVencimento 
-            ? new Date(regra.dataVencimento) 
-            : this.calcularVencimentoInicial(regra);
-          
-          const componente: ComponenteFormulario = {
-            codigoComponente: regra.codigoComponente,
-            nomeComponente: regra.nomeComponente,
-            tipoComponente: regra.tipoComponente,
-            grupoComponente: regra.grupoComponente,
-            periodicidade: regra.periodicidade,
-            quantidade: regra.quantidade || 1,
-            vencimento: vencimento,
-            valorParcela: valorParcela,
-            percentual: percentual,
-            valorTotal: valorTotal,
-            selecionado: temValor,
-            regra,
-            erroValidacao: null
-          };
-          
-          if (regra.listaVencimentos && regra.listaVencimentos.length > 0) {
-            componente.listaVencimentos = regra.listaVencimentos.map(v => ({
-              numeroParcela: v.numeroParcela,
-              dataVencimento: typeof v.dataVencimento === 'string' 
-                ? new Date(v.dataVencimento) 
-                : v.dataVencimento,
-              valor: v.valor
-            }));
-          } else {
-            componente.listaVencimentos = this.gerarVencimentos(
-              vencimento,
-              componente.quantidade,
-              regra.periodicidade ?? 0,
-              valorParcela,
-              valorTotal
-            );
-          }
-          
-          return componente;
-        });
+      this.componentes = this.criarComponentesFormularioTabelaPadrao();
         
       this.calcularTotais();
     }
     
     this.separarComponentes();
     this.definirAtoInicialProtegido();
+  }
+
+  private criarComponentesFormularioTabelaPadrao(): ComponenteFormulario[] {
+    return [...this.componentesNormalizadosCache]
+      .sort((a, b) => a.ordem - b.ordem)
+      .map(regra => {
+        const temValor = regra.valor !== null && regra.valor > 0;
+        const valorTotal = temValor ? (regra.valor ?? 0) : 0;
+        const valorParcela = temValor ? (regra.valorParcela ?? 0) : 0;
+        const percentual = temValor ? (regra.percentual ?? 0) : 0;
+
+        const vencimento = regra.dataVencimento
+          ? new Date(regra.dataVencimento)
+          : this.calcularVencimentoInicial(regra);
+
+        const componente: ComponenteFormulario = {
+          codigoComponente: regra.codigoComponente,
+          nomeComponente: regra.nomeComponente,
+          tipoComponente: regra.tipoComponente,
+          grupoComponente: regra.grupoComponente,
+          periodicidade: regra.periodicidade,
+          quantidade: regra.quantidade || 1,
+          vencimento,
+          valorParcela,
+          percentual,
+          valorTotal,
+          selecionado: temValor,
+          regra,
+          erroValidacao: null
+        };
+
+        if (regra.listaVencimentos && regra.listaVencimentos.length > 0) {
+          componente.listaVencimentos = regra.listaVencimentos.map(v => ({
+            numeroParcela: v.numeroParcela,
+            dataVencimento: typeof v.dataVencimento === 'string'
+              ? new Date(v.dataVencimento)
+              : v.dataVencimento,
+            valor: v.valor
+          }));
+        } else {
+          componente.listaVencimentos = this.gerarVencimentos(
+            vencimento,
+            componente.quantidade,
+            regra.periodicidade ?? 0,
+            valorParcela,
+            valorTotal
+          );
+        }
+
+        return componente;
+      });
+  }
+
+  private simulacaoAtualDivergeDaTabelaPadrao(): boolean {
+    const componentesSimulacaoAtual: ComponenteSimulacaoDTO[] = this.componentes.map(componente => ({
+      codigoComponente: componente.codigoComponente,
+      nomeComponente: componente.nomeComponente,
+      tipoComponente: componente.tipoComponente,
+      quantidade: componente.quantidade,
+      vencimento: componente.vencimento ? componente.vencimento.toISOString() : '',
+      valorParcela: componente.valorParcela,
+      percentual: componente.percentual,
+      valorTotal: componente.valorTotal
+    }));
+
+    return this.simulacaoPersistidaDivergeDaTabela(
+      componentesSimulacaoAtual,
+      this.componentesNormalizadosCache
+    );
   }
 
   private definirAtoInicialProtegido(): void {
@@ -1744,6 +1772,36 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       severity: 'success',
       summary: 'Tabela Restaurada',
       detail: 'Os valores foram restaurados para a tabela padrão'
+    });
+  }
+
+  aplicarTabelaPadraoNaSimulacao(): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
+    const houveMudancaNaSimulacao = this.simulacaoAtualDivergeDaTabelaPadrao();
+
+    this.componentes = this.criarComponentesFormularioTabelaPadrao();
+    this.simulacaoAlterada = false;
+    this.simulacaoEditadaDesdeCarregamento = this.simulacaoEditadaDesdeCarregamento || houveMudancaNaSimulacao;
+    this.avisoNovaAnalisePendenteAoBlur = false;
+
+    this.calcularTotais();
+    this.gerarComparacao();
+    this.atualizarGrafico();
+    this.fecharDialogAjusteDiferenca();
+    this.separarComponentes();
+    this.definirAtoInicialProtegido();
+
+    if (houveMudancaNaSimulacao && this.proposta?.status === PropostaStatus.APROVADA) {
+      this.exibirAvisoNovaAnalise();
+    }
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Tabela Padrão Aplicada',
+      detail: 'A simulação foi atualizada com os valores da tabela padrão'
     });
   }
 

@@ -253,6 +253,17 @@
           </app-custom-button>
 
           <app-custom-button
+            *ngIf="podeExibirBotaoAplicarTabelaPadrao"
+            label="Aplicar tabela padrão"
+            icon="pi pi-table"
+            severity="info"
+            [outlined]="true"
+            size="small"
+            [disabled]="!podeEditarSimulacao"
+            (onClick)="aplicarTabelaPadraoNaSimulacao()">
+          </app-custom-button>
+
+          <app-custom-button
             *ngIf="valorRestanteParaAjuste > 0"
             label="Atribuir restante"
             icon="pi pi-percentage"
