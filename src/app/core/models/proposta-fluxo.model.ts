@@ -29,6 +29,9 @@ export interface ReservaPropostaDTO {
   unidade: string;
   tipoUnidade: string;
   tipologia: string;
+  codigoStatus?: number;
+  descricaoStatus?: string;
+  statusProposta?: string;
   nomeCliente: string;
   cpfCnpjCliente: string;
   clienteEstrangeiro: boolean;

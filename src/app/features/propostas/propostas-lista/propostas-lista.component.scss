@@ -1,32 +1,20 @@
-.propostas-lista-container {
+.lista-container {
+  padding: 0 0.5rem;
+}
+
+.acoes-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
   .acoes-header {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
+    flex-direction: column;
+    width: 100%;
 
-  ::ng-deep {
-    .p-datatable {
-      tbody tr {
-        cursor: pointer;
-        transition: background-color 0.2s;
-
-        &:hover {
-          background-color: var(--surface-hover) !important;
-        }
-      }
-    }
-  }
-
-  // Responsividade para mobile
-  @media (max-width: 768px) {
-    .acoes-header {
-      flex-direction: column;
+    > * {
       width: 100%;
-
-      > * {
-        width: 100%;
-      }
     }
   }
 }

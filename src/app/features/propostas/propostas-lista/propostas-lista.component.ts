@@ -5,7 +5,8 @@ import { PropostaService } from '../../../core/services/proposta.service';
 import { ReservaPropostaDTO } from '../../../core/models/proposta-fluxo.model';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
-import { TableColumn } from '../../../shared/components/data-table/data-table.component';
+import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { TableAction, TableColumn } from '../../../shared/components/data-table/data-table.component';
 
 @Component({
   selector: 'app-propostas-lista',
@@ -14,10 +15,12 @@ import { TableColumn } from '../../../shared/components/data-table/data-table.co
 })
 export class PropostasListaComponent extends BaseListComponent implements OnInit {
   reservas: ReservaPropostaDTO[] = [];
-  filtros: any = {};
   paginaAtual: number = 0;
-  itensPorPagina: number = 10;
+  itensPorPagina: number = 20;
+  filtroTexto = '';
+  breadcrumbItems: BreadcrumbItem[] = [];
   colunas: TableColumn[] = [];
+  acoes: TableAction[] = [];
 
   // Enums públicos para uso no template
   Funcionalidade = Funcionalidade;
@@ -31,27 +34,45 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
   }
 
   ngOnInit(): void {
+    this.configurarBreadcrumb();
     this.configurarTabela();
     this.carregar();
   }
 
+  private configurarBreadcrumb(): void {
+    this.breadcrumbItems = [
+      { label: 'Início', url: '/dashboard' },
+      { label: 'Propostas' }
+    ];
+  }
+
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'nomeEmpreendimento', header: 'Empreendimento', sortable: true, width: '22%' },
-      { field: 'unidade', header: 'Unidade', sortable: true, width: '12%' },
-      { field: 'corretor', header: 'Corretor', template: 'corretor', width: '18%' },
-      { field: 'descricaoStatus', header: 'Status', template: 'status', sortable: true, width: '18%' },
-      { field: 'dataReserva', header: 'Data Reserva', template: 'dataReserva', sortable: true, align: 'center', width: '15%' },
-      { field: 'proposta', header: 'Proposta', template: 'proposta', align: 'center', width: '15%' }
+      { field: 'nomeEmpreendimento', header: 'Empreendimento', sortable: true, width: '20%' },
+      { field: 'unidade', header: 'Unidade', sortable: true, align: 'center', width: '10%' },
+      { field: 'tipologia', header: 'Tipologia', sortable: true, width: '12%' },
+      { field: 'nomeCliente', header: 'Cliente', sortable: true, width: '18%' },
+      { field: 'cpfCnpjCliente', header: 'CPF/CNPJ', template: 'cpfCnpj', align: 'center', width: '15%' },
+      { field: 'statusProposta', header: 'Status', template: 'status', sortable: true, align: 'center', width: '12%' },
+      { field: 'dataReserva', header: 'Data Reserva', template: 'dataReserva', sortable: true, align: 'center', width: '13%' }
+    ];
+
+    this.acoes = [
+      {
+        icon: 'pi pi-search',
+        tooltip: 'Abrir proposta',
+        severity: 'info',
+        command: (row: ReservaPropostaDTO) => this.onRowClick(row)
+      }
     ];
   }
 
   carregar(): void {
     this.carregando = true;
     const page = this.paginaAtual || 0;
-    const size = this.itensPorPagina || 10;
+    const size = this.itensPorPagina || 20;
 
-    this.propostaService.listarReservasParaProposta(page, size, this.filtros).subscribe({
+    this.propostaService.listarReservasParaProposta(page, size, this.filtroTexto || undefined).subscribe({
       next: (response) => {
         this.reservas = response.content;
         this.totalRegistros = response.totalElements;
@@ -76,6 +97,12 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
       this.itensPorPagina = event.rows;
       this.carregar();
     });
+  }
+
+  onBuscar(filtro: string): void {
+    this.filtroTexto = filtro;
+    this.paginaAtual = 0;
+    this.carregar();
   }
 
   iniciarProposta(reserva: ReservaPropostaDTO): void {
@@ -113,11 +140,6 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
     }
   }
 
-  limparFiltros(): void {
-    this.filtros = {};
-    this.carregar();
-  }
-
   exportar(): void {
     this.exportando = true;
     // TODO: Implementar exportação quando backend disponibilizar endpoint
@@ -125,6 +147,24 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
       this.exportando = false;
       console.log('Exportação de reservas para proposta');
     }, 1000);
+  }
+
+  formatarCpfCnpj(valor: string | null | undefined): string {
+    if (!valor) {
+      return '';
+    }
+
+    const valorLimpo = valor.replace(/\D/g, '');
+
+    if (valorLimpo.length === 11) {
+      return valorLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    if (valorLimpo.length === 14) {
+      return valorLimpo.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+
+    return valor;
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warning' | 'danger' {
