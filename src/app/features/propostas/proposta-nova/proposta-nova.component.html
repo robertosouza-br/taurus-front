@@ -578,128 +578,6 @@
       </div>
     </p-card>
 
-    <!-- ─── CARD: VALIDAÇÕES DE APROVAÇÃO AUTOMÁTICA ────────────────────── -->
-        <p-card class="proposta-card validacoes-card"
-          [ngClass]="possuiViolacoesAprovacao ? 'validacoes-card-alerta' : 'validacoes-card-ok'"
-          *ngIf="violacoesAprovacao.length > 0">
-      <ng-template pTemplate="header">
-           <div class="card-gradient-header card-header-validacoes card-header-collapsible"
-             (click)="validacoesAprovacaoExpandido = !validacoesAprovacaoExpandido"
-             [class.is-alerta]="possuiViolacoesAprovacao"
-             [class.is-ok]="!possuiViolacoesAprovacao">
-          <div class="header-left">
-            <i class="pi pi-shield"></i>
-            <span>Validações de Aprovação Automática</span>
-          </div>
-          <div class="header-right">
-            <span class="header-status-badge">
-              {{ possuiViolacoesAprovacao ? 'Aprovação manual necessária' : 'Dentro dos critérios automáticos' }}
-            </span>
-            <span class="collapse-hint" *ngIf="!validacoesAprovacaoExpandido">Clique para expandir</span>
-            <i class="pi toggle-icon" [ngClass]="validacoesAprovacaoExpandido ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
-          </div>
-        </div>
-      </ng-template>
-
-      <div *ngIf="validacoesAprovacaoExpandido" class="collapse-fade-content">
-      <div class="validacoes-section">
-        <div class="validacoes-overview">
-          <div class="validacoes-overview-copy">
-            <span class="overview-eyebrow">Compliance da proposta</span>
-            <h4 class="overview-title">Leitura rápida das regras financeiras</h4>
-            <p class="overview-description">
-              Este bloco consolida as regras avaliadas para aprovação automática e destaca imediatamente os pontos que exigem análise manual.
-            </p>
-          </div>
-
-          <div class="validacoes-overview-stats">
-            <div class="overview-stat stat-violacao">
-              <span class="stat-label">Violações</span>
-              <span class="stat-value">{{ quantidadeViolacoesBloqueantes }}</span>
-            </div>
-            <div class="overview-stat stat-conforme">
-              <span class="stat-label">Conformes</span>
-              <span class="stat-value">{{ quantidadeValidacoesConformes }}</span>
-            </div>
-            <div class="overview-stat stat-neutro">
-              <span class="stat-label">Não aplicáveis</span>
-              <span class="stat-value">{{ quantidadeValidacoesNaoAplicaveis }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div *ngIf="possuiViolacoesAprovacao" class="alert alert-sistema mb-3 validacoes-alerta-message">
-          <i class="pi pi-shield alert-icon"></i>
-          <div class="alert-content">
-            <strong>Validação de Aprovação</strong>
-            <p>Esta proposta possui violações que bloqueiam a aprovação automática. Será necessária aprovação manual da Diretoria Comercial.</p>
-          </div>
-        </div>
-
-        <p-table [value]="violacoesAprovacao" 
-                 styleClass="p-datatable-sm modern-table validacoes-table"
-                 responsiveLayout="scroll">
-          <ng-template pTemplate="header">
-            <tr>
-              <th style="width: 4rem" class="text-center">Status</th>
-              <th>Regra</th>
-              <th style="width: 150px" class="text-right">Calculado</th>
-              <th style="width: 150px" class="text-right">Limite</th>
-              <th>Mensagem</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-validacao>
-            <tr [class.row-violacao]="validacao.status === 'VIOLACAO'"
-               [class.row-conforme]="validacao.status === 'CONFORME'"
-               [class.row-neutra]="validacao.status === 'NAO_APLICAVEL'">
-              <td class="text-center status-cell">
-                <span *ngIf="validacao.status === 'CONFORME'"
-                      class="status-indicator status-conforme"
-                      pTooltip="Conforme">
-                  <i class="pi pi-check-circle"></i>
-                </span>
-                <span *ngIf="validacao.status === 'VIOLACAO'"
-                      class="status-indicator status-violacao"
-                      pTooltip="Violação">
-                  <i class="pi pi-times-circle"></i>
-                </span>
-                <span *ngIf="validacao.status === 'NAO_APLICAVEL'"
-                      class="status-indicator status-neutro"
-                      pTooltip="Não aplicável">
-                  <i class="pi pi-minus-circle"></i>
-                </span>
-              </td>
-              <td class="regra-cell">
-                <strong>{{ obterNomeRegra(validacao.tipo) }}</strong>
-              </td>
-              <td class="text-right">
-                <span *ngIf="validacao.percentualCalculado !== undefined">
-                  {{ validacao.percentualCalculado.toFixed(2) }}%
-                </span>
-                <span *ngIf="validacao.valorCalculado !== undefined">
-                  {{ formatarMoeda(validacao.valorCalculado) }}
-                </span>
-              </td>
-              <td class="text-right">
-                <span *ngIf="validacao.percentualLimite !== undefined">
-                  {{ validacao.percentualLimite.toFixed(2) }}%
-                </span>
-                <span *ngIf="validacao.valorLimite !== undefined">
-                  {{ formatarMoeda(validacao.valorLimite) }}
-                </span>
-              </td>
-              <td class="mensagem-cell">
-                <span [class.text-danger]="validacao.bloqueiaAprovacao">
-                  {{ validacao.mensagem }}
-                </span>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-      </div>
-    </p-card>
-
     <!-- ─── CARD: ANÁLISE DA PROPOSTA ───────────────────────────────────── -->
     <p-card class="proposta-card">
       <ng-template pTemplate="header">
@@ -718,7 +596,7 @@
       <div *ngIf="relatorioComparativoExpandido" class="collapse-fade-content">
       <div class="grid">
         <!-- Gráfico -->
-        <div class="col-12 lg:col-7">
+        <div class="col-12">
           <div class="grafico-section">
             <div class="grafico-header-row">
               <div>
@@ -778,47 +656,6 @@
           </div>
         </p-dialog>
 
-        <!-- Comparação -->
-        <div class="col-12 lg:col-5">
-          <div class="comparacao-section">
-            <h4 class="section-title">Indicadores Comerciais e Validações</h4>
-            <p class="section-description">
-              Esta grade mantém a leitura das regras de negócio e dos limites utilizados na aprovação automática da proposta.
-            </p>
-            <p-table [value]="comparacao" styleClass="p-datatable-sm modern-table comparacao-table">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Métrica</th>
-                  <th class="text-center">Referência</th>
-                  <th class="text-center">Simulação</th>
-                  <th class="text-center" style="width: 50px"></th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-item>
-                <tr [ngClass]="{
-                  'row-status-ok': item.status === 'OK',
-                  'row-status-alerta': item.status === 'ALERTA',
-                  'row-status-violacao': item.status === 'VIOLACAO'
-                }">
-                  <td>
-                    <div class="comparacao-metrica-cell">{{ item.metrica }}</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="comparacao-value comparacao-ref">{{ item.limite }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="comparacao-value comparacao-sim">{{ item.proposta || '-' }}</span>
-                  </td>
-                  <td class="text-center status-cell">
-                    <i [class]="getStatusIcon(item.status)" 
-                       [ngClass]="getStatusClass(item.status)">
-                    </i>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-        </div>
       </div>
       </div>
     </p-card>
