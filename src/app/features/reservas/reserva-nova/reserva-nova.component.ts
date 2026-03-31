@@ -45,6 +45,8 @@ interface ProfissionalForm {
   tipoProfissional: { label: string; value: TipoProfissional } | null;
   corretor: CorretorSaidaDTO | null;
   corretorCpfBusca: string;
+  corretorNomeManual: string;
+  corretorCpfManual: string;
   corretorSugestoes: CorretorSaidaDTO[];
   corretorBuscando: boolean;
   ultimoCpfBuscado: string;
@@ -807,9 +809,11 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   adicionarProfissional(tipo: 'principal' | 'secundaria'): void {
     const novo: ProfissionalForm = {
-      tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === TipoProfissional.CORRETOR) || null,
+      tipoProfissional: null,
       corretor: null,
       corretorCpfBusca: '',
+      corretorNomeManual: '',
+      corretorCpfManual: '',
       corretorSugestoes: [],
       corretorBuscando: false,
       ultimoCpfBuscado: '',
@@ -829,6 +833,21 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     } else {
       this.profissionaisSecundaria.splice(index, 1);
     }
+  }
+
+  isCorretor(prof: ProfissionalForm): boolean {
+    return prof.tipoProfissional?.value === TipoProfissional.CORRETOR;
+  }
+
+  onTipoProfissionalAlterado(prof: ProfissionalForm): void {
+    prof.corretor = null;
+    prof.corretorCpfBusca = '';
+    prof.corretorNomeManual = '';
+    prof.corretorCpfManual = '';
+    prof.corretorSugestoes = [];
+    prof.corretorBuscando = false;
+    prof.ultimoCpfBuscado = '';
+    prof.corretorNaoEncontrado = false;
   }
 
   buscarCorretorPorCpf(profForm: ProfissionalForm, opcoes?: { silencioso?: boolean; forcar?: boolean }): void {
@@ -871,6 +890,8 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       .subscribe({
         next: (corretor) => {
           profForm.corretor = corretor;
+          profForm.corretorNomeManual = corretor?.nome || '';
+          profForm.corretorCpfManual = corretor?.cpf || '';
           profForm.corretorCpfBusca = corretor.cpf || cpf;
           profForm.corretorNaoEncontrado = false;
         },
@@ -918,6 +939,8 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   limparCorretorSelecionado(profForm: ProfissionalForm): void {
     profForm.corretor = null;
+    profForm.corretorNomeManual = '';
+    profForm.corretorCpfManual = '';
     profForm.corretorNaoEncontrado = false;
   }
 
@@ -1400,8 +1423,9 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     tipo: 'principal' | 'secundaria'
   ): boolean {
     const sufixo = tipo === 'principal' ? 'Principal' : 'Secundária';
-    const idTipo = tipo === 'principal' ? `tipoProfissional_${index}` : `tipoProfissionalSecundaria_${index}`;
+    const idTipo = tipo === 'principal' ? `tipoProfissionalPrincipal_${index}` : `tipoProfissionalSecundaria_${index}`;
     const idCpf = tipo === 'principal' ? `cpfCorretorPrincipal_${index}` : `cpfCorretorSecundaria_${index}`;
+    const idNome = tipo === 'principal' ? `nomeProfissionalPrincipal_${index}` : `nomeProfissionalSecundaria_${index}`;
 
     if (!prof.tipoProfissional) {
       this.messageService.add({
@@ -1413,34 +1437,51 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       return false;
     }
 
-    const cpf = (prof.corretor?.cpf || prof.corretorCpfBusca || '').replace(/\D/g, '');
-    if (!cpf) {
+    const isCorretor = prof.tipoProfissional.value === TipoProfissional.CORRETOR;
+
+    if (isCorretor) {
+      const cpf = (prof.corretor?.cpf || prof.corretorCpfManual || prof.corretorCpfBusca || '').replace(/\D/g, '');
+      if (!cpf) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Profissional incompleto',
+          detail: `Informe o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+        });
+        this.focarCampo(idCpf);
+        return false;
+      }
+
+      if (!this.validarCPF(cpf)) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'CPF inválido',
+          detail: `Corrija o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+        });
+        this.focarCampo(idCpf);
+        return false;
+      }
+
+      if (!prof.corretor) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Corretor inválido',
+          detail: `Selecione um corretor válido (${sufixo}) na linha ${index + 1}.`
+        });
+        this.focarCampo(idCpf);
+        return false;
+      }
+
+      return true;
+    }
+
+    const nomeManual = (prof.corretorNomeManual || '').trim();
+    if (!nomeManual) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Profissional incompleto',
-        detail: `Informe o CPF do corretor (${sufixo}) na linha ${index + 1}.`
+        detail: `Informe o nome do profissional (${sufixo}) na linha ${index + 1}.`
       });
-      this.focarCampo(idCpf);
-      return false;
-    }
-
-    if (!this.validarCPF(cpf)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'CPF inválido',
-        detail: `Corrija o CPF do corretor (${sufixo}) na linha ${index + 1}.`
-      });
-      this.focarCampo(idCpf);
-      return false;
-    }
-
-    if (!prof.corretor) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Corretor inválido',
-        detail: `Selecione um corretor válido (${sufixo}) na linha ${index + 1}.`
-      });
-      this.focarCampo(idCpf);
+      this.focarCampo(idNome);
       return false;
     }
 
@@ -1784,13 +1825,36 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   private montarProfissionaisPayload(profs: ProfissionalForm[], imobiliaria: Imobiliaria | null): Omit<ProfissionalReservaDTO, 'id'>[] {
     return profs
-      .filter(p => p.corretor !== null && p.tipoProfissional !== null)
-      .map(p => ({
-        tipoProfissional: p.tipoProfissional!.value,
-        corretorId: Number(p.corretor?.idExterno) || 0,
-        cpfCorretor: (p.corretor?.cpf || p.corretorCpfBusca || '').replace(/\D/g, ''),
-        nomeCorretor: p.corretor?.nome || ''
-      }));
+      .filter(p => {
+        if (p.tipoProfissional === null) {
+          return false;
+        }
+
+        if (p.tipoProfissional.value === TipoProfissional.CORRETOR) {
+          return !!(p.corretorCpfBusca || p.corretorCpfManual);
+        }
+
+        return !!p.corretorNomeManual;
+      })
+      .map(p => {
+        const isCorretor = p.tipoProfissional!.value === TipoProfissional.CORRETOR;
+
+        if (isCorretor) {
+          return {
+            tipoProfissional: p.tipoProfissional!.value,
+            corretorId: Number(p.corretor?.idExterno) || 0,
+            cpfCorretor: (p.corretor?.cpf || p.corretorCpfManual || p.corretorCpfBusca || '').replace(/\D/g, ''),
+            nomeCorretor: ''
+          };
+        }
+
+        return {
+          tipoProfissional: p.tipoProfissional!.value,
+          corretorId: 0,
+          cpfCorretor: '',
+          nomeCorretor: p.corretorNomeManual || ''
+        };
+      });
   }
 
   private montarPayload(): ReservaCreateDTO {

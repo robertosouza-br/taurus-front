@@ -324,7 +324,7 @@
             <!-- Tipo -->
             <div class="prof-field tipo">
               <app-autocomplete
-                id="tipoProfissional_{{ i }}"
+                id="tipoProfissionalPrincipal_{{ i }}"
                 label="Tipo"
                 [(ngModel)]="prof.tipoProfissional"
                 [required]="false"
@@ -332,13 +332,13 @@
                 field="label"
                 placeholder="Tipo"
                 (completeMethod)="filtrarTiposProfissional($event)"
-                (onDropdownClick)="onDropdownClickTiposProfissional()">
+                (onDropdownClick)="onDropdownClickTiposProfissional()"
+                (ngModelChange)="onTipoProfissionalAlterado(prof)">
               </app-autocomplete>
             </div>
 
-            <!-- Corretor (busca por CPF) -->
             <div class="prof-field corretor">
-              <div class="corretor-busca-row">
+              <div class="corretor-busca-row" *ngIf="isCorretor(prof)">
                 <div class="corretor-cpf-field">
                   <app-input-cpf
                     id="cpfCorretorPrincipal_{{ i }}"
@@ -350,20 +350,32 @@
                   </app-input-cpf>
                 </div>
               </div>
-              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+              <div class="corretor-buscando" *ngIf="isCorretor(prof) && prof.corretorBuscando">
                 <i class="pi pi-spin pi-spinner"></i>
                 <span>Buscando corretor...</span>
               </div>
-              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+              <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
                 <i class="pi pi-exclamation-triangle"></i>
                 <span>Corretor não encontrado para este CPF.</span>
                 <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
                   Usar cadastro rápido
                 </button>
               </div>
-              <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && prof.corretor?.nome">
+              <div class="corretor-encontrado" *ngIf="isCorretor(prof) && prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
                 <span class="corretor-encontrado-label">Corretor:</span>
-                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome }}</span>
+                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome || prof.corretorNomeManual }}</span>
+              </div>
+              <div class="corretor-busca-row" *ngIf="!isCorretor(prof)">
+                <div class="corretor-cpf-field">
+                  <app-input-text
+                    id="nomeProfissionalPrincipal_{{ i }}"
+                    label="Nome do Profissional"
+                    [(ngModel)]="prof.corretorNomeManual"
+                    [required]="false"
+                    [disabled]="false"
+                    placeholder="Digite o nome completo">
+                  </app-input-text>
+                </div>
               </div>
             </div>
 
@@ -527,11 +539,12 @@
                 field="label"
                 placeholder="Tipo"
                 (completeMethod)="filtrarTiposProfissional($event)"
-                (onDropdownClick)="onDropdownClickTiposProfissional()">
+                (onDropdownClick)="onDropdownClickTiposProfissional()"
+                (ngModelChange)="onTipoProfissionalAlterado(prof)">
               </app-autocomplete>
             </div>
             <div class="prof-field corretor">
-              <div class="corretor-busca-row">
+              <div class="corretor-busca-row" *ngIf="isCorretor(prof)">
                 <div class="corretor-cpf-field">
                   <app-input-cpf
                     id="cpfCorretorSecundaria_{{ i }}"
@@ -543,20 +556,32 @@
                   </app-input-cpf>
                 </div>
               </div>
-              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+              <div class="corretor-buscando" *ngIf="isCorretor(prof) && prof.corretorBuscando">
                 <i class="pi pi-spin pi-spinner"></i>
                 <span>Buscando corretor...</span>
               </div>
-              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+              <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
                 <i class="pi pi-exclamation-triangle"></i>
                 <span>Corretor não encontrado para este CPF.</span>
                 <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
                   Usar cadastro rápido
                 </button>
               </div>
-              <div class="corretor-encontrado" *ngIf="prof.corretorCpfBusca && prof.corretor?.nome">
+              <div class="corretor-encontrado" *ngIf="isCorretor(prof) && prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
                 <span class="corretor-encontrado-label">Corretor:</span>
-                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome }}</span>
+                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome || prof.corretorNomeManual }}</span>
+              </div>
+              <div class="corretor-busca-row" *ngIf="!isCorretor(prof)">
+                <div class="corretor-cpf-field">
+                  <app-input-text
+                    id="nomeProfissionalSecundaria_{{ i }}"
+                    label="Nome do Profissional"
+                    [(ngModel)]="prof.corretorNomeManual"
+                    [required]="false"
+                    [disabled]="false"
+                    placeholder="Digite o nome completo">
+                  </app-input-text>
+                </div>
               </div>
             </div>
             <button
