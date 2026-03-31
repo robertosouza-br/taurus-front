@@ -715,6 +715,19 @@
         (onClick)="finalizarProposta()">
       </app-custom-button>
 
+      <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
+        <app-custom-button
+          *ngIf="podeEnviarParaTotvs"
+          label="Enviar ao TOTVS"
+          icon="pi pi-send"
+          severity="info"
+          [outlined]="true"
+          [loading]="enviandoTotvs"
+          [disabled]="salvando || finalizando || excluindo"
+          (onClick)="enviarPropostaParaTotvs()">
+        </app-custom-button>
+      </ng-container>
+
       <app-custom-button
         *ngIf="!propostaBloqueadaParaAnalise"
         label="Gravar proposta"

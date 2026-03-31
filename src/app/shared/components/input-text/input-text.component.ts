@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -29,6 +29,7 @@ export class InputTextComponent implements ControlValueAccessor {
   @Input() showValidation: boolean = false; // Controla se deve mostrar validação
   @Input() errorMessage: string = ''; // Mensagem de erro customizada
   @Input() helper: string = ''; // Texto de ajuda abaixo do campo
+  @Output() onBlur = new EventEmitter<void>();
 
   value: any = '';
   touched: boolean = false;
@@ -65,10 +66,11 @@ export class InputTextComponent implements ControlValueAccessor {
     }
   }
 
-  onBlur(): void {
+  handleBlur(): void {
     this.isFocused = false;
     this.touched = true;
     this.onTouched();
+    this.onBlur.emit();
     
     // Valida email se o tipo for email
     if (this.type === 'email' && this.value && typeof this.value === 'string' && this.value.trim().length > 0) {

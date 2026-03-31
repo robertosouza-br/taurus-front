@@ -186,7 +186,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
           {
             label: 'Propostas',
             icon: 'pi pi-file-edit',
-            routerLink: '/propostas',
+            routerLink: '/propostas/lista',
             funcionalidade: Funcionalidade.PROPOSTA
           },
           {

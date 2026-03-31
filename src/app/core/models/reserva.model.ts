@@ -145,6 +145,7 @@ export interface ReservaDTO {
   codigoStatus: number;               // Código numérico do status (100, 200, 301, etc.)
   descricaoStatus: string;            // Descrição textual do status
   cpfCnpjCliente: string | null;
+  codigoClienteTotvs?: string | null;
   passaporteCliente: string | null;
   nomeCliente: string;
   clienteEstrangeiro: boolean;
@@ -183,6 +184,7 @@ export interface ReservaCreateDTO {
   tipologia?: string;
   codigoStatus: number;                // Código numérico obrigatório (100, 200, 301, etc.)
   cpfCnpjCliente?: string | null;
+  codigoClienteTotvs?: string | null;
   passaporteCliente?: string | null;
   imobiliariaPrincipalId: number;
   nomeImobiliariaPrincipal?: string;

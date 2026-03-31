@@ -4,6 +4,8 @@ import Decimal from 'decimal.js';
 import { MessageService } from 'primeng/api';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
+import { Permissao } from '../../../core/enums/permissao.enum';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
 import { PropostaService } from '../../../core/services/proposta.service';
@@ -44,6 +46,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   override salvando = false;
   finalizando = false;
   excluindo = false;
+  enviandoTotvs = false;
   gerandoPix = false;
   redirecionandoAposSucesso = false;
   mensagemLoadingTransicao = '';
@@ -95,7 +98,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   private avisoNovaAnalisePendenteAoBlur = false;
 
   get exibirLoadingOverlay(): boolean {
-    return this.carregando || this.salvando || this.finalizando || this.excluindo || this.redirecionandoAposSucesso;
+    return this.carregando || this.salvando || this.finalizando || this.excluindo || this.enviandoTotvs || this.redirecionandoAposSucesso;
   }
 
   get mensagemLoadingOverlay(): string {
@@ -113,6 +116,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     if (this.excluindo) {
       return 'Excluindo proposta...';
+    }
+
+    if (this.enviandoTotvs) {
+      return 'Enviando proposta ao TOTVS...';
     }
 
     return this.mensagemLoadingTransicao || 'Processando...';
@@ -141,6 +148,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   
   readonly statusLabels = PROPOSTA_STATUS_LABELS;
   readonly statusSeverity = PROPOSTA_STATUS_SEVERITY;
+  readonly Funcionalidade = Funcionalidade;
+  readonly Permissao = Permissao;
   
   componentesNormalizadosCache: ComponenteTabelaPadraoDTO[] = [];
   private readonly valorParcelaInputMap = new WeakMap<ComponenteFormulario, string>();
@@ -202,6 +211,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get podeExibirBotaoAplicarTabelaPadrao(): boolean {
     return !!this.proposta?.simulacao?.componentes?.length;
+  }
+
+  get podeEnviarParaTotvs(): boolean {
+    if (!this.proposta?.id) {
+      return false;
+    }
+
+    return this.proposta.status === PropostaStatus.APROVADA
+      || this.proposta.status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
   }
 
   getGrupoComponenteLabel(grupo?: number | null): string {
@@ -2418,6 +2436,33 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       });
   }
 
+  enviarPropostaParaTotvs(): void {
+    const propostaId = this.propostaId ?? this.proposta?.id;
+
+    if (!propostaId || !this.podeEnviarParaTotvs) {
+      return;
+    }
+
+    this.appConfirmationService.confirmCustom(
+      'Enviar proposta ao TOTVS',
+      `Deseja enviar a proposta <strong>${this.getNumeroPropostaDisplay()}</strong> para o TOTVS?`,
+      {
+        severity: 'info',
+        icon: 'pi pi-send',
+        confirmLabel: 'Enviar',
+        cancelLabel: 'Cancelar'
+      }
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.executarEnvioParaTotvs(propostaId);
+      });
+  }
+
   private resolverOperacaoSalvar(request: SalvarPropostaSimplificadaRequest): Observable<SalvarPropostaResponse> {
     if (this.propostaId) {
       return this.propostaService.atualizarPropostaSimplificada(this.propostaId, request);
@@ -2464,6 +2509,48 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return 'Erro ao salvar proposta';
   }
 
+  private executarEnvioParaTotvs(propostaId: number): void {
+    this.enviandoTotvs = true;
+
+    this.propostaService.enviarParaTotvs(propostaId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.enviandoTotvs = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response?.sucesso) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Falha no envio',
+              detail: this.obterMensagemErroEnvioTotvs({ error: response })
+            });
+            return;
+          }
+
+          if (response.numeroVenda && this.proposta) {
+            this.proposta.numeroProposta = response.numeroVenda;
+          }
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Proposta enviada ao TOTVS',
+            detail: response.numeroVenda
+              ? `${response.mensagem} Número da venda: ${response.numeroVenda}`
+              : response.mensagem
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao enviar proposta para o TOTVS:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro no envio ao TOTVS',
+            detail: this.obterMensagemErroEnvioTotvs(error)
+          });
+        }
+      });
+  }
+
   private exibirToastSucessoComLoading(
     summary: string,
     detail: string,
@@ -2499,6 +2586,41 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'Erro ao excluir proposta';
+  }
+
+  private obterMensagemErroEnvioTotvs(error: any): string {
+    const mensagem = error?.error?.mensagem || error?.error?.message;
+    const detalhe = error?.error?.erro;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      if (typeof detalhe === 'string' && detalhe.trim()) {
+        return `${mensagem} ${detalhe}`;
+      }
+
+      return mensagem;
+    }
+
+    if (typeof detalhe === 'string' && detalhe.trim()) {
+      return detalhe;
+    }
+
+    if (error?.status === 404) {
+      return 'A proposta informada não foi encontrada para envio ao TOTVS.';
+    }
+
+    if (error?.status === 403) {
+      return 'Você não possui permissão para enviar esta proposta ao TOTVS.';
+    }
+
+    if (error?.status === 401) {
+      return 'Sua sessão expirou. Faça login novamente para enviar a proposta ao TOTVS.';
+    }
+
+    return 'Erro ao enviar proposta para o TOTVS.';
+  }
+
+  private getNumeroPropostaDisplay(): string {
+    return this.proposta?.numeroProposta?.trim() || `#${this.proposta?.id ?? this.propostaId ?? this.reservaId}`;
   }
 
   /**

@@ -9,6 +9,7 @@ import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { ReservaService } from '../../../core/services/reserva.service';
+import { ClienteTotvsService } from '../../../core/services/cliente-totvs.service';
 import { ImobiliariaService } from '../../../core/services/imobiliaria.service';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
 import { CorretorService } from '../../../core/services/corretor.service';
@@ -76,6 +77,17 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   passaporteCliente = '';
   nomeCliente = '';
   clienteEstrangeiro = false;
+  consultandoClienteTotvs = false;
+  codigoClienteTotvs: string | null = null;
+  mensagemClienteTotvs = '';
+  documentoClienteTotvs = '';
+  clienteTotvsValidado = false;
+  ultimoDocumentoConsultadoTotvs = '';
+  displayCadastroClienteTotvs = false;
+  salvandoCadastroClienteTotvs = false;
+  cadastroClienteTotvsCpfCnpj = '';
+  cadastroClienteTotvsNome = '';
+  private limparNomeAoFecharCadastroClienteTotvs = false;
   formaPagamento: { label: string; value: FormaPagamento } | null = null;
   formaPagamentoOptions: { label: string; value: FormaPagamento }[] = [];
   dataReserva: Date | null = new Date();
@@ -138,6 +150,8 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   breadcrumbItems: BreadcrumbItem[] = [];
 
   private destroy$ = new Subject<void>();
+  readonly Funcionalidade = Funcionalidade;
+  readonly Permissao = Permissao;
 
   // ─── Controle de bloqueio da unidade ──────────────────────────────────────
   unidadeBloqueada = false;
@@ -150,6 +164,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     private route: ActivatedRoute,
     private router: Router,
     private reservaService: ReservaService,
+    private clienteTotvsService: ClienteTotvsService,
     private imobiliariaService: ImobiliariaService,
     private corretorService: CorretorService,
     private usuarioService: UsuarioService,
@@ -195,6 +210,18 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
    */
   get statusDesabilitado(): boolean {
     return !this.isAdmin;
+  }
+
+  get exibirInfoClienteTotvs(): boolean {
+    return !!this.codigoClienteTotvs
+      && this.documentoClienteTotvs === this.documentoClienteAtualLimpo;
+  }
+
+  private get documentoClienteAtualLimpo(): string {
+    return this.clienteTotvsService.normalizarDocumentoConsulta(
+      this.clienteEstrangeiro ? this.passaporteCliente : this.cpfCnpjCliente,
+      this.clienteEstrangeiro
+    );
   }
 
   ngOnInit(): void {
@@ -1335,6 +1362,38 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     return true;
   }
 
+  consultarClienteTotvs(exibirMensagemSucesso: boolean = true, aoFinalizar?: () => void): void {
+    if (!this.deveSincronizarClienteTotvs()) {
+      aoFinalizar?.();
+      return;
+    }
+
+    const documento = this.documentoClienteAtualLimpo;
+    if (documento === this.ultimoDocumentoConsultadoTotvs && this.clienteTotvsValidado) {
+      aoFinalizar?.();
+      return;
+    }
+
+    this.consultandoClienteTotvs = true;
+    this.ultimoDocumentoConsultadoTotvs = documento;
+
+    this.clienteTotvsService.consultarPorDocumento(documento, 0, this.clienteEstrangeiro)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.consultandoClienteTotvs = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.processarRetornoClienteTotvs(response, exibirMensagemSucesso);
+          aoFinalizar?.();
+        },
+        error: (error) => {
+          this.tratarFalhaClienteTotvs(error);
+          aoFinalizar?.();
+        }
+      });
+  }
+
   private validarLinhaProfissional(
     prof: ProfissionalForm,
     index: number,
@@ -1421,6 +1480,239 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     }
 
     return true;
+  }
+
+  private deveSincronizarClienteTotvs(): boolean {
+    if (this.clienteEstrangeiro) {
+      return !!this.documentoClienteAtualLimpo;
+    }
+
+    return this.documentoClienteAtualLimpo.length === 11 || this.documentoClienteAtualLimpo.length === 14;
+  }
+
+  onCpfCnpjClienteChange(valor: string): void {
+    const documento = this.clienteTotvsService.normalizarDocumentoConsulta(valor, this.clienteEstrangeiro);
+
+    if (documento === this.documentoClienteTotvs || documento === this.ultimoDocumentoConsultadoTotvs) {
+      return;
+    }
+
+    this.limparInformacoesClienteTotvs(true);
+  }
+
+  onCpfCnpjClienteBlur(): void {
+    if (!this.deveSincronizarClienteTotvs()) {
+      return;
+    }
+
+    this.consultarClienteTotvs();
+  }
+
+  private processarRetornoClienteTotvs(response: any, exibirMensagemSucesso: boolean): void {
+    if (!response?.sucesso) {
+      this.fecharCadastroClienteTotvs();
+      this.clienteTotvsValidado = false;
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Falha ao integrar cliente',
+        detail: this.clienteTotvsService.obterMensagemErro(
+          { error: response },
+          this.clienteEstrangeiro
+            ? 'Não foi possível consultar o cliente no TOTVS. A reserva continuará com o passaporte informado.'
+            : 'Não foi possível consultar o cliente no TOTVS. A reserva continuará com o CPF/CNPJ informado.'
+        )
+      });
+      return;
+    }
+
+    if (!response.encontrado) {
+      this.clienteTotvsValidado = false;
+      if (this.clienteEstrangeiro) {
+        this.fecharCadastroClienteTotvs();
+        if (exibirMensagemSucesso) {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Cliente não encontrado',
+            detail: response.mensagem || 'Cliente estrangeiro não encontrado no TOTVS pelo passaporte informado.'
+          });
+        }
+        return;
+      }
+
+      this.abrirCadastroClienteTotvs();
+      if (exibirMensagemSucesso) {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Cliente não encontrado',
+          detail: response.mensagem || 'Cliente não encontrado no TOTVS. Complete o cadastro no modal para continuar.'
+        });
+      }
+      return;
+    }
+
+    const codigoCliente = response.codigoCliente || null;
+
+    this.fecharCadastroClienteTotvs();
+    if (response.dados?.nome) {
+      this.nomeCliente = response.dados.nome;
+    }
+
+    if (!codigoCliente) {
+      this.clienteTotvsValidado = false;
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cliente sem código TOTVS',
+        detail: 'O TOTVS processou a solicitação sem retornar código do cliente. A reserva continuará com o CPF/CNPJ informado.'
+      });
+      return;
+    }
+
+    const mensagem = response.mensagem || 'Cliente localizado no TOTVS.';
+
+    this.registrarClienteTotvs(codigoCliente, mensagem);
+    this.clienteTotvsValidado = true;
+
+    if (!exibirMensagemSucesso) {
+      return;
+    }
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Cliente localizado',
+      detail: `${mensagem} Código: ${codigoCliente}`
+    });
+  }
+
+  private tratarFalhaClienteTotvs(error: any): void {
+    this.fecharCadastroClienteTotvs();
+    this.clienteTotvsValidado = false;
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Integração com TOTVS indisponível',
+      detail: this.clienteTotvsService.obterMensagemErro(
+        error,
+        this.clienteEstrangeiro
+          ? 'Não foi possível consultar o cliente no TOTVS. A reserva continuará com o passaporte informado.'
+          : 'Não foi possível consultar o cliente no TOTVS. A reserva continuará com o CPF/CNPJ informado.'
+      )
+    });
+  }
+
+  abrirCadastroClienteTotvs(): void {
+    this.cadastroClienteTotvsCpfCnpj = this.clienteEstrangeiro ? this.passaporteCliente : this.cpfCnpjCliente;
+    this.cadastroClienteTotvsNome = this.nomeCliente;
+    this.limparNomeAoFecharCadastroClienteTotvs = false;
+    this.displayCadastroClienteTotvs = true;
+  }
+
+  fecharCadastroClienteTotvs(limparNomeCliente: boolean = false): void {
+    this.limparNomeAoFecharCadastroClienteTotvs = limparNomeCliente;
+    this.displayCadastroClienteTotvs = false;
+    this.resetarCadastroClienteTotvs();
+  }
+
+  onCadastroClienteTotvsHide(): void {
+    this.resetarCadastroClienteTotvs();
+  }
+
+  private resetarCadastroClienteTotvs(): void {
+    this.salvandoCadastroClienteTotvs = false;
+    this.cadastroClienteTotvsCpfCnpj = '';
+    this.cadastroClienteTotvsNome = '';
+
+    if (this.limparNomeAoFecharCadastroClienteTotvs) {
+      this.nomeCliente = '';
+    }
+
+    this.limparNomeAoFecharCadastroClienteTotvs = false;
+  }
+
+  cadastrarClienteTotvsBasico(): void {
+    if (!this.documentoClienteAtualLimpo) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: this.clienteEstrangeiro ? 'Passaporte obrigatório' : 'CPF/CNPJ obrigatório',
+        detail: this.clienteEstrangeiro
+          ? 'Informe o passaporte antes de cadastrar o cliente no TOTVS.'
+          : 'Informe o CPF/CNPJ antes de cadastrar o cliente no TOTVS.'
+      });
+      return;
+    }
+
+    if (!this.cadastroClienteTotvsNome.trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Nome obrigatório',
+        detail: 'Informe o nome do cliente para concluir o cadastro no TOTVS.'
+      });
+      return;
+    }
+
+    this.salvandoCadastroClienteTotvs = true;
+
+    this.clienteTotvsService.cadastrarBasico(
+      this.clienteTotvsService.criarPayloadCadastroBasico(
+        this.cadastroClienteTotvsNome,
+        this.cadastroClienteTotvsCpfCnpj,
+        this.clienteEstrangeiro
+      )
+    )
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.salvandoCadastroClienteTotvs = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response?.sucesso || !response.codigoCliente) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Erro no cadastro',
+              detail: this.clienteTotvsService.obterMensagemErro(
+                { error: response },
+                'Não foi possível cadastrar o cliente no TOTVS.'
+              )
+            });
+            return;
+          }
+
+          this.nomeCliente = this.cadastroClienteTotvsNome.trim();
+          this.registrarClienteTotvs(response.codigoCliente, response.mensagem || 'Cliente cadastrado com sucesso no TOTVS.');
+          this.clienteTotvsValidado = true;
+          this.fecharCadastroClienteTotvs();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Cliente cadastrado',
+            detail: `${response.mensagem || 'Cliente cadastrado com sucesso.'} Código: ${response.codigoCliente}`
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro no cadastro',
+            detail: this.clienteTotvsService.obterMensagemErro(
+              error,
+              'Não foi possível cadastrar o cliente no TOTVS.'
+            )
+          });
+        }
+      });
+  }
+
+  private registrarClienteTotvs(codigoCliente?: string | null, mensagem: string = ''): void {
+    this.codigoClienteTotvs = codigoCliente || null;
+    this.mensagemClienteTotvs = mensagem;
+    this.documentoClienteTotvs = this.documentoClienteAtualLimpo;
+  }
+
+  private limparInformacoesClienteTotvs(limparNomeCliente: boolean = false): void {
+    this.codigoClienteTotvs = null;
+    this.mensagemClienteTotvs = '';
+    this.documentoClienteTotvs = '';
+    this.clienteTotvsValidado = false;
+    this.ultimoDocumentoConsultadoTotvs = '';
+    this.displayCadastroClienteTotvs = false;
+    this.limparNomeAoFecharCadastroClienteTotvs = limparNomeCliente;
+    this.resetarCadastroClienteTotvs();
   }
 
   /**
@@ -1517,6 +1809,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       tipologia: this.tipologia,
       codigoStatus: codigoStatus,
       cpfCnpjCliente: this.clienteEstrangeiro ? null : this.cpfCnpjCliente,
+      codigoClienteTotvs: this.codigoClienteTotvs || null,
       passaporteCliente: this.clienteEstrangeiro ? this.passaporteCliente : null,
       imobiliariaPrincipalId: this.imobiliariaPrincipalSelecionada!.id,
       nomeImobiliariaPrincipal: this.getNomeImobiliaria(this.imobiliariaPrincipalSelecionada!),
@@ -1581,6 +1874,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.passaporteCliente = '';
     this.nomeCliente = '';
     this.clienteEstrangeiro = false;
+    this.limparInformacoesClienteTotvs();
     this.formaPagamento = null;
     this.dataReserva = new Date();
     this.dataVenda = null;

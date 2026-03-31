@@ -549,3 +549,13 @@ export interface FinalizarPropostaStatusResponse {
   status: PropostaStatus;          // AGUARDANDO_ANALISE ou APROVADA_AUTOMATICAMENTE
   dataAlteracao: string;
 }
+
+/**
+ * Response do endpoint POST /api/v1/propostas/{id}/enviar-totvs
+ */
+export interface EnviarPropostaTotvsResponse {
+  sucesso: boolean;
+  mensagem: string;
+  numeroVenda?: string | null;
+  erro?: string | null;
+}

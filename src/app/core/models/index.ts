@@ -10,6 +10,7 @@ export * from './contato.model';
 export * from './dashboard.model';
 export * from './imobiliaria.model';
 export * from './reserva.model';
+export * from './cliente-totvs.model';
 export * from './proposta-fluxo.model';
 export * from './proposta-simplificada.model';
 export * from './analise-proposta.model';

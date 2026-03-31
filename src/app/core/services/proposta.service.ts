@@ -18,7 +18,8 @@ import {
   PropostaPorReservaDTO,
   CriarPropostaStatusRequest,
   CriarPropostaStatusResponse,
-  FinalizarPropostaStatusResponse
+  FinalizarPropostaStatusResponse,
+  EnviarPropostaTotvsResponse
 } from '../models/proposta-simplificada.model';
 
 /**
@@ -347,6 +348,19 @@ export class PropostaService {
   finalizarProposta(propostaId: number): Observable<FinalizarPropostaStatusResponse> {
     return this.http.post<FinalizarPropostaStatusResponse>(
       `${this.baseUrl}/${propostaId}/finalizar`,
+      {}
+    );
+  }
+
+  /**
+   * Envia uma proposta aprovada para integração com o TOTVS
+   * POST /api/v1/propostas/{id}/enviar-totvs
+   *
+   * @param propostaId ID da proposta
+   */
+  enviarParaTotvs(propostaId: number): Observable<EnviarPropostaTotvsResponse> {
+    return this.http.post<EnviarPropostaTotvsResponse>(
+      `${this.baseUrl}/${propostaId}/enviar-totvs`,
       {}
     );
   }

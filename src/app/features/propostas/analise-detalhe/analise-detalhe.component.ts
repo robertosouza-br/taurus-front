@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import Decimal from 'decimal.js';
 import { MessageService } from 'primeng/api';
+import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
+import { Permissao } from '../../../core/enums/permissao.enum';
 import {
   GRUPO_COMPONENTE_LABELS,
   GrupoComponente,
@@ -10,6 +12,7 @@ import {
   VencimentoDTO
 } from '../../../core/models/proposta-simplificada.model';
 import { AnalisePropostaService } from '../../../core/services/analise-proposta.service';
+import { PropostaService } from '../../../core/services/proposta.service';
 import {
   ComponenteAnaliseDTO,
   PropostaAnaliseDetalheDTO,
@@ -32,6 +35,7 @@ export class AnaliseDetalheComponent implements OnInit {
 
   carregando = false;
   processando = false;
+  enviandoTotvs = false;
   mensagemLoadingOverlay = 'Carregando dados da análise...';
 
   proposta: PropostaAnaliseDetalheDTO | null = null;
@@ -52,6 +56,8 @@ export class AnaliseDetalheComponent implements OnInit {
 
   STATUS_ANALISE_LABELS = STATUS_ANALISE_LABELS;
   STATUS_ANALISE_SEVERITY = STATUS_ANALISE_SEVERITY;
+  readonly Funcionalidade = Funcionalidade;
+  readonly Permissao = Permissao;
 
   graficoOptions = {
     responsive: true,
@@ -105,6 +111,7 @@ export class AnaliseDetalheComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private analiseService: AnalisePropostaService,
+    private propostaService: PropostaService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) {}
@@ -116,7 +123,11 @@ export class AnaliseDetalheComponent implements OnInit {
   }
 
   get exibirLoadingOverlay(): boolean {
-    return this.carregando || this.processando;
+    return this.carregando || this.processando || this.enviandoTotvs;
+  }
+
+  get podeEnviarParaTotvs(): boolean {
+    return !!this.propostaId && this.proposta?.status === 'APROVADA';
   }
 
   private configurarBreadcrumb(): void {
@@ -777,6 +788,63 @@ export class AnaliseDetalheComponent implements OnInit {
     });
   }
 
+  enviarParaTotvs(): void {
+    if (!this.podeEnviarParaTotvs) {
+      return;
+    }
+
+    this.confirmationService.confirmCustom(
+      'Enviar proposta ao TOTVS',
+      `Deseja enviar a proposta <strong>${this.getNumeroPropostaDisplay()}</strong> para o TOTVS?`,
+      { confirmLabel: 'Enviar', severity: 'info', icon: 'pi pi-send' }
+    ).subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.mensagemLoadingOverlay = 'Enviando proposta ao TOTVS...';
+      this.enviandoTotvs = true;
+
+      this.propostaService.enviarParaTotvs(this.propostaId).subscribe({
+        next: (response) => {
+          this.enviandoTotvs = false;
+
+          if (!response?.sucesso) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Falha no envio',
+              detail: this.obterMensagemErroEnvioTotvs({ error: response })
+            });
+            this.mensagemLoadingOverlay = 'Carregando dados da análise...';
+            return;
+          }
+
+          if (response.numeroVenda && this.proposta) {
+            this.proposta.numeroProposta = response.numeroVenda;
+          }
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Proposta enviada ao TOTVS',
+            detail: response.numeroVenda
+              ? `${response.mensagem} Número da venda: ${response.numeroVenda}`
+              : response.mensagem
+          });
+          this.mensagemLoadingOverlay = 'Carregando dados da análise...';
+        },
+        error: (err) => {
+          this.enviandoTotvs = false;
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro no envio ao TOTVS',
+            detail: this.obterMensagemErroEnvioTotvs(err)
+          });
+          this.mensagemLoadingOverlay = 'Carregando dados da análise...';
+        }
+      });
+    });
+  }
+
   abrirDialogReprovacao(): void {
     this.motivoReprovacao = '';
     this.exibirDialogReprovacao = true;
@@ -835,6 +903,37 @@ export class AnaliseDetalheComponent implements OnInit {
 
   getNumeroPropostaDisplay(): string {
     return this.proposta?.numeroProposta?.trim() || `#${this.proposta?.id ?? this.propostaId}`;
+  }
+
+  private obterMensagemErroEnvioTotvs(error: any): string {
+    const mensagem = error?.error?.mensagem || error?.error?.message;
+    const detalhe = error?.error?.erro;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      if (typeof detalhe === 'string' && detalhe.trim()) {
+        return `${mensagem} ${detalhe}`;
+      }
+
+      return mensagem;
+    }
+
+    if (typeof detalhe === 'string' && detalhe.trim()) {
+      return detalhe;
+    }
+
+    if (error?.status === 404) {
+      return 'A proposta informada não foi encontrada para envio ao TOTVS.';
+    }
+
+    if (error?.status === 403) {
+      return 'Você não possui permissão para enviar esta proposta ao TOTVS.';
+    }
+
+    if (error?.status === 401) {
+      return 'Sua sessão expirou. Faça login novamente para enviar a proposta ao TOTVS.';
+    }
+
+    return 'Erro ao enviar proposta para o TOTVS.';
   }
 
   getNomeCliente(): string {

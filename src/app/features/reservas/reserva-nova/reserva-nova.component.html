@@ -130,6 +130,8 @@
             id="cpfCnpjCliente"
             label="CPF / CNPJ do Cliente"
             [(ngModel)]="cpfCnpjCliente"
+            (ngModelChange)="onCpfCnpjClienteChange($event)"
+            (onBlur)="onCpfCnpjClienteBlur()"
             documentType="cpfCnpj"
             [required]="true"
             [showValidation]="tentouSalvar">
@@ -142,6 +144,8 @@
             id="passaporteCliente"
             label="Passaporte do Cliente"
             [(ngModel)]="passaporteCliente"
+            (ngModelChange)="onCpfCnpjClienteChange($event)"
+            (onBlur)="onCpfCnpjClienteBlur()"
             [required]="true"
             [showValidation]="tentouSalvar"
             placeholder="Informe o passaporte">
@@ -154,10 +158,31 @@
             id="nomeCliente"
             label="Nome Completo do Cliente"
             [(ngModel)]="nomeCliente"
+            [disabled]="true"
             [required]="true"
             [showValidation]="tentouSalvar"
             placeholder="Digite o nome completo">
           </app-input-text>
+        </div>
+
+        <div class="col-12">
+          <div class="flex flex-wrap align-items-center gap-2">
+            <span class="text-sm text-color-secondary" *ngIf="consultandoClienteTotvs">
+              Consultando cliente no TOTVS...
+            </span>
+
+            <span class="text-sm text-color-secondary" *ngIf="clienteEstrangeiro">
+              Para cliente estrangeiro, a consulta no TOTVS usa o número do passaporte.
+            </span>
+          </div>
+        </div>
+
+        <div class="col-12" *ngIf="exibirInfoClienteTotvs">
+          <div class="surface-50 border-1 border-green-200 border-round p-3 flex flex-wrap align-items-center gap-2">
+            <p-tag severity="success" value="Cliente no TOTVS"></p-tag>
+            <span>Código: <strong>{{ codigoClienteTotvs }}</strong></span>
+            <span class="text-color-secondary" *ngIf="mensagemClienteTotvs">{{ mensagemClienteTotvs }}</span>
+          </div>
         </div>
 
         <!-- Forma de Pagamento -->
@@ -598,6 +623,72 @@
       </app-custom-button>
     </div>
   </div>
+
+  <p-dialog
+    header="Cadastro Básico de Cliente no TOTVS"
+    [(visible)]="displayCadastroClienteTotvs"
+    [modal]="true"
+    [style]="{'width': '520px'}"
+    [breakpoints]="{'960px': '75vw', '640px': '95vw'}"
+    (onHide)="onCadastroClienteTotvsHide()"
+    [closable]="!salvandoCadastroClienteTotvs">
+
+    <div class="grid" *ngIf="displayCadastroClienteTotvs">
+      <div class="col-12" *ngIf="!clienteEstrangeiro">
+        <app-input-cpf
+          id="cadastroClienteTotvsCpfCnpj"
+          label="CPF / CNPJ"
+          [(ngModel)]="cadastroClienteTotvsCpfCnpj"
+          documentType="cpfCnpj"
+          [required]="true"
+          [disabled]="true"
+          [showValidation]="true">
+        </app-input-cpf>
+      </div>
+      <div class="col-12" *ngIf="clienteEstrangeiro">
+        <app-input-text
+          id="cadastroClienteTotvsCpfCnpj"
+          label="Passaporte"
+          [(ngModel)]="cadastroClienteTotvsCpfCnpj"
+          [required]="true"
+          [disabled]="true"
+          [showValidation]="true">
+        </app-input-text>
+      </div>
+      <div class="col-12">
+        <app-input-text
+          id="cadastroClienteTotvsNome"
+          label="Nome Completo"
+          [(ngModel)]="cadastroClienteTotvsNome"
+          [required]="true"
+          [disabled]="salvandoCadastroClienteTotvs"
+          [showValidation]="true"
+          placeholder="Digite o nome do cliente">
+        </app-input-text>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex gap-2 justify-content-end">
+        <app-custom-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="warning"
+          [outlined]="true"
+          [disabled]="salvandoCadastroClienteTotvs"
+          (onClick)="fecharCadastroClienteTotvs(true)">
+        </app-custom-button>
+        <app-custom-button
+          label="Cadastrar Cliente"
+          icon="pi pi-save"
+          severity="success"
+          [loading]="salvandoCadastroClienteTotvs"
+          [disabled]="salvandoCadastroClienteTotvs || !cadastroClienteTotvsNome.trim()"
+          (onClick)="cadastrarClienteTotvsBasico()">
+        </app-custom-button>
+      </div>
+    </ng-template>
+  </p-dialog>
 
   <!-- ─── DIALOG: CADASTRO RÁPIDO DE CORRETOR ──────────────────────── -->
   <p-dialog
