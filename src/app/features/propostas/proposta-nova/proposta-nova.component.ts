@@ -44,7 +44,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   
   carregando = false;
   override salvando = false;
-  finalizando = false;
   excluindo = false;
   enviandoTotvs = false;
   gerandoPix = false;
@@ -98,7 +97,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   private avisoNovaAnalisePendenteAoBlur = false;
 
   get exibirLoadingOverlay(): boolean {
-    return this.carregando || this.salvando || this.finalizando || this.excluindo || this.enviandoTotvs || this.redirecionandoAposSucesso;
+    return this.carregando || this.salvando || this.excluindo || this.enviandoTotvs || this.redirecionandoAposSucesso;
   }
 
   get mensagemLoadingOverlay(): string {
@@ -108,10 +107,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     if (this.salvando) {
       return 'Salvando proposta...';
-    }
-
-    if (this.finalizando) {
-      return 'Finalizando proposta...';
     }
 
     if (this.excluindo) {
@@ -185,17 +180,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     return status === PropostaStatus.APROVADA
       || status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
-  }
-
-  get podeExibirBotaoFinalizar(): boolean {
-    const status = this.proposta?.status;
-
-    if (this.propostaSujeitaANovaAnalisePorEdicao && this.simulacaoAtualDivergeDoEstadoCarregado()) {
-      return false;
-    }
-
-    return status === PropostaStatus.APROVADA_AUTOMATICAMENTE
-      || status === PropostaStatus.APROVADA;
   }
 
   get propostaBloqueadaParaAnalise(): boolean {
@@ -2251,55 +2235,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       });
   }
 
-  finalizarProposta(): void {
-    this.tentouSalvar = true;
-
-    if (!this.validarFormulario()) {
-      return;
-    }
-
-    if (!this.valorPropostaIgualTabela) {
-      this.exibirAlertaValorDivergente();
-      return;
-    }
-
-    if (!this.validarPayloadAntesDeSalvar()) {
-      return;
-    }
-
-    const confirmacaoFinalizar$ = this.possuiViolacoesAprovacao
-      ? this.appConfirmationService.confirmCustom(
-          'Proposta sujeita à aprovação',
-          'Esta proposta não atende aos critérios de aprovação automática. Ao finalizar, ela será encaminhada para a área de aprovação. Deseja continuar?',
-          {
-            severity: 'warning',
-            icon: 'pi pi-exclamation-triangle',
-            confirmLabel: 'Finalizar e enviar',
-            cancelLabel: 'Cancelar'
-          }
-        )
-      : this.appConfirmationService.confirmCustom(
-          'Finalizar proposta',
-          'Deseja finalizar a proposta? O status final será definido pelo backend.',
-          {
-            severity: 'info',
-            icon: 'pi pi-check-circle',
-            confirmLabel: 'Finalizar',
-            cancelLabel: 'Cancelar'
-          }
-        );
-
-    confirmacaoFinalizar$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.executarFinalizacaoProposta();
-      });
-  }
-
   private executarSalvarProposta(solicitarAnalise: boolean = false): void {
     const request = this.montarRequest(solicitarAnalise);
     this.salvando = true;
@@ -2347,54 +2282,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         });
       }
     });
-  }
-
-  private executarFinalizacaoProposta(): void {
-    const request = this.montarRequest(false);
-    this.finalizando = true;
-
-    this.resolverOperacaoSalvar(request)
-      .pipe(
-        takeUntil(this.destroy$),
-        switchMap((response) => {
-          this.propostaId = response.id;
-          if (this.proposta) {
-            this.proposta.id = response.id;
-            this.proposta.status = response.status ?? this.proposta.status;
-          }
-
-          return this.propostaService.finalizarProposta(response.id);
-        }),
-        finalize(() => this.finalizando = false)
-      )
-      .subscribe({
-        next: (response) => {
-          if (this.proposta) {
-            this.proposta.status = response.status ?? this.proposta.status;
-          }
-
-          const statusFinal = response.status;
-
-          this.exibirToastSucessoComLoading(
-            statusFinal === PropostaStatus.AGUARDANDO_ANALISE
-              ? 'Proposta enviada para aprovação'
-              : 'Proposta aprovada automaticamente',
-            statusFinal === PropostaStatus.AGUARDANDO_ANALISE
-              ? 'Proposta finalizada com sucesso e encaminhada para a área de aprovação.'
-              : 'Proposta finalizada com sucesso e aprovada automaticamente.',
-            1500,
-            'Redirecionando para a lista de propostas...'
-          );
-        },
-        error: (error) => {
-          console.error('Erro ao finalizar proposta:', error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Erro',
-            detail: this.obterMensagemErroSalvar(error)
-          });
-        }
-      });
   }
 
   excluirProposta(): void {

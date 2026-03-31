@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { PropostaService } from '../../../core/services/proposta.service';
 import { PropostaStateService } from '../../../core/services/proposta-state.service';
@@ -32,7 +34,7 @@ import {
   styleUrls: ['./proposta-step2.component.scss'],
   providers: [MessageService]
 })
-export class PropostaStep2Component extends BaseFormComponent implements OnInit {
+export class PropostaStep2Component extends BaseFormComponent implements OnInit, OnDestroy {
   formulario!: FormGroup;
   reservaId!: number;
   propostaId?: number;
@@ -40,6 +42,7 @@ export class PropostaStep2Component extends BaseFormComponent implements OnInit 
   carregando = false;
   override salvando = false;
   stepsPreenchidos = 2;
+  private readonly destroy$ = new Subject<void>();
   
   // Dados pré-preenchidos da reserva (readonly)
   dadosBasicosReserva: {
@@ -116,6 +119,11 @@ export class PropostaStep2Component extends BaseFormComponent implements OnInit 
     this.obterReservaId();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   inicializarFormulario(): void {
     this.formulario = this.fb.group({
       // SEÇÃO 1: Dados Básicos (campos complementares)
@@ -151,7 +159,9 @@ export class PropostaStep2Component extends BaseFormComponent implements OnInit 
   }
 
   obterReservaId(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(params => {
       this.reservaId = +params['reservaId'];
       if (this.reservaId) {
         this.carregarDados();

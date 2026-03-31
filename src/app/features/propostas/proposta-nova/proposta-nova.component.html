@@ -687,7 +687,7 @@
         icon="pi pi-times"
         severity="secondary"
         [outlined]="true"
-        [disabled]="salvando || finalizando || excluindo"
+        [disabled]="salvando || excluindo || enviandoTotvs"
         (onClick)="confirmarCancelamento()">
       </app-custom-button>
 
@@ -700,19 +700,8 @@
         confirmationMessage="a proposta atual"
         [outlined]="true"
         [loading]="excluindo"
-        [disabled]="salvando || finalizando"
+        [disabled]="salvando || enviandoTotvs"
         (onClick)="excluirProposta()">
-      </app-custom-button>
-
-      <app-custom-button
-        *ngIf="!propostaBloqueadaParaAnalise && podeExibirBotaoFinalizar"
-        label="Finalizar Proposta"
-        icon="pi pi-check"
-        severity="primary"
-        [outlined]="true"
-        [loading]="finalizando"
-        [disabled]="salvando || excluindo"
-        (onClick)="finalizarProposta()">
       </app-custom-button>
 
       <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
@@ -723,7 +712,7 @@
           severity="info"
           [outlined]="true"
           [loading]="enviandoTotvs"
-          [disabled]="salvando || finalizando || excluindo"
+          [disabled]="salvando || excluindo"
           (onClick)="enviarPropostaParaTotvs()">
         </app-custom-button>
       </ng-container>
@@ -734,7 +723,7 @@
         icon="pi pi-save"
         severity="success"
         [loading]="salvando"
-        [disabled]="excluindo || finalizando"
+        [disabled]="excluindo || enviandoTotvs"
         (onClick)="salvar()">
       </app-custom-button>
     </div>

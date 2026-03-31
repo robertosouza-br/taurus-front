@@ -58,7 +58,6 @@ import { InputPasswordComponent } from './components/input-password/input-passwo
 import { InputDateComponent } from './components/input-date/input-date.component';
 import { InputEmailsComponent } from './components/input-emails/input-emails.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
-import { DialogService } from 'primeng/dynamicdialog';
 import { AutocompleteComponent } from './components/autocomplete/autocomplete.component';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { ExportSpeedDialComponent } from './components/export-speed-dial/export-speed-dial.component';
@@ -215,7 +214,6 @@ import { CalendarModule } from 'primeng/calendar';
     AccordionModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
-  ],
-  providers: [DialogService]
+  ]
 })
 export class SharedModule { }

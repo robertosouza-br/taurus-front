@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -19,7 +19,8 @@ import {
   MotivoCompra,
   MOTIVO_COMPRA_LABELS
 } from '../../../core/models/proposta-fluxo.model';
-import { forkJoin } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-proposta-step1',
@@ -27,12 +28,13 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./proposta-step1.component.scss'],
   providers: [MessageService]
 })
-export class PropostaStep1Component extends BaseFormComponent implements OnInit {
+export class PropostaStep1Component extends BaseFormComponent implements OnInit, OnDestroy {
   formulario!: FormGroup;
   reservaId!: number;
   dadosUnidade?: DadosUnidadeHeaderDTO;
   carregando = false;
   stepsPreenchidos = 1; // Step 1 é o mínimo
+  private readonly destroy$ = new Subject<void>();
   
   // Lista de imobiliárias para autocomplete
   imobiliarias: ImobiliariaComboDTO[] = [];
@@ -71,6 +73,11 @@ export class PropostaStep1Component extends BaseFormComponent implements OnInit 
     console.log('Query params:', this.route.snapshot.queryParams);
     this.inicializarFormulario();
     this.obterReservaId();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   inicializarFormulario(): void {
@@ -140,7 +147,9 @@ export class PropostaStep1Component extends BaseFormComponent implements OnInit 
   }
 
   obterReservaId(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(params => {
       this.reservaId = +params['reservaId'];
       if (this.reservaId) {
         this.carregarDadosIniciais();
