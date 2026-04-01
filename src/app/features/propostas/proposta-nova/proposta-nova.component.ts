@@ -218,6 +218,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return qrCodeBase64 ? `data:image/png;base64,${qrCodeBase64}` : null;
   }
 
+  get mensagemPixSemImagem(): string {
+    if (!this.pixGerado?.sucesso || this.qrCodePixSrc) {
+      return '';
+    }
+
+    return 'O PIX foi gerado, mas a imagem do QR Code nao foi retornada.';
+  }
+
   get possuiComponenteAto(): boolean {
     return this.componentes.some(componente => this.isAtoPorCodigoOuNome(componente.codigoComponente, componente.nomeComponente));
   }
@@ -2280,15 +2288,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   gerarPix(): void {
     const propostaId = this.propostaId ?? this.proposta?.id;
 
-    if (!propostaId || !this.podeGerarPix) {
+    if (!propostaId) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'A proposta precisa estar enviada ao TOTVS e possuir componente ATO para gerar o PIX.'
+        detail: 'A proposta precisa estar salva antes de gerar o PIX.'
       });
       return;
     }
 
+    this.pixGerado = null;
+    this.exibirDialogPix = false;
     this.gerandoPix = true;
 
     this.propostaService.gerarPix(propostaId)
@@ -2298,7 +2308,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       )
       .subscribe({
         next: (response) => {
-          if (!response?.sucesso || !response.qrCodeBase64) {
+          if (!response?.sucesso) {
             this.messageService.add({
               severity: 'error',
               summary: 'Falha ao gerar PIX',
@@ -2309,6 +2319,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
           this.pixGerado = response;
           this.exibirDialogPix = true;
+
+          if (!this.qrCodePixSrc) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'PIX gerado sem imagem',
+              detail: 'O PIX foi gerado, mas a imagem do QR Code nao foi retornada.'
+            });
+            return;
+          }
+
           this.messageService.add({
             severity: 'success',
             summary: 'PIX Gerado',
@@ -2669,7 +2689,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return detalhe;
     }
 
-    return 'Não foi possível gerar o PIX da proposta.';
+    return 'Nao foi possivel gerar o PIX neste momento. Tente novamente.';
   }
 
   private getNumeroPropostaDisplay(): string {

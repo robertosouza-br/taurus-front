@@ -755,10 +755,13 @@
     <div class="col-12 text-center" *ngIf="qrCodePixSrc">
       <img [src]="qrCodePixSrc" alt="QR Code PIX da proposta" style="max-width: 100%; height: auto;" />
     </div>
+    <div class="col-12" *ngIf="mensagemPixSemImagem">
+      <p-message severity="warn" [text]="mensagemPixSemImagem" styleClass="w-full"></p-message>
+    </div>
     <div class="col-12">
       <div class="campo-readonly">
         <span class="campo-label">Mensagem</span>
-        <span class="campo-valor">{{ pixGerado.mensagem }}</span>
+        <span class="campo-valor">{{ pixGerado.mensagem || mensagemPixSemImagem }}</span>
       </div>
     </div>
     <div class="col-12 md:col-6" *ngIf="pixGerado.numeroVenda">
