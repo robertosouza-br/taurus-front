@@ -29,7 +29,8 @@ import {
   GrupoComponente,
   Periodicidade,
   GRUPO_COMPONENTE_LABELS,
-  PERIODICIDADE_LABELS
+  PERIODICIDADE_LABELS,
+  GerarPixPropostaResponse
 } from '../../../core/models/proposta-simplificada.model';
 
 @Component({
@@ -49,6 +50,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   gerandoPix = false;
   redirecionandoAposSucesso = false;
   mensagemLoadingTransicao = '';
+  exibirDialogPix = false;
+  pixGerado: GerarPixPropostaResponse | null = null;
   
   componentesTabelaPadrao: ComponenteTabelaPadraoDTO[] = [];
   componentes: ComponenteFormulario[] = [];
@@ -204,6 +207,23 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
     return this.proposta.status === PropostaStatus.APROVADA
       || this.proposta.status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
+  }
+
+  get podeGerarPix(): boolean {
+    return true
+  }
+
+  get qrCodePixSrc(): string | null {
+    const qrCodeBase64 = this.pixGerado?.qrCodeBase64?.trim();
+    return qrCodeBase64 ? `data:image/png;base64,${qrCodeBase64}` : null;
+  }
+
+  get possuiComponenteAto(): boolean {
+    return this.componentes.some(componente => this.isAtoPorCodigoOuNome(componente.codigoComponente, componente.nomeComponente));
+  }
+
+  get possuiAlteracoesNaoSalvasParaEnvioTotvs(): boolean {
+    return this.simulacaoAtualDivergeDoEstadoCarregado();
   }
 
   getGrupoComponenteLabel(grupo?: number | null): string {
@@ -413,6 +433,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             selecionado: false
           }));
 
+          this.enriquecerMetadadosComponentesCarregados();
+
           console.log(`Carregados ${this.componentesDisponiveisAPI.length} componentes disponíveis da API`);
           
           this.separarComponentes();
@@ -462,16 +484,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
       // Carregar dados da simulação existente
       this.componentes = simulacao.componentes.map(comp => {
-        const regra = this.componentesNormalizadosCache.find(
-          c => c.codigoComponente === comp.codigoComponente
-        )!;
+        const regra = this.obterRegraComponenteSimulacao(comp);
         
         const componente: ComponenteFormulario = {
           codigoComponente: comp.codigoComponente,
           nomeComponente: comp.nomeComponente,
           tipoComponente: comp.tipoComponente,
-          grupoComponente: regra.grupoComponente,
-          periodicidade: regra.periodicidade,
+          grupoComponente: comp.grupoComponente ?? regra.grupoComponente,
+          periodicidade: comp.periodicidade ?? regra.periodicidade,
           quantidade: comp.quantidade,
           vencimento: comp.vencimento ? new Date(comp.vencimento) : null,
           valorParcela: comp.valorParcela,
@@ -485,7 +505,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         componente.listaVencimentos = this.gerarVencimentos(
           componente.vencimento,
           componente.quantidade,
-          regra.periodicidade ?? 0,
+          componente.periodicidade ?? regra.periodicidade ?? 0,
           componente.valorParcela,
           componente.valorTotal
         );
@@ -508,6 +528,92 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     
     this.separarComponentes();
     this.definirAtoInicialProtegido();
+  }
+
+  private obterRegraComponenteSimulacao(comp: ComponenteSimulacaoDTO): ComponenteTabelaPadraoDTO {
+    return this.obterMetadadosComponente(comp.codigoComponente)
+      ?? this.criarRegraFallbackDaSimulacao(comp);
+  }
+
+  private obterMetadadosComponente(codigoComponente: string): ComponenteTabelaPadraoDTO | null {
+    const codigoBase = codigoComponente.split('_')[0];
+
+    return this.componentesNormalizadosCache.find(c => c.codigoComponente === codigoBase)
+      ?? this.componentesDisponiveisAPI.find(c => c.codigoComponente === codigoBase)
+      ?? null;
+  }
+
+  private criarRegraFallbackDaSimulacao(comp: ComponenteSimulacaoDTO): ComponenteTabelaPadraoDTO {
+    const grupoComponente = comp.grupoComponente
+      ?? (this.inferirGrupoComponente(comp.nomeComponente) as GrupoComponente);
+
+    const periodicidade = comp.periodicidade
+      ?? ((comp.quantidade ?? 1) > 1 ? 1 : 0) as Periodicidade;
+
+    return {
+      codigoComponente: comp.codigoComponente,
+      nomeComponente: comp.nomeComponente,
+      tipoComponente: comp.tipoComponente,
+      grupoComponente,
+      quantidade: comp.quantidade ?? 1,
+      periodicidade,
+      percentual: comp.percentual ?? 0,
+      valorMinimo: null,
+      valorMaximo: null,
+      prazoMeses: comp.quantidade ?? 1,
+      ordem: comp.ordem ?? 999,
+      ativo: true,
+      tabelaPadrao: 'NÃO',
+      valor: comp.valorTotal ?? null,
+      valorParcela: comp.valorParcela ?? null,
+      dataVencimento: comp.vencimento ?? null,
+      listaVencimentos: undefined
+    };
+  }
+
+  private enriquecerMetadadosComponentesCarregados(): void {
+    if (!this.componentes.length || !this.componentesDisponiveisAPI.length) {
+      return;
+    }
+
+    this.componentes = this.componentes.map(componente => {
+      const metadados = this.obterMetadadosComponente(componente.codigoComponente);
+
+      if (!metadados) {
+        return componente;
+      }
+
+      const grupoComponente = componente.grupoComponente ?? metadados.grupoComponente;
+      const periodicidade = componente.periodicidade ?? metadados.periodicidade;
+
+      const regra = {
+        ...componente.regra,
+        ...metadados,
+        valor: componente.regra.valor ?? metadados.valor ?? null,
+        valorParcela: componente.regra.valorParcela ?? metadados.valorParcela ?? null,
+        dataVencimento: componente.regra.dataVencimento ?? metadados.dataVencimento ?? null,
+        listaVencimentos: componente.regra.listaVencimentos ?? metadados.listaVencimentos
+      };
+
+      const componenteAtualizado: ComponenteFormulario = {
+        ...componente,
+        grupoComponente,
+        periodicidade,
+        regra
+      };
+
+      if (componenteAtualizado.vencimento && componenteAtualizado.quantidade) {
+        componenteAtualizado.listaVencimentos = this.gerarVencimentos(
+          componenteAtualizado.vencimento,
+          componenteAtualizado.quantidade,
+          componenteAtualizado.periodicidade ?? regra.periodicidade ?? 0,
+          componenteAtualizado.valorParcela,
+          componenteAtualizado.valorTotal
+        );
+      }
+
+      return componenteAtualizado;
+    });
   }
 
   private criarComponentesFormularioTabelaPadrao(): ComponenteFormulario[] {
@@ -654,6 +760,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   private isAto(componente: ComponenteFormulario | null | undefined): boolean {
     return !!componente?.nomeComponente?.toUpperCase().includes('ATO');
+  }
+
+  private isAtoPorCodigoOuNome(codigoComponente?: string | null, nomeComponente?: string | null): boolean {
+    return codigoComponente?.split('_')[0] === '999'
+      || !!nomeComponente?.toUpperCase().includes('ATO');
   }
 
   isExclusaoBloqueada(componente: ComponenteFormulario): boolean {
@@ -2167,27 +2278,52 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Gera PIX para o componente ATO
    */
   gerarPix(): void {
-    const ato = this.componentes.find(c => c.nomeComponente === 'ATO');
-    
-    if (!ato || ato.valorParcela <= 0) {
+    const propostaId = this.propostaId ?? this.proposta?.id;
+
+    if (!propostaId || !this.podeGerarPix) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Informe o valor do ATO para gerar o PIX'
+        detail: 'A proposta precisa estar enviada ao TOTVS e possuir componente ATO para gerar o PIX.'
       });
       return;
     }
-    
+
     this.gerandoPix = true;
-    
-    setTimeout(() => {
-      this.gerandoPix = false;
-      this.messageService.add({
-        severity: 'success',
-        summary: 'PIX Gerado',
-        detail: 'QR Code do PIX gerado com sucesso'
+
+    this.propostaService.gerarPix(propostaId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.gerandoPix = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response?.sucesso || !response.qrCodeBase64) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Falha ao gerar PIX',
+              detail: this.obterMensagemErroPix(response)
+            });
+            return;
+          }
+
+          this.pixGerado = response;
+          this.exibirDialogPix = true;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'PIX Gerado',
+            detail: response.mensagem || 'QR Code do PIX gerado com sucesso.'
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao gerar PIX da proposta:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao gerar PIX',
+            detail: this.obterMensagemErroPix(error?.error || error)
+          });
+        }
       });
-    }, 1500);
   }
 
   /**
@@ -2249,6 +2385,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           this.proposta.id = response.id;
           this.proposta.status = response.status ?? this.proposta.status;
         }
+
+        this.registrarSimulacaoPersistidaAtual();
 
         const statusFinal = response.status;
         const possuiViolacoes = this.possuiViolacoesAprovacao;
@@ -2327,6 +2465,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const propostaId = this.propostaId ?? this.proposta?.id;
 
     if (!propostaId || !this.podeEnviarParaTotvs) {
+      return;
+    }
+
+    if (this.possuiAlteracoesNaoSalvasParaEnvioTotvs) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Salve antes de enviar',
+        detail: 'A simulação foi alterada e ainda não foi salva. Grave a proposta antes de enviar ao TOTVS.'
+      });
       return;
     }
 
@@ -2416,7 +2563,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           }
 
           if (response.numeroVenda && this.proposta) {
-            this.proposta.numeroProposta = response.numeroVenda;
+            this.proposta.numeroVenda = response.numeroVenda;
           }
 
           this.messageService.add({
@@ -2506,8 +2653,31 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return 'Erro ao enviar proposta para o TOTVS.';
   }
 
+  private obterMensagemErroPix(error: any): string {
+    const mensagem = error?.mensagem || error?.message;
+    const detalhe = error?.erro;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      if (typeof detalhe === 'string' && detalhe.trim()) {
+        return `${mensagem} ${detalhe}`;
+      }
+
+      return mensagem;
+    }
+
+    if (typeof detalhe === 'string' && detalhe.trim()) {
+      return detalhe;
+    }
+
+    return 'Não foi possível gerar o PIX da proposta.';
+  }
+
   private getNumeroPropostaDisplay(): string {
     return this.proposta?.numeroProposta?.trim() || `#${this.proposta?.id ?? this.propostaId ?? this.reservaId}`;
+  }
+
+  private registrarSimulacaoPersistidaAtual(): void {
+    this.assinaturaSimulacaoCarregada = this.gerarAssinaturaComponentes(this.componentes);
   }
 
   /**

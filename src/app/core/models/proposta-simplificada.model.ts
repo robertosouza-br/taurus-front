@@ -25,6 +25,7 @@ export interface PropostaSimplificadaDTO {
   id: number | null;
   reservaId: number;
   numeroProposta: string | null;
+  numeroVenda?: string | null;
   dataProposta: string | null;
   status: PropostaStatus;
   
@@ -199,6 +200,9 @@ export interface ComponenteSimulacaoDTO {
   codigoComponente: string;
   nomeComponente: string;
   tipoComponente: TipoComponente;
+  grupoComponente?: GrupoComponente;
+  periodicidade?: Periodicidade;
+  ordem?: number;
   quantidade: number;
   vencimento: string;
   valorParcela: number;
@@ -557,5 +561,16 @@ export interface EnviarPropostaTotvsResponse {
   sucesso: boolean;
   mensagem: string;
   numeroVenda?: string | null;
+  erro?: string | null;
+}
+
+export interface GerarPixPropostaResponse {
+  sucesso: boolean;
+  mensagem: string;
+  numeroVenda?: string | null;
+  codColigadaEmpreendimento?: number | null;
+  valor?: number | null;
+  dataVencimento?: string | null;
+  qrCodeBase64?: string | null;
   erro?: string | null;
 }

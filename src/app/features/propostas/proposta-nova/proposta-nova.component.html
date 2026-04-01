@@ -712,8 +712,19 @@
           severity="info"
           [outlined]="true"
           [loading]="enviandoTotvs"
-          [disabled]="salvando || excluindo"
+          [disabled]="salvando || excluindo || possuiAlteracoesNaoSalvasParaEnvioTotvs"
           (onClick)="enviarPropostaParaTotvs()">
+        </app-custom-button>
+
+        <app-custom-button
+          
+          label="Gerar PIX"
+          icon="pi pi-qrcode"
+          severity="contrast"
+          [outlined]="true"
+          [loading]="gerandoPix"
+          [disabled]="salvando || excluindo || enviandoTotvs"
+          (onClick)="gerarPix()">
         </app-custom-button>
       </ng-container>
 
@@ -733,3 +744,40 @@
 
 <!-- Toast -->
 <p-toast></p-toast>
+
+<p-dialog
+  header="PIX da Proposta"
+  [(visible)]="exibirDialogPix"
+  [modal]="true"
+  [style]="{ width: 'min(92vw, 34rem)' }"
+  [breakpoints]="{ '960px': '75vw', '640px': '92vw' }">
+  <div class="grid" *ngIf="pixGerado">
+    <div class="col-12 text-center" *ngIf="qrCodePixSrc">
+      <img [src]="qrCodePixSrc" alt="QR Code PIX da proposta" style="max-width: 100%; height: auto;" />
+    </div>
+    <div class="col-12">
+      <div class="campo-readonly">
+        <span class="campo-label">Mensagem</span>
+        <span class="campo-valor">{{ pixGerado.mensagem }}</span>
+      </div>
+    </div>
+    <div class="col-12 md:col-6" *ngIf="pixGerado.numeroVenda">
+      <div class="campo-readonly">
+        <span class="campo-label">Número da Venda</span>
+        <span class="campo-valor">{{ pixGerado.numeroVenda }}</span>
+      </div>
+    </div>
+    <div class="col-12 md:col-6" *ngIf="pixGerado.valor !== null && pixGerado.valor !== undefined">
+      <div class="campo-readonly">
+        <span class="campo-label">Valor</span>
+        <span class="campo-valor">{{ formatarMoeda(pixGerado.valor) }}</span>
+      </div>
+    </div>
+    <div class="col-12" *ngIf="pixGerado.dataVencimento">
+      <div class="campo-readonly">
+        <span class="campo-label">Data de Vencimento</span>
+        <span class="campo-valor">{{ formatarData(pixGerado.dataVencimento) }}</span>
+      </div>
+    </div>
+  </div>
+</p-dialog>

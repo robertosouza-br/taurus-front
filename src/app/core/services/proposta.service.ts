@@ -19,7 +19,8 @@ import {
   CriarPropostaStatusRequest,
   CriarPropostaStatusResponse,
   FinalizarPropostaStatusResponse,
-  EnviarPropostaTotvsResponse
+  EnviarPropostaTotvsResponse,
+  GerarPixPropostaResponse
 } from '../models/proposta-simplificada.model';
 
 /**
@@ -361,6 +362,13 @@ export class PropostaService {
   enviarParaTotvs(propostaId: number): Observable<EnviarPropostaTotvsResponse> {
     return this.http.post<EnviarPropostaTotvsResponse>(
       `${this.baseUrl}/${propostaId}/enviar-totvs`,
+      {}
+    );
+  }
+
+  gerarPix(propostaId: number): Observable<GerarPixPropostaResponse> {
+    return this.http.post<GerarPixPropostaResponse>(
+      `${this.baseUrl}/${propostaId}/pix`,
       {}
     );
   }
