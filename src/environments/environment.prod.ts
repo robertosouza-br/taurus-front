@@ -1,8 +1,9 @@
 /**
  * Configurações de ambiente para PRODUÇÃO
  * 
- * SEM PROXY (não existe em produção):
- * - apiUrl usa URL ABSOLUTA (https://api.exemplo.com.br/...)
+ * ACESSO DIRETO À API:
+ * - apiUrl usa URL ABSOLUTA apontando para a API publicada
+ * - O frontend chama diretamente http://8.242.38.36:8080/taurus-api/...
  * - O backend DEVE ter CORS configurado corretamente
  * - Build: npm run build:prod
  * - Deploy: Arquivos da pasta dist/ em servidor web (Nginx, Apache, IIS)
@@ -21,13 +22,13 @@
  * }
  * 
  * ANTES DE FAZER DEPLOY:
- * 1. Altere apiUrl para o domínio real da API de produção
- * 2. Altere tokenWhitelistedDomains para o domínio da API
- * 3. Configure CORS no backend com o domínio do frontend
+ * 1. Garanta acesso público à API em http://8.242.38.36:8080
+ * 2. Ajuste tokenWhitelistedDomains se trocar o host público da API
+ * 3. Configure CORS no backend liberando http://8.242.38.36
  */
 export const environment = {
   production: true,
-  apiUrl: 'https://api.exemplo.com.br/taurus-api/api/v1', // ALTERE para URL real da API de produção
-  tokenWhitelistedDomains: ['api.exemplo.com.br'], // ALTERE para domínio real
+  apiUrl: 'http://8.242.38.36:8080/taurus-api/api/v1',
+  tokenWhitelistedDomains: ['8.242.38.36:8080'],
   tokenBlacklistedRoutes: ['/taurus-api/api/v1/auth/login', '/taurus-api/api/v1/auth/refresh']
 };

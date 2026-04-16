@@ -12,9 +12,9 @@
         content="default-src 'self'; 
                  script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
                  style-src 'self' 'unsafe-inline' https:; 
-                 img-src 'self' data: blob: http://localhost:9000 http://10.1.1.175:9000 http://127.0.0.1:9000; 
+           img-src 'self' data: blob: http://localhost:9000 http://10.1.1.175:9000 http://127.0.0.1:9000 http://172.20.13.3:9000 http://8.242.38.36:9000; 
                  font-src 'self' data:; 
-                 connect-src 'self' http://localhost:* http://10.1.1.175:* http://127.0.0.1:* ws://localhost:* ws://10.1.1.175:*;
+           connect-src 'self' http://localhost:* http://10.1.1.175:* http://127.0.0.1:* http://172.20.13.3:* http://8.242.38.36:* ws://localhost:* ws://10.1.1.175:* ws://172.20.13.3:* ws://8.242.38.36:*;
                  object-src 'none';
                  base-uri 'self';
                  form-action 'self';">
