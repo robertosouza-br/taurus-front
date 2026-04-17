@@ -122,6 +122,7 @@ export class AuthService {
     };
 
     this.setToken(response.token);
+    this.setRefreshToken(response.refreshToken);
     this.salvarUsuarioStorage(usuario);
     this.usuarioLogadoSubject.next(usuario);
 
