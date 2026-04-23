@@ -279,7 +279,12 @@
           [field]="'label'"
           placeholder="Escolha o tipo"
           [disabled]="uploadando"
+          [appendTo]="'body'"
+          [overlayOptions]="tipoImagemAutocompleteOverlayOptions"
+          panelStyleClass="app-autocomplete-panel empreendimento-imagens-autocomplete-panel"
+          [baseZIndex]="11000"
           (completeMethod)="filtrarTipos($event)"
+          (onDropdownClick)="mostrarTodosTipos()"
           (onSelect)="selecionarTipo($event)"
           [itemTemplate]="tipoTemplate">
         </app-autocomplete>
@@ -324,22 +329,26 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <app-custom-button
-      label="Cancelar"
-      icon="pi pi-times"
-      severity="secondary"
-      [outlined]="true"
-      [disabled]="uploadando"
-      (onClick)="cancelarUpload()">
-    </app-custom-button>
-    <app-custom-button
-      label="Enviar Imagem"
-      icon="pi pi-upload"
-      severity="success"
-      [disabled]="!arquivoSelecionado"
-      [loading]="uploadando"
-      (onClick)="fazerUpload()">
-    </app-custom-button>
+    <div class="dialog-footer">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        [disabled]="uploadando"
+        (onClick)="cancelarUpload()">
+      </app-custom-button>
+      <app-custom-button
+        label="Enviar Imagem"
+        icon="pi pi-upload"
+        severity="success"
+        size="small"
+        [disabled]="!arquivoSelecionado"
+        [loading]="uploadando"
+        (onClick)="fazerUpload()">
+      </app-custom-button>
+    </div>
   </ng-template>
 </p-dialog>
 
@@ -388,7 +397,12 @@
           [field]="'label'"
           placeholder="Escolha o tipo"
           [disabled]="uploadando"
+          [appendTo]="'body'"
+          [overlayOptions]="tipoImagemAutocompleteOverlayOptions"
+          panelStyleClass="app-autocomplete-panel empreendimento-imagens-autocomplete-panel"
+          [baseZIndex]="11000"
           (completeMethod)="filtrarTipos($event)"
+          (onDropdownClick)="mostrarTodosTipos()"
           (onSelect)="selecionarTipoEdit($event)"
           [itemTemplate]="tipoTemplate">
         </app-autocomplete>
@@ -425,21 +439,25 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <app-custom-button
-      label="Cancelar"
-      icon="pi pi-times"
-      severity="secondary"
-      [outlined]="true"
-      [disabled]="uploadando"
-      (onClick)="cancelarEdicao()">
-    </app-custom-button>
-    <app-custom-button
-      label="Salvar Alterações"
-      icon="pi pi-check"
-      severity="primary"
-      [loading]="uploadando"
-      (onClick)="salvarEdicao()">
-    </app-custom-button>
+    <div class="dialog-footer">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        [disabled]="uploadando"
+        (onClick)="cancelarEdicao()">
+      </app-custom-button>
+      <app-custom-button
+        label="Salvar Alterações"
+        icon="pi pi-check"
+        severity="primary"
+        size="small"
+        [loading]="uploadando"
+        (onClick)="salvarEdicao()">
+      </app-custom-button>
+    </div>
   </ng-template>
 </p-dialog>
 

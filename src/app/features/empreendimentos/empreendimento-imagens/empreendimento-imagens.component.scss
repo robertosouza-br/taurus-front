@@ -1184,6 +1184,12 @@
     padding: 2rem;
     background: var(--surface-card);
   }
+
+  .p-dialog-footer {
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
 }
 
 .dialog-content {
@@ -1437,7 +1443,8 @@
   padding: 1.5rem 2rem;
   background: var(--surface-50);
   border-top: 1px solid var(--surface-border);
-  margin: 0 -2rem -2rem -2rem;
+  width: 100%;
+  box-sizing: border-box;
 
   button,
   ::ng-deep button {
@@ -1510,6 +1517,16 @@
         font-weight: 500;
       }
     }
+  }
+
+  .empreendimento-imagens-autocomplete-overlay {
+    z-index: 11000 !important;
+  }
+
+  .empreendimento-imagens-autocomplete-overlay .p-overlay-content,
+  .empreendimento-imagens-autocomplete-overlay-content,
+  .empreendimento-imagens-autocomplete-panel {
+    z-index: 11001 !important;
   }
 }
 

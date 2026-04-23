@@ -103,6 +103,12 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
   editOrdem = 0;
   editPrincipal = false;
   editTipo: any = null; // Objeto completo { value, label, icon }
+  readonly tipoImagemAutocompleteOverlayOptions = {
+    styleClass: 'empreendimento-imagens-autocomplete-overlay',
+    contentStyleClass: 'empreendimento-imagens-autocomplete-overlay-content',
+    autoZIndex: true,
+    baseZIndex: 11000
+  };
   
   // Tipos de imagem
   tiposImagem = Object.entries(TIPO_IMAGEM_LABELS).map(([value, label]) => ({
@@ -340,6 +346,10 @@ export class EmpreendimentoImagensComponent implements OnInit, OnDestroy {
         tipo.label.toLowerCase().includes(query)
       );
     }
+  }
+
+  mostrarTodosTipos(): void {
+    this.tiposFiltrados = [...this.tiposImagem];
   }
 
   /**
