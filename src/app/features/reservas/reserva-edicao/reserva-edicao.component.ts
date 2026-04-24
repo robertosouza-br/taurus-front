@@ -888,12 +888,17 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
           if (err?.status === 404) {
             profForm.corretorNaoEncontrado = true;
             if (!silencioso) {
+              const podeCadastrarCorretor = this.temPermissaoCadastroRapidoCorretor();
               this.messageService.add({
                 severity: 'warn',
                 summary: 'Corretor não encontrado',
-                detail: 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
+                detail: podeCadastrarCorretor
+                  ? 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
+                  : 'Corretor não encontrado para o CPF informado.'
               });
-              this.abrirCadastroRapidoComCpf(cpf);
+              if (podeCadastrarCorretor) {
+                this.abrirCadastroRapidoComCpf(cpf);
+              }
             }
             return;
           }
@@ -938,6 +943,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   // ─── Autocomplete Imobiliária ─────────────────────────────────────────────
+
+  temPermissaoCadastroRapidoCorretor(): boolean {
+    return this.permissaoService.temPermissao(Funcionalidade.CORRETOR, Permissao.INCLUIR);
+  }
 
   buscarImobiliarias(event: any, tipo: 'principal' | 'secundaria'): void {
     const query = (event.query || '').toString().toLowerCase().trim();
@@ -1095,6 +1104,15 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   // ─── Cadastro Rápido ──────────────────────────────────────────────────────
 
   abrirCadastroRapido(): void {
+    if (!this.temPermissaoCadastroRapidoCorretor()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sem permissão',
+        detail: 'Você não possui permissão para realizar o cadastro rápido de corretor.'
+      });
+      return;
+    }
+
     this.cadastroRapidoCpf = '';
     this.cadastroRapidoNome = '';
     this.cadastroRapidoEmail = '';

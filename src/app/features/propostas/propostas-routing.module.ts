@@ -8,11 +8,7 @@ import { Permissao } from '../../core/enums/permissao.enum';
 const routes: Routes = [
   {
     path: '',
-    canActivate: [AuthGuard, PermissaoGuard],
-    data: {
-      funcionalidade: Funcionalidade.PROPOSTA,
-      permissoes: [Permissao.CONSULTAR]
-    },
+    canActivate: [AuthGuard],
     children: [
       {
         path: '',
@@ -22,11 +18,17 @@ const routes: Routes = [
       // Lista de reservas para criar proposta
       {
         path: 'lista',
+        canActivate: [PermissaoGuard],
+        data: {
+          funcionalidade: Funcionalidade.PROPOSTA,
+          permissoes: [Permissao.CONSULTAR]
+        },
         loadChildren: () => import('./propostas-lista/propostas-lista.module').then(m => m.PropostasListaModule)
       },
       // Nova Proposta - Formulário Unificado (recebe reservaId via query param)
       {
         path: 'nova',
+        canActivate: [PermissaoGuard],
         loadChildren: () => import('./proposta-nova/proposta-nova.module').then(m => m.PropostaNovaModule),
         data: {
           funcionalidade: Funcionalidade.PROPOSTA,
@@ -38,9 +40,8 @@ const routes: Routes = [
         path: 'analise',
         canActivate: [PermissaoGuard],
         data: {
-          funcionalidade: Funcionalidade.PROPOSTA,
-          permissoes: [Permissao.APROVAR, Permissao.REPROVAR],
-          qualquerPermissao: true
+          funcionalidade: Funcionalidade.ANALISE_PROPOSTA,
+          permissoes: [Permissao.CONSULTAR]
         },
         children: [
           {

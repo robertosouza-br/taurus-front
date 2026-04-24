@@ -902,12 +902,17 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
           if (err?.status === 404) {
             profForm.corretorNaoEncontrado = true;
             if (!silencioso) {
+              const podeCadastrarCorretor = this.temPermissaoCadastroRapidoCorretor();
               this.messageService.add({
                 severity: 'warn',
                 summary: 'Corretor não encontrado',
-                detail: 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
+                detail: podeCadastrarCorretor
+                  ? 'Corretor não encontrado para o CPF informado. Você pode usar o cadastro rápido.'
+                  : 'Corretor não encontrado para o CPF informado.'
               });
-              this.abrirCadastroRapidoComCpf(cpf);
+              if (podeCadastrarCorretor) {
+                this.abrirCadastroRapidoComCpf(cpf);
+              }
             }
             return;
           }
@@ -961,6 +966,10 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   getNomeCorretor(c: CorretorSaidaDTO): string {
     return c ? `${c.nome} (${c.cpf || c.idExterno || ''})` : '';
+  }
+
+  temPermissaoCadastroRapidoCorretor(): boolean {
+    return this.permissaoService.temPermissao(Funcionalidade.CORRETOR, Permissao.INCLUIR);
   }
 
   // ─── Autocomplete Imobiliária ─────────────────────────────────────────────
@@ -1113,6 +1122,15 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   // ─── Cadastro Rápido de Corretor ──────────────────────────────────────────
 
   abrirCadastroRapido(): void {
+    if (!this.temPermissaoCadastroRapidoCorretor()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Sem permissão',
+        detail: 'Você não possui permissão para realizar o cadastro rápido de corretor.'
+      });
+      return;
+    }
+
     this.cadastroRapidoCpf = '';
     this.cadastroRapidoNome = '';
     this.cadastroRapidoEmail = '';

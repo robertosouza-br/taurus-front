@@ -325,6 +325,7 @@
               <button
                 type="button"
                 class="btn-novo-corretor-icon"
+                *ngIf="temPermissaoCadastroRapidoCorretor()"
                 pTooltip="Cadastro rápido de corretor"
                 tooltipPosition="left"
                 [disabled]="camposDesabilitados"
@@ -372,7 +373,7 @@
               <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
                 <i class="pi pi-exclamation-triangle"></i>
                 <span>Corretor não encontrado para este CPF.</span>
-                <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
+                <button *ngIf="temPermissaoCadastroRapidoCorretor()" type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
                   Usar cadastro rápido
                 </button>
               </div>
@@ -531,6 +532,7 @@
               <button
                 type="button"
                 class="btn-novo-corretor-icon"
+                *ngIf="temPermissaoCadastroRapidoCorretor()"
                 pTooltip="Cadastro rápido de corretor"
                 tooltipPosition="left"
                 [disabled]="camposDesabilitados"
@@ -577,7 +579,7 @@
               <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
                 <i class="pi pi-exclamation-triangle"></i>
                 <span>Corretor não encontrado para este CPF.</span>
-                <button type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
+                <button *ngIf="temPermissaoCadastroRapidoCorretor()" type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
                   Usar cadastro rápido
                 </button>
               </div>
@@ -749,6 +751,7 @@
 
   <!-- ─── DIALOG: CADASTRO RÁPIDO DE CORRETOR ──────────────────────── -->
   <p-dialog
+    *ngIf="temPermissaoCadastroRapidoCorretor()"
     header="Cadastro Rápido de Corretor"
     [(visible)]="displayCadastroRapido"
     [modal]="true"

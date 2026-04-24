@@ -196,9 +196,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
             label: 'Fila de Análise',
             icon: 'pi pi-clipboard',
             routerLink: '/propostas/analise',
-            funcionalidade: Funcionalidade.PROPOSTA,
-            permissoes: [Permissao.APROVAR, Permissao.REPROVAR],
-            qualquerPermissao: true
+            funcionalidade: Funcionalidade.ANALISE_PROPOSTA,
+            permissoes: [Permissao.CONSULTAR]
           }
         ]
       },
