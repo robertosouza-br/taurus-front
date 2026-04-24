@@ -2429,6 +2429,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
                   : 'Proposta salva como rascunho com sucesso!'))
               : (response.mensagem || 'Proposta salva com sucesso!');
 
+        if (statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE) {
+          this.messageService.add({
+            severity: 'success',
+            summary,
+            detail
+          });
+          return;
+        }
+
         this.exibirToastSucessoComLoading(summary, detail);
       },
       error: (error) => {
