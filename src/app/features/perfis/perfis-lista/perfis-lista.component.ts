@@ -297,17 +297,10 @@ export class PerfisListaComponent implements OnInit {
   }
 
   /**
-   * Verifica se o perfil é o ADMINISTRADOR
+   * Retorna a classe visual do badge de perfil de sistema
    */
-  isAdministrador(perfil: PerfilDTO): boolean {
-    return perfil.nome === 'ADMINISTRADOR';
-  }
-
-  /**
-   * Verifica se o perfil é o CORRETOR
-   */
-  isCorretor(perfil: PerfilDTO): boolean {
-    return perfil.nome === 'CORRETOR';
+  getClasseBadgeSistema(perfil: PerfilDTO): string {
+    return perfil.ativo ? 'badge-warning' : 'badge-danger';
   }
 
   /**

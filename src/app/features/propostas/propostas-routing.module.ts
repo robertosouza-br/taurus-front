@@ -36,6 +36,7 @@ const routes: Routes = [
       // Fila de Análise de Propostas
       {
         path: 'analise',
+        canActivate: [PermissaoGuard],
         data: {
           funcionalidade: Funcionalidade.PROPOSTA,
           permissoes: [Permissao.APROVAR, Permissao.REPROVAR],

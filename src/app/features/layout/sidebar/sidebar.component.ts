@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthorizationService, SidebarService, PermissaoService, AuthService, FotoUsuarioService } from '../../../core/services';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
+import { Permissao } from '../../../core/enums/permissao.enum';
 import { MeusDadosDTO } from '../../../core/models/meus-dados.model';
 import { MeusDadosService } from '../../../core/services/meus-dados.service';
 
@@ -17,6 +18,8 @@ interface MenuItem {
   roles?: string[];
   permissions?: string[];
   funcionalidade?: Funcionalidade; // Nova propriedade
+  permissoes?: Permissao[];
+  qualquerPermissao?: boolean;
   visible?: boolean;
   expanded?: boolean;
 }
@@ -193,7 +196,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
             label: 'Fila de Análise',
             icon: 'pi pi-clipboard',
             routerLink: '/propostas/analise',
-            funcionalidade: Funcionalidade.PROPOSTA
+            funcionalidade: Funcionalidade.PROPOSTA,
+            permissoes: [Permissao.APROVAR, Permissao.REPROVAR],
+            qualquerPermissao: true
           }
         ]
       },
@@ -241,6 +246,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
         if (item.funcionalidade) {
           if (!this.permissaoService.temFuncionalidade(item.funcionalidade)) {
             return false;
+          }
+
+          if (item.permissoes && item.permissoes.length > 0) {
+            const temPermissao = item.qualquerPermissao
+              ? this.permissaoService.temQualquerPermissao(item.funcionalidade, item.permissoes)
+              : this.permissaoService.temTodasPermissoes(item.funcionalidade, item.permissoes);
+
+            if (!temPermissao) {
+              return false;
+            }
           }
         }
 

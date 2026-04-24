@@ -483,15 +483,17 @@
                     <p>A proposta aguarda um analista assumir o atendimento para iniciar a avaliação.</p>
                   </div>
                 </div>
-                <app-custom-button
-                  label="Iniciar Análise"
-                  icon="pi pi-play"
-                  severity="primary"
-                  [loading]="processando"
-                  [disabled]="processando"
-                  styleClass="w-full status-action-button"
-                  (onClick)="iniciarAnalise()">
-                </app-custom-button>
+                <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.APROVAR, Permissao.REPROVAR], qualquer: true }">
+                  <app-custom-button
+                    label="Iniciar Análise"
+                    icon="pi pi-play"
+                    severity="primary"
+                    [loading]="processando"
+                    [disabled]="processando"
+                    styleClass="w-full status-action-button"
+                    (onClick)="iniciarAnalise()">
+                  </app-custom-button>
+                </ng-container>
               </div>
 
               <div class="acao-card acao-card-decision" *ngIf="p.status === 'EM_ANALISE'">
@@ -507,24 +509,28 @@
                   </div>
                 </div>
                 <div class="action-grid">
-                  <app-custom-button
-                    label="Aprovar"
-                    icon="pi pi-check"
-                    severity="success"
-                    [loading]="processando"
-                    [disabled]="processando"
-                    styleClass="w-full status-action-button"
-                    (onClick)="confirmarAprovacao()">
-                  </app-custom-button>
-                  <app-custom-button
-                    label="Reprovar"
-                    icon="pi pi-times"
-                    severity="danger"
-                    [outlined]="true"
-                    [disabled]="processando"
-                    styleClass="w-full status-action-button"
-                    (onClick)="abrirDialogReprovacao()">
-                  </app-custom-button>
+                  <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.APROVAR] }">
+                    <app-custom-button
+                      label="Aprovar"
+                      icon="pi pi-check"
+                      severity="success"
+                      [loading]="processando"
+                      [disabled]="processando"
+                      styleClass="w-full status-action-button"
+                      (onClick)="confirmarAprovacao()">
+                    </app-custom-button>
+                  </ng-container>
+                  <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.REPROVAR] }">
+                    <app-custom-button
+                      label="Reprovar"
+                      icon="pi pi-times"
+                      severity="danger"
+                      [outlined]="true"
+                      [disabled]="processando"
+                      styleClass="w-full status-action-button"
+                      (onClick)="abrirDialogReprovacao()">
+                    </app-custom-button>
+                  </ng-container>
                 </div>
               </div>
             </div>
