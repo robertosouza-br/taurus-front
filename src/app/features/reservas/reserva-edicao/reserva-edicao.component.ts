@@ -863,8 +863,18 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
     profForm.ultimoCpfBuscado = cpf;
     profForm.corretorBuscando = true;
+    const deveExibirLoadingGlobal = !this.loadingService.isLoading;
+    if (deveExibirLoadingGlobal) {
+      this.loadingService.show('Buscando corretor...');
+    }
+
     this.corretorService.buscarPorCpfReserva(cpf)
-      .pipe(finalize(() => (profForm.corretorBuscando = false)))
+      .pipe(finalize(() => {
+        profForm.corretorBuscando = false;
+        if (deveExibirLoadingGlobal) {
+          this.loadingService.hide();
+        }
+      }))
       .subscribe({
         next: (corretor) => {
           profForm.corretor = corretor;
@@ -1428,11 +1438,20 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
     this.consultandoClienteTotvs = true;
     this.ultimoDocumentoConsultadoTotvs = documento;
+    const deveExibirLoadingGlobal = !this.loadingService.isLoading;
+    if (deveExibirLoadingGlobal) {
+      this.loadingService.show('Consultando cliente...');
+    }
 
     this.clienteTotvsService.consultarPorDocumento(documento, 0, this.clienteEstrangeiro)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => this.consultandoClienteTotvs = false)
+        finalize(() => {
+          this.consultandoClienteTotvs = false;
+          if (deveExibirLoadingGlobal) {
+            this.loadingService.hide();
+          }
+        })
       )
       .subscribe({
         next: (response) => {

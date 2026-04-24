@@ -452,10 +452,15 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     }));
 
     this.definirStatusPadraoReserva();
+    this.definirFormaPagamentoPadrao();
   }
 
   private definirStatusPadraoReserva(): void {
     this.statusSelecionado = this.statusOptions.find(o => o.value === StatusReserva.RESERVADA) || null;
+  }
+
+  private definirFormaPagamentoPadrao(): void {
+    this.formaPagamento = this.formaPagamentoOptions.find(o => o.value === FormaPagamento.PIX) || null;
   }
 
   private configurarBreadcrumb(): void {
@@ -871,8 +876,18 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
     profForm.ultimoCpfBuscado = cpf;
     profForm.corretorBuscando = true;
+    const deveExibirLoadingGlobal = !this.loadingService.isLoading;
+    if (deveExibirLoadingGlobal) {
+      this.loadingService.show('Buscando corretor...');
+    }
+
     this.corretorService.buscarPorCpfReserva(cpf)
-      .pipe(finalize(() => (profForm.corretorBuscando = false)))
+      .pipe(finalize(() => {
+        profForm.corretorBuscando = false;
+        if (deveExibirLoadingGlobal) {
+          this.loadingService.hide();
+        }
+      }))
       .subscribe({
         next: (corretor) => {
           profForm.corretor = corretor;
@@ -1385,11 +1400,20 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
     this.consultandoClienteTotvs = true;
     this.ultimoDocumentoConsultadoTotvs = documento;
+    const deveExibirLoadingGlobal = !this.loadingService.isLoading;
+    if (deveExibirLoadingGlobal) {
+      this.loadingService.show('Consultando cliente...');
+    }
 
     this.clienteTotvsService.consultarPorDocumento(documento, 0, this.clienteEstrangeiro)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => this.consultandoClienteTotvs = false)
+        finalize(() => {
+          this.consultandoClienteTotvs = false;
+          if (deveExibirLoadingGlobal) {
+            this.loadingService.hide();
+          }
+        })
       )
       .subscribe({
         next: (response) => {
@@ -1925,7 +1949,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.nomeCliente = '';
     this.clienteEstrangeiro = false;
     this.limparInformacoesClienteTotvs();
-    this.formaPagamento = null;
+    this.definirFormaPagamentoPadrao();
     this.dataReserva = new Date();
     this.dataVenda = null;
 
