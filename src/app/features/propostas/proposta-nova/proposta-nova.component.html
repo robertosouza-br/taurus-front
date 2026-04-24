@@ -692,7 +692,7 @@
       </app-custom-button>
 
       <app-custom-button
-        *ngIf="!propostaBloqueadaParaAnalise && proposta.id"
+        *ngIf="!propostaBloqueadaParaAnalise && proposta.id && !proposta.numeroVenda"
         label="Excluir Proposta"
         icon="pi pi-trash"
         severity="danger"

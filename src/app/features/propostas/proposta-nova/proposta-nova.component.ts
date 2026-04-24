@@ -209,15 +209,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       || this.proposta.status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
   }
 
-  get propostaAutoAprovadaComNovaAnalisePendente(): boolean {
-    return this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE
+  get propostaAprovadaComNovaAnalisePendente(): boolean {
+    return this.propostaSujeitaANovaAnalisePorEdicao
       && this.simulacaoEditadaDesdeCarregamento
       && this.simulacaoAtualDivergeDoEstadoCarregado()
       && this.simulacaoAtualDivergeDaTabelaPadrao();
   }
 
   get podeExibirBotaoGerarPix(): boolean {
-    return this.proposta?.status !== PropostaStatus.APROVADA_AUTOMATICAMENTE;
+    return !!this.proposta?.numeroVenda?.trim();
   }
 
   get podeExibirBotaoGravarProposta(): boolean {
@@ -225,15 +225,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return false;
     }
 
-    if (this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE) {
-      return this.propostaAutoAprovadaComNovaAnalisePendente;
+    if (this.propostaSujeitaANovaAnalisePorEdicao) {
+      return this.propostaAprovadaComNovaAnalisePendente;
     }
 
     return true;
   }
 
   get podeExibirBotaoEnviarTotvs(): boolean {
-    return this.podeEnviarParaTotvs && !this.propostaAutoAprovadaComNovaAnalisePendente;
+    return this.podeEnviarParaTotvs && !this.propostaAprovadaComNovaAnalisePendente;
   }
 
   get podeGerarPix(): boolean {
