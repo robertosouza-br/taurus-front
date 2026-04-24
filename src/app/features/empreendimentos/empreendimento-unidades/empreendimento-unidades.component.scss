@@ -731,6 +731,40 @@
   }
 }
 
+.unidade-card--readonly {
+  cursor: default;
+
+  &:hover {
+    .card-content {
+      transform: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-width: 2px;
+    }
+
+    .tipo-icon {
+      transform: none;
+      opacity: 1;
+    }
+
+    .info-overlay {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .unidade-numero {
+      transform: none;
+    }
+
+    .unidade-tipo {
+      opacity: 0.85;
+    }
+  }
+
+  &:active .card-content {
+    transform: none;
+  }
+}
+
 .card-content {
   background: white;
   border-radius: 12px;

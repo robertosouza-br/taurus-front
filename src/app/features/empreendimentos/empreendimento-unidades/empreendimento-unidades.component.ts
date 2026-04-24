@@ -810,10 +810,18 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+  temPermissaoCriarReserva(): boolean {
+    return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.INCLUIR);
+  }
+
   /**
    * Navega para tela de reserva da unidade
    */
   irParaReserva(unidade: Unidade): void {
+    if (!this.temPermissaoCriarReserva()) {
+      return;
+    }
+
     this.router.navigate(
       ['/reservas/empreendimento', this.codigoEmpreendimento,
        'bloco', unidade.bloco,

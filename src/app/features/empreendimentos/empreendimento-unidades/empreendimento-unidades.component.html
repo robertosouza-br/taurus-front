@@ -141,6 +141,7 @@
           <div 
             *ngFor="let unidade of bloco.unidades; let i = index" 
             class="unidade-card"
+            [class.unidade-card--readonly]="!temPermissaoCriarReserva()"
             [style.animation-delay]="(i * 0.02) + 's'"
             (click)="irParaReserva(unidade)">
             
