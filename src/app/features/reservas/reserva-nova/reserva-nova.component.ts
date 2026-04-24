@@ -196,14 +196,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
    * - Não-ADMIN: vê apenas RESERVADA (200)
    */
   get statusOptionsFiltered(): any[] {
-    if (this.isAdmin) {
-      return this.statusOptions;
-    }
-    
-    // Não-admin pode ver apenas status 200 (Reservado para Venda)
-    return this.statusOptions.filter(opt => 
-      opt.value === StatusReserva.RESERVADA
-    );
+    return this.statusOptions.filter(opt => opt.value === StatusReserva.RESERVADA);
   }
 
   /**
@@ -211,7 +204,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
    * Não-admin não pode alterar o status (sempre será RESERVADA)
    */
   get statusDesabilitado(): boolean {
-    return !this.isAdmin;
+    return true;
   }
 
   get exibirInfoClienteTotvs(): boolean {
@@ -458,18 +451,11 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       value: v
     }));
 
-    // Define status inicial
-    // Não-admin: sempre RESERVADA (200)
-    // Admin: status mapeado da unidade ou RESERVADA como padrão
-    let statusInicial: StatusReserva;
-    if (!this.isAdmin) {
-      statusInicial = StatusReserva.RESERVADA;
-    } else {
-      const statusMapeado = this.mapearStatusUnidadeParaReserva(this.statusUnidadeOrigem);
-      statusInicial = statusMapeado || StatusReserva.RESERVADA;
-    }
-    
-    this.statusSelecionado = this.statusOptions.find(o => o.value === statusInicial) || null;
+    this.definirStatusPadraoReserva();
+  }
+
+  private definirStatusPadraoReserva(): void {
+    this.statusSelecionado = this.statusOptions.find(o => o.value === StatusReserva.RESERVADA) || null;
   }
 
   private configurarBreadcrumb(): void {
@@ -1943,9 +1929,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.dataReserva = new Date();
     this.dataVenda = null;
 
-    const statusMapeado = this.mapearStatusUnidadeParaReserva(this.statusUnidadeOrigem);
-    const statusInicial = statusMapeado || StatusReserva.RESERVADA;
-    this.statusSelecionado = this.statusOptions.find(o => o.value === statusInicial) || null;
+    this.definirStatusPadraoReserva();
 
     this.imobiliariaPrincipalSelecionada = null;
     this.tipoContatoPrincipalSelecionado = null;
