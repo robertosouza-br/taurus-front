@@ -69,6 +69,13 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit,
 
     this.acoes = [
       {
+        icon: 'pi pi-search',
+        tooltip: 'Visualizar',
+        severity: 'secondary',
+        visible: () => this.temPermissaoConsultar() && !this.temPermissaoAlterar(),
+        action: (row: ReservaDTO) => this.visualizar(row)
+      },
+      {
         icon: 'pi pi-pencil',
         tooltip: 'Editar',
         severity: 'info',
@@ -131,6 +138,13 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit,
   editar(reserva: ReservaDTO): void {
     this.router.navigate(['/reservas', reserva.id, 'editar'], {
       state: { fromList: true }
+    });
+  }
+
+  visualizar(reserva: ReservaDTO): void {
+    this.router.navigate(['/reservas', reserva.id, 'editar'], {
+      queryParams: { visualizacao: 'true' },
+      state: { fromList: true, visualizacao: true }
     });
   }
 
@@ -201,6 +215,10 @@ export class ReservasListaComponent extends BaseListComponent implements OnInit,
 
   temPermissaoAlterar(): boolean {
     return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.ALTERAR);
+  }
+
+  temPermissaoConsultar(): boolean {
+    return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.CONSULTAR);
   }
 
   temPermissaoExcluir(): boolean {

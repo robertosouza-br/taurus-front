@@ -42,7 +42,8 @@ const routes: Routes = [
     canActivate: [AuthGuard, PermissaoGuard],
     data: {
       funcionalidade: Funcionalidade.RESERVA,
-      permissoes: [Permissao.ALTERAR]
+      permissoes: [Permissao.CONSULTAR, Permissao.ALTERAR],
+      qualquerPermissao: true
     }
   }
 ];

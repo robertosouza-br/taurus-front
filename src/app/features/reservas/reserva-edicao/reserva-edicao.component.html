@@ -1,10 +1,10 @@
 <div class="reserva-edicao-page">
   <!-- Countdown Timer - Apenas para unidades com status DISPONIVEL_PARA_VENDA (100) -->
   <app-countdown-timer
-    *ngIf="podeBloquerarUnidade"
+    *ngIf="podeBloquerarUnidade && !modoVisualizacao"
     [duracao]="duracaoTimer"
     [autoStart]="unidadeBloqueada"
-    mensagem="Tempo para finalizar a edição"
+    [mensagem]="mensagemTimerEdicao"
     position="top-right"
     (onTimeout)="handleTimeout()"
     (onTick)="onTimerTick($event)">
@@ -15,7 +15,7 @@
 
   <!-- Header -->
   <app-page-header
-    [title]="'Editar Reserva'"
+    [title]="tituloPagina"
     [subtitle]="bloco && unidade ? 'Bloco ' + bloco + ' · Unidade ' + unidade : 'Carregando...'"
     icon="pi pi-bookmark">
     <div header-actions class="flex gap-2 flex-wrap">
@@ -36,6 +36,7 @@
         (onClick)="excluir()">
       </app-custom-button>
       <app-custom-button
+        *ngIf="mostrarBotoesAcao"
         label="Salvar Alterações"
         icon="pi pi-save"
         severity="success"

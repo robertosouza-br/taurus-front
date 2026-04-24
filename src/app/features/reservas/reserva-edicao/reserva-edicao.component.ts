@@ -65,6 +65,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   reservaId!: number;
   reservaOriginal: ReservaDTO | null = null;
   carregando = false;
+  modoVisualizacao = false;
 
   // ─── Dados da unidade (readonly) ─────────────────────────────────────────
   codEmpreendimento!: number;
@@ -181,7 +182,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   ngOnInit(): void {
-    if (!this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.ALTERAR)) {
+    if (!this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.CONSULTAR)) {
       this.router.navigate(['/acesso-negado']);
       return;
     }
@@ -189,6 +190,8 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
     const state = window.history.state;
+    const visualizacaoViaQuery = this.route.snapshot.queryParamMap.get('visualizacao') === 'true';
+    this.modoVisualizacao = visualizacaoViaQuery || !this.temPermissaoAlterar();
     this.precoUnidade = Number(state?.preco ?? state?.precoUnidade) || null;
 
     this.reservaId = Number(this.route.snapshot.paramMap.get('id'));
@@ -436,7 +439,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Campos são desabilitados quando o status é diferente de DISPONIVEL_PARA_VENDA (100)
    */
   get camposDesabilitados(): boolean {
-    return !this.podeBloquerarUnidade;
+    return this.modoVisualizacao || !this.podeBloquerarUnidade;
   }
 
   /**
@@ -444,7 +447,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Não-admin NUNCA pode alterar o status da reserva
    */
   get statusDesabilitado(): boolean {
-    return !this.isAdmin;
+    return this.modoVisualizacao || !this.isAdmin;
   }
 
   /**
@@ -452,7 +455,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Admin pode salvar mesmo quando status ≠ 100
    */
   get salvarDesabilitado(): boolean {
-    return this.camposDesabilitados && !this.isAdmin;
+    return this.modoVisualizacao || (this.camposDesabilitados && !this.isAdmin);
   }
 
   /**
@@ -460,7 +463,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Admin pode editar mesmo quando status ≠ 100
    */
   get dataVendaDesabilitada(): boolean {
-    return this.camposDesabilitados && !this.isAdmin;
+    return this.modoVisualizacao || (this.camposDesabilitados && !this.isAdmin);
   }
 
   get exibirInfoClienteTotvs(): boolean {
@@ -480,7 +483,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Admin pode editar mesmo quando status ≠ 100
    */
   get observacoesDesabilitadas(): boolean {
-    return this.camposDesabilitados && !this.isAdmin;
+    return this.modoVisualizacao || (this.camposDesabilitados && !this.isAdmin);
   }
 
   /**
@@ -489,6 +492,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * - Status ≠ 100: apenas ADMIN vê os botões, demais veem só Cancelar
    */
   get mostrarBotoesAcao(): boolean {
+    if (this.modoVisualizacao) {
+      return false;
+    }
+
     // Se codigoStatus não foi carregado ainda, não mostra botões (segurança)
     if (this.codigoStatus === null || this.codigoStatus === undefined) {
       return false;
@@ -515,6 +522,14 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     );
   }
 
+  get tituloPagina(): string {
+    return this.modoVisualizacao ? 'Visualizar Reserva' : 'Editar Reserva';
+  }
+
+  get mensagemTimerEdicao(): string {
+    return this.modoVisualizacao ? 'Tempo para visualizar a reserva' : 'Tempo para finalizar a edição';
+  }
+
   /**
    * Verifica se já existe bloqueio ativo e tenta bloquear a unidade
    * IMPORTANTE: Apenas executa se o status da unidade for DISPONIVEL_PARA_VENDA (100)
@@ -526,6 +541,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * 4. Se não bloqueada, tenta bloquear
    */
   private verificarEBloquearUnidade(): void {
+    if (this.modoVisualizacao) {
+      return;
+    }
+
     // Verifica se a unidade pode ser bloqueada (apenas status 100)
     if (!this.podeBloquerarUnidade) {
       console.log(`Unidade com status ${this.codigoStatus} não pode ser bloqueada. Bloqueio disponível apenas para status 100 (Disponível para Venda).`);
@@ -629,6 +648,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
    * Tenta bloquear a unidade para o usuário atual
    */
   private bloquearUnidade(): void {
+    if (this.modoVisualizacao) {
+      return;
+    }
+
     // Proteção: não tenta bloquear se já está bloqueada
     if (this.unidadeBloqueada) {
       console.log('Unidade já bloqueada, ignorando chamada duplicada');
@@ -1312,6 +1335,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   // ─── Excluir ──────────────────────────────────────────────────────────────
 
   excluir(): void {
+    if (this.modoVisualizacao) {
+      return;
+    }
+
     this.confirmationService.confirm({
       message: `Deseja excluir a reserva do bloco ${this.bloco}, unidade ${this.unidade}?`,
       header: 'Confirmar Exclusão',
@@ -1369,6 +1396,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   salvar(): void {
+    if (this.modoVisualizacao) {
+      return;
+    }
+
     if (!this.validarFormulario()) return;
     if (!this.validarDatas()) return;
     if (!this.validarContatosTelefoneWhatsapp()) return;
@@ -1964,6 +1995,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   limparTela(): void {
+    if (this.modoVisualizacao) {
+      return;
+    }
+
     if (!this.reservaOriginal) {
       return;
     }
@@ -1978,6 +2013,12 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   voltar(): void {
     // Libera o bloqueio antes de sair
     this.liberarBloqueio();
+
+    const state = window.history.state;
+    if (state?.fromList) {
+      this.router.navigate(['/reservas']);
+      return;
+    }
     
     if (this.codEmpreendimento) {
       this.router.navigate(
@@ -2011,7 +2052,11 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   temPermissaoExcluir(): boolean {
-    return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.EXCLUIR);
+    return !this.modoVisualizacao && this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.EXCLUIR);
+  }
+
+  temPermissaoAlterar(): boolean {
+    return this.permissaoService.temPermissao(Funcionalidade.RESERVA, Permissao.ALTERAR);
   }
 
   formatarPreco(preco: number | null): string {
