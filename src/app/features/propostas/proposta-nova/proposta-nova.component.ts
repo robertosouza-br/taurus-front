@@ -209,6 +209,33 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       || this.proposta.status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
   }
 
+  get propostaAutoAprovadaComNovaAnalisePendente(): boolean {
+    return this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE
+      && this.simulacaoEditadaDesdeCarregamento
+      && this.simulacaoAtualDivergeDoEstadoCarregado()
+      && this.simulacaoAtualDivergeDaTabelaPadrao();
+  }
+
+  get podeExibirBotaoGerarPix(): boolean {
+    return this.proposta?.status !== PropostaStatus.APROVADA_AUTOMATICAMENTE;
+  }
+
+  get podeExibirBotaoGravarProposta(): boolean {
+    if (this.propostaBloqueadaParaAnalise) {
+      return false;
+    }
+
+    if (this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE) {
+      return this.propostaAutoAprovadaComNovaAnalisePendente;
+    }
+
+    return true;
+  }
+
+  get podeExibirBotaoEnviarTotvs(): boolean {
+    return this.podeEnviarParaTotvs && !this.propostaAutoAprovadaComNovaAnalisePendente;
+  }
+
   get podeGerarPix(): boolean {
     return true
   }
@@ -3301,13 +3328,18 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Navega de volta para a lista
    */
   confirmarCancelamento(): void {
+    if (this.proposta?.status === PropostaStatus.AGUARDANDO_ANALISE) {
+      this.voltar();
+      return;
+    }
+
     this.appConfirmationService.confirmCustom(
       'Cancelar edição',
       'Deseja cancelar e voltar para a listagem de propostas? As alterações não salvas serão perdidas.',
       {
         severity: 'warning',
         icon: 'pi pi-exclamation-triangle',
-        confirmLabel: 'Cancelar proposta',
+        confirmLabel: 'Cancelar edição',
         cancelLabel: 'Continuar editando'
       }
     )

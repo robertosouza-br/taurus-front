@@ -704,32 +704,34 @@
         (onClick)="excluirProposta()">
       </app-custom-button>
 
-      <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
-        <app-custom-button
-          *ngIf="podeEnviarParaTotvs"
-          label="Enviar ao TOTVS"
-          icon="pi pi-send"
-          severity="info"
-          [outlined]="true"
-          [loading]="enviandoTotvs"
-          [disabled]="salvando || excluindo || possuiAlteracoesNaoSalvasParaEnvioTotvs"
-          (onClick)="enviarPropostaParaTotvs()">
-        </app-custom-button>
+      <ng-container *ngIf="proposta.id && !propostaBloqueadaParaAnalise">
+        <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
+          <app-custom-button
+            *ngIf="podeExibirBotaoEnviarTotvs"
+            label="Enviar ao TOTVS"
+            icon="pi pi-send"
+            severity="info"
+            [outlined]="true"
+            [loading]="enviandoTotvs"
+            [disabled]="salvando || excluindo || possuiAlteracoesNaoSalvasParaEnvioTotvs"
+            (onClick)="enviarPropostaParaTotvs()">
+          </app-custom-button>
 
-        <app-custom-button
-          
-          label="Gerar PIX"
-          icon="pi pi-qrcode"
-          severity="contrast"
-          [outlined]="true"
-          [loading]="gerandoPix"
-          [disabled]="salvando || excluindo || enviandoTotvs"
-          (onClick)="gerarPix()">
-        </app-custom-button>
+          <app-custom-button
+            *ngIf="podeExibirBotaoGerarPix"
+            label="Gerar PIX"
+            icon="pi pi-qrcode"
+            severity="contrast"
+            [outlined]="true"
+            [loading]="gerandoPix"
+            [disabled]="salvando || excluindo || enviandoTotvs"
+            (onClick)="gerarPix()">
+          </app-custom-button>
+        </ng-container>
       </ng-container>
 
       <app-custom-button
-        *ngIf="!propostaBloqueadaParaAnalise"
+        *ngIf="podeExibirBotaoGravarProposta"
         label="Gravar proposta"
         icon="pi pi-save"
         severity="success"
