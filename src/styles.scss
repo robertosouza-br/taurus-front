@@ -850,6 +850,73 @@ body > .p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item {
   white-space: normal !important;
 }
 
+.app-multi-select-panel,
+body > .app-multi-select-panel {
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14) !important;
+  overflow: hidden !important;
+
+  .p-multiselect-header {
+    padding: 0.75rem !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+
+    .p-multiselect-filter-container {
+      position: relative !important;
+
+      .p-inputtext {
+        width: 100% !important;
+        min-height: 2.75rem !important;
+        padding: 0.75rem 2.5rem 0.75rem 0.875rem !important;
+        border: 1px solid #dbe3f0 !important;
+        border-radius: 8px !important;
+        font-size: 0.95rem !important;
+      }
+
+      .p-inputtext:enabled:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.18) !important;
+      }
+
+      .p-icon-wrapper,
+      .p-multiselect-filter-icon {
+        position: absolute !important;
+        left: auto !important;
+        right: 0.85rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        color: #64748b !important;
+        z-index: 1 !important;
+        pointer-events: none !important;
+      }
+    }
+  }
+
+  .p-multiselect-items-wrapper {
+    max-height: 18rem !important;
+  }
+
+  .p-multiselect-items {
+    padding: 0.5rem 0 !important;
+  }
+
+  .p-multiselect-item {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 2.75rem !important;
+    padding: 0.75rem 1rem !important;
+    margin: 0 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+  }
+
+  .p-multiselect-item .p-checkbox {
+    margin-right: 0.5rem !important;
+    align-self: center !important;
+    flex-shrink: 0 !important;
+  }
+}
+
 /* Ícone de chevron para abrir dropdown (usado em autocomplete customizado) */
 .autocomplete-icon {
   position: absolute;

@@ -56,6 +56,9 @@ Componente customizado de seleção múltipla (multiselect) com float label, seg
 | `showClear` | `boolean` | `true` | Exibir botão de limpar |
 | `maxSelectedLabels` | `number` | `3` | Máximo de labels visíveis antes de mostrar contador |
 | `selectedItemsLabel` | `string` | `'{0} itens selecionados'` | Label do contador de itens |
+| `appendTo` | `any` | `'body'` | Elemento onde o painel de opções será renderizado |
+| `panelStyle` | `Record<string, string \| number>` | `{}` | Estilos inline aplicados ao painel de opções |
+| `panelStyleClass` | `string` | `'app-multi-select-panel'` | Classe CSS aplicada ao painel de opções |
 
 ## Eventos
 

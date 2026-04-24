@@ -17,12 +17,33 @@
       [showClear]="showClear"
       [maxSelectedLabels]="maxSelectedLabels"
       [selectedItemsLabel]="selectedItemsLabel"
+      [appendTo]="appendTo"
+      [panelStyle]="resolvedPanelStyle"
+      [panelStyleClass]="panelStyleClass"
       (onChange)="onValueChange($event)"
       (onFocus)="onFocus()"
       (onBlur)="onBlur()"
       [class.ng-invalid]="isInvalid"
       [class.ng-dirty]="showValidation"
       [styleClass]="'w-full'">
+      <ng-template pTemplate="selectedItems">
+        <div class="selected-items-view" [class.is-empty]="selectedCount === 0">
+          <ng-container *ngIf="selectedCount === 0; else selectedItemsContent">
+            <span class="selected-items-placeholder">{{ placeholder }}</span>
+          </ng-container>
+
+          <ng-template #selectedItemsContent>
+            <ng-container *ngIf="display === 'chip'; else commaSelectionTemplate">
+              <span class="selected-item-chip" *ngFor="let label of visibleSelectedLabels">{{ label }}</span>
+              <span class="selected-item-summary" *ngIf="hiddenSelectedCount > 0">{{ hiddenSelectedItemsLabel }}</span>
+            </ng-container>
+
+            <ng-template #commaSelectionTemplate>
+              <span class="selected-items-comma">{{ summarySelectedItemsLabel }}</span>
+            </ng-template>
+          </ng-template>
+        </div>
+      </ng-template>
     </p-multiSelect>
     <label [for]="inputId" [class.p-label-active]="shouldShowLabel">{{ displayLabel }}</label>
   </span>
