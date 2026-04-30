@@ -316,7 +316,7 @@ export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus | typeof STATUS_NAO_I
 
 export const PROPOSTA_STATUS_SEVERITY: Record<PropostaStatus | typeof STATUS_NAO_INICIADA, 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast'> = {
   // Escopo inicial
-  [STATUS_NAO_INICIADA]: 'secondary',
+  [STATUS_NAO_INICIADA]: 'info',
   [PropostaStatus.RASCUNHO]: 'info',
   [PropostaStatus.AGUARDANDO_ANALISE]: 'warning',
   [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'success',
@@ -573,4 +573,21 @@ export interface GerarPixPropostaResponse {
   dataVencimento?: string | null;
   qrCodeBase64?: string | null;
   erro?: string | null;
+}
+
+export interface BoletoPropostaDTO {
+  codColigada: number;
+  numeroVenda: string;
+  idBoleto: number;
+  nossoNumero: string;
+  vencimento: string;
+  valor: number;
+}
+
+export interface ConsultarBoletosPropostaResponse {
+  sucesso: boolean;
+  mensagem: string | null;
+  numeroVenda: string | null;
+  boletos: BoletoPropostaDTO[];
+  erro: string | null;
 }

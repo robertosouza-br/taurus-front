@@ -3,6 +3,12 @@ import { Router } from '@angular/router';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
 import { PropostaService } from '../../../core/services/proposta.service';
 import { ReservaPropostaDTO } from '../../../core/models/proposta-fluxo.model';
+import {
+  PropostaStatus,
+  PROPOSTA_STATUS_SEVERITY,
+  STATUS_NAO_INICIADA,
+  StatusTelaProposta
+} from '../../../core/models/proposta-simplificada.model';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -14,6 +20,30 @@ import { TableAction, TableColumn } from '../../../shared/components/data-table/
   styleUrls: ['./propostas-lista.component.scss']
 })
 export class PropostasListaComponent extends BaseListComponent implements OnInit {
+  private readonly statusAliasMap: Record<string, StatusTelaProposta> = {
+    NAO_INICIADA: STATUS_NAO_INICIADA,
+    'NAO INICIADA': STATUS_NAO_INICIADA,
+    RASCUNHO: PropostaStatus.RASCUNHO,
+    AGUARDANDO_ANALISE: PropostaStatus.AGUARDANDO_ANALISE,
+    'AGUARDANDO ANALISE': PropostaStatus.AGUARDANDO_ANALISE,
+    EM_ANALISE: PropostaStatus.EM_ANALISE,
+    'EM ANALISE': PropostaStatus.EM_ANALISE,
+    APROVADA_AUTOMATICAMENTE: PropostaStatus.APROVADA_AUTOMATICAMENTE,
+    'APROVADA AUTOMATICAMENTE': PropostaStatus.APROVADA_AUTOMATICAMENTE,
+    APROVADA: PropostaStatus.APROVADA,
+    APROVADO: PropostaStatus.APROVADA,
+    REPROVADA: PropostaStatus.REPROVADA,
+    REPROVADO: PropostaStatus.REPROVADA,
+    RECUSADA: PropostaStatus.REPROVADA,
+    RECUSADO: PropostaStatus.REPROVADA,
+    EM_NEGOCIACAO: PropostaStatus.EM_NEGOCIACAO,
+    'EM NEGOCIACAO': PropostaStatus.EM_NEGOCIACAO,
+    FINALIZADA: PropostaStatus.FINALIZADA,
+    FINALIZADO: PropostaStatus.FINALIZADA,
+    CANCELADA: PropostaStatus.CANCELADA,
+    CANCELADO: PropostaStatus.CANCELADA
+  };
+
   reservas: ReservaPropostaDTO[] = [];
   paginaAtual: number = 0;
   itensPorPagina: number = 20;
@@ -167,23 +197,26 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
     return valor;
   }
 
-  getStatusSeverity(status: string): 'success' | 'info' | 'warning' | 'danger' {
-    const statusUpper = status?.toUpperCase() || '';
-    
-    // Mapeamento baseado em palavras-chave no status
-    if (statusUpper.includes('RESERVADO') || statusUpper.includes('VENDA')) {
-      return 'info';
+  getStatusSeverity(status: string): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
+    const statusResolvido = this.resolverStatusTela(status);
+    return PROPOSTA_STATUS_SEVERITY[statusResolvido];
+  }
+
+  private resolverStatusTela(status: string | null | undefined): StatusTelaProposta {
+    const statusNormalizado = this.normalizarStatus(status);
+
+    if (!statusNormalizado || statusNormalizado === '-') {
+      return STATUS_NAO_INICIADA;
     }
-    if (statusUpper.includes('ANALISE') || statusUpper.includes('PROPOSTA')) {
-      return 'warning';
-    }
-    if (statusUpper.includes('APROVADO') || statusUpper.includes('CONTRATO')) {
-      return 'success';
-    }
-    if (statusUpper.includes('CANCELADO') || statusUpper.includes('RECUSADO')) {
-      return 'danger';
-    }
-    
-    return 'info';
+
+    return this.statusAliasMap[statusNormalizado] ?? STATUS_NAO_INICIADA;
+  }
+
+  private normalizarStatus(status: string | null | undefined): string {
+    return (status || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toUpperCase();
   }
 }

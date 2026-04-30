@@ -30,7 +30,9 @@ import {
   Periodicidade,
   GRUPO_COMPONENTE_LABELS,
   PERIODICIDADE_LABELS,
-  GerarPixPropostaResponse
+  GerarPixPropostaResponse,
+  BoletoPropostaDTO,
+  ConsultarBoletosPropostaResponse
 } from '../../../core/models/proposta-simplificada.model';
 
 @Component({
@@ -48,10 +50,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   excluindo = false;
   enviandoTotvs = false;
   gerandoPix = false;
+  consultandoBoletos = false;
   redirecionandoAposSucesso = false;
   mensagemLoadingTransicao = '';
   exibirDialogPix = false;
+  exibirDialogBoletos = false;
   pixGerado: GerarPixPropostaResponse | null = null;
+  consultaBoletosResultado: ConsultarBoletosPropostaResponse | null = null;
+  boletosConsultados: BoletoPropostaDTO[] = [];
   
   componentesTabelaPadrao: ComponenteTabelaPadraoDTO[] = [];
   componentes: ComponenteFormulario[] = [];
@@ -220,6 +226,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return !!this.proposta?.numeroVenda?.trim();
   }
 
+  get podeExibirBotaoConsultarBoletos(): boolean {
+    return !!this.proposta?.numeroVenda?.trim();
+  }
+
   get podeExibirBotaoGravarProposta(): boolean {
     if (this.propostaBloqueadaParaAnalise) {
       return false;
@@ -251,6 +261,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'O PIX foi gerado, mas a imagem do QR Code nao foi retornada.';
+  }
+
+  get possuiBoletosConsultados(): boolean {
+    return this.boletosConsultados.length > 0;
   }
 
   get possuiComponenteAto(): boolean {
@@ -2373,6 +2387,65 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       });
   }
 
+  consultarBoletos(): void {
+    const propostaId = this.propostaId ?? this.proposta?.id;
+
+    if (!propostaId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'A proposta precisa estar salva antes de consultar boletos.'
+      });
+      return;
+    }
+
+    this.consultaBoletosResultado = null;
+    this.boletosConsultados = [];
+    this.exibirDialogBoletos = false;
+    this.consultandoBoletos = true;
+
+    this.propostaService.consultarBoletos(propostaId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.consultandoBoletos = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response?.sucesso) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Consulta de boletos',
+              detail: this.obterMensagemErroBoletos(response)
+            });
+            return;
+          }
+
+          this.consultaBoletosResultado = {
+            ...response,
+            boletos: this.ordenarBoletos(response.boletos || [])
+          };
+          this.boletosConsultados = this.consultaBoletosResultado.boletos;
+          this.exibirDialogBoletos = true;
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Boletos consultados',
+            detail: this.boletosConsultados.length
+              ? (response.mensagem || 'Boletos encontrados com sucesso.')
+              : (response.mensagem || 'Nenhum boleto encontrado para esta proposta.')
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao consultar boletos da proposta:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao consultar boletos',
+            detail: this.obterMensagemErroBoletos(error)
+          });
+        }
+      });
+  }
+
   /**
    * Salva a proposta
    */
@@ -2726,6 +2799,55 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'Nao foi possivel gerar o PIX neste momento. Tente novamente.';
+  }
+
+  private obterMensagemErroBoletos(error: any): string {
+    const payload = error?.error ?? error;
+    const mensagem = payload?.mensagem || payload?.message;
+    const detalhe = payload?.erro;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      if (typeof detalhe === 'string' && detalhe.trim()) {
+        return `${mensagem} ${detalhe}`;
+      }
+
+      return mensagem;
+    }
+
+    if (typeof detalhe === 'string' && detalhe.trim()) {
+      return detalhe;
+    }
+
+    if (error?.status === 400) {
+      return 'A proposta ainda nao foi enviada ao TOTVS e por isso nao possui boletos para consulta.';
+    }
+
+    if (error?.status === 401) {
+      return 'Sua sessao expirou. Faca login novamente para consultar os boletos.';
+    }
+
+    if (error?.status === 403) {
+      return 'Voce nao possui permissao para consultar boletos desta proposta.';
+    }
+
+    if (error?.status === 404) {
+      return 'A proposta informada nao foi encontrada.';
+    }
+
+    return 'Nao foi possivel consultar os boletos neste momento. Tente novamente.';
+  }
+
+  private ordenarBoletos(boletos: BoletoPropostaDTO[]): BoletoPropostaDTO[] {
+    return [...boletos].sort((boletoA, boletoB) => {
+      const vencimentoA = boletoA.vencimento ? new Date(boletoA.vencimento).getTime() : Number.MAX_SAFE_INTEGER;
+      const vencimentoB = boletoB.vencimento ? new Date(boletoB.vencimento).getTime() : Number.MAX_SAFE_INTEGER;
+
+      if (vencimentoA !== vencimentoB) {
+        return vencimentoA - vencimentoB;
+      }
+
+      return boletoA.idBoleto - boletoB.idBoleto;
+    });
   }
 
   private getNumeroPropostaDisplay(): string {

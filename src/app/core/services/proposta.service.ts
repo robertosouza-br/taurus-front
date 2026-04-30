@@ -20,7 +20,8 @@ import {
   CriarPropostaStatusResponse,
   FinalizarPropostaStatusResponse,
   EnviarPropostaTotvsResponse,
-  GerarPixPropostaResponse
+  GerarPixPropostaResponse,
+  ConsultarBoletosPropostaResponse
 } from '../models/proposta-simplificada.model';
 
 /**
@@ -370,6 +371,12 @@ export class PropostaService {
     return this.http.post<GerarPixPropostaResponse>(
       `${this.baseUrl}/${propostaId}/pix`,
       {}
+    );
+  }
+
+  consultarBoletos(propostaId: number): Observable<ConsultarBoletosPropostaResponse> {
+    return this.http.get<ConsultarBoletosPropostaResponse>(
+      `${this.baseUrl}/${propostaId}/boletos`
     );
   }
 }

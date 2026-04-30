@@ -705,6 +705,19 @@
       </app-custom-button>
 
       <ng-container *ngIf="proposta.id && !propostaBloqueadaParaAnalise">
+        <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.CONSULTAR] }">
+          <app-custom-button
+            *ngIf="podeExibirBotaoConsultarBoletos"
+            label="Consultar boletos"
+            icon="pi pi-receipt"
+            severity="contrast"
+            [outlined]="true"
+            [loading]="consultandoBoletos"
+            [disabled]="salvando || excluindo || enviandoTotvs || gerandoPix"
+            (onClick)="consultarBoletos()">
+          </app-custom-button>
+        </ng-container>
+
         <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
           <app-custom-button
             *ngIf="podeExibirBotaoEnviarTotvs"
@@ -716,7 +729,11 @@
             [disabled]="salvando || excluindo || possuiAlteracoesNaoSalvasParaEnvioTotvs"
             (onClick)="enviarPropostaParaTotvs()">
           </app-custom-button>
+        </ng-container>
+      </ng-container>
 
+      <ng-container *ngIf="proposta.id">
+        <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
           <app-custom-button
             *ngIf="podeExibirBotaoGerarPix"
             label="Gerar PIX"
@@ -784,5 +801,60 @@
         <span class="campo-valor">{{ formatarData(pixGerado.dataVencimento) }}</span>
       </div>
     </div>
+  </div>
+</p-dialog>
+
+<p-dialog
+  header="Boletos da Proposta"
+  [(visible)]="exibirDialogBoletos"
+  [modal]="true"
+  [style]="{ width: 'min(96vw, 56rem)' }"
+  [breakpoints]="{ '960px': '92vw', '640px': '96vw' }">
+  <div class="boletos-dialog" *ngIf="consultaBoletosResultado">
+    <div class="boletos-dialog-summary">
+      <div class="campo-readonly">
+        <span class="campo-label">Numero da Venda</span>
+        <span class="campo-valor">{{ consultaBoletosResultado.numeroVenda || proposta?.numeroVenda || '-' }}</span>
+      </div>
+      <div class="campo-readonly">
+        <span class="campo-label">Resultado</span>
+        <span class="campo-valor">{{ consultaBoletosResultado.mensagem || 'Consulta realizada com sucesso' }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="possuiBoletosConsultados; else boletosEstadoVazio" class="boletos-dialog-table">
+      <p-table
+        [value]="boletosConsultados"
+        styleClass="p-datatable-sm"
+        responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 120px;">ID Boleto</th>
+            <th style="width: 160px;">Nosso Numero</th>
+            <th style="width: 170px;">Vencimento</th>
+            <th style="width: 160px;" class="text-right">Valor</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-boleto>
+          <tr>
+            <td>
+              <span class="boleto-id-chip">{{ boleto.idBoleto }}</span>
+            </td>
+            <td>{{ boleto.nossoNumero || '-' }}</td>
+            <td>{{ formatarData(boleto.vencimento) || '-' }}</td>
+            <td class="text-right font-semibold">{{ formatarMoeda(boleto.valor) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <ng-template #boletosEstadoVazio>
+      <div class="boletos-empty-state">
+        <i class="pi pi-inbox"></i>
+        <strong>Nenhum boleto encontrado para esta proposta.</strong>
+        <span>Esta consulta foi concluida com sucesso, mas o TOTVS nao retornou boletos para a venda informada.</span>
+      </div>
+    </ng-template>
   </div>
 </p-dialog>
