@@ -2675,7 +2675,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       <html lang="pt-BR">
         <head>
           <meta charset="utf-8">
-          <title>Consulta de PIX</title>
+          <title></title>
           <style>
             * { box-sizing: border-box; }
             body {
@@ -2689,30 +2689,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               display: flex;
               flex-direction: column;
               gap: 24px;
-            }
-            .hero {
-              display: flex;
-              justify-content: space-between;
-              gap: 16px;
-              padding: 20px 24px;
-              border-radius: 16px;
-              background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%);
-              color: #ffffff;
-            }
-            .hero-title {
-              margin: 0 0 6px;
-              font-size: 24px;
-              font-weight: 700;
-            }
-            .hero-subtitle {
-              margin: 0;
-              color: rgba(226, 232, 240, 0.9);
-              font-size: 14px;
-            }
-            .hero-meta {
-              text-align: right;
-              font-size: 12px;
-              color: rgba(226, 232, 240, 0.88);
             }
             .context-grid,
             .summary-grid {
@@ -2805,14 +2781,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         </head>
         <body>
           <main class="sheet">
-            <section class="hero">
-              <div>
-                <h1 class="hero-title">Consulta de PIX</h1>
-                <p class="hero-subtitle">Comprovante com QR Code PIX e dados da unidade consultada.</p>
-              </div>
-              <div class="hero-meta">Impresso em ${dataImpressao}</div>
-            </section>
-
             <section class="context-grid">
               <div class="context-card">
                 <span class="label">Empreendimento</span>

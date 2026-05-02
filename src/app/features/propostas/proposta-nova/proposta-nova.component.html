@@ -713,19 +713,6 @@
       </app-custom-button>
 
       <ng-container *ngIf="proposta.id && !propostaBloqueadaParaAnalise">
-        <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.CONSULTAR] }">
-          <app-custom-button
-            *ngIf="podeExibirBotaoConsultarBoletos"
-            label="Consultar boletos"
-            icon="pi pi-receipt"
-            severity="contrast"
-            [outlined]="true"
-            [loading]="consultandoBoletos"
-            [disabled]="salvando || excluindo || enviandoTotvs || gerandoPix"
-            (onClick)="consultarBoletos()">
-          </app-custom-button>
-        </ng-container>
-
         <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
           <app-custom-button
             *ngIf="podeExibirBotaoEnviarTotvs"
@@ -744,28 +731,13 @@
         <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.CONSULTAR] }">
           <app-custom-button
             *ngIf="podeExibirBotaoConsultarBoletoSicoob"
-            label="Consultar boleto Sicoob"
-            icon="pi pi-building-columns"
-            severity="help"
-            [outlined]="true"
-            [loading]="consultandoBoletoSicoob"
-            [disabled]="salvando || excluindo || enviandoTotvs || gerandoPix || consultandoBoletos"
-            (onClick)="consultarBoletoSicoob()">
-          </app-custom-button>
-        </ng-container>
-      </ng-container>
-
-      <ng-container *ngIf="proposta.id">
-        <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.ALTERAR] }">
-          <app-custom-button
-            *ngIf="podeExibirBotaoGerarPix"
             label="Gerar PIX"
             icon="pi pi-qrcode"
             severity="contrast"
             [outlined]="true"
-            [loading]="gerandoPix"
-            [disabled]="salvando || excluindo || enviandoTotvs"
-            (onClick)="gerarPix()">
+            [loading]="consultandoBoletoSicoob"
+            [disabled]="salvando || excluindo || enviandoTotvs || gerandoPix || consultandoBoletos"
+            (onClick)="consultarBoletoSicoob()">
           </app-custom-button>
         </ng-container>
       </ng-container>
