@@ -205,6 +205,8 @@ export interface PropostaAnaliseDetalheDTO {
   id: number;
   reservaId: number;
   numeroProposta: string;
+  numeroVenda?: string | null;
+  nossoNumero?: string | null;
   dataProposta: string;
   status: StatusAnalise;
   observacoes: string | null;

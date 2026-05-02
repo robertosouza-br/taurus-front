@@ -5,6 +5,7 @@ import { MessageService } from 'primeng/api';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import {
+  EnviarPropostaTotvsResponse,
   GRUPO_COMPONENTE_LABELS,
   GrupoComponente,
   PERIODICIDADE_LABELS,
@@ -819,17 +820,14 @@ export class AnaliseDetalheComponent implements OnInit {
             return;
           }
 
-          if (response.numeroVenda && this.proposta) {
-            this.proposta.numeroProposta = response.numeroVenda;
-          }
-
           this.messageService.add({
-            severity: 'success',
-            summary: 'Proposta enviada ao TOTVS',
-            detail: response.numeroVenda
-              ? `${response.mensagem} Número da venda: ${response.numeroVenda}`
-              : response.mensagem
+            severity: response.cobrancaSincronizada ? 'success' : 'warn',
+            summary: response.cobrancaSincronizada
+              ? 'Proposta enviada e cobranca sincronizada'
+              : 'Proposta enviada ao TOTVS',
+            detail: this.montarMensagemSucessoEnvioTotvs(response)
           });
+          this.atualizarDadosCobranca(response.numeroVenda, response.nossoNumero);
           this.mensagemLoadingOverlay = 'Carregando dados da análise...';
         },
         error: (err) => {
@@ -934,6 +932,75 @@ export class AnaliseDetalheComponent implements OnInit {
     }
 
     return 'Erro ao enviar proposta para o TOTVS.';
+  }
+
+  private atualizarDadosCobranca(numeroVenda?: string | null, nossoNumero?: string | null): void {
+    if (!this.proposta) {
+      return;
+    }
+
+    if (numeroVenda?.trim()) {
+      this.proposta.numeroVenda = numeroVenda.trim();
+    }
+
+    if (nossoNumero?.trim()) {
+      this.proposta.nossoNumero = nossoNumero.trim();
+    }
+  }
+
+  private montarMensagemSucessoEnvioTotvs(response: EnviarPropostaTotvsResponse): string {
+    const mensagemOriginal = response.mensagem?.trim() || 'Integração concluída com sucesso';
+    const mensagemPrincipal = mensagemOriginal.split('.')
+      .map((parte) => parte.trim())
+      .find(Boolean) || mensagemOriginal;
+
+    const detalhesPrincipal: string[] = [];
+
+    if (response.numeroVenda?.trim()) {
+      detalhesPrincipal.push(`Número de venda: ${response.numeroVenda.trim()}`);
+    }
+
+    if (response.nossoNumero?.trim()) {
+      detalhesPrincipal.push(`Nosso número: ${response.nossoNumero.trim()}`);
+    }
+
+    const partes: string[] = [
+      detalhesPrincipal.length
+        ? `${mensagemPrincipal.replace(/[.\s]+$/, '')} (${detalhesPrincipal.join(' | ')}).`
+        : `${mensagemPrincipal.replace(/[.\s]+$/, '')}.`
+    ];
+
+    if (response.cobrancaSincronizada) {
+      if (response.mensagemCobranca?.trim()) {
+        partes.push(`${response.mensagemCobranca.trim().replace(/[.\s]+$/, '')}.`);
+      }
+    } else if (response.erroCobranca?.trim()) {
+      partes.push(this.formatarMensagemCobrancaPendente(response.erroCobranca));
+    } else if (response.mensagemCobranca?.trim()) {
+      partes.push(`${response.mensagemCobranca.trim().replace(/[.\s]+$/, '')}.`);
+    }
+
+    return partes.join(' ');
+  }
+
+  private formatarMensagemCobrancaPendente(erroCobranca: string): string {
+    const erroNormalizado = erroCobranca.trim().replace(/[.\s]+$/, '');
+    const matchDetalhes = erroNormalizado.match(/(BadRequest|Unauthorized|Forbidden|NotFound|Conflict)\s+Código:\s*([^\s]+)\s+Mensagem:\s*(.+)$/i);
+
+    if (matchDetalhes) {
+      const tipoErro = matchDetalhes[1].trim();
+      const codigoErro = matchDetalhes[2].trim();
+      const mensagemErro = matchDetalhes[3].trim().replace(/[.\s]+$/, '');
+      return `Cobrança pendente(${tipoErro} Código: ${codigoErro}): ${mensagemErro}.`;
+    }
+
+    const mensagemErro = erroNormalizado.replace(/^.*?Mensagem:\s*/i, '').trim();
+
+    if (mensagemErro && mensagemErro !== erroNormalizado) {
+      return `Cobrança pendente: ${mensagemErro.replace(/[.\s]+$/, '')}.`;
+    }
+
+    return `Cobrança pendente: ${erroNormalizado}.`;
   }
 
   getNomeCliente(): string {

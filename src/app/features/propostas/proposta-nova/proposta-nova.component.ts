@@ -30,9 +30,11 @@ import {
   Periodicidade,
   GRUPO_COMPONENTE_LABELS,
   PERIODICIDADE_LABELS,
+  EnviarPropostaTotvsResponse,
   GerarPixPropostaResponse,
   BoletoPropostaDTO,
-  ConsultarBoletosPropostaResponse
+  ConsultarBoletosPropostaResponse,
+  ConsultarBoletoSicoobPropostaResponse
 } from '../../../core/models/proposta-simplificada.model';
 
 @Component({
@@ -51,12 +53,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   enviandoTotvs = false;
   gerandoPix = false;
   consultandoBoletos = false;
+  consultandoBoletoSicoob = false;
   redirecionandoAposSucesso = false;
   mensagemLoadingTransicao = '';
   exibirDialogPix = false;
   exibirDialogBoletos = false;
+  exibirDialogSicoob = false;
   pixGerado: GerarPixPropostaResponse | null = null;
   consultaBoletosResultado: ConsultarBoletosPropostaResponse | null = null;
+  consultaBoletoSicoobResultado: ConsultarBoletoSicoobPropostaResponse | null = null;
   boletosConsultados: BoletoPropostaDTO[] = [];
   
   componentesTabelaPadrao: ComponenteTabelaPadraoDTO[] = [];
@@ -223,11 +228,26 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   get podeExibirBotaoGerarPix(): boolean {
-    return !!this.proposta?.numeroVenda?.trim();
+    return !!this.nossoNumeroAtual;
   }
 
   get podeExibirBotaoConsultarBoletos(): boolean {
-    return !!this.proposta?.numeroVenda?.trim();
+    return !!this.nossoNumeroAtual;
+  }
+
+  get podeExibirBotaoConsultarBoletoSicoob(): boolean {
+    return !!this.proposta?.id && !!this.nossoNumeroAtual;
+  }
+
+  get nossoNumeroAtual(): string {
+    return this.proposta?.nossoNumero?.trim()
+      || this.pixGerado?.nossoNumero?.trim()
+      || this.boletosConsultados.find((boleto) => boleto.nossoNumero?.trim())?.nossoNumero?.trim()
+      || '';
+  }
+
+  get cobrancaSincronizada(): boolean {
+    return !!this.nossoNumeroAtual;
   }
 
   get podeExibirBotaoGravarProposta(): boolean {
@@ -243,7 +263,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   get podeExibirBotaoEnviarTotvs(): boolean {
-    return this.podeEnviarParaTotvs && !this.propostaAprovadaComNovaAnalisePendente;
+    return this.podeEnviarParaTotvs
+      && !this.propostaAprovadaComNovaAnalisePendente
+      && !this.nossoNumeroAtual;
   }
 
   get podeGerarPix(): boolean {
@@ -261,6 +283,30 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'O PIX foi gerado, mas a imagem do QR Code nao foi retornada.';
+  }
+
+  get qrCodeBoletoSicoob(): string {
+    return this.consultaBoletoSicoobResultado?.qrCode?.trim() || '';
+  }
+
+  get possuiQrCodeBoletoSicoob(): boolean {
+    return !!this.qrCodeBoletoSicoob;
+  }
+
+  get mensagemBoletoSicoobSemPix(): string {
+    if (!this.consultaBoletoSicoobResultado?.sucesso || this.possuiQrCodeBoletoSicoob) {
+      return '';
+    }
+
+    return 'O boleto foi consultado, mas o Sicoob nao retornou um QR Code PIX disponivel.';
+  }
+
+  get mensagemPixSemSincronizacao(): string {
+    if (!this.pixGerado?.sucesso || this.pixGerado?.cobrancaSincronizada || this.nossoNumeroAtual) {
+      return '';
+    }
+
+    return this.pixGerado?.mensagem || 'A cobranca PIX foi preparada, mas o boleto ainda nao foi sincronizado.';
   }
 
   get possuiBoletosConsultados(): boolean {
@@ -2359,7 +2405,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           }
 
           this.pixGerado = response;
+          this.atualizarDadosCobranca(response.numeroVenda, response.nossoNumero);
           this.exibirDialogPix = true;
+
+          if (!response.cobrancaSincronizada) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Cobranca PIX pendente de sincronizacao',
+              detail: response.mensagem || 'A cobranca foi preparada, mas o boleto ainda nao foi sincronizado.'
+            });
+            return;
+          }
 
           if (!this.qrCodePixSrc) {
             this.messageService.add({
@@ -2372,8 +2428,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
           this.messageService.add({
             severity: 'success',
-            summary: 'PIX Gerado',
-            detail: response.mensagem || 'QR Code do PIX gerado com sucesso.'
+            summary: 'Cobranca PIX pronta',
+            detail: response.mensagem || 'Cobranca PIX preparada e sincronizada com sucesso.'
           });
         },
         error: (error) => {
@@ -2425,6 +2481,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             boletos: this.ordenarBoletos(response.boletos || [])
           };
           this.boletosConsultados = this.consultaBoletosResultado.boletos;
+          this.sincronizarNossoNumeroPorBoletos(this.boletosConsultados, response.numeroVenda);
           this.exibirDialogBoletos = true;
 
           this.messageService.add({
@@ -2443,6 +2500,107 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             detail: this.obterMensagemErroBoletos(error)
           });
         }
+      });
+  }
+
+  consultarBoletoSicoob(): void {
+    const propostaId = this.propostaId ?? this.proposta?.id;
+
+    if (!propostaId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atenção',
+        detail: 'A proposta precisa estar salva antes de consultar o boleto Sicoob.'
+      });
+      return;
+    }
+
+    if (!this.nossoNumeroAtual) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cobrança não sincronizada',
+        detail: 'Sincronize o nosso número da proposta antes de consultar o boleto Sicoob.'
+      });
+      return;
+    }
+
+    this.consultaBoletoSicoobResultado = null;
+    this.exibirDialogSicoob = false;
+    this.consultandoBoletoSicoob = true;
+
+    this.propostaService.consultarBoletoSicoob(propostaId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.consultandoBoletoSicoob = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.consultaBoletoSicoobResultado = response;
+          this.atualizarDadosCobranca(response.numeroVenda, response.nossoNumero);
+          this.exibirDialogSicoob = true;
+
+          if (!response?.sucesso) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Consulta Sicoob',
+              detail: this.obterMensagemErroBoletoSicoob(response)
+            });
+            return;
+          }
+
+          this.messageService.add({
+            severity: this.possuiQrCodeBoletoSicoob ? 'success' : 'warn',
+            summary: this.possuiQrCodeBoletoSicoob ? 'Boleto Sicoob consultado' : 'Boleto consultado sem PIX',
+            detail: response.mensagem || 'Consulta do boleto Sicoob realizada com sucesso.'
+          });
+        },
+        error: (error) => {
+          console.error('Erro ao consultar boleto Sicoob da proposta:', error);
+          const payload = error?.error ?? error;
+
+          if (this.isRespostaConsultaBoletoSicoob(payload)) {
+            this.consultaBoletoSicoobResultado = payload;
+            this.atualizarDadosCobranca(payload.numeroVenda, payload.nossoNumero);
+            this.exibirDialogSicoob = true;
+          }
+
+          this.messageService.add({
+            severity: error?.status === 500 ? 'error' : 'warn',
+            summary: 'Erro na integração Sicoob',
+            detail: this.obterMensagemErroBoletoSicoob(error)
+          });
+        }
+      });
+  }
+
+  copiarQrCodeSicoob(): void {
+    if (!this.qrCodeBoletoSicoob) {
+      return;
+    }
+
+    if (!navigator?.clipboard?.writeText) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Copiar PIX indisponível',
+        detail: 'Não foi possível acessar a área de transferência neste navegador.'
+      });
+      return;
+    }
+
+    navigator.clipboard.writeText(this.qrCodeBoletoSicoob)
+      .then(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'PIX copiado',
+          detail: 'O código PIX do boleto Sicoob foi copiado para a área de transferência.'
+        });
+      })
+      .catch(() => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Falha ao copiar',
+          detail: 'Não foi possível copiar o código PIX automaticamente.'
+        });
       });
   }
 
@@ -2691,16 +2849,14 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             return;
           }
 
-          if (response.numeroVenda && this.proposta) {
-            this.proposta.numeroVenda = response.numeroVenda;
-          }
+          this.atualizarDadosCobranca(response.numeroVenda, response.nossoNumero);
 
           this.messageService.add({
-            severity: 'success',
-            summary: 'Proposta enviada ao TOTVS',
-            detail: response.numeroVenda
-              ? `${response.mensagem} Número da venda: ${response.numeroVenda}`
-              : response.mensagem
+            severity: response.cobrancaSincronizada ? 'success' : 'warn',
+            summary: response.cobrancaSincronizada
+              ? 'Proposta enviada e cobranca sincronizada'
+              : 'Proposta enviada ao TOTVS',
+            detail: this.montarMensagemSucessoEnvioTotvs(response)
           });
         },
         error: (error) => {
@@ -2801,6 +2957,61 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return 'Nao foi possivel gerar o PIX neste momento. Tente novamente.';
   }
 
+  private montarMensagemSucessoEnvioTotvs(response: EnviarPropostaTotvsResponse): string {
+    const mensagemOriginal = response.mensagem?.trim() || 'Integração concluída com sucesso';
+    const mensagemPrincipal = mensagemOriginal.split('.')
+      .map((parte) => parte.trim())
+      .find(Boolean) || mensagemOriginal;
+
+    const detalhesPrincipal: string[] = [];
+
+    if (response.numeroVenda?.trim()) {
+      detalhesPrincipal.push(`Número de venda: ${response.numeroVenda.trim()}`);
+    }
+
+    if (response.nossoNumero?.trim()) {
+      detalhesPrincipal.push(`Nosso número: ${response.nossoNumero.trim()}`);
+    }
+
+    const partes: string[] = [
+      detalhesPrincipal.length
+        ? `${mensagemPrincipal.replace(/[.\s]+$/, '')} (${detalhesPrincipal.join(' | ')}).`
+        : `${mensagemPrincipal.replace(/[.\s]+$/, '')}.`
+    ];
+
+    if (response.cobrancaSincronizada) {
+      if (response.mensagemCobranca?.trim()) {
+        partes.push(`${response.mensagemCobranca.trim().replace(/[.\s]+$/, '')}.`);
+      }
+    } else if (response.erroCobranca?.trim()) {
+      partes.push(this.formatarMensagemCobrancaPendente(response.erroCobranca));
+    } else if (response.mensagemCobranca?.trim()) {
+      partes.push(`${response.mensagemCobranca.trim().replace(/[.\s]+$/, '')}.`);
+    }
+
+    return partes.join(' ');
+  }
+
+  private formatarMensagemCobrancaPendente(erroCobranca: string): string {
+    const erroNormalizado = erroCobranca.trim().replace(/[.\s]+$/, '');
+    const matchDetalhes = erroNormalizado.match(/(BadRequest|Unauthorized|Forbidden|NotFound|Conflict)\s+Código:\s*([^\s]+)\s+Mensagem:\s*(.+)$/i);
+
+    if (matchDetalhes) {
+      const tipoErro = matchDetalhes[1].trim();
+      const codigoErro = matchDetalhes[2].trim();
+      const mensagemErro = matchDetalhes[3].trim().replace(/[.\s]+$/, '');
+      return `Cobrança pendente(${tipoErro} Código: ${codigoErro}): ${mensagemErro}.`;
+    }
+
+    const mensagemErro = erroNormalizado.replace(/^.*?Mensagem:\s*/i, '').trim();
+
+    if (mensagemErro && mensagemErro !== erroNormalizado) {
+      return `Cobrança pendente: ${mensagemErro.replace(/[.\s]+$/, '')}.`;
+    }
+
+    return `Cobrança pendente: ${erroNormalizado}.`;
+  }
+
   private obterMensagemErroBoletos(error: any): string {
     const payload = error?.error ?? error;
     const mensagem = payload?.mensagem || payload?.message;
@@ -2835,6 +3046,80 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'Nao foi possivel consultar os boletos neste momento. Tente novamente.';
+  }
+
+  private obterMensagemErroBoletoSicoob(error: any): string {
+    const payload = error?.error ?? error;
+    const mensagem = payload?.mensagem || payload?.message;
+    const detalhe = payload?.erro || payload?.detail;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      if (typeof detalhe === 'string' && detalhe.trim()) {
+        return `${mensagem} ${detalhe}`;
+      }
+
+      return mensagem;
+    }
+
+    if (typeof detalhe === 'string' && detalhe.trim()) {
+      return detalhe;
+    }
+
+    if (error?.status === 401) {
+      return 'Sua sessão expirou. Faça login novamente para consultar o boleto Sicoob.';
+    }
+
+    if (error?.status === 403) {
+      return 'Você não possui permissão para consultar o boleto Sicoob desta proposta.';
+    }
+
+    if (error?.status === 404) {
+      return 'A proposta informada não foi encontrada.';
+    }
+
+    return 'Não foi possível iniciar a consulta do boleto no Sicoob neste momento.';
+  }
+
+  private isRespostaConsultaBoletoSicoob(payload: any): payload is ConsultarBoletoSicoobPropostaResponse {
+    return !!payload
+      && (typeof payload.sucesso === 'boolean'
+        || typeof payload.mensagem === 'string'
+        || typeof payload.qrCode === 'string'
+        || typeof payload.erro === 'string');
+  }
+
+  private atualizarDadosCobranca(numeroVenda?: string | null, nossoNumero?: string | null): void {
+    if (!this.proposta) {
+      return;
+    }
+
+    if (numeroVenda?.trim()) {
+      this.proposta.numeroVenda = numeroVenda.trim();
+    }
+
+    if (nossoNumero?.trim()) {
+      this.proposta.nossoNumero = nossoNumero.trim();
+    }
+  }
+
+  private sincronizarNossoNumeroPorBoletos(boletos: BoletoPropostaDTO[], numeroVenda?: string | null): void {
+    const boletoReferencia = boletos.find((boleto) => boleto.nossoNumero?.trim()) || boletos[0];
+
+    this.atualizarDadosCobranca(
+      numeroVenda || boletoReferencia?.numeroVenda || null,
+      boletoReferencia?.nossoNumero || null
+    );
+
+    if (this.pixGerado && boletoReferencia?.idBoleto) {
+      this.pixGerado = {
+        ...this.pixGerado,
+        numeroVenda: numeroVenda || boletoReferencia.numeroVenda || this.pixGerado.numeroVenda,
+        nossoNumero: boletoReferencia.nossoNumero || this.pixGerado.nossoNumero,
+        idBoleto: boletoReferencia.idBoleto,
+        valor: boletoReferencia.valor ?? this.pixGerado.valor,
+        cobrancaSincronizada: !!boletoReferencia.nossoNumero?.trim()
+      };
+    }
   }
 
   private ordenarBoletos(boletos: BoletoPropostaDTO[]): BoletoPropostaDTO[] {
@@ -3083,6 +3368,23 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (!data) return '';
     const d = typeof data === 'string' ? new Date(data) : data;
     return d.toLocaleDateString('pt-BR');
+  }
+
+  formatarDataHora(data: string | Date | null): string {
+    if (!data) {
+      return '';
+    }
+
+    const valor = typeof data === 'string' ? new Date(data) : data;
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(valor);
   }
 
   /**

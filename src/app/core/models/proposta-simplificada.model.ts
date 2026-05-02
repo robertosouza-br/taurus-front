@@ -26,6 +26,7 @@ export interface PropostaSimplificadaDTO {
   reservaId: number;
   numeroProposta: string | null;
   numeroVenda?: string | null;
+  nossoNumero?: string | null;
   dataProposta: string | null;
   status: PropostaStatus;
   
@@ -561,6 +562,12 @@ export interface EnviarPropostaTotvsResponse {
   sucesso: boolean;
   mensagem: string;
   numeroVenda?: string | null;
+  propostaEnviadaTotvs?: boolean | null;
+  pixGerado?: boolean | null;
+  cobrancaSincronizada?: boolean | null;
+  nossoNumero?: string | null;
+  mensagemCobranca?: string | null;
+  erroCobranca?: string | null;
   erro?: string | null;
 }
 
@@ -568,9 +575,12 @@ export interface GerarPixPropostaResponse {
   sucesso: boolean;
   mensagem: string;
   numeroVenda?: string | null;
+  nossoNumero?: string | null;
+  idBoleto?: number | null;
   codColigadaEmpreendimento?: number | null;
   valor?: number | null;
   dataVencimento?: string | null;
+  cobrancaSincronizada?: boolean | null;
   qrCodeBase64?: string | null;
   erro?: string | null;
 }
@@ -589,5 +599,30 @@ export interface ConsultarBoletosPropostaResponse {
   mensagem: string | null;
   numeroVenda: string | null;
   boletos: BoletoPropostaDTO[];
+  erro: string | null;
+}
+
+export interface ConsultarBoletoSicoobPropostaResponse {
+  sucesso: boolean;
+  mensagem: string;
+  propostaId: number | null;
+  reservaId: number | null;
+  codEmpreendimento: number | null;
+  numeroVenda: string | null;
+  nossoNumero: string | null;
+  clientId: string | null;
+  arquivoCertificado: string | null;
+  tokenType: string | null;
+  expiresInSegundos: number | null;
+  scope: string | null;
+  expiracaoPrevista: string | null;
+  numeroCliente: number | null;
+  codigoModalidade: number | null;
+  codigoBarras: string | null;
+  linhaDigitavel: string | null;
+  valor: number | null;
+  dataVencimento: string | null;
+  situacaoBoleto: string | null;
+  qrCode: string | null;
   erro: string | null;
 }

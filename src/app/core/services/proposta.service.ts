@@ -21,7 +21,8 @@ import {
   FinalizarPropostaStatusResponse,
   EnviarPropostaTotvsResponse,
   GerarPixPropostaResponse,
-  ConsultarBoletosPropostaResponse
+  ConsultarBoletosPropostaResponse,
+  ConsultarBoletoSicoobPropostaResponse
 } from '../models/proposta-simplificada.model';
 
 /**
@@ -377,6 +378,13 @@ export class PropostaService {
   consultarBoletos(propostaId: number): Observable<ConsultarBoletosPropostaResponse> {
     return this.http.get<ConsultarBoletosPropostaResponse>(
       `${this.baseUrl}/${propostaId}/boletos`
+    );
+  }
+
+  consultarBoletoSicoob(propostaId: number): Observable<ConsultarBoletoSicoobPropostaResponse> {
+    return this.http.post<ConsultarBoletoSicoobPropostaResponse>(
+      `${this.baseUrl}/${propostaId}/sicoob/boleto`,
+      {}
     );
   }
 }
