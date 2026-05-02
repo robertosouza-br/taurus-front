@@ -2661,6 +2661,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const empreendimento = this.escapeHtml(this.proposta?.empreendimento?.nomeEmpreendimento || '-');
     const bloco = this.escapeHtml(this.proposta?.empreendimento?.bloco || '-');
     const unidade = this.escapeHtml(this.proposta?.empreendimento?.unidade || '-');
+    const numeroVendaFormatado = this.escapeHtml(this.consultaBoletoSicoobResultado.numeroVenda || this.proposta?.numeroVenda || '-');
     const valorFormatado = this.escapeHtml(valor);
     const vencimentoFormatado = this.escapeHtml(vencimento);
     const codigoPix = this.escapeHtml(this.qrCodeBoletoSicoob || '-');
@@ -2684,6 +2685,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               font-family: Arial, sans-serif;
               color: #0f172a;
               background: #ffffff;
+              background-color: #ffffff;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             .sheet {
               display: flex;
@@ -2703,11 +2707,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               border-radius: 14px;
               padding: 18px;
               background: #ffffff;
+              background-color: #ffffff;
             }
             .context-card {
               border-color: #0f172a;
               background: #000000;
+              background-color: #000000;
               color: #ffffff;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             .label {
               display: block;
@@ -2735,6 +2743,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
               gap: 20px;
               align-items: start;
+            }
+            .summary-grid + .detail-card {
+              margin-top: 16px;
             }
             .section-title {
               margin: 0 0 12px;
@@ -2767,6 +2778,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               border: 1px solid #dbe4ee;
               border-radius: 14px;
               background: #f8fafc;
+              background-color: #f8fafc;
               padding: 16px;
               font-family: Consolas, 'Courier New', monospace;
               font-size: 13px;
@@ -2776,6 +2788,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             }
             @media print {
               body { padding: 0; }
+              body,
+              .context-card,
+              .summary-card,
+              .detail-card,
+              .pix-code,
+              .qr-box,
+              .empty-box {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
             }
           </style>
         </head>
@@ -2791,7 +2813,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
                 <div class="value">${bloco}</div>
               </div>
               <div class="context-card">
-                <span class="label">Unidade</span>
+                <span class="label">Futura Unidade</span>
                 <div class="value">${unidade}</div>
               </div>
               <div class="context-card">
@@ -2813,8 +2835,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
                     <div class="value">${valorFormatado}</div>
                   </div>
                   <div class="summary-card">
-                    <span class="label">Vencimento</span>
-                    <div class="value">${vencimentoFormatado}</div>
+                    <span class="label">Proposta</span>
+                    <div class="value">${numeroVendaFormatado}</div>
                   </div>
                 </div>
 
