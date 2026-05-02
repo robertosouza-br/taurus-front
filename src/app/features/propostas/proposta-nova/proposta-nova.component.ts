@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import Decimal from 'decimal.js';
 import { MessageService } from 'primeng/api';
+import * as QRCode from 'qrcode';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
@@ -62,6 +63,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   pixGerado: GerarPixPropostaResponse | null = null;
   consultaBoletosResultado: ConsultarBoletosPropostaResponse | null = null;
   consultaBoletoSicoobResultado: ConsultarBoletoSicoobPropostaResponse | null = null;
+  qrCodeBoletoSicoobSrc: string | null = null;
   boletosConsultados: BoletoPropostaDTO[] = [];
   
   componentesTabelaPadrao: ComponenteTabelaPadraoDTO[] = [];
@@ -299,6 +301,36 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return 'O boleto foi consultado, mas o Sicoob nao retornou um QR Code PIX disponivel.';
+  }
+
+  get mensagemBoletoSicoobSemImagem(): string {
+    if (!this.possuiQrCodeBoletoSicoob || this.qrCodeBoletoSicoobSrc) {
+      return '';
+    }
+
+    return 'Nao foi possivel montar a imagem do QR Code do PIX. Use o codigo copia e cola abaixo.';
+  }
+
+  get classeSituacaoBoletoSicoob(): string {
+    const situacao = this.consultaBoletoSicoobResultado?.situacaoBoleto?.trim().toLowerCase() || '';
+
+    if (!situacao) {
+      return 'sicoob-status-chip-neutral';
+    }
+
+    if (situacao.includes('aberto') || situacao.includes('dispon')) {
+      return 'sicoob-status-chip-success';
+    }
+
+    if (situacao.includes('venc') || situacao.includes('atras')) {
+      return 'sicoob-status-chip-danger';
+    }
+
+    if (situacao.includes('baix') || situacao.includes('pago') || situacao.includes('liquid')) {
+      return 'sicoob-status-chip-info';
+    }
+
+    return 'sicoob-status-chip-neutral';
   }
 
   get mensagemPixSemSincronizacao(): string {
@@ -2525,6 +2557,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     this.consultaBoletoSicoobResultado = null;
+    this.qrCodeBoletoSicoobSrc = null;
     this.exibirDialogSicoob = false;
     this.consultandoBoletoSicoob = true;
 
@@ -2537,6 +2570,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         next: (response) => {
           this.consultaBoletoSicoobResultado = response;
           this.atualizarDadosCobranca(response.numeroVenda, response.nossoNumero);
+          void this.gerarImagemQrCodeBoletoSicoob(response.qrCode);
           this.exibirDialogSicoob = true;
 
           if (!response?.sucesso) {
@@ -2547,12 +2581,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
             });
             return;
           }
-
-          this.messageService.add({
-            severity: this.possuiQrCodeBoletoSicoob ? 'success' : 'warn',
-            summary: this.possuiQrCodeBoletoSicoob ? 'Boleto Sicoob consultado' : 'Boleto consultado sem PIX',
-            detail: response.mensagem || 'Consulta do boleto Sicoob realizada com sucesso.'
-          });
         },
         error: (error) => {
           console.error('Erro ao consultar boleto Sicoob da proposta:', error);
@@ -2561,6 +2589,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           if (this.isRespostaConsultaBoletoSicoob(payload)) {
             this.consultaBoletoSicoobResultado = payload;
             this.atualizarDadosCobranca(payload.numeroVenda, payload.nossoNumero);
+            void this.gerarImagemQrCodeBoletoSicoob(payload.qrCode);
             this.exibirDialogSicoob = true;
           }
 
@@ -2592,7 +2621,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         this.messageService.add({
           severity: 'success',
           summary: 'PIX copiado',
-          detail: 'O código PIX do boleto Sicoob foi copiado para a área de transferência.'
+          detail: 'Código PIX copiado para a área de transferência.'
         });
       })
       .catch(() => {
@@ -2602,6 +2631,253 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           detail: 'Não foi possível copiar o código PIX automaticamente.'
         });
       });
+  }
+
+  imprimirConsultaBoletoSicoob(): void {
+    if (!this.consultaBoletoSicoobResultado?.sucesso) {
+      return;
+    }
+
+    const janelaImpressao = window.open('', '_blank', 'width=960,height=900');
+
+    if (!janelaImpressao) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Impressão indisponível',
+        detail: 'Não foi possível abrir a janela de impressão. Verifique se o navegador bloqueou pop-ups.'
+      });
+      return;
+    }
+
+    janelaImpressao.opener = null;
+    janelaImpressao.focus();
+
+    const valor = this.consultaBoletoSicoobResultado.valor !== null && this.consultaBoletoSicoobResultado.valor !== undefined
+      ? this.formatarMoeda(this.consultaBoletoSicoobResultado.valor)
+      : '-';
+    const vencimento = this.consultaBoletoSicoobResultado.dataVencimento
+      ? this.formatarData(this.consultaBoletoSicoobResultado.dataVencimento)
+      : '-';
+    const empreendimento = this.escapeHtml(this.proposta?.empreendimento?.nomeEmpreendimento || '-');
+    const bloco = this.escapeHtml(this.proposta?.empreendimento?.bloco || '-');
+    const unidade = this.escapeHtml(this.proposta?.empreendimento?.unidade || '-');
+    const valorFormatado = this.escapeHtml(valor);
+    const vencimentoFormatado = this.escapeHtml(vencimento);
+    const codigoPix = this.escapeHtml(this.qrCodeBoletoSicoob || '-');
+    const qrCodeMarkup = this.qrCodeBoletoSicoobSrc
+      ? `<div class="qr-box"><img src="${this.qrCodeBoletoSicoobSrc}" alt="QR Code PIX do boleto Sicoob"></div>`
+      : '<div class="empty-box">QR Code indisponível</div>';
+    const dataImpressao = this.escapeHtml(new Date().toLocaleString('pt-BR'));
+
+    janelaImpressao.document.open();
+    janelaImpressao.document.write(`
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8">
+          <title>Consulta de PIX</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              padding: 32px;
+              font-family: Arial, sans-serif;
+              color: #0f172a;
+              background: #ffffff;
+            }
+            .sheet {
+              display: flex;
+              flex-direction: column;
+              gap: 24px;
+            }
+            .hero {
+              display: flex;
+              justify-content: space-between;
+              gap: 16px;
+              padding: 20px 24px;
+              border-radius: 16px;
+              background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%);
+              color: #ffffff;
+            }
+            .hero-title {
+              margin: 0 0 6px;
+              font-size: 24px;
+              font-weight: 700;
+            }
+            .hero-subtitle {
+              margin: 0;
+              color: rgba(226, 232, 240, 0.9);
+              font-size: 14px;
+            }
+            .hero-meta {
+              text-align: right;
+              font-size: 12px;
+              color: rgba(226, 232, 240, 0.88);
+            }
+            .context-grid,
+            .summary-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 14px;
+            }
+            .context-card,
+            .summary-card,
+            .detail-card {
+              border: 1px solid #dbe4ee;
+              border-radius: 14px;
+              padding: 18px;
+              background: #ffffff;
+            }
+            .context-card {
+              border-color: #0f172a;
+              background: #000000;
+              color: #ffffff;
+            }
+            .label {
+              display: block;
+              margin-bottom: 8px;
+              font-size: 12px;
+              font-weight: 700;
+              letter-spacing: 0.05em;
+              text-transform: uppercase;
+              color: #64748b;
+            }
+            .context-card .label {
+              color: rgba(255, 255, 255, 0.74);
+            }
+            .value {
+              font-size: 18px;
+              font-weight: 700;
+              line-height: 1.4;
+              word-break: break-word;
+            }
+            .context-card .value {
+              color: #ffffff;
+            }
+            .content-grid {
+              display: grid;
+              grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+              gap: 20px;
+              align-items: start;
+            }
+            .section-title {
+              margin: 0 0 12px;
+              font-size: 18px;
+              font-weight: 700;
+            }
+            .qr-box,
+            .empty-box {
+              min-height: 320px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid #dbe4ee;
+              border-radius: 14px;
+              background: #ffffff;
+              padding: 20px;
+            }
+            .qr-box img {
+              width: 100%;
+              max-width: 260px;
+              height: auto;
+              display: block;
+            }
+            .empty-box {
+              color: #64748b;
+              font-weight: 600;
+            }
+            .pix-code {
+              margin-top: 16px;
+              border: 1px solid #dbe4ee;
+              border-radius: 14px;
+              background: #f8fafc;
+              padding: 16px;
+              font-family: Consolas, 'Courier New', monospace;
+              font-size: 13px;
+              line-height: 1.6;
+              white-space: pre-wrap;
+              word-break: break-word;
+            }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="sheet">
+            <section class="hero">
+              <div>
+                <h1 class="hero-title">Consulta de PIX</h1>
+                <p class="hero-subtitle">Comprovante com QR Code PIX e dados da unidade consultada.</p>
+              </div>
+              <div class="hero-meta">Impresso em ${dataImpressao}</div>
+            </section>
+
+            <section class="context-grid">
+              <div class="context-card">
+                <span class="label">Empreendimento</span>
+                <div class="value">${empreendimento}</div>
+              </div>
+              <div class="context-card">
+                <span class="label">Bloco</span>
+                <div class="value">${bloco}</div>
+              </div>
+              <div class="context-card">
+                <span class="label">Unidade</span>
+                <div class="value">${unidade}</div>
+              </div>
+              <div class="context-card">
+                <span class="label">Vencimento</span>
+                <div class="value">${vencimentoFormatado}</div>
+              </div>
+            </section>
+
+            <section class="content-grid">
+              <div class="summary-card">
+                <h2 class="section-title">QR Code PIX</h2>
+                ${qrCodeMarkup}
+              </div>
+
+              <div>
+                <div class="summary-grid">
+                  <div class="summary-card">
+                    <span class="label">Valor</span>
+                    <div class="value">${valorFormatado}</div>
+                  </div>
+                  <div class="summary-card">
+                    <span class="label">Vencimento</span>
+                    <div class="value">${vencimentoFormatado}</div>
+                  </div>
+                </div>
+
+                <section class="detail-card">
+                  <span class="label">Código do PIX</span>
+                  <div class="pix-code">${codigoPix}</div>
+                </section>
+              </div>
+            </section>
+          </main>
+          <script>
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+                window.close();
+              }, 300);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    janelaImpressao.document.close();
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   /**
@@ -3086,6 +3362,30 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         || typeof payload.mensagem === 'string'
         || typeof payload.qrCode === 'string'
         || typeof payload.erro === 'string');
+  }
+
+  private async gerarImagemQrCodeBoletoSicoob(valor: string | null | undefined): Promise<void> {
+    const payload = valor?.trim();
+
+    if (!payload) {
+      this.qrCodeBoletoSicoobSrc = null;
+      return;
+    }
+
+    try {
+      this.qrCodeBoletoSicoobSrc = await QRCode.toDataURL(payload, {
+        errorCorrectionLevel: 'M',
+        margin: 2,
+        width: 280,
+        color: {
+          dark: '#111827',
+          light: '#FFFFFFFF'
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao gerar imagem do QR Code do boleto Sicoob:', error);
+      this.qrCodeBoletoSicoobSrc = null;
+    }
   }
 
   private atualizarDadosCobranca(numeroVenda?: string | null, nossoNumero?: string | null): void {

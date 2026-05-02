@@ -849,131 +849,136 @@
 </p-dialog>
 
 <p-dialog
-  header="Consulta de Boleto Sicoob"
   [(visible)]="exibirDialogSicoob"
   [modal]="true"
-  [style]="{ width: 'min(96vw, 48rem)' }"
-  [breakpoints]="{ '960px': '92vw', '640px': '96vw' }">
-  <div class="boletos-dialog" *ngIf="consultaBoletoSicoobResultado">
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [showHeader]="false"
+  [style]="{ width: 'min(96vw, 58rem)' }"
+  [breakpoints]="{ '960px': '92vw', '640px': '96vw' }"
+  styleClass="sicoob-boleto-dialog">
+  <div class="sicoob-dialog-content" *ngIf="consultaBoletoSicoobResultado">
     <p-message
-      [severity]="consultaBoletoSicoobResultado.sucesso ? (possuiQrCodeBoletoSicoob ? 'success' : 'warn') : 'error'"
-      [text]="consultaBoletoSicoobResultado.mensagem || 'Consulta do boleto Sicoob realizada para a proposta informada.'"
+      *ngIf="!consultaBoletoSicoobResultado.sucesso"
+      severity="error"
+      [text]="consultaBoletoSicoobResultado.mensagem || 'Nao foi possivel consultar o boleto Sicoob para a proposta informada.'"
       styleClass="w-full">
     </p-message>
 
-    <div class="sicoob-pix-section" *ngIf="consultaBoletoSicoobResultado.sucesso">
-      <div class="sicoob-pix-header">
-        <div>
-          <strong>PIX Copia e Cola</strong>
-          <span>Use o qrCode retornado pelo Sicoob como informação principal para a experiência PIX.</span>
+    <div class="sicoob-modal-shell" *ngIf="consultaBoletoSicoobResultado.sucesso; else sicoobErroTpl">
+      <section class="sicoob-context-strip">
+        <div class="sicoob-context-main">
+          <span class="sicoob-context-label">Empreendimento</span>
+          <strong class="sicoob-context-value">{{ proposta?.empreendimento?.nomeEmpreendimento || '-' }}</strong>
+        </div>
+        <div class="sicoob-context-meta">
+          <div class="sicoob-context-item">
+            <span class="sicoob-context-label">Bloco</span>
+            <strong class="sicoob-context-value">{{ proposta?.empreendimento?.bloco || '-' }}</strong>
+          </div>
+          <div class="sicoob-context-item">
+            <span class="sicoob-context-label">Unidade</span>
+            <strong class="sicoob-context-value">{{ proposta?.empreendimento?.unidade || '-' }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <div class="sicoob-main-grid">
+        <section class="sicoob-card sicoob-qr-card">
+          <div class="sicoob-card-header">
+            <span class="resumo-header-eyebrow">PIX</span>
+            <h3 class="resumo-header-title">QR Code para pagamento</h3>
+          </div>
+
+          <ng-template #sicoobPixPlaceholderTpl>
+            <div class="boletos-empty-state sicoob-qr-placeholder">
+              <i class="pi pi-qrcode"></i>
+              <strong>QR Code indisponível</strong>
+              <span>Não foi possível montar a imagem do PIX para este boleto.</span>
+            </div>
+          </ng-template>
+
+          <div class="sicoob-pix-image" *ngIf="qrCodeBoletoSicoobSrc; else sicoobPixPlaceholderTpl">
+            <img [src]="qrCodeBoletoSicoobSrc" alt="QR Code PIX do boleto Sicoob" />
+          </div>
+
+          <p-message
+            *ngIf="mensagemBoletoSicoobSemImagem"
+            severity="warn"
+            [text]="mensagemBoletoSicoobSemImagem"
+            styleClass="w-full">
+          </p-message>
+
+          <div class="flex justify-content-center gap-2 flex-wrap" *ngIf="consultaBoletoSicoobResultado.sucesso">
+            <app-custom-button
+              label="Imprimir"
+              icon="pi pi-print"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="imprimirConsultaBoletoSicoob()">
+            </app-custom-button>
+
+            <app-custom-button
+              *ngIf="possuiQrCodeBoletoSicoob"
+              label="Copiar código do PIX"
+              icon="pi pi-copy"
+              severity="success"
+              [outlined]="true"
+              (onClick)="copiarQrCodeSicoob()">
+            </app-custom-button>
+          </div>
+        </section>
+
+        <section class="sicoob-card sicoob-summary-card">
+          <div class="sicoob-card-header">
+            <span class="resumo-header-eyebrow">Resumo</span>
+          </div>
+
+          <div class="sicoob-summary-grid">
+            <div class="sicoob-summary-item">
+              <span class="sicoob-summary-label">Valor</span>
+              <strong class="sicoob-summary-value">{{ consultaBoletoSicoobResultado.valor !== null && consultaBoletoSicoobResultado.valor !== undefined ? formatarMoeda(consultaBoletoSicoobResultado.valor) : '-' }}</strong>
+            </div>
+
+            <div class="sicoob-summary-item">
+              <span class="sicoob-summary-label">Vencimento</span>
+              <strong class="sicoob-summary-value">{{ consultaBoletoSicoobResultado.dataVencimento ? formatarData(consultaBoletoSicoobResultado.dataVencimento) : '-' }}</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="sicoob-card sicoob-detail-card">
+        <div class="sicoob-detail-block" *ngIf="possuiQrCodeBoletoSicoob; else boletoSicoobSemPixTpl">
+          <div class="sicoob-detail-header-row">
+            <span class="campo-label">Código do PIX</span>
+          </div>
+          <div class="sicoob-detail-value sicoob-detail-value-mono sicoob-detail-value-pix">
+            {{ qrCodeBoletoSicoob }}
+          </div>
         </div>
 
-        <app-custom-button
-          *ngIf="possuiQrCodeBoletoSicoob"
-          label="Copiar PIX"
-          icon="pi pi-copy"
-          severity="success"
-          [outlined]="true"
-          (onClick)="copiarQrCodeSicoob()">
-        </app-custom-button>
-      </div>
-
-      <div class="sicoob-pix-payload-wrapper" *ngIf="possuiQrCodeBoletoSicoob; else boletoSicoobSemPixTpl">
-        <textarea
-          class="sicoob-pix-payload"
-          [value]="qrCodeBoletoSicoob"
-          rows="6"
-          readonly>
-        </textarea>
-      </div>
-
-      <ng-template #boletoSicoobSemPixTpl>
-        <p-message
-          severity="warn"
-          [text]="mensagemBoletoSicoobSemPix"
-          styleClass="w-full">
-        </p-message>
-      </ng-template>
+        <ng-template #boletoSicoobSemPixTpl>
+          <p-message
+            severity="warn"
+            [text]="mensagemBoletoSicoobSemPix"
+            styleClass="w-full">
+          </p-message>
+        </ng-template>
+      </section>
     </div>
 
-    <div class="boletos-dialog-summary">
-      <div class="campo-readonly">
-        <span class="campo-label">Proposta</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.propostaId || proposta?.id || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Reserva</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.reservaId || proposta?.reservaId || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Empreendimento</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.codEmpreendimento || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Número da Venda</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.numeroVenda || proposta?.numeroVenda || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Nosso Número</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.nossoNumero || nossoNumeroAtual || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Client ID</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.clientId || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Certificado</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.arquivoCertificado || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Token Type</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.tokenType || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Expira em</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.expiresInSegundos !== null && consultaBoletoSicoobResultado.expiresInSegundos !== undefined ? (consultaBoletoSicoobResultado.expiresInSegundos + ' segundos') : '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Expiração Prevista</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.expiracaoPrevista ? formatarDataHora(consultaBoletoSicoobResultado.expiracaoPrevista) : '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Scope</span>
-        <span class="campo-valor campo-valor-quebra">{{ consultaBoletoSicoobResultado.scope || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Número do Cliente</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.numeroCliente ?? '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Modalidade</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.codigoModalidade ?? '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Situação do Boleto</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.situacaoBoleto || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Valor</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.valor !== null && consultaBoletoSicoobResultado.valor !== undefined ? formatarMoeda(consultaBoletoSicoobResultado.valor) : '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Vencimento</span>
-        <span class="campo-valor">{{ consultaBoletoSicoobResultado.dataVencimento ? formatarData(consultaBoletoSicoobResultado.dataVencimento) : '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Código de Barras</span>
-        <span class="campo-valor campo-valor-mono campo-valor-quebra">{{ consultaBoletoSicoobResultado.codigoBarras || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Linha Digitável</span>
-        <span class="campo-valor campo-valor-mono campo-valor-quebra">{{ consultaBoletoSicoobResultado.linhaDigitavel || '-' }}</span>
-      </div>
-      <div class="campo-readonly">
-        <span class="campo-label">Erro</span>
-        <span class="campo-valor campo-valor-quebra">{{ consultaBoletoSicoobResultado.erro || '-' }}</span>
-      </div>
-    </div>
+    <ng-template #sicoobErroTpl>
+      <section class="sicoob-card sicoob-detail-card">
+        <div class="sicoob-detail-block">
+          <span class="campo-label">Erro da consulta</span>
+          <div class="sicoob-detail-value sicoob-detail-value-mono">
+            {{ consultaBoletoSicoobResultado.erro || consultaBoletoSicoobResultado.mensagem || '-' }}
+          </div>
+        </div>
+      </section>
+    </ng-template>
   </div>
 </p-dialog>
 
