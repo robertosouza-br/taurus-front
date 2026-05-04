@@ -1,26 +1,26 @@
-<div class="main-layout">
-  <app-header></app-header>
+<div class="main-layout" [class.main-layout--clean]="layoutLimpo">
+  <app-header *ngIf="!layoutLimpo"></app-header>
   
-  <div class="layout-body" [class.sidebar-collapsed]="!isSidebarExpanded">
-    <app-sidebar></app-sidebar>
+  <div class="layout-body" [class.sidebar-collapsed]="!isSidebarExpanded" [class.layout-body--clean]="layoutLimpo">
+    <app-sidebar *ngIf="!layoutLimpo"></app-sidebar>
     
-    <main class="content-area">
-      <div class="content-wrapper">
+    <main class="content-area" [class.content-area--clean]="layoutLimpo">
+      <div class="content-wrapper" [class.content-wrapper--clean]="layoutLimpo">
         <router-outlet></router-outlet>
       </div>
     </main>
   </div>
   
-  <app-footer></app-footer>
+  <app-footer *ngIf="!layoutLimpo"></app-footer>
 </div>
 
 <!-- Loading Global -->
 <app-loading-spinner 
-  *ngIf="isLoading" 
+  *ngIf="isLoading && !layoutLimpo" 
   [overlay]="true"
   [message]="loadingMessage"
   size="large">
 </app-loading-spinner>
 
 <!-- Toast para notificações globais -->
-<p-toast position="top-right"></p-toast>
+<p-toast *ngIf="!layoutLimpo" position="top-right"></p-toast>

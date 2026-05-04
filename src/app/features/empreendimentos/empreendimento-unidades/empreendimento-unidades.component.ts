@@ -47,6 +47,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   codigoEmpreendimento!: string;
   nomeEmpreendimento: string = '';
   codColigadaEmpreendimento: number = 0;
+  modoPainel = false;
   unidades: Unidade[] = [];
   blocos: BlocoUnidades[] = [];
   statusDisponiveis: string[] = [];
@@ -71,9 +72,6 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     'Fora de venda',
     'Sinal Creditado/ Cont.Finaliza'
   ];
-  
-  // Visualização
-  visualizacao: 'grid' | 'list' = 'grid';
   
   // Filtros
   statusFiltroSelecionado: string = 'TODOS';
@@ -103,6 +101,8 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.modoPainel = this.route.snapshot.data['modoPainel'] === true;
+
     // Verifica permissão de consulta
     if (!this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO, Permissao.CONSULTAR)) {
       this.router.navigate(['/acesso-negado']);
@@ -799,6 +799,10 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    * Abre o dialog de detalhes da unidade
    */
   abrirDetalhes(unidade: Unidade): void {
+    if (this.modoPainel) {
+      return;
+    }
+
     // Força reset do dialog
     this.displayDetalhesUnidade = false;
     this.unidadeSelecionada = null;
@@ -818,7 +822,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
    * Navega para tela de reserva da unidade
    */
   irParaReserva(unidade: Unidade): void {
-    if (!this.temPermissaoCriarReserva()) {
+    if (this.modoPainel || !this.temPermissaoCriarReserva()) {
       return;
     }
 
@@ -887,6 +891,22 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
 
   voltar(): void {
     this.router.navigate(['/empreendimentos']);
+  }
+
+  abrirPainelMonitoramento(): void {
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree(['/empreendimentos/painel', this.codigoEmpreendimento, 'unidades'])
+    );
+
+    window.open(url, '_blank', 'noopener');
+  }
+
+  onUnidadeClick(unidade: Unidade): void {
+    if (this.modoPainel) {
+      return;
+    }
+
+    this.irParaReserva(unidade);
   }
   
   /**

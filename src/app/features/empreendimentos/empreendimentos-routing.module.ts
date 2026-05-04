@@ -35,6 +35,17 @@ const routes: Routes = [
       funcionalidade: Funcionalidade.EMPREENDIMENTO,
       permissoes: [Permissao.CONSULTAR]
     }
+  },
+  {
+    path: 'painel/:codigo/unidades',
+    component: EmpreendimentoUnidadesComponent,
+    canActivate: [AuthGuard, PermissaoGuard],
+    data: {
+      funcionalidade: Funcionalidade.EMPREENDIMENTO,
+      permissoes: [Permissao.CONSULTAR],
+      layoutLimpo: true,
+      modoPainel: true
+    }
   }
 ];
 

@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { SidebarService } from '../../../core/services';
 import { LoadingService } from '../../../core/services/loading.service';
 
@@ -16,13 +18,17 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   isSidebarExpanded = false;
   isLoading = false;
   loadingMessage = '';
+  layoutLimpo = false;
   private subscription?: Subscription;
   private loadingSubscription?: Subscription;
   private messageSubscription?: Subscription;
+  private routerSubscription?: Subscription;
 
   constructor(
     private sidebarService: SidebarService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -37,11 +43,27 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.messageSubscription = this.loadingService.message$.subscribe(
       message => this.loadingMessage = message
     );
+
+    this.atualizarModoLayout();
+    this.routerSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.atualizarModoLayout());
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     this.loadingSubscription?.unsubscribe();
     this.messageSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
+  }
+
+  private atualizarModoLayout(): void {
+    let route = this.activatedRoute;
+
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+
+    this.layoutLimpo = route.snapshot.data['layoutLimpo'] === true;
   }
 }

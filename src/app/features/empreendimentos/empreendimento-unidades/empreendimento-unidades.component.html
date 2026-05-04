@@ -1,56 +1,30 @@
 <div class="unidades-page">
   <!-- Breadcrumb -->
-  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+  <app-breadcrumb *ngIf="!modoPainel" [items]="breadcrumbItems"></app-breadcrumb>
 
   <!-- Header -->
   <app-page-header
+    *ngIf="!modoPainel"
     [title]="nomeEmpreendimento || 'Empreendimento ' + codigoEmpreendimento"
     subtitle="Mapa Visual de Unidades"
     icon="pi pi-th-large">
-    <div header-actions class="flex gap-2 flex-wrap">
-      <!-- Toggle de Visualização -->
-      <div class="view-toggle-group">
-        <p-button 
-          icon="pi pi-th-large" 
-          [outlined]="visualizacao !== 'grid'"
-          [text]="visualizacao !== 'grid'"
-          pTooltip="Visualização em Grade"
-          tooltipPosition="bottom"
-          (onClick)="visualizacao = 'grid'">
-        </p-button>
-        <p-button 
-          icon="pi pi-list" 
-          [outlined]="visualizacao !== 'list'"
-          [text]="visualizacao !== 'list'"
-          pTooltip="Visualização em Lista"
-          tooltipPosition="bottom"
-          (onClick)="visualizacao = 'list'">
-        </p-button>
-      </div>
-      
-      <app-custom-button
-        label="Legenda"
-        icon="pi pi-info-circle"
-        styleClass="p-button-outlined"
-        (onClick)="displayLegenda = true">
-      </app-custom-button>
-      
-      <app-custom-button
-        label="Voltar"
-        icon="pi pi-arrow-left"
-        styleClass="p-button-outlined"
-        (onClick)="voltar()">
-      </app-custom-button>
-      
-      <app-custom-button
-        label="Atualizar"
-        icon="pi pi-refresh"
-        styleClass="p-button-outlined"
-        [loading]="carregando"
-        (onClick)="carregar()">
-      </app-custom-button>
-    </div>
   </app-page-header>
+
+  <div *ngIf="!modoPainel" class="painel-action-bar">
+    <app-custom-button
+      label="Abrir Painel"
+      icon="pi pi-external-link"
+      styleClass="p-button-outlined"
+      (onClick)="abrirPainelMonitoramento()">
+    </app-custom-button>
+  </div>
+
+  <div *ngIf="modoPainel" class="painel-info-bar painel-info-bar--painel">
+    <div class="painel-info-bar__empreendimento">
+      <i class="pi pi-building"></i>
+      <span>{{ nomeEmpreendimento || ('Empreendimento ' + codigoEmpreendimento) }}</span>
+    </div>
+  </div>
 
   <!-- Loading -->
   <app-loading-spinner 
@@ -70,7 +44,10 @@
   </div>
 
   <!-- Conteúdo Principal -->
-  <div *ngIf="!carregando && unidades.length > 0" class="unidades-mapa-container">
+  <div
+    *ngIf="!carregando && unidades.length > 0"
+    class="unidades-mapa-container"
+    [class.unidades-mapa-container--painel]="modoPainel">
     
     <!-- Indicador de Filtro Ativo -->
     <div *ngIf="statusFiltroSelecionado !== 'TODOS'" class="filtro-ativo-banner">
@@ -102,8 +79,7 @@
       </app-custom-button>
     </div>
     
-    <!-- Visualização em Grid -->
-    <div *ngIf="visualizacao === 'grid' && blocos.length > 0" class="blocos-container">
+    <div *ngIf="blocos.length > 0" class="blocos-container">
       <div *ngFor="let bloco of blocos" class="bloco-section">
         
         <!-- Cabeçalho do Bloco -->
@@ -122,7 +98,7 @@
         </div>
 
         <!-- Legenda Detalhada do Bloco -->
-        <div class="bloco-footer">
+        <div *ngIf="!modoPainel" class="bloco-footer">
           <div class="footer-resumo">
             <div class="resumo-item" *ngFor="let resumo of bloco.resumoPorStatus; trackBy: trackByResumoStatus">
               <div class="resumo-cor" 
@@ -141,9 +117,9 @@
           <div 
             *ngFor="let unidade of bloco.unidades; let i = index" 
             class="unidade-card"
-            [class.unidade-card--readonly]="!temPermissaoCriarReserva()"
+            [class.unidade-card--readonly]="modoPainel || !temPermissaoCriarReserva()"
             [style.animation-delay]="(i * 0.02) + 's'"
-            (click)="irParaReserva(unidade)">
+            (click)="onUnidadeClick(unidade)">
             
             <!-- Corpo do Card -->
             <div class="card-content" 
@@ -152,6 +128,7 @@
 
               <!-- Botão de informações -->
               <button
+                *ngIf="!modoPainel"
                 type="button"
                 class="info-unidade-btn"
                 (click)="$event.stopPropagation(); abrirDetalhes(unidade)"
@@ -202,6 +179,7 @@
 
 <!-- Dialog de Filtros -->
 <p-dialog 
+  *ngIf="!modoPainel"
   [(visible)]="displayFiltros"
   [header]="'Filtrar Unidades'"
   [modal]="true"
@@ -272,6 +250,7 @@
 
 <!-- Dialog de Detalhes -->
 <app-unidade-detalhes-dialog
+  *ngIf="!modoPainel"
   [(visible)]="displayDetalhesUnidade"
   [unidade]="unidadeSelecionada"
   (visibleChange)="onDialogClose($event)">
@@ -279,6 +258,7 @@
 
 <!-- Dialog de Legenda -->
 <p-dialog 
+  *ngIf="!modoPainel"
   [(visible)]="displayLegenda"
   [header]="'Legenda de Status'"
   [modal]="true"
@@ -331,7 +311,7 @@
 
 <!-- Speed Dial de Filtros Flutuante -->
 <p-speedDial 
-  *ngIf="!carregando && unidades.length > 0"
+  *ngIf="!modoPainel && !carregando && unidades.length > 0"
   [model]="filtrosMenuItems" 
   direction="up"
   [transitionDelay]="80"
@@ -343,7 +323,7 @@
 
 <!-- Botão Flutuante Voltar ao Topo -->
 <button
-  *ngIf="!carregando && unidades.length > 0 && exibirBotaoVoltarTopo"
+  *ngIf="!modoPainel && !carregando && unidades.length > 0 && exibirBotaoVoltarTopo"
   pButton
   type="button"
   icon="pi pi-arrow-up"
@@ -355,11 +335,11 @@
 
 <!-- Label de Última Atualização -->
 <div class="ultima-atualizacao-badge" 
-     *ngIf="!carregando && unidades.length > 0 && ultimaAtualizacao"
+  *ngIf="!carregando && unidades.length > 0 && ultimaAtualizacao"
      pTooltip="Última atualização dos dados"
      tooltipPosition="left">
   <i class="pi pi-clock"></i>
   <span>{{ ultimaAtualizacao }}</span>
 </div>
 
-<p-toast></p-toast>
+<p-toast *ngIf="!modoPainel"></p-toast>
