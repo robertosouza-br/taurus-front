@@ -724,39 +724,6 @@ export class AnaliseDetalheComponent implements OnInit {
     return 1;
   }
 
-  iniciarAnalise(): void {
-    this.confirmationService.confirmCustom(
-      'Iniciar Análise',
-      `Deseja iniciar a análise da proposta <strong>${this.getNumeroPropostaDisplay()}</strong>?`,
-      { confirmLabel: 'Iniciar Análise', severity: 'info', icon: 'pi pi-play' }
-    ).subscribe(confirmed => {
-      if (!confirmed) return;
-
-      this.mensagemLoadingOverlay = 'Iniciando análise...';
-      this.processando = true;
-      this.analiseService.enviarParaAnalise(this.propostaId).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Análise Iniciada',
-            detail: 'Análise iniciada com sucesso!'
-          });
-          this.mensagemLoadingOverlay = 'Atualizando dados da análise...';
-          window.setTimeout(() => {
-            this.carregar();
-            this.processando = false;
-          }, 1200);
-        },
-        error: (err) => {
-          const msg = err?.error?.message || 'Erro ao iniciar análise. Tente novamente.';
-          this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
-          this.processando = false;
-          this.mensagemLoadingOverlay = 'Carregando dados da análise...';
-        }
-      });
-    });
-  }
-
   confirmarAprovacao(): void {
     this.confirmationService.confirmCustom(
       'Aprovar Proposta',

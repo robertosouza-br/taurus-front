@@ -444,6 +444,9 @@
                 <p class="status-hero-description" *ngIf="p.status === 'EM_ANALISE'">
                   A análise está em andamento. Revise a simulação e conclua a decisão desta proposta.
                 </p>
+                <p class="status-hero-description" *ngIf="p.status === 'AGUARDANDO_ANALISE'">
+                  A proposta está pronta para decisão. Revise a simulação e registre a aprovação ou reprovação diretamente.
+                </p>
                 <p class="status-hero-description" *ngIf="p.status === 'APROVADA'">
                   A proposta já foi concluída com aprovação e está pronta para seguir no fluxo.
                 </p>
@@ -471,32 +474,7 @@
             <div class="acoes-analise mt-4" *ngIf="p.status === 'AGUARDANDO_ANALISE' || p.status === 'EM_ANALISE'">
               <p-divider></p-divider>
 
-              <div class="acao-card acao-card-start" *ngIf="p.status === 'AGUARDANDO_ANALISE'">
-                <div class="acao-card-header">
-                  <span class="acao-chip">Próximo passo</span>
-                  <h4 class="acao-title">Assumir análise</h4>
-                </div>
-                <div class="alert alert-sistema status-alerta-message">
-                  <i class="pi pi-info-circle alert-icon"></i>
-                  <div class="alert-content">
-                    <strong>Aguardando início da análise</strong>
-                    <p>A proposta aguarda um analista assumir o atendimento para iniciar a avaliação.</p>
-                  </div>
-                </div>
-                <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.ANALISE_PROPOSTA, permissoes: [Permissao.APROVAR, Permissao.REPROVAR], qualquer: true }">
-                  <app-custom-button
-                    label="Iniciar Análise"
-                    icon="pi pi-play"
-                    severity="primary"
-                    [loading]="processando"
-                    [disabled]="processando"
-                    styleClass="w-full status-action-button"
-                    (onClick)="iniciarAnalise()">
-                  </app-custom-button>
-                </ng-container>
-              </div>
-
-              <div class="acao-card acao-card-decision" *ngIf="p.status === 'EM_ANALISE'">
+              <div class="acao-card acao-card-decision" *ngIf="p.status === 'AGUARDANDO_ANALISE' || p.status === 'EM_ANALISE'">
                 <div class="acao-card-header">
                   <span class="acao-chip">Decisão</span>
                   <h4 class="acao-title">Concluir parecer</h4>
@@ -504,8 +482,12 @@
                 <div class="alert alert-sistema status-alerta-message">
                   <i class="pi pi-info-circle alert-icon"></i>
                   <div class="alert-content">
-                    <strong>Decisão pendente</strong>
-                    <p>Revise a simulação, confira as violações e registre a decisão final da análise.</p>
+                    <strong>{{ p.status === 'AGUARDANDO_ANALISE' ? 'Decisão disponível' : 'Decisão pendente' }}</strong>
+                    <p>
+                      {{ p.status === 'AGUARDANDO_ANALISE'
+                        ? 'Revise a simulação, confira as violações e registre a aprovação ou reprovação sem passar pela etapa intermediária.'
+                        : 'Revise a simulação, confira as violações e registre a decisão final da análise.' }}
+                    </p>
                   </div>
                 </div>
                 <div class="action-grid">

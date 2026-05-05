@@ -71,7 +71,7 @@ export class AnalisePropostaService {
   }
 
   /**
-   * Inicia a análise da proposta (transição AGUARDANDO_ANALISE -> EM_ANALISE)
+   * Inicia a análise da proposta (transição opcional AGUARDANDO_ANALISE -> EM_ANALISE)
    * POST /api/v1/propostas/{id}/enviar-analise
    *
    * @param id ID da proposta
@@ -81,7 +81,7 @@ export class AnalisePropostaService {
   }
 
   /**
-   * Aprova a proposta (transição EM_ANALISE -> APROVADA)
+   * Aprova a proposta (transição AGUARDANDO_ANALISE ou EM_ANALISE -> APROVADA)
    * POST /api/v1/propostas/{id}/aprovar
    *
    * @param id ID da proposta
@@ -92,11 +92,11 @@ export class AnalisePropostaService {
   }
 
   /**
-   * Reprova a proposta (transição EM_ANALISE -> REPROVADA)
+   * Reprova a proposta (transição AGUARDANDO_ANALISE ou EM_ANALISE -> REPROVADA)
    * POST /api/v1/propostas/{id}/reprovar
    *
    * @param id ID da proposta
-   * @param request Justificativa opcional da reprovação
+   * @param request Justificativa obrigatória da reprovação
    */
   reprovar(id: number, request: ReprovarPropostaRequest): Observable<AnaliseAcaoResponse> {
     return this.http.post<AnaliseAcaoResponse>(`${this.baseUrl}/${id}/reprovar`, request);
