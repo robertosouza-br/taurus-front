@@ -270,7 +270,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   get podeExibirBotaoRelatorioFluxoPagamento(): boolean {
-    return !!this.proposta?.id && !!this.proposta?.numeroVenda?.trim();
+    return !!this.proposta?.id
+      && !!this.proposta?.numeroVenda?.trim()
+      && this.componentes.length > 0
+      && !!this.assinaturaSimulacaoCarregada
+      && !this.simulacaoAtualDivergeDoEstadoCarregado();
   }
 
   get nossoNumeroAtual(): string {
