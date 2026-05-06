@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Page } from '../models/page.model';
@@ -386,5 +386,18 @@ export class PropostaService {
       `${this.baseUrl}/${propostaId}/sicoob/boleto`,
       {}
     );
+  }
+
+  exportarRelatorioFluxoPagamento(
+    propostaId: number,
+    tipoRelatorio: 'PDF' | 'XLSX' | 'CSV' | 'TXT' = 'PDF'
+  ): Observable<HttpResponse<Blob>> {
+    const params = new HttpParams().set('tipoRelatorio', tipoRelatorio);
+
+    return this.http.get(`${this.baseUrl}/${propostaId}/relatorio-fluxo-pagamento`, {
+      params,
+      responseType: 'blob',
+      observe: 'response'
+    });
   }
 }

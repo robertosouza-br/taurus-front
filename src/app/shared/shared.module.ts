@@ -31,6 +31,7 @@ import { StepsModule } from 'primeng/steps';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AccordionModule } from 'primeng/accordion';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { MenuModule } from 'primeng/menu';
 
 // Image Cropper
 import { ImageCropperComponent } from 'ngx-image-cropper';
@@ -148,6 +149,7 @@ import { CalendarModule } from 'primeng/calendar';
     InputNumberModule,
     ProgressSpinnerModule,
     AccordionModule,
+    MenuModule,
     ImageCropperComponent
   ],
   exports: [
@@ -212,6 +214,7 @@ import { CalendarModule } from 'primeng/calendar';
     ProgressSpinnerModule,
     InputNumberModule,
     AccordionModule,
+    MenuModule,
     // Image Cropper (componente standalone)
     ImageCropperComponent
   ]

@@ -8,6 +8,7 @@ import { catchError, finalize, switchMap, takeUntil, tap } from 'rxjs/operators'
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
+import { ExportOption } from '../../../shared/components/export-speed-dial/export-speed-dial.component';
 import { ConfirmationService as AppConfirmationService } from '../../../shared/services/confirmation.service';
 import { PropostaService } from '../../../core/services/proposta.service';
 import {
@@ -56,6 +57,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   consultandoBoletos = false;
   consultandoBoletoSicoob = false;
   redirecionandoAposSucesso = false;
+  exportandoRelatorioFluxo = false;
   mensagemLoadingTransicao = '';
   exibirDialogPix = false;
   exibirDialogBoletos = false;
@@ -161,6 +163,32 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   readonly statusSeverity = PROPOSTA_STATUS_SEVERITY;
   readonly Funcionalidade = Funcionalidade;
   readonly Permissao = Permissao;
+  readonly exportOptionsRelatorioFluxo: ExportOption[] = [
+    {
+      icon: 'pi pi-file-pdf',
+      label: 'PDF',
+      format: 'PDF',
+      tooltipLabel: 'Exportar fluxo em PDF'
+    },
+    {
+      icon: 'pi pi-file-excel',
+      label: 'Excel (XLSX)',
+      format: 'XLSX',
+      tooltipLabel: 'Exportar fluxo em Excel'
+    },
+    {
+      icon: 'pi pi-file',
+      label: 'CSV',
+      format: 'CSV',
+      tooltipLabel: 'Exportar fluxo em CSV'
+    },
+    {
+      icon: 'pi pi-file-edit',
+      label: 'Texto (TXT)',
+      format: 'TXT',
+      tooltipLabel: 'Exportar fluxo em TXT'
+    }
+  ];
   
   componentesNormalizadosCache: ComponenteTabelaPadraoDTO[] = [];
   private readonly valorParcelaInputMap = new WeakMap<ComponenteFormulario, string>();
@@ -239,6 +267,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get podeExibirBotaoConsultarBoletoSicoob(): boolean {
     return !!this.proposta?.id && !!this.nossoNumeroAtual;
+  }
+
+  get podeExibirBotaoRelatorioFluxoPagamento(): boolean {
+    return !!this.proposta?.id && !!this.proposta?.numeroVenda?.trim();
   }
 
   get nossoNumeroAtual(): string {
@@ -2602,6 +2634,63 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       });
   }
 
+  exportarRelatorioFluxoPagamento(tipoRelatorio: string = 'PDF'): void {
+    const propostaId = this.propostaId ?? this.proposta?.id;
+
+    if (!propostaId || !this.proposta?.numeroVenda?.trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Relatório indisponível',
+        detail: 'Relatório disponível somente para propostas com número de venda gerado.'
+      });
+      return;
+    }
+
+    this.exportandoRelatorioFluxo = true;
+
+    this.propostaService.exportarRelatorioFluxoPagamento(
+      propostaId,
+      tipoRelatorio as 'PDF' | 'XLSX' | 'CSV' | 'TXT'
+    )
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.exportandoRelatorioFluxo = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response.body) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Arquivo indisponível',
+              detail: 'O backend não retornou um arquivo para download.'
+            });
+            return;
+          }
+
+          const nomeArquivo = this.obterNomeArquivoRelatorioFluxo(
+            response.headers.get('content-disposition'),
+            propostaId,
+            tipoRelatorio as 'PDF' | 'XLSX' | 'CSV' | 'TXT'
+          );
+          const url = window.URL.createObjectURL(response.body);
+          const link = document.createElement('a');
+
+          link.href = url;
+          link.download = nomeArquivo;
+          link.click();
+
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao gerar relatório',
+            detail: this.obterMensagemErroRelatorioFluxoPagamento(error)
+          });
+        }
+      });
+  }
+
   copiarQrCodeSicoob(): void {
     if (!this.qrCodeBoletoSicoob) {
       return;
@@ -3276,6 +3365,51 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     return `Cobrança pendente: ${erroNormalizado}.`;
+  }
+
+  private obterNomeArquivoRelatorioFluxo(
+    contentDisposition: string | null,
+    propostaId: number,
+    tipoRelatorio: 'PDF' | 'XLSX' | 'CSV' | 'TXT'
+  ): string {
+    const match = contentDisposition?.match(/filename\*?=(?:UTF-8''|"?)([^";]+)/i);
+    const nomeArquivo = match?.[1]?.trim().replace(/^"|"$/g, '');
+
+    if (nomeArquivo) {
+      try {
+        return decodeURIComponent(nomeArquivo);
+      } catch {
+        return nomeArquivo;
+      }
+    }
+
+    return `proposta_fluxo_pagamento_${propostaId}.${tipoRelatorio.toLowerCase()}`;
+  }
+
+  private obterMensagemErroRelatorioFluxoPagamento(error: any): string {
+    const mensagem = error?.error?.message || error?.error?.mensagem;
+
+    if (typeof mensagem === 'string' && mensagem.trim()) {
+      return mensagem;
+    }
+
+    if (error?.status === 400) {
+      return 'A proposta não possui componentes financeiros para gerar o fluxo de pagamento.';
+    }
+
+    if (error?.status === 401) {
+      return 'Sua sessão expirou. Faça login novamente para gerar o relatório.';
+    }
+
+    if (error?.status === 403) {
+      return 'Você não possui permissão para gerar o relatório de fluxo de pagamento.';
+    }
+
+    if (error?.status === 404) {
+      return 'A proposta informada não foi encontrada para geração do relatório.';
+    }
+
+    return 'Não foi possível gerar o relatório de fluxo de pagamento neste momento.';
   }
 
   private obterMensagemErroBoletos(error: any): string {

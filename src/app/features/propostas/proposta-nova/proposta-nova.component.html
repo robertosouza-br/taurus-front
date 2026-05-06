@@ -754,6 +754,17 @@
     </div>
 
   </div>
+
+  <ng-container *appTemPermissao="{ funcionalidade: Funcionalidade.PROPOSTA, permissoes: [Permissao.CONSULTAR] }">
+    <div *ngIf="!carregando && proposta && podeExibirBotaoRelatorioFluxoPagamento" class="fluxo-pagamento-floating-shell">
+      <span class="fluxo-pagamento-floating-label">Fluxo Pagamento</span>
+      <app-export-speed-dial
+        [loading]="exportandoRelatorioFluxo"
+        [options]="exportOptionsRelatorioFluxo"
+        (onExport)="exportarRelatorioFluxoPagamento($event)">
+      </app-export-speed-dial>
+    </div>
+  </ng-container>
 </div>
 
 <!-- Toast -->
