@@ -50,14 +50,6 @@
           <span class="info-label">Status</span>
           <p-tag [severity]="statusSeverity[proposta.status]" [value]="statusLabels[proposta.status]"></p-tag>
         </div>
-        <div class="unidade-info-item" *ngIf="proposta.numeroVenda">
-          <span class="info-label">Numero da Venda</span>
-          <span class="info-valor destaque">{{ proposta.numeroVenda }}</span>
-        </div>
-        <div class="unidade-info-item" *ngIf="nossoNumeroAtual">
-          <span class="info-label">Nosso Numero</span>
-          <span class="info-valor destaque">{{ nossoNumeroAtual }}</span>
-        </div>
       </div>
     </div>
 
@@ -467,7 +459,7 @@
                            [(ngModel)]="comp.quantidade"
                            (input)="onQuantidadeChange(comp)"
                             (blur)="onCampoSimulacaoBlur()"
-                            [disabled]="!podeEditarSimulacao"
+                            [disabled]="!podeEditarComponente(comp)"
                            class="modern-input text-center"
                            style="width: 50px;"
                            placeholder="Qtd">
@@ -478,7 +470,7 @@
                                 [showIcon]="true"
                                 (ngModelChange)="onVencimentoChange(comp)"
                                 (onBlur)="onCampoSimulacaoBlur()"
-                                [disabled]="!podeEditarSimulacao"
+                                [disabled]="!podeEditarComponente(comp)"
                                 [style]="{'width': '145px'}"
                                 styleClass="modern-calendar"
                                 appendTo="body">
@@ -491,7 +483,7 @@
                            (focus)="onValorParcelaFocus(comp)"
                            (blur)="onValorParcelaBlur(comp)"
                            inputmode="decimal"
-                            [disabled]="!podeEditarSimulacao"
+                          [disabled]="!podeEditarComponente(comp)"
                            class="modern-input text-right currency-inline-input"
                            style="width: 135px;"
                            placeholder="0,00">
@@ -514,13 +506,14 @@
                                 (click)="toggleDetalhamentoVencimentos(comp)"></button>
                       <button pButton pRipple icon="pi pi-copy" 
                                 class="p-button-rounded p-button-text action-icon-button action-icon-copy"
-                              [disabled]="!podeEditarSimulacao"
-                              pTooltip="Duplicar" tooltipPosition="top"
+                              [disabled]="!podeEditarComponente(comp)"
+                              [pTooltip]="!podeEditarSimulacao ? 'Simulação bloqueada para proposta aguardando análise' : (isComponenteTravadoAposNumeroVenda(comp) ? 'Após gerar o número de venda, o ATO não pode ser duplicado' : 'Duplicar')"
+                              tooltipPosition="top"
                               (click)="duplicarComponente(comp)"></button>
                       <button pButton pRipple icon="pi pi-trash" 
                                 class="p-button-rounded p-button-text action-icon-button action-icon-delete"
-                              [disabled]="!podeEditarSimulacao || isExclusaoBloqueada(comp)"
-                              [pTooltip]="!podeEditarSimulacao ? 'Simulação bloqueada para proposta aguardando análise' : (isExclusaoBloqueada(comp) ? 'O primeiro ATO carregado não pode ser removido' : 'Remover')"
+                              [disabled]="!podeEditarComponente(comp) || isExclusaoBloqueada(comp)"
+                              [pTooltip]="!podeEditarSimulacao ? 'Simulação bloqueada para proposta aguardando análise' : (isComponenteTravadoAposNumeroVenda(comp) ? 'Após gerar o número de venda, o ATO não pode ser removido' : (isExclusaoBloqueada(comp) ? 'O primeiro ATO carregado não pode ser removido' : 'Remover'))"
                               tooltipPosition="top"
                               (click)="excluirComponente(comp)"></button>
                     </div>

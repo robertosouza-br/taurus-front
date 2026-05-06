@@ -266,12 +266,21 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   get podeExibirBotaoConsultarBoletoSicoob(): boolean {
-    return !!this.proposta?.id && !!this.nossoNumeroAtual;
+    return !!this.proposta?.id
+      && !!this.nossoNumeroAtual
+      && (this.proposta?.status === PropostaStatus.APROVADA
+        || this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE);
+  }
+
+  get possuiNumeroVendaGerado(): boolean {
+    return !!this.proposta?.numeroVenda?.trim();
   }
 
   get podeExibirBotaoRelatorioFluxoPagamento(): boolean {
     return !!this.proposta?.id
-      && !!this.proposta?.numeroVenda?.trim()
+      && this.possuiNumeroVendaGerado
+      && (this.proposta?.status === PropostaStatus.APROVADA
+        || this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE)
       && this.componentes.length > 0
       && !!this.assinaturaSimulacaoCarregada
       && !this.simulacaoAtualDivergeDoEstadoCarregado();
@@ -302,8 +311,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get podeExibirBotaoEnviarTotvs(): boolean {
     return this.podeEnviarParaTotvs
-      && !this.propostaAprovadaComNovaAnalisePendente
-      && !this.nossoNumeroAtual;
+      && !this.propostaAprovadaComNovaAnalisePendente;
   }
 
   get podeGerarPix(): boolean {
@@ -432,7 +440,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get opcoesAjusteDiferenca(): Array<{ label: string; value: string }> {
     return this.componentes
-      .filter(c => c.selecionado)
+      .filter(c => c.selecionado && !this.isComponenteTravadoAposNumeroVenda(c))
       .map((componente, index) => ({
         value: componente.codigoComponente,
         label: `${componente.nomeComponente} ${this.componentes.filter(c => c.nomeComponente === componente.nomeComponente).length > 1 ? `#${index + 1}` : ''} • ${componente.quantidade}x • ${this.formatarMoeda(componente.valorTotal)}`
@@ -890,6 +898,63 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     this.atoInicialProtegido = this.componentes.find(componente => this.isAto(componente)) ?? null;
   }
 
+  isComponenteTravadoAposNumeroVenda(componente: ComponenteFormulario | null | undefined): boolean {
+    return this.possuiNumeroVendaGerado && this.isAto(componente);
+  }
+
+  podeEditarComponente(componente: ComponenteFormulario | null | undefined): boolean {
+    return this.podeEditarSimulacao && !this.isComponenteTravadoAposNumeroVenda(componente);
+  }
+
+  private clonarComponenteFormulario(componente: ComponenteFormulario): ComponenteFormulario {
+    return {
+      ...componente,
+      regra: { ...componente.regra },
+      mensagensErro: componente.mensagensErro ? [...componente.mensagensErro] : [],
+      listaVencimentos: componente.listaVencimentos
+        ? componente.listaVencimentos.map(vencimento => ({
+            numeroParcela: vencimento.numeroParcela,
+            dataVencimento: vencimento.dataVencimento instanceof Date
+              ? new Date(vencimento.dataVencimento)
+              : new Date(vencimento.dataVencimento),
+            valor: vencimento.valor
+          }))
+        : []
+    };
+  }
+
+  private obterComponentesTravadosParaReaplicar(): Array<{ index: number; componente: ComponenteFormulario }> {
+    if (!this.possuiNumeroVendaGerado) {
+      return [];
+    }
+
+    return this.componentes
+      .map((componente, index) => ({ index, componente }))
+      .filter(({ componente }) => this.isComponenteTravadoAposNumeroVenda(componente))
+      .map(({ index, componente }) => ({
+        index,
+        componente: this.clonarComponenteFormulario(componente)
+      }));
+  }
+
+  private reaplicarComponentesTravados(
+    componentesTravados: Array<{ index: number; componente: ComponenteFormulario }>
+  ): void {
+    if (!componentesTravados.length) {
+      return;
+    }
+
+    const componentesEditaveis = this.componentes.filter(componente => !this.isComponenteTravadoAposNumeroVenda(componente));
+    const componentesReaplicados = [...componentesEditaveis];
+
+    componentesTravados.forEach(({ index, componente }) => {
+      const posicaoInsercao = Math.min(index, componentesReaplicados.length);
+      componentesReaplicados.splice(posicaoInsercao, 0, this.clonarComponenteFormulario(componente));
+    });
+
+    this.componentes = componentesReaplicados;
+  }
+
   /**
    * Separa componentes em: Tabela Padrão, ATO e Disponíveis
    */
@@ -916,6 +981,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     });
     
     this.componentesDisponiveisParaAdicionar = Array.from(mapaComponentes.values())
+      .filter(componente => !this.possuiNumeroVendaGerado || !this.isAtoPorCodigoOuNome(componente.codigoComponente, componente.nomeComponente))
       .sort((a, b) => a.ordem - b.ordem);
       
     console.log(`${this.componentesDisponiveisParaAdicionar.length} componente(s) disponível(is) para adicionar`);
@@ -1119,7 +1185,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   onValorParcelaFocus(comp: ComponenteFormulario): void {
-    if (!this.podeEditarSimulacao) {
+    if (!this.podeEditarComponente(comp)) {
       return;
     }
 
@@ -1127,7 +1193,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   onValorParcelaInputChange(comp: ComponenteFormulario, valorDigitado: string): void {
-    if (!this.podeEditarSimulacao) {
+    if (!this.podeEditarComponente(comp)) {
       return;
     }
 
@@ -1138,7 +1204,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   onValorParcelaBlur(comp: ComponenteFormulario): void {
-    if (!this.podeEditarSimulacao) {
+    if (!this.podeEditarComponente(comp)) {
       this.valorParcelaInputMap.set(comp, this.formatarValorParcelaExibicao(comp.valorParcela));
       return;
     }
@@ -1153,7 +1219,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Recalcula valor total e percentual quando quantidade muda
    */
   onQuantidadeChange(componente: ComponenteFormulario): void {
-    if (!this.podeEditarSimulacao) {
+    if (!this.podeEditarComponente(componente)) {
       return;
     }
 
@@ -1172,7 +1238,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Manipula mudança de data de vencimento
    */
   onVencimentoChange(componente: ComponenteFormulario): void {
-    if (!this.podeEditarSimulacao) {
+    if (!this.podeEditarComponente(componente)) {
       return;
     }
 
@@ -2087,7 +2153,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
 
+    const componentesTravados = this.obterComponentesTravadosParaReaplicar();
+
     this.inicializarComponentes();
+    this.reaplicarComponentesTravados(componentesTravados);
     this.calcularTotais();
     this.gerarComparacao();
     this.atualizarGrafico();
@@ -2106,8 +2175,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     }
 
     const houveMudancaNaSimulacao = this.simulacaoAtualDivergeDaTabelaPadrao();
+    const componentesTravados = this.obterComponentesTravadosParaReaplicar();
 
     this.componentes = this.criarComponentesFormularioTabelaPadrao();
+    this.reaplicarComponentesTravados(componentesTravados);
     this.simulacaoAlterada = false;
     this.simulacaoEditadaDesdeCarregamento = this.simulacaoEditadaDesdeCarregamento || houveMudancaNaSimulacao;
     this.avisoNovaAnalisePendenteAoBlur = false;
@@ -2139,6 +2210,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   duplicarComponente(componente: ComponenteFormulario): void {
     if (!this.podeEditarSimulacao) {
+      return;
+    }
+
+    if (this.isComponenteTravadoAposNumeroVenda(componente)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Ação não permitida',
+        detail: 'Após gerar o número de venda, o componente ATO não pode ser duplicado.'
+      });
       return;
     }
 
@@ -2199,6 +2279,16 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return;
     }
 
+    if (this.isComponenteTravadoAposNumeroVenda(componente)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Ajuste não permitido',
+        detail: 'Após gerar o número de venda, o componente ATO não pode receber ajustes.'
+      });
+      this.codigoComponenteAjusteDiferenca = null;
+      return;
+    }
+
     const quantidade = Math.max(componente.quantidade || 1, 1);
 
     this.marcarSimulacaoComoEditada();
@@ -2229,6 +2319,15 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   excluirComponente(componente: ComponenteFormulario): void {
     if (!this.podeEditarSimulacao) {
+      return;
+    }
+
+    if (this.isComponenteTravadoAposNumeroVenda(componente)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Remoção não permitida',
+        detail: 'Após gerar o número de venda, o componente ATO não pode ser removido.'
+      });
       return;
     }
 
@@ -2273,6 +2372,19 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    * Adiciona um componente disponível à simulação
    */
   adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
+    if (!this.podeEditarSimulacao) {
+      return;
+    }
+
+    if (this.possuiNumeroVendaGerado && this.isAtoPorCodigoOuNome(componente.codigoComponente, componente.nomeComponente)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Inclusão não permitida',
+        detail: 'Após gerar o número de venda, não é permitido incluir um novo componente ATO.'
+      });
+      return;
+    }
+
     this.marcarSimulacaoComoEditada();
     const hoje = new Date();
     const vencimentoInicial = new Date(hoje);
@@ -3528,6 +3640,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     if (nossoNumero?.trim()) {
       this.proposta.nossoNumero = nossoNumero.trim();
     }
+
+    this.separarComponentes();
   }
 
   private sincronizarNossoNumeroPorBoletos(boletos: BoletoPropostaDTO[], numeroVenda?: string | null): void {
