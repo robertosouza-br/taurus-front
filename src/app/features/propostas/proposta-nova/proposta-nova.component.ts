@@ -311,6 +311,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get podeExibirBotaoEnviarTotvs(): boolean {
     return this.podeEnviarParaTotvs
+      && !(this.possuiNumeroVendaGerado && !!this.nossoNumeroAtual)
       && !this.propostaAprovadaComNovaAnalisePendente;
   }
 

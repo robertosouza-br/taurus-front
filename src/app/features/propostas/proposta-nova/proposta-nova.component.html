@@ -50,6 +50,14 @@
           <span class="info-label">Status</span>
           <p-tag [severity]="statusSeverity[proposta.status]" [value]="statusLabels[proposta.status]"></p-tag>
         </div>
+        <div class="unidade-info-item" *ngIf="proposta.numeroVenda">
+          <span class="info-label">Numero da Venda</span>
+          <span class="info-valor destaque">{{ proposta.numeroVenda }}</span>
+        </div>
+        <div class="unidade-info-item" *ngIf="nossoNumeroAtual">
+          <span class="info-label">Nosso Numero</span>
+          <span class="info-valor destaque">{{ nossoNumeroAtual }}</span>
+        </div>
       </div>
     </div>
 
