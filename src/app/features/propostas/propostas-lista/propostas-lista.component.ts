@@ -85,13 +85,14 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
 
   private configurarTabela(): void {
     this.colunas = [
-      { field: 'nomeEmpreendimento', header: 'Empreendimento', sortable: true, width: '20%' },
-      { field: 'unidade', header: 'Unidade', sortable: true, align: 'center', width: '10%' },
-      { field: 'tipologia', header: 'Tipologia', sortable: true, width: '12%' },
-      { field: 'nomeCliente', header: 'Cliente', sortable: true, width: '18%' },
-      { field: 'cpfCnpjCliente', header: 'CPF/CNPJ', template: 'cpfCnpj', align: 'center', width: '15%' },
-      { field: 'statusProposta', header: 'Status', template: 'status', sortable: true, align: 'center', width: '12%' },
-      { field: 'dataReserva', header: 'Data Reserva', template: 'dataReserva', sortable: true, align: 'center', width: '13%' }
+      { field: 'nomeEmpreendimento', header: 'Empreendimento', width: '18%' },
+      { field: 'bloco', header: 'Bloco', align: 'center', width: '8%' },
+      { field: 'unidade', header: 'Unidade', align: 'center', width: '9%' },
+      { field: 'tipologia', header: 'Tipologia', width: '11%' },
+      { field: 'nomeCliente', header: 'Cliente', width: '17%' },
+      { field: 'cpfCnpjCliente', header: 'CPF/CNPJ', template: 'cpfCnpj', align: 'center', width: '14%' },
+      { field: 'statusProposta', header: 'Status', template: 'status', align: 'center', width: '11%' },
+      { field: 'dataReserva', header: 'Data Reserva', template: 'dataReserva', align: 'center', width: '12%' }
     ];
 
     this.acoes = [
