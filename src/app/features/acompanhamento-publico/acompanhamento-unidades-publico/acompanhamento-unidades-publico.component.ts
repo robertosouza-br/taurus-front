@@ -84,7 +84,6 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
         '--card-radius': '12px',
         '--badge-size': '18px',
         '--badge-offset': '0.35rem',
-        '--numero-size': 'clamp(0.95rem, 1.4vw, 1.35rem)',
         '--status-size': '0.52rem'
       };
     }
@@ -99,7 +98,6 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
         '--card-radius': '14px',
         '--badge-size': '20px',
         '--badge-offset': '0.4rem',
-        '--numero-size': 'clamp(1.15rem, 1.6vw, 1.6rem)',
         '--status-size': '0.62rem'
       };
     }
@@ -113,7 +111,6 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
       '--card-radius': '18px',
       '--badge-size': '24px',
       '--badge-offset': '0.55rem',
-      '--numero-size': 'clamp(1.4rem, 2vw, 2rem)',
       '--status-size': '0.78rem'
     };
   }

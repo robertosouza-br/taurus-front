@@ -38,6 +38,10 @@ export interface LinksPublicosUnidadeBlocoPorTvSaidaDTO {
 export interface UnidadeStatusPublicoSaidaDTO {
   unidade: string;
   andar: number;
+  siglaTipoUnidade: string;
+  tipoUnidade: string;
+  quantidadeQuartos: number;
+  precoFormatado?: string | null;
   codigoStatusUnidade: number;
   statusUnidade: string;
 }

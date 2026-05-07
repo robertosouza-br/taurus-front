@@ -31,7 +31,10 @@
 
     <section class="unidades-section">
       <div class="andares-lista" [ngStyle]="layoutPorAndaresStyles">
-        <section *ngFor="let grupo of andaresAgrupados" class="andar-row">
+        <section
+          *ngFor="let grupo of andaresAgrupados; let indiceAndar = index"
+          class="andar-row"
+          [class.andar-row--top]="indiceAndar < 2">
           <div class="andar-row__label">
             <span>Andar</span>
             <strong>{{ grupo.andar }}º</strong>
@@ -39,26 +42,52 @@
 
           <div class="andar-row__unidades" [ngStyle]="getUnidadesPorAndarStyles(grupo.unidades.length)">
             <article
-              *ngFor="let unidade of grupo.unidades"
+              *ngFor="let unidade of grupo.unidades; let indiceUnidade = index; let totalUnidades = count"
               class="unidade-card unidade-card--publico"
+              [class.unidade-card--edge-left]="indiceUnidade < 2"
+              [class.unidade-card--edge-right]="indiceUnidade >= totalUnidades - 2"
               [style.background]="getStatusColor(unidade.codigoStatusUnidade).bg"
               [style.border-color]="getStatusColor(unidade.codigoStatusUnidade).border">
 
               <div class="status-badge"
                    [style.background]="getStatusColor(unidade.codigoStatusUnidade).border"
-                   [title]="unidade.statusUnidade">
-                <i class="pi pi-circle-fill"></i>
+                   [title]="unidade.tipoUnidade || unidade.siglaTipoUnidade || unidade.statusUnidade">
+                <span>{{ unidade.siglaTipoUnidade || '?' }}</span>
               </div>
 
               <div class="unidade-card__numero" [style.color]="getStatusColor(unidade.codigoStatusUnidade).text">
                 {{ formatarNumeroUnidade(unidade.unidade) }}
               </div>
 
-              <div
-                class="unidade-card__status"
-                [style.color]="getStatusColor(unidade.codigoStatusUnidade).text"
-                [title]="unidade.statusUnidade">
-                {{ unidade.statusUnidade }}
+              <div class="unidade-card__tooltip-card" role="tooltip">
+                <div class="unidade-card__tooltip-linha">
+                  <span>Unidade</span>
+                  <strong>{{ unidade.unidade || '-' }}</strong>
+                </div>
+                <div class="unidade-card__tooltip-linha">
+                  <span>Andar</span>
+                  <strong>{{ unidade.andar }}º</strong>
+                </div>
+                <div class="unidade-card__tooltip-linha">
+                  <span>Sigla</span>
+                  <strong>{{ unidade.siglaTipoUnidade || '-' }}</strong>
+                </div>
+                <div class="unidade-card__tooltip-linha">
+                  <span>Tipo</span>
+                  <strong>{{ unidade.tipoUnidade || '-' }}</strong>
+                </div>
+                <div class="unidade-card__tooltip-linha">
+                  <span>Quartos</span>
+                  <strong>{{ unidade.quantidadeQuartos }}</strong>
+                </div>
+                <div class="unidade-card__tooltip-linha">
+                  <span>Preço</span>
+                  <strong>{{ unidade.precoFormatado || '-' }}</strong>
+                </div>
+                <div class="unidade-card__tooltip-linha unidade-card__tooltip-linha--status">
+                  <span>Status</span>
+                  <strong>{{ unidade.statusUnidade || '-' }}</strong>
+                </div>
               </div>
             </article>
           </div>

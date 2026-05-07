@@ -342,6 +342,7 @@ export const PROPOSTA_STATUS_SEVERITY: Record<PropostaStatus | typeof STATUS_NAO
 
 export const PROPOSTA_STATUS_CUSTOM_COLOR: Partial<Record<PropostaStatus | typeof STATUS_NAO_INICIADA, string>> = {
   [STATUS_NAO_INICIADA]: '#FF0000',
+  [PropostaStatus.RESERVADA]: '#FF0000',
   [PropostaStatus.APROVADA_AUTOMATICAMENTE]: '#FF0000',
   [PropostaStatus.APROVADA]: '#FF0000',
   [PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO]: '#FF0000',
