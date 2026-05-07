@@ -285,8 +285,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   get propostaAprovadaComNovaAnalisePendente(): boolean {
     return this.propostaSujeitaANovaAnalisePorEdicao
       && this.simulacaoEditadaDesdeCarregamento
-      && this.simulacaoAtualDivergeDoEstadoCarregado()
-      && this.simulacaoAtualDivergeDaTabelaPadrao();
+      && this.simulacaoAtualDivergeDoEstadoCarregado();
   }
 
   get podeExibirBotaoGerarPix(): boolean {
