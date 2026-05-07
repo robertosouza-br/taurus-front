@@ -85,6 +85,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   opcoesAjusteDiferencaFiltradas: Array<{ label: string; value: string }> = [];
   ajusteDiferencaDialogVisible = false;
   exibirDialogGrafico = false;
+  exibirDialogMatriz = false;
   readonly adicionarComponenteAutocompleteOverlayOptions = {
     styleClass: 'adicionar-componente-autocomplete-overlay',
     contentStyleClass: 'adicionar-componente-autocomplete-overlay-content',
@@ -109,6 +110,13 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   
   comparacao: ComparacaoMetricaDTO[] = [];
   graficoData: any = { labels: [], datasets: [] };
+  matrizGraficoPercentual: Array<{
+    mes: string;
+    baseMensal: number;
+    baseAcumulada: number;
+    propostaMensal: number;
+    propostaAcumulada: number;
+  }> = [];
   private simulacaoAlterada = false;
   private simulacaoEditadaDesdeCarregamento = false;
   private assinaturaSimulacaoCarregada = '';
@@ -317,6 +325,28 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   get cobrancaSincronizada(): boolean {
     return !!this.nossoNumeroAtual;
+  }
+
+  get ultimaLinhaMatrizGrafico(): { baseAcumulada: number; propostaAcumulada: number } | null {
+    if (!this.matrizGraficoPercentual.length) {
+      return null;
+    }
+
+    const ultimaLinha = this.matrizGraficoPercentual[this.matrizGraficoPercentual.length - 1];
+    return {
+      baseAcumulada: ultimaLinha.baseAcumulada,
+      propostaAcumulada: ultimaLinha.propostaAcumulada
+    };
+  }
+
+  get diferencaFinalMatrizGrafico(): number {
+    const ultimaLinha = this.ultimaLinhaMatrizGrafico;
+
+    if (!ultimaLinha) {
+      return 0;
+    }
+
+    return Number((ultimaLinha.propostaAcumulada - ultimaLinha.baseAcumulada).toFixed(2));
   }
 
   get podeExibirBotaoGravarProposta(): boolean {
@@ -4046,7 +4076,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           label: (context: any) => {
             const label = context.dataset?.label || '';
             const valor = Number(context.parsed?.y || 0);
-            return `${label}: ${this.formatarMoeda(valor)}`;
+            return `${label}: ${this.formatarPercentualGrafico(valor)}`;
           },
           afterBody: (items: any[]) => {
             const dataIndex = items?.[0]?.dataIndex;
@@ -4060,8 +4090,8 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
               return [];
             }
 
-            const direcao = diferenca > 0 ? 'simulação acima' : 'tabela padrão acima';
-            return [`Diferença: ${this.formatarMoeda(Math.abs(diferenca))} (${direcao})`];
+            const direcao = diferenca > 0 ? 'simulação acima' : 'base acima';
+            return [`Diferença: ${this.formatarPercentualGrafico(Math.abs(diferenca))} (${direcao})`];
           }
         }
       },
@@ -4069,8 +4099,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     scales: {
       y: {
         beginAtZero: true,
+        suggestedMax: 100,
         ticks: {
-          callback: (value: number | string) => this.formatarMoeda(Number(value))
+          callback: (value: number | string) => this.formatarPercentualGrafico(Number(value))
         }
       }
     }
@@ -4084,17 +4115,32 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     const parcelasSimulacao = this.extrairParcelasSimulacao();
     const intervaloProposta = this.obterIntervaloMesesProposta(parcelasSimulacao, parcelasTabelaPadrao);
     const chaves = this.gerarChavesMeses(intervaloProposta);
-    const serieTabelaPadrao = this.construirSerieMensal(parcelasTabelaPadrao, chaves, intervaloProposta);
-    const serieSimulacao = this.construirSerieMensal(parcelasSimulacao, chaves, intervaloProposta);
-    const marcadoresDiferenca = this.construirMarcadoresDiferenca(serieTabelaPadrao, serieSimulacao);
+    const serieTabelaPadraoValores = this.construirSerieMensal(parcelasTabelaPadrao, chaves, intervaloProposta);
+    const serieSimulacaoValores = this.construirSerieMensal(parcelasSimulacao, chaves, intervaloProposta);
+    const valorUnidade = Number(this.proposta?.empreendimento?.valorUnidade ?? 0);
+    const serieBaseMensal = this.converterValoresParaPercentual(serieTabelaPadraoValores, valorUnidade);
+    const seriePropostaMensal = this.converterValoresParaPercentual(serieSimulacaoValores, valorUnidade);
+    const serieBaseAcumuladaValores = this.calcularSerieAcumulada(serieTabelaPadraoValores);
+    const seriePropostaAcumuladaValores = this.calcularSerieAcumulada(serieSimulacaoValores);
+    const serieBaseAcumulada = this.converterValoresParaPercentual(serieBaseAcumuladaValores, valorUnidade);
+    const seriePropostaAcumulada = this.converterValoresParaPercentual(seriePropostaAcumuladaValores, valorUnidade);
+    const marcadoresDiferenca = this.construirMarcadoresDiferenca(serieBaseAcumulada, seriePropostaAcumulada);
     const labels = this.gerarLabelsAcumulados(chaves);
+
+    this.matrizGraficoPercentual = this.montarMatrizGraficoPercentual(
+      chaves,
+      serieBaseMensal,
+      serieBaseAcumulada,
+      seriePropostaMensal,
+      seriePropostaAcumulada
+    );
 
     return {
       labels,
       datasets: [
         {
-          label: 'Tabela Padrão',
-          data: serieTabelaPadrao,
+          label: 'Base Acumulada (%)',
+          data: serieBaseAcumulada,
           borderColor: '#2563eb',
           backgroundColor: 'rgba(37, 99, 235, 0.12)',
           borderDash: [5, 5],
@@ -4104,11 +4150,11 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
           tension: 0.25
         },
         {
-          label: 'Simulação',
-          data: serieSimulacao,
-          borderColor: '#16a34a',
-          backgroundColor: 'rgba(22, 163, 74, 0.16)',
-          fill: true,
+          label: 'Proposta Acumulada (%)',
+          data: seriePropostaAcumulada,
+          borderColor: '#b91c1c',
+          backgroundColor: 'rgba(185, 28, 28, 0.14)',
+          fill: false,
           pointRadius: 3,
           pointHoverRadius: 5,
           tension: 0.25
@@ -4116,9 +4162,9 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
         {
           label: 'Divergência',
           data: marcadoresDiferenca,
-          borderColor: '#dc2626',
-          backgroundColor: '#dc2626',
-          pointBackgroundColor: '#dc2626',
+          borderColor: '#f59e0b',
+          backgroundColor: '#f59e0b',
+          pointBackgroundColor: '#f59e0b',
           pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 5,
@@ -4136,6 +4182,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
   abrirDialogGrafico(): void {
     this.exibirDialogGrafico = true;
+  }
+
+  abrirDialogMatriz(): void {
+    this.exibirDialogMatriz = true;
   }
 
   private gerarLabelsAcumulados(chaves: string[]): string[] {
@@ -4262,10 +4312,17 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     parcelasSimulacao: Array<{ data: Date; valor: number }>,
     parcelasTabelaPadrao: Array<{ data: Date; valor: number }>
   ): { inicio: Date; fim: Date } | null {
-    const base = parcelasSimulacao.length ? parcelasSimulacao : parcelasTabelaPadrao;
-    const parcelasOrdenadas = base
+    const parcelasSimulacaoValidas = parcelasSimulacao
       .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
       .sort((a, b) => a.data.getTime() - b.data.getTime());
+
+    const parcelasTabelaValidas = parcelasTabelaPadrao
+      .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
+      .sort((a, b) => a.data.getTime() - b.data.getTime());
+
+    const parcelasOrdenadas = parcelasSimulacaoValidas.length
+      ? parcelasSimulacaoValidas
+      : parcelasTabelaValidas;
 
     if (!parcelasOrdenadas.length) {
       return null;
@@ -4298,6 +4355,39 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     });
   }
 
+  private converterValoresParaPercentual(valoresMensais: number[], valorUnidade: number): number[] {
+    if (!valorUnidade || valorUnidade <= 0) {
+      return valoresMensais.map(() => 0);
+    }
+
+    return valoresMensais.map((valorMes) => Number((((valorMes || 0) / valorUnidade) * 100).toFixed(2)));
+  }
+
+  private calcularSerieAcumulada(valoresMensaisPercentuais: number[]): number[] {
+    let acumulado = 0;
+
+    return valoresMensaisPercentuais.map((valorMes) => {
+      acumulado += valorMes || 0;
+      return Number(acumulado.toFixed(2));
+    });
+  }
+
+  private montarMatrizGraficoPercentual(
+    chaves: string[],
+    baseMensal: number[],
+    baseAcumulada: number[],
+    propostaMensal: number[],
+    propostaAcumulada: number[]
+  ): Array<{ mes: string; baseMensal: number; baseAcumulada: number; propostaMensal: number; propostaAcumulada: number }> {
+    return chaves.map((chave, indice) => ({
+      mes: this.formatarMesAno(chave),
+      baseMensal: Number((baseMensal[indice] ?? 0).toFixed(2)),
+      baseAcumulada: Number((baseAcumulada[indice] ?? 0).toFixed(2)),
+      propostaMensal: Number((propostaMensal[indice] ?? 0).toFixed(2)),
+      propostaAcumulada: Number((propostaAcumulada[indice] ?? 0).toFixed(2))
+    }));
+  }
+
   private getDiferencaGraficoPorIndice(indice: number): number | null {
     const tabelaPadrao = Number(this.graficoData?.datasets?.[0]?.data?.[indice] ?? 0);
     const simulacao = Number(this.graficoData?.datasets?.[1]?.data?.[indice] ?? 0);
@@ -4314,6 +4404,10 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       month: 'short',
       year: '2-digit'
     }).replace('.', '');
+  }
+
+  private formatarPercentualGrafico(valor: number): string {
+    return `${Number(valor || 0).toFixed(2).replace('.', ',')}%`;
   }
 
   /**

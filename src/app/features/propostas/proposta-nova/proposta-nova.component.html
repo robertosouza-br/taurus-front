@@ -86,20 +86,32 @@
         </div>
         <div class="col-12 md:col-6 lg:col-3">
           <div class="campo-readonly">
-            <span class="campo-label">CPF</span>
+            <span class="campo-label">CPF/CNPJ</span>
             <span class="campo-valor">{{ proposta.cliente.cpfCnpj }}</span>
+          </div>
+        </div>
+        <div class="col-12 md:col-6 lg:col-3">
+          <div class="campo-readonly">
+            <span class="campo-label">Corretor</span>
+            <span class="campo-valor">{{ proposta.corretor.nome }}</span>
+          </div>
+        </div>
+        <div class="col-12 md:col-6 lg:col-3">
+          <div class="campo-readonly">
+            <span class="campo-label">Cargo</span>
+            <span class="campo-valor">{{ proposta.corretor.cargo || 'Nao informado' }}</span>
           </div>
         </div>
       </div>
 
       <div class="grid mt-3">
-        <div class="col-12 md:col-6" *ngIf="proposta.imobiliariaPrincipal">
+        <div class="col-12 lg:col-6">
           <div class="relacionamento-readonly relacionamento-readonly-principal">
-            <span class="campo-label">Imobiliária Principal</span>
+            <span class="campo-label">Imobiliaria Principal</span>
             <span class="campo-valor relacionamento-titulo">{{ proposta.imobiliariaPrincipal.nome }}</span>
             <span class="relacionamento-tipo">{{ proposta.imobiliariaPrincipal.tipoRelacionamento }}</span>
 
-            <div class="relacionamento-profissionais" *ngIf="proposta.profissionaisPrincipal.length; else semProfissionaisPrincipal">
+            <div class="relacionamento-profissionais" *ngIf="proposta.profissionaisPrincipal?.length; else semProfissionaisPrincipal">
               <span class="relacionamento-subtitulo">Corretores vinculados</span>
               <div class="relacionamento-profissionais-lista">
                 <span class="profissional-pill" *ngFor="let profissional of proposta.profissionaisPrincipal">
@@ -110,14 +122,14 @@
             </div>
 
             <ng-template #semProfissionaisPrincipal>
-              <span class="relacionamento-empty">Nenhum corretor vinculado à imobiliária principal.</span>
+              <span class="relacionamento-empty">Nenhum corretor vinculado a imobiliaria principal.</span>
             </ng-template>
           </div>
         </div>
 
-        <div class="col-12 md:col-6" *ngIf="proposta.imobiliariaSecundaria">
+        <div class="col-12 lg:col-6" *ngIf="proposta.imobiliariaSecundaria; else semImobiliariaSecundaria">
           <div class="relacionamento-readonly relacionamento-readonly-secundario">
-            <span class="campo-label">Imobiliária Secundária</span>
+            <span class="campo-label">Imobiliaria Secundaria</span>
             <span class="campo-valor relacionamento-titulo">{{ proposta.imobiliariaSecundaria.nome }}</span>
             <span class="relacionamento-tipo">{{ proposta.imobiliariaSecundaria.tipoRelacionamento }}</span>
 
@@ -132,10 +144,19 @@
             </div>
 
             <ng-template #semProfissionaisSecundaria>
-              <span class="relacionamento-empty">Nenhum corretor vinculado à imobiliária secundária.</span>
+              <span class="relacionamento-empty">Nenhum corretor vinculado a imobiliaria secundaria.</span>
             </ng-template>
           </div>
         </div>
+
+        <ng-template #semImobiliariaSecundaria>
+          <div class="col-12 lg:col-6">
+            <div class="relacionamento-readonly relacionamento-readonly-secundario relacionamento-readonly-vazio">
+              <span class="campo-label">Imobiliaria Secundaria</span>
+              <span class="relacionamento-empty">Nao ha imobiliaria secundaria associada a esta proposta.</span>
+            </div>
+          </div>
+        </ng-template>
       </div>
       </div>
     </p-card>
@@ -611,7 +632,7 @@
     <!-- ─── CARD: ANÁLISE DA PROPOSTA ───────────────────────────────────── -->
     <p-card class="proposta-card">
       <ng-template pTemplate="header">
-        <div class="card-gradient-header card-header-collapsible" (click)="relatorioComparativoExpandido = !relatorioComparativoExpandido">
+        <div class="card-gradient-header card-header-collapsible card-header-comparativo" (click)="relatorioComparativoExpandido = !relatorioComparativoExpandido">
           <div class="header-left">
             <i class="pi pi-chart-line"></i>
             <span>Relatório Comparativo</span>
@@ -629,26 +650,52 @@
         <div class="col-12">
           <div class="grafico-section">
             <div class="grafico-header-row">
-              <div>
+              <div class="grafico-header-copy">
+                <span class="comparativo-eyebrow">Análise de Fluxo</span>
                 <h4 class="section-title">Comparativo Mensal por Vencimento</h4>
                 <p class="section-description">
-                  Compare a soma das parcelas previstas em cada mês entre a Tabela Padrão e a Simulação.
+                  Matriz mensal do plano de pagamento convertida em percentual da unidade, com sobreposição do acumulado da base e da proposta.
                 </p>
               </div>
-              <button pButton type="button" class="p-button-text p-button-sm p-button-rounded grafico-expandir" icon="pi pi-window-maximize" (click)="abrirDialogGrafico()"></button>
+              <div class="comparativo-toolbar">
+                <app-custom-button
+                  label="Matriz"
+                  icon="pi pi-table"
+                  severity="secondary"
+                  size="small"
+                  [outlined]="true"
+                  [raised]="true"
+                  tooltip="Ver matriz de cálculo"
+                  tooltipPosition="top"
+                  styleClass="comparativo-action-btn comparativo-action-btn--matriz"
+                  (onClick)="abrirDialogMatriz()">
+                </app-custom-button>
+                <app-custom-button
+                  label="Expandir"
+                  icon="pi pi-window-maximize"
+                  severity="info"
+                  size="small"
+                  [raised]="true"
+                  tooltip="Expandir gráfico"
+                  tooltipPosition="top"
+                  styleClass="comparativo-action-btn comparativo-action-btn--grafico"
+                  (onClick)="abrirDialogGrafico()">
+                </app-custom-button>
+              </div>
             </div>
+
             <div class="grafico-legenda">
               <span class="legenda-item">
                 <span class="legenda-cor legenda-limite"></span>
-                Tabela Padrão
+                Base Acumulada (%)
               </span>
               <span class="legenda-item">
                 <span class="legenda-cor legenda-proposta"></span>
-                Simulação
+                Proposta Acumulada (%)
               </span>
               <span class="legenda-item">
                 <span class="legenda-cor legenda-diferenca"></span>
-                Divergência
+                Divergência (p.p.)
               </span>
             </div>
             <div class="grafico-wrapper">
@@ -669,20 +716,58 @@
             <div class="grafico-legenda mb-3">
               <span class="legenda-item">
                 <span class="legenda-cor legenda-limite"></span>
-                Tabela Padrão
+                Base Acumulada (%)
               </span>
               <span class="legenda-item">
                 <span class="legenda-cor legenda-proposta"></span>
-                Simulação
+                Proposta Acumulada (%)
               </span>
               <span class="legenda-item">
                 <span class="legenda-cor legenda-diferenca"></span>
-                Divergência
+                Divergência (p.p.)
               </span>
             </div>
             <div class="grafico-wrapper grafico-wrapper-modal">
               <p-chart type="line" [data]="graficoData" [options]="graficoOptions" height="100%"></p-chart>
             </div>
+          </div>
+        </p-dialog>
+
+        <p-dialog
+          header="Matriz de Cálculo do Fluxo (%)"
+          [(visible)]="exibirDialogMatriz"
+          [modal]="true"
+          [maximizable]="true"
+          [style]="{ width: '88vw' }"
+          [breakpoints]="{ '1200px': '94vw', '640px': '98vw' }"
+          styleClass="grafico-modal">
+          <div class="grafico-modal-body">
+            <div class="matriz-fluxo-wrapper" *ngIf="matrizGraficoPercentual.length; else semMatrizFluxo">
+              <table class="matriz-fluxo-table">
+                <thead>
+                  <tr>
+                    <th>Mês</th>
+                    <th class="text-right">Base Mensal</th>
+                    <th class="text-right">Base Acumulada</th>
+                    <th class="text-right">Proposta Mensal</th>
+                    <th class="text-right">Proposta Acumulada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let linha of matrizGraficoPercentual">
+                    <td>{{ linha.mes }}</td>
+                    <td class="text-right">{{ linha.baseMensal | number:'1.2-2' }}%</td>
+                    <td class="text-right">{{ linha.baseAcumulada | number:'1.2-2' }}%</td>
+                    <td class="text-right">{{ linha.propostaMensal | number:'1.2-2' }}%</td>
+                    <td class="text-right">{{ linha.propostaAcumulada | number:'1.2-2' }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <ng-template #semMatrizFluxo>
+              <div class="matriz-fluxo-empty">Sem dados para montar a matriz de fluxo.</div>
+            </ng-template>
           </div>
         </p-dialog>
 
