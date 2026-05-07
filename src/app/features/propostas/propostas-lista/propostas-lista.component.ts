@@ -27,6 +27,7 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
     'NAO INICIADA': STATUS_NAO_INICIADA,
     RASCUNHO: PropostaStatus.RASCUNHO,
     RESERVADA: PropostaStatus.RESERVADA,
+    RESERVADO: PropostaStatus.RESERVADA,
     AGUARDANDO_ANALISE: PropostaStatus.AGUARDANDO_ANALISE,
     'AGUARDANDO ANALISE': PropostaStatus.AGUARDANDO_ANALISE,
     EM_ANALISE: PropostaStatus.EM_ANALISE,

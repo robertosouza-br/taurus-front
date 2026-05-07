@@ -323,9 +323,9 @@ export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus | typeof STATUS_NAO_I
 
 export const PROPOSTA_STATUS_SEVERITY: Record<PropostaStatus | typeof STATUS_NAO_INICIADA, 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast'> = {
   // Escopo inicial
-  [STATUS_NAO_INICIADA]: 'danger',
+    [STATUS_NAO_INICIADA]: 'danger',
   [PropostaStatus.RASCUNHO]: 'info',
-  [PropostaStatus.RESERVADA]: 'warning',
+    [PropostaStatus.RESERVADA]: 'danger',
   [PropostaStatus.AGUARDANDO_ANALISE]: 'warning',
   [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'danger',
   [PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO]: 'danger',
