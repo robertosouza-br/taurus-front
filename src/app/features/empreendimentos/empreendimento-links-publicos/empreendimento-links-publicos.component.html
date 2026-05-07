@@ -137,6 +137,8 @@
           <div class="grupo-card__summary">
             <span>{{ link.quantidadeUnidades }} unidades</span>
             <span>{{ link.quantidadeAndares }} andar{{ link.quantidadeAndares > 1 ? 'es' : '' }}</span>
+            <span>Posições {{ link.primeiraPosicaoUnidade }} a {{ link.ultimaPosicaoUnidade }}</span>
+            <span>{{ link.quantidadeUnidadesPorAndar }} unid./andar</span>
           </div>
         </header>
 
@@ -146,6 +148,7 @@
               <p class="link-card__title">TV {{ link.tv }} de {{ link.totalTvs }}</p>
               <p class="link-card__meta">
                 Andares {{ link.primeiroAndar }} a {{ link.ultimoAndar }}
+                <span>· posições {{ link.primeiraPosicaoUnidade }} a {{ link.ultimaPosicaoUnidade }}</span>
                 <span *ngIf="link.primeiraUnidade && link.ultimaUnidade">· {{ link.primeiraUnidade }} até {{ link.ultimaUnidade }}</span>
               </p>
             </div>

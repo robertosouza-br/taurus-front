@@ -14,6 +14,9 @@ export interface LinkPublicoUnidadeTvSaidaDTO {
   primeiroAndar: number;
   ultimoAndar: number;
   quantidadeAndares: number;
+  primeiraPosicaoUnidade: number;
+  ultimaPosicaoUnidade: number;
+  quantidadeUnidadesPorAndar: number;
   quantidadeUnidades: number;
   primeiraUnidade: string;
   ultimaUnidade: string;
@@ -48,6 +51,9 @@ export interface AcompanhamentoUnidadesPublicoSaidaDTO {
   primeiroAndar: number;
   ultimoAndar: number;
   quantidadeAndares: number;
+  primeiraPosicaoUnidade: number;
+  ultimaPosicaoUnidade: number;
+  quantidadeUnidadesPorAndarNaTv: number;
   quantidadeUnidades: number;
   totalAndares: number;
   unidadesPorAndar: number;
