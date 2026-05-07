@@ -951,7 +951,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   }
 
   isComponenteTravadoAposNumeroVenda(componente: ComponenteFormulario | null | undefined): boolean {
-    return this.possuiNumeroVendaGerado && this.isAto(componente);
+    return false; // Removida regra que travava ATO após número de venda
   }
 
   podeEditarComponente(componente: ComponenteFormulario | null | undefined): boolean {
@@ -1033,7 +1033,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     });
     
     this.componentesDisponiveisParaAdicionar = Array.from(mapaComponentes.values())
-      .filter(componente => !this.possuiNumeroVendaGerado || !this.isAtoPorCodigoOuNome(componente.codigoComponente, componente.nomeComponente))
       .sort((a, b) => a.ordem - b.ordem);
       
     console.log(`${this.componentesDisponiveisParaAdicionar.length} componente(s) disponível(is) para adicionar`);
@@ -2425,15 +2424,6 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
    */
   adicionarComponenteDisponivel(componente: ComponenteTabelaPadraoDTO): void {
     if (!this.podeEditarSimulacao) {
-      return;
-    }
-
-    if (this.possuiNumeroVendaGerado && this.isAtoPorCodigoOuNome(componente.codigoComponente, componente.nomeComponente)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Inclusão não permitida',
-        detail: 'Após gerar o número de venda, não é permitido incluir um novo componente ATO.'
-      });
       return;
     }
 
