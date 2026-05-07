@@ -3,18 +3,9 @@
 
   <app-page-header
     [title]="nomeEmpreendimento || ('Empreendimento ' + codigoEmpreendimento)"
-    subtitle="Links públicos de acompanhamento por bloco e parte"
+    subtitle="Links públicos de acompanhamento por bloco e TV"
     icon="pi pi-share-alt">
   </app-page-header>
-
-  <div class="links-publicos-toolbar">
-    <app-custom-button
-      label="Voltar ao mapa de unidades"
-      icon="pi pi-arrow-left"
-      styleClass="p-button-outlined"
-      (onClick)="voltarParaMapaUnidades()">
-    </app-custom-button>
-  </div>
 
   <app-loading-spinner
     *ngIf="carregando"
@@ -22,37 +13,140 @@
     [message]="'Carregando links públicos...'">
   </app-loading-spinner>
 
-  <div *ngIf="!carregando && grupos.length === 0" class="empty-state">
+  <section class="config-card">
+    <div class="config-card__header">
+      <div>
+        <p class="config-card__eyebrow">Configuração da exibição</p>
+        <h3></h3>
+      </div>
+      <div class="config-card__badge">
+        <i class="pi pi-desktop"></i>
+        <span>Geração por TV</span>
+      </div>
+    </div>
+
+    <div class="config-grid">
+      <div class="config-field">
+        <div class="config-control-shell">
+          <div class="config-control-shell__icon">
+            <i class="pi pi-building"></i>
+          </div>
+          <div class="config-control-shell__body">
+            <app-autocomplete
+              id="blocoSelecionado"
+              label="Bloco"
+              [(ngModel)]="blocoSelecionado"
+              [suggestions]="blocosFiltrados"
+              field="label"
+              dataKey="value"
+              placeholder="Selecione o bloco"
+              [disabled]="carregando || blocosDisponiveis.length === 0"
+              (completeMethod)="filtrarBlocos($event)"
+              (onDropdownClick)="mostrarTodosBlocos()">
+            </app-autocomplete>
+          </div>
+        </div>
+        <small class="config-field__hint">Selecione o bloco.</small>
+      </div>
+
+      <div class="config-field">
+        <div class="config-control-shell">
+          <div class="config-control-shell__icon config-control-shell__icon--tv">
+            <i class="pi pi-desktop"></i>
+          </div>
+          <div class="config-control-shell__body">
+            <app-input-number
+              id="quantidadeTvs"
+              label="Quantidade de TVs"
+              placeholder="Ex.: 3"
+              [min]="1"
+              [useGrouping]="false"
+              [(ngModel)]="quantidadeTvs">
+            </app-input-number>
+          </div>
+        </div>
+        <small class="config-field__hint">Informe quantas telas independentes serão geradas para o bloco.</small>
+      </div>
+
+      <div class="config-field config-field--action">
+        <div class="config-control-shell config-control-shell--action">
+          <div class="config-control-shell__icon config-control-shell__icon--action">
+            <i class="pi pi-bolt"></i>
+          </div>
+          <div class="config-control-shell__body config-control-shell__body--action">
+            <app-custom-button
+              label="Gerar links"
+              icon="pi pi-bolt"
+              styleClass="w-full"
+              [disabled]="!podeGerarLinks || carregando"
+              (onClick)="gerarLinks()">
+            </app-custom-button>
+          </div>
+        </div>
+        <small class="config-field__hint">Gere a distribuição e os links públicos para as TVs configuradas.</small>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="!carregando && blocosDisponiveis.length === 0" class="empty-state">
     <div class="empty-state__icon">
       <i class="pi pi-share-alt"></i>
     </div>
-    <h3>Nenhum link público disponível</h3>
-    <p>Este empreendimento ainda não possui links públicos gerados para acompanhamento de unidades.</p>
+    <h3>Nenhum bloco disponível</h3>
+    <p>Este empreendimento ainda não possui unidades suficientes para geração de links públicos por TV.</p>
   </div>
 
-  <div *ngIf="!carregando && grupos.length > 0" class="grupos-grid">
-    <section *ngFor="let grupo of grupos" class="grupo-card">
-      <header class="grupo-card__header">
-        <div>
-          <p class="grupo-card__eyebrow">Bloco</p>
-          <h2>{{ grupo.bloco }}</h2>
-        </div>
-        <div class="grupo-card__summary">
-          <span>{{ grupo.quantidadeTotalUnidades }} unidades</span>
-          <span>{{ grupo.totalPartes }} parte{{ grupo.totalPartes > 1 ? 's' : '' }}</span>
-        </div>
-      </header>
+  <section *ngIf="!carregando && linksGerados as dados" class="resultado-shell">
+    <header class="grupo-card__header grupo-card__header--resultado">
+      <div>
+        <p class="grupo-card__eyebrow">Bloco</p>
+        <h2>{{ dados.bloco }}</h2>
+      </div>
+      <div class="grupo-card__summary">
+        <span>{{ dados.quantidadeTvs }} TV{{ dados.quantidadeTvs > 1 ? 's' : '' }}</span>
+        <span>{{ dados.totalAndares }} andar{{ dados.totalAndares > 1 ? 'es' : '' }}</span>
+        <span>{{ dados.unidadesPorAndar }} unid./andar</span>
+        <span>{{ dados.quantidadeTotalUnidades }} unidades</span>
+      </div>
+    </header>
 
-      <div class="grupo-card__links">
-        <article *ngFor="let link of grupo.links" class="link-card">
+    <section class="andares-card" *ngIf="dados.andares.length > 0">
+      <div class="andares-card__header">
+        <div>
+          <p class="grupo-card__eyebrow">Estrutura do bloco</p>
+          <h3>Distribuição de andares</h3>
+        </div>
+      </div>
+
+      <div class="andares-grid">
+        <div *ngFor="let andar of dados.andares" class="andar-pill">
+          <strong>{{ andar.andar }}º</strong>
+          <span>{{ andar.quantidadeUnidades }} un.</span>
+          <small>{{ andar.primeiraUnidade }} a {{ andar.ultimaUnidade }}</small>
+        </div>
+      </div>
+    </section>
+
+    <div class="grupos-grid">
+      <section *ngFor="let link of dados.links" class="grupo-card">
+        <header class="grupo-card__header">
+          <div>
+            <p class="grupo-card__eyebrow">TV</p>
+            <h2>{{ link.tv }}</h2>
+          </div>
+          <div class="grupo-card__summary">
+            <span>{{ link.quantidadeUnidades }} unidades</span>
+            <span>{{ link.quantidadeAndares }} andar{{ link.quantidadeAndares > 1 ? 'es' : '' }}</span>
+          </div>
+        </header>
+
+        <article class="link-card">
           <div class="link-card__info">
             <div>
-              <p class="link-card__title">Parte {{ link.parte }} de {{ link.totalPartes }}</p>
+              <p class="link-card__title">TV {{ link.tv }} de {{ link.totalTvs }}</p>
               <p class="link-card__meta">
-                {{ link.quantidadeUnidades }} unidade{{ link.quantidadeUnidades > 1 ? 's' : '' }}
-                <span *ngIf="link.primeiraUnidade && link.ultimaUnidade">
-                  · {{ link.primeiraUnidade }} até {{ link.ultimaUnidade }}
-                </span>
+                Andares {{ link.primeiroAndar }} a {{ link.ultimoAndar }}
+                <span *ngIf="link.primeiraUnidade && link.ultimaUnidade">· {{ link.primeiraUnidade }} até {{ link.ultimaUnidade }}</span>
               </p>
             </div>
             <code [title]="link.urlPublica">{{ link.urlPublica }}</code>
@@ -60,7 +154,7 @@
 
           <div class="link-card__actions">
             <app-custom-button
-              label="Abrir acompanhamento"
+              label="Abrir"
               icon="pi pi-external-link"
               size="small"
               styleClass="w-full"
@@ -75,8 +169,17 @@
             </app-custom-button>
           </div>
         </article>
-      </div>
-    </section>
+      </section>
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <app-custom-button
+      label="Voltar"
+      icon="pi pi-arrow-left"
+      styleClass="p-button-outlined"
+      (onClick)="voltarParaMapaUnidades()">
+    </app-custom-button>
   </div>
 
   <p-toast></p-toast>

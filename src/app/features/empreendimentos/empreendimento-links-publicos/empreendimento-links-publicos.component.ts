@@ -3,9 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
 import {
-  LinkPublicoUnidadeBlocoSaidaDTO,
-  LinksPublicosUnidadeBlocoAgrupadoSaidaDTO
+  LinkPublicoUnidadeTvSaidaDTO,
+  LinksPublicosUnidadeBlocoPorTvSaidaDTO
 } from '../../../core/models/acompanhamento-unidades-publico.model';
+import { Unidade } from '../../../core/models/unidade.model';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
@@ -18,7 +19,11 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
   codigoEmpreendimento = '';
   nomeEmpreendimento = '';
   carregando = false;
-  grupos: LinksPublicosUnidadeBlocoAgrupadoSaidaDTO[] = [];
+  blocosDisponiveis: Array<{ label: string; value: string }> = [];
+  blocosFiltrados: Array<{ label: string; value: string }> = [];
+  blocoSelecionado = '';
+  quantidadeTvs = 1;
+  linksGerados: LinksPublicosUnidadeBlocoPorTvSaidaDTO | null = null;
   breadcrumbItems: BreadcrumbItem[] = [];
 
   constructor(
@@ -36,10 +41,31 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
     this.nomeEmpreendimento = state?.nomeEmpreendimento || '';
 
     this.configurarBreadcrumb();
-    this.carregar();
+    this.carregarBlocos();
   }
 
-  carregar(): void {
+  get podeGerarLinks(): boolean {
+    return !!this.blocoSelecionado && this.quantidadeTvs > 0;
+  }
+
+  filtrarBlocos(event: { query?: string }): void {
+    const query = (event?.query || '').trim().toLowerCase();
+
+    if (!query) {
+      this.blocosFiltrados = [...this.blocosDisponiveis];
+      return;
+    }
+
+    this.blocosFiltrados = this.blocosDisponiveis.filter((bloco) =>
+      bloco.label.toLowerCase().includes(query)
+    );
+  }
+
+  mostrarTodosBlocos(): void {
+    this.blocosFiltrados = [...this.blocosDisponiveis];
+  }
+
+  carregarBlocos(): void {
     if (!this.codigoEmpreendimento) {
       this.messageService.add({
         severity: 'error',
@@ -51,35 +77,83 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
     }
 
     this.carregando = true;
-    this.empreendimentoService.listarLinksPublicosUnidadesAgrupados(this.codigoEmpreendimento)
+    this.empreendimentoService.listarUnidades(this.codigoEmpreendimento)
       .pipe(finalize(() => this.carregando = false))
       .subscribe({
-        next: (grupos) => {
-          this.grupos = grupos;
+        next: (unidades: Unidade[]) => {
+          const blocos = Array.from(
+            new Set(
+              unidades
+                .map((unidade) => (unidade.bloco || '').trim())
+                .filter((bloco) => !!bloco)
+            )
+          ).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
 
-          if (!this.nomeEmpreendimento && grupos.length > 0) {
-            this.nomeEmpreendimento = grupos[0].empreendimento;
+          this.blocosDisponiveis = blocos.map((bloco) => ({ label: bloco, value: bloco }));
+          this.blocosFiltrados = [...this.blocosDisponiveis];
+
+          if (!this.blocoSelecionado && this.blocosDisponiveis.length > 0) {
+            this.blocoSelecionado = this.blocosDisponiveis[0].value;
+          }
+
+          if (!this.nomeEmpreendimento && unidades.length > 0) {
+            this.nomeEmpreendimento = unidades[0].empreendimento;
             this.configurarBreadcrumb();
           }
         },
         error: (error) => {
-          console.error('Erro ao carregar links públicos de unidades:', error);
+          console.error('Erro ao carregar blocos do empreendimento:', error);
           this.messageService.add({
             severity: 'error',
             summary: 'Erro',
-            detail: error?.error?.message || 'Não foi possível carregar os links públicos do empreendimento.'
+            detail: error?.error?.message || 'Não foi possível carregar os blocos do empreendimento.'
           });
         }
       });
   }
 
-  abrirAcompanhamento(link: LinkPublicoUnidadeBlocoSaidaDTO): void {
+  gerarLinks(): void {
+    if (!this.podeGerarLinks) {
+      return;
+    }
+
+    this.carregando = true;
+    this.linksGerados = null;
+
+    this.empreendimentoService.listarLinksPublicosUnidadesPorTv(
+      this.codigoEmpreendimento,
+      this.blocoSelecionado,
+      this.quantidadeTvs
+    )
+      .pipe(finalize(() => this.carregando = false))
+      .subscribe({
+        next: (response) => {
+          this.linksGerados = response;
+
+          if (!this.nomeEmpreendimento && response.empreendimento) {
+            this.nomeEmpreendimento = response.empreendimento;
+            this.configurarBreadcrumb();
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao gerar links públicos por TV:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: error?.error?.message || 'Não foi possível gerar os links públicos para o bloco informado.'
+          });
+        }
+      });
+  }
+
+  abrirAcompanhamento(link: LinkPublicoUnidadeTvSaidaDTO): void {
     const rota = this.router.serializeUrl(
       this.router.createUrlTree(['/acompanhamento-publico/unidades'], {
         queryParams: {
           empreendimentoId: link.empreendimentoId,
           bloco: link.bloco,
-          parte: link.parte
+          quantidadeTvs: link.totalTvs,
+          tv: link.tv
         }
       })
     );
@@ -87,13 +161,14 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
     window.open(`${window.location.origin}${rota}`, '_blank', 'noopener');
   }
 
-  async copiarLink(link: LinkPublicoUnidadeBlocoSaidaDTO): Promise<void> {
+  async copiarLink(link: LinkPublicoUnidadeTvSaidaDTO): Promise<void> {
     const rota = this.router.serializeUrl(
       this.router.createUrlTree(['/acompanhamento-publico/unidades'], {
         queryParams: {
           empreendimentoId: link.empreendimentoId,
           bloco: link.bloco,
-          parte: link.parte
+          quantidadeTvs: link.totalTvs,
+          tv: link.tv
         }
       })
     );
@@ -103,7 +178,7 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
       this.messageService.add({
         severity: 'success',
         summary: 'Link copiado',
-        detail: `O link público da parte ${link.parte} foi copiado para a área de transferência.`
+        detail: `O link público da TV ${link.tv} foi copiado para a área de transferência.`
       });
     } catch (error) {
       console.error('Erro ao copiar link público:', error);

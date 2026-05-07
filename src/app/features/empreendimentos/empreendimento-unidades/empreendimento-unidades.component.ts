@@ -893,14 +893,6 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     this.router.navigate(['/empreendimentos']);
   }
 
-  abrirPainelMonitoramento(): void {
-    const url = this.router.serializeUrl(
-      this.router.createUrlTree(['/empreendimentos/painel', this.codigoEmpreendimento, 'unidades'])
-    );
-
-    window.open(url, '_blank', 'noopener');
-  }
-
   abrirLinksPublicos(): void {
     this.router.navigate(['/empreendimentos', this.codigoEmpreendimento, 'links-publicos-unidades'], {
       state: {

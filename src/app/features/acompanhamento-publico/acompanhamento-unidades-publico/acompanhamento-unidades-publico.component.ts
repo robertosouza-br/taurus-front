@@ -20,7 +20,8 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
   acompanhamento: AcompanhamentoUnidadesPublicoSaidaDTO | null = null;
   empreendimentoId = '';
   bloco = '';
-  parte = 1;
+  quantidadeTvs = 1;
+  tv = 1;
   ultimaAtualizacao = '';
 
   private readonly destroy$ = new Subject<void>();
@@ -50,9 +51,9 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
     return this.acompanhamento?.unidades || [];
   }
 
-  get partesDisponiveis(): number[] {
-    const totalPartes = this.acompanhamento?.totalPartes || 0;
-    return Array.from({ length: totalPartes }, (_, index) => index + 1);
+  get tvsDisponiveis(): number[] {
+    const totalTvs = this.acompanhamento?.totalTvs || 0;
+    return Array.from({ length: totalTvs }, (_, index) => index + 1);
   }
 
   get gradeStyles(): { [key: string]: string } {
@@ -120,13 +121,14 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
     this.carregar();
   }
 
-  irParaParte(parte: number): void {
+  irParaTv(tv: number): void {
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         empreendimentoId: this.empreendimentoId,
         bloco: this.bloco,
-        parte
+        quantidadeTvs: this.quantidadeTvs,
+        tv
       }
     });
   }
@@ -170,8 +172,10 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
   private processarParametros(params: ParamMap): void {
     this.empreendimentoId = (params.get('empreendimentoId') || '').trim();
     this.bloco = (params.get('bloco') || '').trim();
-    const parteParam = Number(params.get('parte') || '1');
-    this.parte = Number.isFinite(parteParam) && parteParam > 0 ? parteParam : 1;
+    const quantidadeTvsParam = Number(params.get('quantidadeTvs') || '1');
+    const tvParam = Number(params.get('tv') || '1');
+    this.quantidadeTvs = Number.isFinite(quantidadeTvsParam) && quantidadeTvsParam > 0 ? quantidadeTvsParam : 1;
+    this.tv = Number.isFinite(tvParam) && tvParam > 0 ? tvParam : 1;
     this.carregar();
   }
 
@@ -211,7 +215,12 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
 
     this.erro = '';
 
-    this.empreendimentoService.buscarAcompanhamentoUnidadesPublico(this.empreendimentoId, this.bloco, this.parte)
+    this.empreendimentoService.buscarAcompanhamentoUnidadesPublicoPorTv(
+      this.empreendimentoId,
+      this.bloco,
+      this.quantidadeTvs,
+      this.tv
+    )
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {

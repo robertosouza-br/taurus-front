@@ -14,19 +14,20 @@
 
       <div class="publico-header__meta">
         <span>Bloco {{ dados.bloco }}</span>
-        <span>Parte {{ dados.parte }} de {{ dados.totalPartes }}</span>
+        <span>TV {{ dados.tv }} de {{ dados.totalTvs }}</span>
+        <span>Andares {{ dados.primeiroAndar }} a {{ dados.ultimoAndar }}</span>
         <span>{{ dados.quantidadeUnidades }} unidades exibidas</span>
       </div>
     </header>
 
-    <nav *ngIf="dados.totalPartes > 1" class="partes-nav" aria-label="Navegação entre partes do bloco">
+    <nav *ngIf="dados.totalTvs > 1" class="partes-nav" aria-label="Navegação entre TVs do bloco">
       <button
-        *ngFor="let parteItem of partesDisponiveis"
+        *ngFor="let tvItem of tvsDisponiveis"
         type="button"
         class="parte-chip"
-        [class.parte-chip--active]="parteItem === dados.parte"
-        (click)="irParaParte(parteItem)">
-        Parte {{ parteItem }}
+        [class.parte-chip--active]="tvItem === dados.tv"
+        (click)="irParaTv(tvItem)">
+        TV {{ tvItem }}
       </button>
     </nav>
 

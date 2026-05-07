@@ -13,7 +13,7 @@ import {
 } from '../models/empreendimento.model';
 import {
   AcompanhamentoUnidadesPublicoSaidaDTO,
-  LinksPublicosUnidadeBlocoAgrupadoSaidaDTO
+  LinksPublicosUnidadeBlocoPorTvSaidaDTO
 } from '../models/acompanhamento-unidades-publico.model';
 import { Unidade } from '../models/unidade.model';
 
@@ -162,26 +162,35 @@ export class EmpreendimentoService {
     return this.http.get<Unidade>(`${this.apiUrl}/unidades/${codigoUnidade}`, { params });
   }
 
-  listarLinksPublicosUnidadesAgrupados(
-    empreendimentoId: string
-  ): Observable<LinksPublicosUnidadeBlocoAgrupadoSaidaDTO[]> {
-    return this.http.get<LinksPublicosUnidadeBlocoAgrupadoSaidaDTO[]>(
-      `${this.apiUrl}/${empreendimentoId}/links-publicos-unidades/agrupados`
+  listarLinksPublicosUnidadesPorTv(
+    empreendimentoId: string,
+    bloco: string,
+    quantidadeTvs: number
+  ): Observable<LinksPublicosUnidadeBlocoPorTvSaidaDTO> {
+    const params = new HttpParams()
+      .set('bloco', bloco)
+      .set('quantidadeTvs', quantidadeTvs.toString());
+
+    return this.http.get<LinksPublicosUnidadeBlocoPorTvSaidaDTO>(
+      `${this.apiUrl}/${empreendimentoId}/links-publicos-unidades/por-tv`,
+      { params }
     );
   }
 
-  buscarAcompanhamentoUnidadesPublico(
+  buscarAcompanhamentoUnidadesPublicoPorTv(
     empreendimentoId: string,
     bloco: string,
-    parte: number = 1
+    quantidadeTvs: number,
+    tv: number
   ): Observable<AcompanhamentoUnidadesPublicoSaidaDTO> {
     const params = new HttpParams()
       .set('empreendimentoId', empreendimentoId)
       .set('bloco', bloco)
-      .set('parte', parte.toString());
+      .set('quantidadeTvs', quantidadeTvs.toString())
+      .set('tv', tv.toString());
 
     return this.http.get<AcompanhamentoUnidadesPublicoSaidaDTO>(
-      `${this.apiUrl}/publico/unidades`,
+      `${this.apiUrl}/publico/unidades/por-tv`,
       { params }
     );
   }

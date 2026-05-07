@@ -1,26 +1,40 @@
-export interface LinkPublicoUnidadeBlocoSaidaDTO {
+export interface AndarUnidadeBlocoPorTvSaidaDTO {
+  andar: number;
+  quantidadeUnidades: number;
+  primeiraUnidade: string;
+  ultimaUnidade: string;
+}
+
+export interface LinkPublicoUnidadeTvSaidaDTO {
   empreendimentoId: string;
   empreendimento: string;
   bloco: string;
-  parte: number;
-  totalPartes: number;
+  tv: number;
+  totalTvs: number;
+  primeiroAndar: number;
+  ultimoAndar: number;
+  quantidadeAndares: number;
   quantidadeUnidades: number;
   primeiraUnidade: string;
   ultimaUnidade: string;
   urlPublica: string;
 }
 
-export interface LinksPublicosUnidadeBlocoAgrupadoSaidaDTO {
+export interface LinksPublicosUnidadeBlocoPorTvSaidaDTO {
   empreendimentoId: string;
   empreendimento: string;
   bloco: string;
-  totalPartes: number;
+  quantidadeTvs: number;
+  totalAndares: number;
+  unidadesPorAndar: number;
   quantidadeTotalUnidades: number;
-  links: LinkPublicoUnidadeBlocoSaidaDTO[];
+  andares: AndarUnidadeBlocoPorTvSaidaDTO[];
+  links: LinkPublicoUnidadeTvSaidaDTO[];
 }
 
 export interface UnidadeStatusPublicoSaidaDTO {
   unidade: string;
+  andar: number;
   codigoStatusUnidade: number;
   statusUnidade: string;
 }
@@ -29,8 +43,13 @@ export interface AcompanhamentoUnidadesPublicoSaidaDTO {
   empreendimentoId: string;
   empreendimento: string;
   bloco: string;
-  parte: number;
-  totalPartes: number;
+  tv: number;
+  totalTvs: number;
+  primeiroAndar: number;
+  ultimoAndar: number;
+  quantidadeAndares: number;
   quantidadeUnidades: number;
+  totalAndares: number;
+  unidadesPorAndar: number;
   unidades: UnidadeStatusPublicoSaidaDTO[];
 }
