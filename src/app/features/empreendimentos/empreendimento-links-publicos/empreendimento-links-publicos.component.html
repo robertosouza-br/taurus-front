@@ -1,0 +1,83 @@
+<div class="links-publicos-page">
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <app-page-header
+    [title]="nomeEmpreendimento || ('Empreendimento ' + codigoEmpreendimento)"
+    subtitle="Links públicos de acompanhamento por bloco e parte"
+    icon="pi pi-share-alt">
+  </app-page-header>
+
+  <div class="links-publicos-toolbar">
+    <app-custom-button
+      label="Voltar ao mapa de unidades"
+      icon="pi pi-arrow-left"
+      styleClass="p-button-outlined"
+      (onClick)="voltarParaMapaUnidades()">
+    </app-custom-button>
+  </div>
+
+  <app-loading-spinner
+    *ngIf="carregando"
+    [overlay]="true"
+    [message]="'Carregando links públicos...'">
+  </app-loading-spinner>
+
+  <div *ngIf="!carregando && grupos.length === 0" class="empty-state">
+    <div class="empty-state__icon">
+      <i class="pi pi-share-alt"></i>
+    </div>
+    <h3>Nenhum link público disponível</h3>
+    <p>Este empreendimento ainda não possui links públicos gerados para acompanhamento de unidades.</p>
+  </div>
+
+  <div *ngIf="!carregando && grupos.length > 0" class="grupos-grid">
+    <section *ngFor="let grupo of grupos" class="grupo-card">
+      <header class="grupo-card__header">
+        <div>
+          <p class="grupo-card__eyebrow">Bloco</p>
+          <h2>{{ grupo.bloco }}</h2>
+        </div>
+        <div class="grupo-card__summary">
+          <span>{{ grupo.quantidadeTotalUnidades }} unidades</span>
+          <span>{{ grupo.totalPartes }} parte{{ grupo.totalPartes > 1 ? 's' : '' }}</span>
+        </div>
+      </header>
+
+      <div class="grupo-card__links">
+        <article *ngFor="let link of grupo.links" class="link-card">
+          <div class="link-card__info">
+            <div>
+              <p class="link-card__title">Parte {{ link.parte }} de {{ link.totalPartes }}</p>
+              <p class="link-card__meta">
+                {{ link.quantidadeUnidades }} unidade{{ link.quantidadeUnidades > 1 ? 's' : '' }}
+                <span *ngIf="link.primeiraUnidade && link.ultimaUnidade">
+                  · {{ link.primeiraUnidade }} até {{ link.ultimaUnidade }}
+                </span>
+              </p>
+            </div>
+            <code [title]="link.urlPublica">{{ link.urlPublica }}</code>
+          </div>
+
+          <div class="link-card__actions">
+            <app-custom-button
+              label="Abrir acompanhamento"
+              icon="pi pi-external-link"
+              size="small"
+              styleClass="w-full"
+              (onClick)="abrirAcompanhamento(link)">
+            </app-custom-button>
+            <app-custom-button
+              label="Copiar link"
+              icon="pi pi-copy"
+              size="small"
+              styleClass="p-button-outlined w-full"
+              (onClick)="copiarLink(link)">
+            </app-custom-button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <p-toast></p-toast>
+</div>

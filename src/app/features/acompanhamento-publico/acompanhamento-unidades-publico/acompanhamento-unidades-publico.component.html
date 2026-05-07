@@ -1,0 +1,84 @@
+<div class="acompanhamento-publico-page">
+  <app-loading-spinner
+    *ngIf="carregando"
+    [overlay]="true"
+    [message]="'Carregando acompanhamento das unidades...'">
+  </app-loading-spinner>
+
+  <div class="publico-shell" *ngIf="!carregando && acompanhamento as dados">
+    <header class="publico-header">
+      <div>
+        <p class="publico-header__eyebrow">Acompanhamento público de unidades</p>
+        <h1>{{ dados.empreendimento }}</h1>
+      </div>
+
+      <div class="publico-header__meta">
+        <span>Bloco {{ dados.bloco }}</span>
+        <span>Parte {{ dados.parte }} de {{ dados.totalPartes }}</span>
+        <span>{{ dados.quantidadeUnidades }} unidades exibidas</span>
+      </div>
+    </header>
+
+    <nav *ngIf="dados.totalPartes > 1" class="partes-nav" aria-label="Navegação entre partes do bloco">
+      <button
+        *ngFor="let parteItem of partesDisponiveis"
+        type="button"
+        class="parte-chip"
+        [class.parte-chip--active]="parteItem === dados.parte"
+        (click)="irParaParte(parteItem)">
+        Parte {{ parteItem }}
+      </button>
+    </nav>
+
+    <section class="unidades-section">
+      <div
+        class="unidades-grid-cards unidades-grid-cards--publico"
+        [ngClass]="getClasseDensidade()"
+        [ngStyle]="gradeStyles">
+        <article
+          *ngFor="let unidade of dados.unidades"
+          class="unidade-card unidade-card--publico"
+          [style.background]="getStatusColor(unidade.codigoStatusUnidade).bg"
+          [style.border-color]="getStatusColor(unidade.codigoStatusUnidade).border">
+
+          <div class="status-badge"
+               [style.background]="getStatusColor(unidade.codigoStatusUnidade).border"
+               [title]="unidade.statusUnidade">
+            <i class="pi pi-circle-fill"></i>
+          </div>
+
+          <div class="unidade-card__numero" [style.color]="getStatusColor(unidade.codigoStatusUnidade).text">
+            {{ formatarNumeroUnidade(unidade.unidade) }}
+          </div>
+
+          <div
+            class="unidade-card__status"
+            [style.color]="getStatusColor(unidade.codigoStatusUnidade).text"
+            [title]="unidade.statusUnidade">
+            {{ unidade.statusUnidade }}
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <div *ngIf="!carregando && !acompanhamento" class="publico-feedback">
+    <div class="publico-feedback__icon">
+      <i class="pi pi-exclamation-circle"></i>
+    </div>
+    <h2>Não foi possível exibir o acompanhamento</h2>
+    <p>{{ erro }}</p>
+    <button type="button" class="publico-feedback__button" (click)="recarregar()">
+      Tentar novamente
+    </button>
+  </div>
+
+  <div
+    class="ultima-atualizacao-badge"
+    *ngIf="!carregando && acompanhamento && ultimaAtualizacao"
+    pTooltip="Última atualização dos dados"
+    tooltipPosition="left">
+    <i class="pi pi-clock"></i>
+    <span>{{ ultimaAtualizacao }}</span>
+  </div>
+</div>

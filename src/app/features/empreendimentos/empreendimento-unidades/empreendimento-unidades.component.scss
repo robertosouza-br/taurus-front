@@ -16,11 +16,13 @@
 .painel-action-bar {
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
   padding: 0 2rem;
   margin: -0.5rem auto 1.5rem;
   max-width: 1600px;
 
   @media (max-width: 768px) {
+    flex-direction: column;
     padding: 0 1rem;
     margin: -0.5rem auto 1rem;
   }

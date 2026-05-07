@@ -278,6 +278,19 @@
   }
 }
 
+:host ::ng-deep .portfolio-floating-btn--secondary {
+  right: 4.5rem !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+  border: 2px solid #1d4ed8 !important;
+
+  &:hover {
+    color: #1d4ed8 !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
+    border-color: rgba(37, 99, 235, 0.3) !important;
+  }
+}
+
 // ========== RESPONSIVIDADE ==========
 @media screen and (max-width: 1200px) {
   .cards-grid {

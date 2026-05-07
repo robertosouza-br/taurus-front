@@ -901,6 +901,15 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     window.open(url, '_blank', 'noopener');
   }
 
+  abrirLinksPublicos(): void {
+    this.router.navigate(['/empreendimentos', this.codigoEmpreendimento, 'links-publicos-unidades'], {
+      state: {
+        nomeEmpreendimento: this.nomeEmpreendimento,
+        codColigada: this.codColigadaEmpreendimento
+      }
+    });
+  }
+
   onUnidadeClick(unidade: Unidade): void {
     if (this.modoPainel) {
       return;

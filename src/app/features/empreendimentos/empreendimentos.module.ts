@@ -5,6 +5,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { EmpreendimentosRoutingModule } from './empreendimentos-routing.module';
 import { EmpreendimentosListaComponent } from './empreendimentos-lista/empreendimentos-lista.component';
 import { EmpreendimentoImagensComponent } from './empreendimento-imagens/empreendimento-imagens.component';
+import { EmpreendimentoLinksPublicosComponent } from './empreendimento-links-publicos/empreendimento-links-publicos.component';
 import { EmpreendimentoUnidadesComponent } from './empreendimento-unidades/empreendimento-unidades.component';
 
 // PrimeNG
@@ -33,6 +34,7 @@ import { SpeedDialModule } from 'primeng/speeddial';
   declarations: [
     EmpreendimentosListaComponent,
     EmpreendimentoImagensComponent,
+    EmpreendimentoLinksPublicosComponent,
     EmpreendimentoUnidadesComponent
   ],
   imports: [

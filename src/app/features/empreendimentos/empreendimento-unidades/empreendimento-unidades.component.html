@@ -12,12 +12,12 @@
 
   <div *ngIf="!modoPainel" class="painel-action-bar">
     <app-custom-button
-      label="Abrir Painel"
-      icon="pi pi-external-link"
+      label="Link TV"
+      icon="pi pi-share-alt"
       styleClass="p-button-outlined"
-      (onClick)="abrirPainelMonitoramento()">
+      (onClick)="abrirLinksPublicos()">
     </app-custom-button>
-  </div>
+   </div>
 
   <div *ngIf="modoPainel" class="painel-info-bar painel-info-bar--painel">
     <div class="painel-info-bar__empreendimento">

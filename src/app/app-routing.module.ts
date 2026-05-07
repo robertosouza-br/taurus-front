@@ -17,6 +17,10 @@ const routes: Routes = [
     loadChildren: () => import('./features/contatos/contatos.module').then(m => m.ContatosModule)
   },
   {
+    path: 'acompanhamento-publico',
+    loadChildren: () => import('./features/acompanhamento-publico/acompanhamento-publico.module').then(m => m.AcompanhamentoPublicoModule)
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     canActivate: [AuthGuard],

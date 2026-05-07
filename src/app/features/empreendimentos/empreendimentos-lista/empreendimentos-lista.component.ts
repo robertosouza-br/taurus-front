@@ -185,6 +185,21 @@ export class EmpreendimentosListaComponent extends BaseListComponent implements 
     });
   }
 
+  visualizarLinksPublicos(emp: Empreendimento): void {
+    if (!this.permissaoService.temPermissao(Funcionalidade.EMPREENDIMENTO, Permissao.CONSULTAR)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Acesso Negado',
+        detail: 'Você não tem permissão para visualizar os links públicos'
+      });
+      return;
+    }
+
+    this.router.navigate(['/empreendimentos', emp.codEmpreendimento, 'links-publicos-unidades'], {
+      state: { nomeEmpreendimento: emp.nome, codColigada: emp.codColigada }
+    });
+  }
+
   /**
    * Retorna a URL da imagem de apresentação do empreendimento
    * 
