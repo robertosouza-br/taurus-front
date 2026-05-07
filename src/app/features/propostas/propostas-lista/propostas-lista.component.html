@@ -37,7 +37,8 @@
 
     <ng-template appTableTemplate="status" let-reserva="rowData">
       <p-tag
-        [value]="reserva.statusProposta || '-'"
+        [value]="getStatusLabel(reserva.statusProposta || '')"
+        [style]="getStatusStyle(reserva.statusProposta || '')"
         [severity]="getStatusSeverity(reserva.statusProposta || '')">
       </p-tag>
     </ng-template>

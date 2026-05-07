@@ -20,6 +20,7 @@ import {
   SalvarPropostaResponse,
   ComponentePropostaRequest,
   PropostaStatus,
+  PROPOSTA_STATUS_CUSTOM_COLOR,
   PROPOSTA_STATUS_LABELS,
   PROPOSTA_STATUS_SEVERITY,
   ComparacaoMetricaDTO,
@@ -219,11 +220,35 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
     return modal?.DESCRICAO ?? modal?.descricao ?? '';
   }
 
+  getStatusStyle(status: PropostaStatus | null | undefined): { [key: string]: string } | null {
+    if (!status) {
+      return null;
+    }
+
+    const color = PROPOSTA_STATUS_CUSTOM_COLOR[status];
+
+    if (!color) {
+      return null;
+    }
+
+    return {
+      background: color,
+      color: '#FFFFFF',
+      borderColor: color
+    };
+  }
+
+  private isStatusAprovado(status: PropostaStatus | null | undefined): boolean {
+    return status === PropostaStatus.APROVADA
+      || status === PropostaStatus.APROVADA_AUTOMATICAMENTE
+      || status === PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO
+      || status === PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO;
+  }
+
   private get propostaSujeitaANovaAnalisePorEdicao(): boolean {
     const status = this.proposta?.status;
 
-    return status === PropostaStatus.APROVADA
-      || status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
+    return this.isStatusAprovado(status);
   }
 
   get propostaBloqueadaParaAnalise(): boolean {
@@ -246,8 +271,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
       return false;
     }
 
-    return this.proposta.status === PropostaStatus.APROVADA
-      || this.proposta.status === PropostaStatus.APROVADA_AUTOMATICAMENTE;
+    return this.isStatusAprovado(this.proposta.status);
   }
 
   get propostaAprovadaComNovaAnalisePendente(): boolean {
@@ -268,8 +292,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   get podeExibirBotaoConsultarBoletoSicoob(): boolean {
     return !!this.proposta?.id
       && !!this.nossoNumeroAtual
-      && (this.proposta?.status === PropostaStatus.APROVADA
-        || this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE);
+      && this.isStatusAprovado(this.proposta?.status);
   }
 
   get possuiNumeroVendaGerado(): boolean {
@@ -279,8 +302,7 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
   get podeExibirBotaoRelatorioFluxoPagamento(): boolean {
     return !!this.proposta?.id
       && this.possuiNumeroVendaGerado
-      && (this.proposta?.status === PropostaStatus.APROVADA
-        || this.proposta?.status === PropostaStatus.APROVADA_AUTOMATICAMENTE)
+      && this.isStatusAprovado(this.proposta?.status)
       && this.componentes.length > 0
       && !!this.assinaturaSimulacaoCarregada
       && !this.simulacaoAtualDivergeDoEstadoCarregado();
@@ -3140,26 +3162,29 @@ export class PropostaNovaComponent extends BaseFormComponent implements OnInit, 
 
         const statusFinal = response.status;
         const possuiViolacoes = this.possuiViolacoesAprovacao;
+        const fluxoAprovadoSemPixPago = statusFinal === PropostaStatus.APROVADA
+          || statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
+          || statusFinal === PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO;
 
         const summary = statusFinal === PropostaStatus.AGUARDANDO_ANALISE
           ? 'Proposta enviada para aprovação'
-          : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
-            ? 'Proposta aprovada automaticamente'
+          : fluxoAprovadoSemPixPago
+            ? 'Fluxo aprovado sem PIX pago'
             : statusFinal === PropostaStatus.RASCUNHO
               ? 'Rascunho salvo'
               : 'Sucesso';
 
         const detail = statusFinal === PropostaStatus.AGUARDANDO_ANALISE
           ? (response.mensagem || 'Proposta gravada com sucesso e encaminhada para a área de aprovação.')
-          : statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE
-            ? (response.mensagem || 'Proposta gravada com sucesso e aprovada automaticamente.')
+          : fluxoAprovadoSemPixPago
+            ? (response.mensagem || 'Proposta gravada com sucesso. Fluxo aprovado sem PIX pago.')
             : statusFinal === PropostaStatus.RASCUNHO
               ? (response.mensagem || (possuiViolacoes
                   ? 'Proposta salva como rascunho. Há violações que exigirão aprovação manual ao finalizar.'
                   : 'Proposta salva como rascunho com sucesso!'))
               : (response.mensagem || 'Proposta salva com sucesso!');
 
-        if (statusFinal === PropostaStatus.APROVADA_AUTOMATICAMENTE) {
+        if (fluxoAprovadoSemPixPago) {
           this.messageService.add({
             severity: 'success',
             summary,

@@ -3,6 +3,7 @@ import {
   StatusTelaProposta,
   PropostaStatus,
   PROPOSTA_STATUS_LABELS,
+  PROPOSTA_STATUS_CUSTOM_COLOR,
   PROPOSTA_STATUS_SEVERITY,
   STATUS_NAO_INICIADA
 } from '../../../core/models/proposta-simplificada.model';
@@ -73,6 +74,20 @@ export class PropostaStatusCardComponent {
    */
   getStatusSeverity(): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
     return PROPOSTA_STATUS_SEVERITY[this.status];
+  }
+
+  getStatusStyle(): { [key: string]: string } | null {
+    const color = PROPOSTA_STATUS_CUSTOM_COLOR[this.status];
+
+    if (!color) {
+      return null;
+    }
+
+    return {
+      background: color,
+      color: '#FFFFFF',
+      borderColor: color
+    };
   }
 
   /**
@@ -148,15 +163,19 @@ export class PropostaStatusCardComponent {
   getStatusIcon(): string {
     switch (this.status) {
       case STATUS_NAO_INICIADA:
-        return 'pi pi-file-plus';
+        return 'pi pi-bookmark';
       case PropostaStatus.RASCUNHO:
         return 'pi pi-file-edit';
+      case PropostaStatus.RESERVADA:
+        return 'pi pi-bookmark';
       case PropostaStatus.AGUARDANDO_ANALISE:
         return 'pi pi-clock';
       case PropostaStatus.APROVADA_AUTOMATICAMENTE:
-        return 'pi pi-check-circle';
       case PropostaStatus.APROVADA:
-        return 'pi pi-check-circle';
+        return 'pi pi-exclamation-circle';
+      case PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO:
+      case PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO:
+        return 'pi pi-exclamation-circle';
       case PropostaStatus.REPROVADA:
         return 'pi pi-times-circle';
       default:
@@ -170,17 +189,22 @@ export class PropostaStatusCardComponent {
   getStatusDescricao(): string {
     switch (this.status) {
       case STATUS_NAO_INICIADA:
-        return 'Nenhuma proposta foi criada para esta reserva. Clique em "Iniciar Proposta" para começar.';
+        return 'A reserva ainda não possui proposta criada. Clique em "Iniciar Proposta" para começar.';
       case PropostaStatus.RASCUNHO:
         return 'A proposta está em elaboração e pode ser editada.';
+      case PropostaStatus.RESERVADA:
+        return 'A proposta está reservada e aguardando o próximo avanço do fluxo.';
       case PropostaStatus.AGUARDANDO_ANALISE:
         return 'A proposta foi criada e enviada para análise manual, pois difere da tabela padrão.';
       case PropostaStatus.APROVADA_AUTOMATICAMENTE:
-        return 'A proposta foi criada e aprovada automaticamente por seguir a tabela padrão.';
+      case PropostaStatus.APROVADA:
+        return 'A proposta teve o fluxo aprovado, mas o PIX ainda não foi pago.';
+      case PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO:
+        return 'A proposta teve o fluxo aprovado, mas o PIX ainda não foi pago.';
+      case PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO:
+        return 'A proposta teve o fluxo aprovado e o PIX já foi pago.';
       case PropostaStatus.EM_ANALISE:
         return 'A proposta está em processo de análise.';
-      case PropostaStatus.APROVADA:
-        return 'A proposta foi aprovada.';
       case PropostaStatus.REPROVADA:
         return 'A proposta foi reprovada.';
       default:

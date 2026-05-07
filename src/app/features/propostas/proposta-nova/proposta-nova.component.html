@@ -48,7 +48,7 @@
         </div>
         <div class="unidade-info-item" *ngIf="proposta.status">
           <span class="info-label">Status</span>
-          <p-tag [severity]="statusSeverity[proposta.status]" [value]="statusLabels[proposta.status]"></p-tag>
+          <p-tag [severity]="statusSeverity[proposta.status]" [style]="getStatusStyle(proposta.status)" [value]="statusLabels[proposta.status]"></p-tag>
         </div>
         <div class="unidade-info-item" *ngIf="proposta.numeroVenda">
           <span class="info-label">Numero da Venda</span>

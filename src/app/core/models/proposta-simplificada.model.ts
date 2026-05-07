@@ -280,8 +280,11 @@ export interface SalvarPropostaResponse {
 export enum PropostaStatus {
   // Escopo inicial
   RASCUNHO = 'RASCUNHO',
+  RESERVADA = 'RESERVADA',
   AGUARDANDO_ANALISE = 'AGUARDANDO_ANALISE',
   APROVADA_AUTOMATICAMENTE = 'APROVADA_AUTOMATICAMENTE',
+  FLUXO_APROVADO_SEM_PIX_PAGO = 'FLUXO_APROVADO_SEM_PIX_PAGO',
+  FLUXO_APROVADO_COM_PIX_PAGO = 'FLUXO_APROVADO_COM_PIX_PAGO',
   
   // Escopo futuro / legado
   EM_ANALISE = 'EM_ANALISE',
@@ -301,14 +304,17 @@ export type StatusTelaProposta = PropostaStatus | typeof STATUS_NAO_INICIADA;
 
 export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus | typeof STATUS_NAO_INICIADA, string> = {
   // Escopo inicial
-  [STATUS_NAO_INICIADA]: 'Não iniciada',
+  [STATUS_NAO_INICIADA]: 'Reservada',
   [PropostaStatus.RASCUNHO]: 'Rascunho',
+  [PropostaStatus.RESERVADA]: 'Reservada',
   [PropostaStatus.AGUARDANDO_ANALISE]: 'Aguardando Análise',
-  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'Aprovada Automaticamente',
+  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'Fluxo aprovado sem PIX pago',
+  [PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO]: 'Fluxo aprovado sem PIX pago',
+  [PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO]: 'Fluxo aprovado com PIX pago',
   
   // Escopo futuro / legado
   [PropostaStatus.EM_ANALISE]: 'Em Análise',
-  [PropostaStatus.APROVADA]: 'Aprovada',
+  [PropostaStatus.APROVADA]: 'Fluxo aprovado sem PIX pago',
   [PropostaStatus.REPROVADA]: 'Reprovada',
   [PropostaStatus.EM_NEGOCIACAO]: 'Em Negociação',
   [PropostaStatus.FINALIZADA]: 'Finalizada',
@@ -317,18 +323,29 @@ export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus | typeof STATUS_NAO_I
 
 export const PROPOSTA_STATUS_SEVERITY: Record<PropostaStatus | typeof STATUS_NAO_INICIADA, 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast'> = {
   // Escopo inicial
-  [STATUS_NAO_INICIADA]: 'info',
+  [STATUS_NAO_INICIADA]: 'danger',
   [PropostaStatus.RASCUNHO]: 'info',
+  [PropostaStatus.RESERVADA]: 'warning',
   [PropostaStatus.AGUARDANDO_ANALISE]: 'warning',
-  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'success',
+  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: 'danger',
+  [PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO]: 'danger',
+  [PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO]: 'danger',
   
   // Escopo futuro / legado
   [PropostaStatus.EM_ANALISE]: 'warning',
-  [PropostaStatus.APROVADA]: 'success',
+  [PropostaStatus.APROVADA]: 'danger',
   [PropostaStatus.REPROVADA]: 'danger',
   [PropostaStatus.EM_NEGOCIACAO]: 'info',
   [PropostaStatus.FINALIZADA]: 'contrast',
   [PropostaStatus.CANCELADA]: 'secondary'
+};
+
+export const PROPOSTA_STATUS_CUSTOM_COLOR: Partial<Record<PropostaStatus | typeof STATUS_NAO_INICIADA, string>> = {
+  [STATUS_NAO_INICIADA]: '#FF0000',
+  [PropostaStatus.APROVADA_AUTOMATICAMENTE]: '#FF0000',
+  [PropostaStatus.APROVADA]: '#FF0000',
+  [PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO]: '#FF0000',
+  [PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO]: '#FF0000'
 };
 
 // ========================

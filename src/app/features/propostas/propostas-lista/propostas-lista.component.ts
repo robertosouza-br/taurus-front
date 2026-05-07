@@ -5,6 +5,8 @@ import { PropostaService } from '../../../core/services/proposta.service';
 import { ReservaPropostaDTO } from '../../../core/models/proposta-fluxo.model';
 import {
   PropostaStatus,
+  PROPOSTA_STATUS_CUSTOM_COLOR,
+  PROPOSTA_STATUS_LABELS,
   PROPOSTA_STATUS_SEVERITY,
   STATUS_NAO_INICIADA,
   StatusTelaProposta
@@ -24,14 +26,19 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
     NAO_INICIADA: STATUS_NAO_INICIADA,
     'NAO INICIADA': STATUS_NAO_INICIADA,
     RASCUNHO: PropostaStatus.RASCUNHO,
+    RESERVADA: PropostaStatus.RESERVADA,
     AGUARDANDO_ANALISE: PropostaStatus.AGUARDANDO_ANALISE,
     'AGUARDANDO ANALISE': PropostaStatus.AGUARDANDO_ANALISE,
     EM_ANALISE: PropostaStatus.EM_ANALISE,
     'EM ANALISE': PropostaStatus.EM_ANALISE,
-    APROVADA_AUTOMATICAMENTE: PropostaStatus.APROVADA_AUTOMATICAMENTE,
-    'APROVADA AUTOMATICAMENTE': PropostaStatus.APROVADA_AUTOMATICAMENTE,
-    APROVADA: PropostaStatus.APROVADA,
-    APROVADO: PropostaStatus.APROVADA,
+    APROVADA_AUTOMATICAMENTE: PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO,
+    'APROVADA AUTOMATICAMENTE': PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO,
+    FLUXO_APROVADO_SEM_PIX_PAGO: PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO,
+    'FLUXO APROVADO SEM PIX PAGO': PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO,
+    FLUXO_APROVADO_COM_PIX_PAGO: PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO,
+    'FLUXO APROVADO COM PIX PAGO': PropostaStatus.FLUXO_APROVADO_COM_PIX_PAGO,
+    APROVADA: PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO,
+    APROVADO: PropostaStatus.FLUXO_APROVADO_SEM_PIX_PAGO,
     REPROVADA: PropostaStatus.REPROVADA,
     REPROVADO: PropostaStatus.REPROVADA,
     RECUSADA: PropostaStatus.REPROVADA,
@@ -200,6 +207,26 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
   getStatusSeverity(status: string): 'success' | 'secondary' | 'info' | 'warning' | 'danger' | 'contrast' {
     const statusResolvido = this.resolverStatusTela(status);
     return PROPOSTA_STATUS_SEVERITY[statusResolvido];
+  }
+
+  getStatusLabel(status: string): string {
+    const statusResolvido = this.resolverStatusTela(status);
+    return PROPOSTA_STATUS_LABELS[statusResolvido];
+  }
+
+  getStatusStyle(status: string): { [key: string]: string } | null {
+    const statusResolvido = this.resolverStatusTela(status);
+    const color = PROPOSTA_STATUS_CUSTOM_COLOR[statusResolvido];
+
+    if (!color) {
+      return null;
+    }
+
+    return {
+      background: color,
+      color: '#FFFFFF',
+      borderColor: color
+    };
   }
 
   private resolverStatusTela(status: string | null | undefined): StatusTelaProposta {
