@@ -53,7 +53,7 @@ export class PropostasListaComponent extends BaseListComponent implements OnInit
 
   reservas: ReservaPropostaDTO[] = [];
   paginaAtual: number = 0;
-  itensPorPagina: number = 20;
+  itensPorPagina: number = 50;
   filtroTexto = '';
   breadcrumbItems: BreadcrumbItem[] = [];
   colunas: TableColumn[] = [];

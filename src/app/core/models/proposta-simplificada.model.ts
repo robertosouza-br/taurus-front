@@ -315,7 +315,7 @@ export const PROPOSTA_STATUS_LABELS: Record<PropostaStatus | typeof STATUS_NAO_I
   // Escopo futuro / legado
   [PropostaStatus.EM_ANALISE]: 'Em Análise',
   [PropostaStatus.APROVADA]: 'Fluxo aprovado sem PIX pago',
-  [PropostaStatus.REPROVADA]: 'Reprovada',
+  [PropostaStatus.REPROVADA]: 'Fluxo reprovado',
   [PropostaStatus.EM_NEGOCIACAO]: 'Em Negociação',
   [PropostaStatus.FINALIZADA]: 'Finalizada',
   [PropostaStatus.CANCELADA]: 'Cancelada'
