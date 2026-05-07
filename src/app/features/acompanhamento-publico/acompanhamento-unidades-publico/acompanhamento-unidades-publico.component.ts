@@ -56,6 +56,74 @@ export class AcompanhamentoUnidadesPublicoComponent implements OnInit, OnDestroy
     return Array.from({ length: totalTvs }, (_, index) => index + 1);
   }
 
+  get andaresAgrupados(): Array<{ andar: number; unidades: UnidadeStatusPublicoSaidaDTO[] }> {
+    const agrupados = new Map<number, UnidadeStatusPublicoSaidaDTO[]>();
+
+    for (const unidade of this.unidades) {
+      const chave = unidade.andar;
+      const itens = agrupados.get(chave) || [];
+      itens.push(unidade);
+      agrupados.set(chave, itens);
+    }
+
+    return Array.from(agrupados.entries())
+      .sort((andarAtual, proximoAndar) => andarAtual[0] - proximoAndar[0])
+      .map(([andar, unidades]) => ({ andar, unidades }));
+  }
+
+  get layoutPorAndaresStyles(): { [key: string]: string } {
+    const totalAndares = Math.max(this.andaresAgrupados.length, 1);
+
+    if (totalAndares >= 8) {
+      return {
+        '--andar-gap': '0.35rem',
+        '--andar-label-size': '0.7rem',
+        '--andar-row-padding': '0.45rem 0.55rem',
+        '--unidade-gap': '0.35rem',
+        '--card-padding': '0.35rem',
+        '--card-radius': '12px',
+        '--badge-size': '18px',
+        '--badge-offset': '0.35rem',
+        '--numero-size': 'clamp(0.95rem, 1.4vw, 1.35rem)',
+        '--status-size': '0.52rem'
+      };
+    }
+
+    if (totalAndares >= 5) {
+      return {
+        '--andar-gap': '0.5rem',
+        '--andar-label-size': '0.76rem',
+        '--andar-row-padding': '0.6rem 0.7rem',
+        '--unidade-gap': '0.5rem',
+        '--card-padding': '0.55rem',
+        '--card-radius': '14px',
+        '--badge-size': '20px',
+        '--badge-offset': '0.4rem',
+        '--numero-size': 'clamp(1.15rem, 1.6vw, 1.6rem)',
+        '--status-size': '0.62rem'
+      };
+    }
+
+    return {
+      '--andar-gap': '0.7rem',
+      '--andar-label-size': '0.82rem',
+      '--andar-row-padding': '0.8rem 0.9rem',
+      '--unidade-gap': '0.7rem',
+      '--card-padding': '0.8rem',
+      '--card-radius': '18px',
+      '--badge-size': '24px',
+      '--badge-offset': '0.55rem',
+      '--numero-size': 'clamp(1.4rem, 2vw, 2rem)',
+      '--status-size': '0.78rem'
+    };
+  }
+
+  getUnidadesPorAndarStyles(quantidadeUnidades: number): { [key: string]: string } {
+    return {
+      'grid-template-columns': `repeat(${Math.max(quantidadeUnidades, 1)}, minmax(0, 1fr))`
+    };
+  }
+
   get gradeStyles(): { [key: string]: string } {
     const quantidade = Math.max(this.unidades.length, 1);
     const colunasBase = Math.ceil(Math.sqrt(quantidade * 1.72));

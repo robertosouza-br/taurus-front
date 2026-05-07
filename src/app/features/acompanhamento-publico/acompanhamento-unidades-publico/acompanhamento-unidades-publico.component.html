@@ -7,58 +7,60 @@
 
   <div class="publico-shell" *ngIf="!carregando && acompanhamento as dados">
     <header class="publico-header">
-      <div>
-        <p class="publico-header__eyebrow">Acompanhamento público de unidades</p>
-        <h1>{{ dados.empreendimento }}</h1>
+      <div class="publico-header__title">
+        <h1>Bloco {{ dados.bloco }}</h1>
+        <p class="publico-header__subtitle">{{ dados.empreendimento }}</p>
       </div>
 
       <div class="publico-header__meta">
-        <span>Bloco {{ dados.bloco }}</span>
         <span>TV {{ dados.tv }} de {{ dados.totalTvs }}</span>
         <span>Andares {{ dados.primeiroAndar }} a {{ dados.ultimoAndar }}</span>
         <span>{{ dados.quantidadeUnidades }} unidades exibidas</span>
+        <span
+          *ngIf="ultimaAtualizacao"
+          class="publico-header__atualizacao"
+          pTooltip="Última atualização dos dados"
+          tooltipPosition="left">
+          <i class="pi pi-clock"></i>
+          {{ ultimaAtualizacao }}
+        </span>
       </div>
     </header>
 
-    <nav *ngIf="dados.totalTvs > 1" class="partes-nav" aria-label="Navegação entre TVs do bloco">
-      <button
-        *ngFor="let tvItem of tvsDisponiveis"
-        type="button"
-        class="parte-chip"
-        [class.parte-chip--active]="tvItem === dados.tv"
-        (click)="irParaTv(tvItem)">
-        TV {{ tvItem }}
-      </button>
-    </nav>
-
     <section class="unidades-section">
-      <div
-        class="unidades-grid-cards unidades-grid-cards--publico"
-        [ngClass]="getClasseDensidade()"
-        [ngStyle]="gradeStyles">
-        <article
-          *ngFor="let unidade of dados.unidades"
-          class="unidade-card unidade-card--publico"
-          [style.background]="getStatusColor(unidade.codigoStatusUnidade).bg"
-          [style.border-color]="getStatusColor(unidade.codigoStatusUnidade).border">
-
-          <div class="status-badge"
-               [style.background]="getStatusColor(unidade.codigoStatusUnidade).border"
-               [title]="unidade.statusUnidade">
-            <i class="pi pi-circle-fill"></i>
+      <div class="andares-lista" [ngStyle]="layoutPorAndaresStyles">
+        <section *ngFor="let grupo of andaresAgrupados" class="andar-row">
+          <div class="andar-row__label">
+            <span>Andar</span>
+            <strong>{{ grupo.andar }}º</strong>
           </div>
 
-          <div class="unidade-card__numero" [style.color]="getStatusColor(unidade.codigoStatusUnidade).text">
-            {{ formatarNumeroUnidade(unidade.unidade) }}
-          </div>
+          <div class="andar-row__unidades" [ngStyle]="getUnidadesPorAndarStyles(grupo.unidades.length)">
+            <article
+              *ngFor="let unidade of grupo.unidades"
+              class="unidade-card unidade-card--publico"
+              [style.background]="getStatusColor(unidade.codigoStatusUnidade).bg"
+              [style.border-color]="getStatusColor(unidade.codigoStatusUnidade).border">
 
-          <div
-            class="unidade-card__status"
-            [style.color]="getStatusColor(unidade.codigoStatusUnidade).text"
-            [title]="unidade.statusUnidade">
-            {{ unidade.statusUnidade }}
+              <div class="status-badge"
+                   [style.background]="getStatusColor(unidade.codigoStatusUnidade).border"
+                   [title]="unidade.statusUnidade">
+                <i class="pi pi-circle-fill"></i>
+              </div>
+
+              <div class="unidade-card__numero" [style.color]="getStatusColor(unidade.codigoStatusUnidade).text">
+                {{ formatarNumeroUnidade(unidade.unidade) }}
+              </div>
+
+              <div
+                class="unidade-card__status"
+                [style.color]="getStatusColor(unidade.codigoStatusUnidade).text"
+                [title]="unidade.statusUnidade">
+                {{ unidade.statusUnidade }}
+              </div>
+            </article>
           </div>
-        </article>
+        </section>
       </div>
     </section>
   </div>
@@ -72,14 +74,5 @@
     <button type="button" class="publico-feedback__button" (click)="recarregar()">
       Tentar novamente
     </button>
-  </div>
-
-  <div
-    class="ultima-atualizacao-badge"
-    *ngIf="!carregando && acompanhamento && ultimaAtualizacao"
-    pTooltip="Última atualização dos dados"
-    tooltipPosition="left">
-    <i class="pi pi-clock"></i>
-    <span>{{ ultimaAtualizacao }}</span>
   </div>
 </div>
