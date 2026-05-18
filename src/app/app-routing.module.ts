@@ -51,6 +51,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/usuarios/usuarios.module').then(m => m.UsuariosModule)
       },
       {
+        path: 'admin/sincronizacao',
+        loadChildren: () => import('./features/sincronizacao/sincronizacao.module').then(m => m.SincronizacaoModule)
+      },
+      {
         path: 'cadastros/corretores',
         loadChildren: () => import('./features/corretores/corretores.module').then(m => m.CorretoresModule)
       },

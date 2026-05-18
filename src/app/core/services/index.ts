@@ -20,3 +20,4 @@ export * from './cliente-totvs.service';
 export * from './proposta.service';
 export * from './proposta-state.service';
 export * from './analise-proposta.service';
+export * from './sincronizacao.service';

@@ -144,6 +144,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
             funcionalidade: Funcionalidade.PERFIL
           },
           {
+            label: 'Sincronização',
+            icon: 'pi pi-refresh',
+            routerLink: '/admin/sincronizacao',
+            funcionalidade: Funcionalidade.SINCRONIZACAO
+          },
+          {
             label: 'Usuários',
             icon: 'pi pi-user',
             routerLink: '/admin/usuarios',

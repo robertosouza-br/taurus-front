@@ -1,0 +1,229 @@
+<div class="sincronizacao-container">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <app-page-header
+    title="Sincronização de Empreendimentos e Unidades"
+    subtitle="Sincronize manualmente os registros da base interna com a fonte externa"
+    icon="pi pi-refresh"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <section class="sync-intro-card">
+    <div class="sync-intro-card__icon">
+      <i class="pi pi-info-circle"></i>
+    </div>
+    <div class="sync-intro-card__content">
+      <h3>Sobre a sincronização</h3>
+      <p>
+        Esta rotina sincroniza empreendimentos, blocos e unidades da fonte externa para a base interna do Taurus.
+        Use esta ação quando for necessário atualizar os dados manualmente fora da rotina automática diária.
+      </p>
+      <div class="sync-intro-card__meta">
+        <i class="pi pi-clock"></i>
+        <span><strong>Rotina automática:</strong> a sincronização diária continua ativa às 03:00.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sync-section">
+    <div class="sync-section__header">
+      <div>
+        <h3>Base interna</h3>
+        <p>Resumo consolidado da última atualização registrada.</p>
+      </div>
+    </div>
+
+    <div class="sync-feedback sync-feedback--loading" *ngIf="carregandoUltimaSincronizacao">
+      <p-progressSpinner
+        styleClass="w-2rem h-2rem"
+        strokeWidth="4"
+        animationDuration="1s">
+      </p-progressSpinner>
+      <span>Carregando última sincronização...</span>
+    </div>
+
+    <div
+      class="sync-feedback sync-feedback--warning"
+      *ngIf="!carregandoUltimaSincronizacao && ultimaSincronizacao && !ultimaSincronizacao.sincronizacaoRealizada">
+      <i class="pi pi-exclamation-triangle"></i>
+      <div>
+        <strong>Nenhuma sincronização registrada</strong>
+        <p>Não há sincronizações registradas na base interna. Execute uma sincronização manual para inicializar o sistema.</p>
+      </div>
+    </div>
+
+    <div
+      class="sync-overview"
+      *ngIf="!carregandoUltimaSincronizacao && ultimaSincronizacao && ultimaSincronizacao.sincronizacaoRealizada">
+      <div class="sync-highlight-card">
+        <div class="sync-highlight-card__icon">
+          <i class="pi pi-calendar"></i>
+        </div>
+        <div class="sync-highlight-card__content">
+          <span class="sync-highlight-card__label">Última sincronização</span>
+          <strong class="sync-highlight-card__value">{{ formatarDataHora(ultimaSincronizacao.dataHoraUltimaSincronizacao!) }}</strong>
+        </div>
+      </div>
+
+      <div class="grid sync-metrics-grid">
+        <div class="col-12 md:col-6 lg:col-4">
+          <article class="sync-metric-card sync-metric-card--blue">
+            <div class="sync-metric-card__header">
+              <span>Empreendimentos</span>
+              <i class="pi pi-building"></i>
+            </div>
+            <strong class="sync-metric-card__value">{{ ultimaSincronizacao.quantidadeEmpreendimentosAtivos }}</strong>
+            <span class="sync-metric-card__meta">Última atualização: {{ formatarDataHoraCurta(ultimaSincronizacao.dataHoraUltimaSincronizacaoEmpreendimentos!) }}</span>
+          </article>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-4">
+          <article class="sync-metric-card sync-metric-card--indigo">
+            <div class="sync-metric-card__header">
+              <span>Blocos</span>
+              <i class="pi pi-th-large"></i>
+            </div>
+            <strong class="sync-metric-card__value">{{ ultimaSincronizacao.quantidadeBlocosAtivos }}</strong>
+            <span class="sync-metric-card__meta">Última atualização: {{ formatarDataHoraCurta(ultimaSincronizacao.dataHoraUltimaSincronizacaoBlocos!) }}</span>
+          </article>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-4">
+          <article class="sync-metric-card sync-metric-card--orange">
+            <div class="sync-metric-card__header">
+              <span>Unidades</span>
+              <i class="pi pi-home"></i>
+            </div>
+            <strong class="sync-metric-card__value">{{ ultimaSincronizacao.quantidadeUnidadesAtivas }}</strong>
+            <span class="sync-metric-card__meta">Última atualização: {{ formatarDataHoraCurta(ultimaSincronizacao.dataHoraUltimaSincronizacaoUnidades!) }}</span>
+          </article>
+        </div>
+
+        <div class="col-12" *ngIf="ultimaSincronizacao.origemUltimaAtualizacaoUnidades">
+          <div class="sync-origin-card">
+            <i class="pi pi-tag"></i>
+            <span><strong>Origem da última atualização:</strong> {{ ultimaSincronizacao.origemUltimaAtualizacaoUnidades }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sync-section">
+    <div class="sync-section__header">
+      <div>
+        <h3>Sincronização manual</h3>
+        <p>Execute uma nova sincronização e acompanhe o resultado consolidado.</p>
+      </div>
+    </div>
+
+    <div class="sync-progress-card" *ngIf="sincronizando">
+      <p-progressSpinner
+        styleClass="w-4rem h-4rem"
+        strokeWidth="4"
+        animationDuration="1s">
+      </p-progressSpinner>
+      <h4>Sincronização em andamento</h4>
+      <p>Esta operação pode levar alguns minutos. Por favor, aguarde.</p>
+    </div>
+
+    <div class="sync-empty-card" *ngIf="!resultado && !sincronizando && ultimaSincronizacao && ultimaSincronizacao.sincronizacaoRealizada">
+      <div class="sync-empty-card__icon">
+        <i class="pi pi-refresh"></i>
+      </div>
+      <div>
+        <strong>Pronto para sincronizar</strong>
+        <p>Clique em <strong>Sincronizar Registros</strong> no topo da página para executar uma nova sincronização manual.</p>
+      </div>
+    </div>
+
+    <div class="sync-result" *ngIf="resultado && !sincronizando">
+      <div class="sync-result__header">
+        <div>
+          <h4>Resultado da última execução</h4>
+          <p>Executada em {{ formatarDataHora(resultado.dataHoraSincronizacao) }}</p>
+        </div>
+      </div>
+
+      <div class="grid sync-result-grid">
+        <div class="col-12 md:col-6 lg:col-3">
+          <article class="sync-summary-card sync-summary-card--blue">
+            <span class="sync-summary-card__label">Recebidos</span>
+            <strong class="sync-summary-card__value">{{ resultado.totalEmpreendimentosRecebidos }}</strong>
+            <i class="pi pi-inbox"></i>
+          </article>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+          <article class="sync-summary-card sync-summary-card--green">
+            <span class="sync-summary-card__label">Sucesso</span>
+            <strong class="sync-summary-card__value">{{ resultado.totalEmpreendimentosSincronizados }}</strong>
+            <i class="pi pi-check-circle"></i>
+          </article>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+          <article class="sync-summary-card sync-summary-card--red">
+            <span class="sync-summary-card__label">Com erro</span>
+            <strong class="sync-summary-card__value">{{ resultado.totalEmpreendimentosComErro }}</strong>
+            <i class="pi pi-times-circle"></i>
+          </article>
+        </div>
+
+        <div class="col-12 md:col-6 lg:col-3">
+          <article class="sync-summary-card sync-summary-card--purple">
+            <span class="sync-summary-card__label">Blocos</span>
+            <strong class="sync-summary-card__value">{{ resultado.totalBlocosSincronizados }}</strong>
+            <i class="pi pi-th-large"></i>
+          </article>
+        </div>
+
+        <div class="col-12">
+          <div class="sync-units-card">
+            <div class="sync-units-card__icon">
+              <i class="pi pi-home"></i>
+            </div>
+            <div>
+              <span class="sync-units-card__label">Total de unidades sincronizadas</span>
+              <strong class="sync-units-card__value">{{ resultado.totalUnidadesSincronizadas }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sync-table-section" *ngIf="resultado.itens && resultado.itens.length > 0">
+        <div class="sync-table-section__header">
+          <h4>Detalhamento por empreendimento</h4>
+          <span>{{ resultado.itens.length }} registro(s)</span>
+        </div>
+
+        <div class="sync-table-wrapper">
+          <app-data-table
+            [data]="resultado.itens"
+            [columns]="colunas"
+            [totalRecords]="resultado.itens.length"
+            [loading]="false"
+            [lazy]="false"
+            [paginator]="false">
+
+            <ng-template appTableTemplate="status" let-item="rowData">
+              <p-tag
+                [value]="item.status"
+                [severity]="getStatusSeverity(item.status)"
+                [icon]="getStatusIcon(item.status)">
+              </p-tag>
+            </ng-template>
+
+            <ng-template appTableTemplate="mensagem" let-item="rowData">
+              <span [class.text-red-600]="item.status === 'ERRO'">
+                {{ item.mensagem }}
+              </span>
+            </ng-template>
+          </app-data-table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
