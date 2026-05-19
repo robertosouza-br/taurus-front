@@ -6,8 +6,10 @@ import {
   LinkPublicoUnidadeTvSaidaDTO,
   LinksPublicosUnidadeBlocoPorTvSaidaDTO
 } from '../../../core/models/acompanhamento-unidades-publico.model';
+import { UltimaSincronizacaoEmpreendimentosSaidaDTO } from '../../../core/models/sincronizacao.model';
 import { Unidade } from '../../../core/models/unidade.model';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
+import { SincronizacaoService } from '../../../core/services/sincronizacao.service';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
@@ -25,11 +27,14 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
   quantidadeTvs = 1;
   linksGerados: LinksPublicosUnidadeBlocoPorTvSaidaDTO | null = null;
   breadcrumbItems: BreadcrumbItem[] = [];
+  carregandoResumoSincronizacao = false;
+  ultimaSincronizacao: UltimaSincronizacaoEmpreendimentosSaidaDTO | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private empreendimentoService: EmpreendimentoService,
+    private sincronizacaoService: SincronizacaoService,
     private messageService: MessageService
   ) {}
 
@@ -41,6 +46,7 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
     this.nomeEmpreendimento = state?.nomeEmpreendimento || '';
 
     this.configurarBreadcrumb();
+    this.carregarResumoSincronizacao();
     this.carregarBlocos();
   }
 
@@ -63,6 +69,11 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
 
   mostrarTodosBlocos(): void {
     this.blocosFiltrados = [...this.blocosDisponiveis];
+  }
+
+  atualizarDados(): void {
+    this.carregarResumoSincronizacao(true);
+    this.carregarBlocos();
   }
 
   carregarBlocos(): void {
@@ -108,6 +119,29 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
             summary: 'Erro',
             detail: error?.error?.message || 'Não foi possível carregar os blocos do empreendimento.'
           });
+        }
+      });
+  }
+
+  private carregarResumoSincronizacao(silencioso: boolean = false): void {
+    this.carregandoResumoSincronizacao = true;
+
+    this.sincronizacaoService.consultarUltimaSincronizacao()
+      .pipe(finalize(() => this.carregandoResumoSincronizacao = false))
+      .subscribe({
+        next: (dados) => {
+          this.ultimaSincronizacao = dados;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar resumo da sincronização:', error);
+
+          if (!silencioso) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Sincronização indisponível',
+              detail: 'Não foi possível consultar o resumo da última sincronização das unidades.'
+            });
+          }
         }
       });
   }
@@ -193,6 +227,20 @@ export class EmpreendimentoLinksPublicosComponent implements OnInit {
   voltarParaMapaUnidades(): void {
     void this.router.navigate(['/empreendimentos', this.codigoEmpreendimento, 'unidades'], {
       state: { nomeEmpreendimento: this.nomeEmpreendimento }
+    });
+  }
+
+  formatarDataHoraCurta(dataHora: string | null): string {
+    if (!dataHora) {
+      return '-';
+    }
+
+    return new Date(dataHora).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 

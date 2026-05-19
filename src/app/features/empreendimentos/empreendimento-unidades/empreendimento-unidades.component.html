@@ -12,6 +12,14 @@
 
   <div *ngIf="!modoPainel" class="painel-action-bar">
     <app-custom-button
+      icon="pi pi-info-circle"
+      severity="warning"
+      [rounded]="true"
+      [raised]="true"
+      styleClass="sync-info-trigger"
+      (onClick)="displayInfoSincronizacao = true">
+    </app-custom-button>
+    <app-custom-button
       label="Link TV"
       icon="pi pi-share-alt"
       styleClass="p-button-outlined"
@@ -40,7 +48,7 @@
       <i class="pi pi-home"></i>
     </div>
     <h3>Nenhuma unidade encontrada</h3>
-    <p>Este empreendimento não possui unidades cadastradas no momento</p>
+    <p>Este empreendimento não possui unidades ativas na base interna no momento. Verifique se a sincronização mais recente já foi executada.</p>
   </div>
 
   <!-- Conteúdo Principal -->
@@ -176,6 +184,62 @@
     </div>
   </div>
 </div>
+
+<p-dialog
+  *ngIf="!modoPainel"
+  [(visible)]="displayInfoSincronizacao"
+  [header]="'Origem dos dados'
+"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{width: '560px'}"
+  [breakpoints]="{'960px': '75vw', '640px': '95vw'}">
+
+  <div class="sync-info-dialog" *ngIf="ultimaSincronizacao; else syncInfoIndisponivel">
+    <div class="sync-info-dialog__intro">
+      <i class="pi pi-database"></i>
+      <div>
+        <strong>Consulta baseada na base interna sincronizada</strong>
+        <p *ngIf="ultimaSincronizacao.sincronizacaoRealizada; else semSincronizacaoRegistrada">
+          As unidades exibidas refletem a última sincronização interna em {{ formatarDataHoraCurta(ultimaSincronizacao.dataHoraUltimaSincronizacaoUnidades) }}.
+          Apenas registros ativos são retornados para esta tela.
+        </p>
+      </div>
+    </div>
+
+    <ng-template #semSincronizacaoRegistrada>
+      <p>As unidades desta tela dependem da sincronização interna. Ainda não há uma execução registrada para carregar esse contexto.</p>
+    </ng-template>
+
+    <div class="sync-info-dialog__meta" *ngIf="ultimaSincronizacao.sincronizacaoRealizada">
+      <span>
+        <i class="pi pi-home"></i>
+        {{ ultimaSincronizacao.quantidadeUnidadesAtivas }} unidade{{ ultimaSincronizacao.quantidadeUnidadesAtivas !== 1 ? 's' : '' }} ativa{{ ultimaSincronizacao.quantidadeUnidadesAtivas !== 1 ? 's' : '' }}
+      </span>
+      <span *ngIf="ultimaSincronizacao.origemUltimaAtualizacaoUnidades">
+        <i class="pi pi-tag"></i>
+        Origem: {{ ultimaSincronizacao.origemUltimaAtualizacaoUnidades }}
+      </span>
+    </div>
+  </div>
+
+  <ng-template #syncInfoIndisponivel>
+    <div class="sync-info-dialog sync-info-dialog--empty">
+      <i class="pi pi-info-circle"></i>
+      <p>Não foi possível carregar as informações da sincronização neste momento.</p>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <app-custom-button
+      label="Fechar"
+      icon="pi pi-times"
+      styleClass="p-button-text"
+      (onClick)="displayInfoSincronizacao = false">
+    </app-custom-button>
+  </ng-template>
+</p-dialog>
 
 <!-- Dialog de Filtros -->
 <p-dialog 
@@ -333,11 +397,10 @@
   (click)="voltarAoTopo()">
 </button>
 
-<!-- Label de Última Atualização -->
-<div class="ultima-atualizacao-badge" 
+<div class="ultima-atualizacao-badge"
   *ngIf="!carregando && unidades.length > 0 && ultimaAtualizacao"
-     pTooltip="Última atualização dos dados"
-     tooltipPosition="left">
+  pTooltip="Última atualização dos dados"
+  tooltipPosition="left">
   <i class="pi pi-clock"></i>
   <span>{{ ultimaAtualizacao }}</span>
 </div>

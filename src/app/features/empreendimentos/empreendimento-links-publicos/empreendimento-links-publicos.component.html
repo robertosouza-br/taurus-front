@@ -7,6 +7,32 @@
     icon="pi pi-share-alt">
   </app-page-header>
 
+  <section *ngIf="ultimaSincronizacao" class="sync-context-card">
+    <div class="sync-context-card__icon">
+      <i class="pi pi-database"></i>
+    </div>
+    <div class="sync-context-card__content">
+      <strong>Links gerados a partir da base interna sincronizada</strong>
+      <p *ngIf="ultimaSincronizacao.sincronizacaoRealizada; else semSincronizacaoLinks">
+        Os blocos e unidades disponíveis nesta tela refletem a última sincronização interna em {{ formatarDataHoraCurta(ultimaSincronizacao.dataHoraUltimaSincronizacaoUnidades) }}.
+        Apenas registros ativos entram na geração dos links.
+      </p>
+      <ng-template #semSincronizacaoLinks>
+        <p>Ainda não há sincronização registrada para disponibilizar o contexto interno de unidades desta tela.</p>
+      </ng-template>
+      <div class="sync-context-card__meta" *ngIf="ultimaSincronizacao.sincronizacaoRealizada">
+        <span>
+          <i class="pi pi-home"></i>
+          {{ ultimaSincronizacao.quantidadeUnidadesAtivas }} unidade{{ ultimaSincronizacao.quantidadeUnidadesAtivas !== 1 ? 's' : '' }} ativa{{ ultimaSincronizacao.quantidadeUnidadesAtivas !== 1 ? 's' : '' }}
+        </span>
+        <span *ngIf="ultimaSincronizacao.origemUltimaAtualizacaoUnidades">
+          <i class="pi pi-tag"></i>
+          Origem: {{ ultimaSincronizacao.origemUltimaAtualizacaoUnidades }}
+        </span>
+      </div>
+    </div>
+  </section>
+
   <app-loading-spinner
     *ngIf="carregando"
     [overlay]="true"
@@ -17,11 +43,20 @@
     <div class="config-card__header">
       <div>
         <p class="config-card__eyebrow">Configuração da exibição</p>
-        <h3></h3>
+        <h3>Distribua as unidades ativas por bloco e gere os links públicos por TV.</h3>
       </div>
-      <div class="config-card__badge">
-        <i class="pi pi-desktop"></i>
-        <span>Geração por TV</span>
+      <div class="config-card__header-actions">
+        <div class="config-card__badge">
+          <i class="pi pi-desktop"></i>
+          <span>Geração por TV</span>
+        </div>
+        <app-custom-button
+          label="Atualizar dados"
+          icon="pi pi-refresh"
+          styleClass="p-button-outlined"
+          [loading]="carregando || carregandoResumoSincronizacao"
+          (onClick)="atualizarDados()">
+        </app-custom-button>
       </div>
     </div>
 
@@ -93,7 +128,7 @@
       <i class="pi pi-share-alt"></i>
     </div>
     <h3>Nenhum bloco disponível</h3>
-    <p>Este empreendimento ainda não possui unidades suficientes para geração de links públicos por TV.</p>
+    <p>Este empreendimento ainda não possui unidades ativas suficientes na base interna para gerar links públicos por TV.</p>
   </div>
 
   <section *ngIf="!carregando && linksGerados as dados" class="resultado-shell">

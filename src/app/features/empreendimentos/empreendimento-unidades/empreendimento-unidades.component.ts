@@ -4,6 +4,8 @@ import { MessageService } from 'primeng/api';
 import { finalize } from 'rxjs/operators';
 import { EmpreendimentoService } from '../../../core/services/empreendimento.service';
 import { PermissaoService } from '../../../core/services/permissao.service';
+import { SincronizacaoService } from '../../../core/services/sincronizacao.service';
+import { UltimaSincronizacaoEmpreendimentosSaidaDTO } from '../../../core/models/sincronizacao.model';
 import { Unidade, getStatusColors, getStatusLabel } from '../../../core/models/unidade.model';
 import { Funcionalidade } from '../../../core/enums/funcionalidade.enum';
 import { Permissao } from '../../../core/enums/permissao.enum';
@@ -81,6 +83,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   // Dialogs
   displayDetalhesUnidade = false;
   displayLegenda = false;
+  displayInfoSincronizacao = false;
   unidadeSelecionada: Unidade | null = null;
   
   // Auto-refresh
@@ -89,6 +92,8 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
   private speedDialColorFramePending = false;
   ultimaAtualizacao: string = '';
   exibirBotaoVoltarTopo = false;
+  carregandoResumoSincronizacao = false;
+  ultimaSincronizacao: UltimaSincronizacaoEmpreendimentosSaidaDTO | null = null;
   
   breadcrumbItems: BreadcrumbItem[] = [];
 
@@ -96,6 +101,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private empreendimentoService: EmpreendimentoService,
+    private sincronizacaoService: SincronizacaoService,
     private permissaoService: PermissaoService,
     private messageService: MessageService
   ) {}
@@ -137,6 +143,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     
     this.configurarBreadcrumb();
     this.carregar();
+    this.carregarResumoSincronizacao();
     this.iniciarAutoRefresh();
     this.iniciarObservadorSpeedDial();
     window.addEventListener('scroll', this.atualizarVisibilidadeBotaoTopo, { passive: true });
@@ -162,19 +169,13 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       behavior: 'smooth'
     });
   }
-  
-  /**
-   * Inicia atualização automática a cada 10 segundos
-   */
+
   private iniciarAutoRefresh(): void {
     this.autoRefreshInterval = setInterval(() => {
-      this.carregar(true); // true = refresh silencioso
-    }, 10000); // 10 segundos
+      this.atualizarDados(true);
+    }, 10000);
   }
-  
-  /**
-   * Para a atualização automática
-   */
+
   private pararAutoRefresh(): void {
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
@@ -225,8 +226,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
           
           // Inicializa menu de filtros com status reais
           this.inicializarMenuFiltros();
-          
-          // Atualiza horário da última atualização
+
           this.atualizarHorario();
           
           // Restaura posição do scroll após atualização (apenas em modo silencioso)
@@ -250,6 +250,43 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
               severity: 'error',
               summary: 'Erro',
               detail: 'Não foi possível carregar as unidades'
+            });
+          }
+        }
+      });
+  }
+
+  private atualizarHorario(): void {
+    const agora = new Date();
+    this.ultimaAtualizacao = agora.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+
+  atualizarDados(silencioso: boolean = false): void {
+    this.carregar(true);
+    this.carregarResumoSincronizacao(silencioso);
+  }
+
+  private carregarResumoSincronizacao(silencioso: boolean = false): void {
+    this.carregandoResumoSincronizacao = true;
+
+    this.sincronizacaoService.consultarUltimaSincronizacao()
+      .pipe(finalize(() => this.carregandoResumoSincronizacao = false))
+      .subscribe({
+        next: (dados) => {
+          this.ultimaSincronizacao = dados;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar resumo da sincronização:', error);
+
+          if (!silencioso) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Sincronização indisponível',
+              detail: 'Não foi possível consultar o resumo da última sincronização das unidades.'
             });
           }
         }
@@ -877,15 +914,17 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     return 'secondary';
   }
   
-  /**
-   * Atualiza horário da última atualização
-   */
-  private atualizarHorario(): void {
-    const agora = new Date();
-    this.ultimaAtualizacao = agora.toLocaleTimeString('pt-BR', {
+  formatarDataHoraCurta(dataHora: string | null): string {
+    if (!dataHora) {
+      return '-';
+    }
+
+    return new Date(dataHora).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit'
     });
   }
 
@@ -910,13 +949,6 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     this.irParaReserva(unidade);
   }
   
-  /**
-   * Retorna se há auto-refresh ativo (para mostrar indicador na UI se necessário)
-   */
-  get autoRefreshAtivo(): boolean {
-    return this.autoRefreshInterval !== null;
-  }
-
   /**
    * TrackBy function para otimização de *ngFor de status
    */

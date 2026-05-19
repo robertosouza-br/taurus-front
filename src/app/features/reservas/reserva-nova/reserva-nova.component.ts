@@ -1841,11 +1841,59 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
           });
         },
         error: (err) => {
+          if (err?.status === 409) {
+            this.tratarConflitoAoSalvarReserva(err);
+            return;
+          }
+
           const msg = err?.error?.message || 'Não foi possível criar a reserva.';
           this.messageService.add({
             severity: 'error',
             summary: 'Erro',
             detail: msg
+          });
+        }
+      });
+  }
+
+  private tratarConflitoAoSalvarReserva(err: any): void {
+    this.unidadeBloqueada = false;
+
+    if (this.countdownTimer) {
+      this.countdownTimer.pausar();
+    }
+
+    const mensagemPadrao = err?.error?.message || 'A unidade está bloqueada por outro usuário no momento.';
+
+    this.reservaBloqueioService.consultarStatus(
+      this.codEmpreendimento,
+      this.bloco,
+      this.unidade
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (status) => {
+          const detail = status?.bloqueado
+            ? `Esta unidade está em uso por outro usuário. Tente novamente em ${this.formatarTempo(status.tempoRestanteSegundos)}.`
+            : mensagemPadrao;
+
+          this.appConfirmationService.alert(
+            'Unidade Indisponível',
+            detail,
+            'danger',
+            'pi pi-lock'
+          ).subscribe(() => {
+            this.voltar();
+          });
+        },
+        error: () => {
+          this.appConfirmationService.alert(
+            'Conflito de Reserva',
+            mensagemPadrao,
+            'danger',
+            'pi pi-lock'
+          ).subscribe(() => {
+            this.voltar();
           });
         }
       });
