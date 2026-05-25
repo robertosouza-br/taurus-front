@@ -77,8 +77,12 @@
     [rows]="50"
     (onLazyLoad)="onLazyLoad($event)">
 
-    <ng-template appTableTemplate="tipoProfissional" let-item="rowData">
-      <span>{{ getTipoProfissionalLabel(item.tipoProfissional) }}</span>
+    <ng-template appTableTemplate="telefone" let-item="rowData">
+      <span>{{ item.telefone | telefone }}</span>
+    </ng-template>
+
+    <ng-template appTableTemplate="cpf" let-item="rowData">
+      <span>{{ item.cpf | cpf }}</span>
     </ng-template>
 
     <ng-template appTableTemplate="ativo" let-item="rowData">

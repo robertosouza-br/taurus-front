@@ -30,8 +30,6 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   imobiliariaPrincipalId: number | null = null;
   breadcrumbItems: BreadcrumbItem[] = [];
   imobiliariaOptions: { label: string; value: number }[] = [];
-  imobiliariaFiltradas: { label: string; value: number }[] = [];
-  imobiliariaPrincipalFiltradas: { label: string; value: number }[] = [];
 
   constructor(
     private profissionalService: ProfissionalService,
@@ -120,49 +118,6 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
     this.tentouSalvar = false;
   }
 
-  onImobiliariasAlteradas(): void {
-    const ids = this.normalizarImobiliariaIds();
-    this.imobiliariaIds = ids;
-
-    if (this.imobiliariaPrincipalId && !ids.includes(this.imobiliariaPrincipalId)) {
-      this.imobiliariaPrincipalId = null;
-    }
-
-    if (!this.imobiliariaPrincipalId && ids.length === 1) {
-      this.imobiliariaPrincipalId = ids[0];
-    }
-
-    this.carregarTodasImobiliariasPrincipais();
-  }
-
-  filtrarImobiliarias(event: { query?: string }): void {
-    const query = (event.query || '').toLowerCase().trim();
-    this.imobiliariaFiltradas = !query
-      ? [...this.imobiliariaOptions]
-      : this.imobiliariaOptions.filter(item => item.label.toLowerCase().includes(query));
-  }
-
-  carregarTodasImobiliarias(): void {
-    this.imobiliariaFiltradas = [...this.imobiliariaOptions];
-  }
-
-  filtrarImobiliariasPrincipais(event: { query?: string }): void {
-    const query = (event.query || '').toLowerCase().trim();
-    const options = this.imobiliariasPrincipalOptions;
-
-    this.imobiliariaPrincipalFiltradas = !query
-      ? [...options]
-      : options.filter(item => item.label.toLowerCase().includes(query));
-  }
-
-  carregarTodasImobiliariasPrincipais(): void {
-    this.imobiliariaPrincipalFiltradas = [...this.imobiliariasPrincipalOptions];
-  }
-
-  get imobiliariasPrincipalOptions(): { label: string; value: number }[] {
-    return this.imobiliariaOptions.filter(option => this.imobiliariaIds.includes(option.value));
-  }
-
   protected getCamposObrigatorios(): Array<{ id: string; valor: any; label?: string }> {
     return [
       { id: 'nomeProfissional', valor: this.nome, label: 'Nome' },
@@ -204,8 +159,6 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
             label: imobiliaria.nomeFantasia,
             value: imobiliaria.id
           }));
-        this.imobiliariaFiltradas = [...this.imobiliariaOptions];
-        this.carregarTodasImobiliariasPrincipais();
       },
       error: () => {
         this.messageService.add({
@@ -251,7 +204,6 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
     this.ativo = profissional.ativo;
     this.imobiliariaIds = (profissional.imobiliarias || []).map(item => item.imobiliariaId);
     this.imobiliariaPrincipalId = (profissional.imobiliarias || []).find(item => item.principal)?.imobiliariaId || null;
-    this.carregarTodasImobiliariasPrincipais();
   }
 
   private montarPayload(): ProfissionalCreateDTO {

@@ -214,15 +214,8 @@ export class ProfissionaisListaComponent extends BaseListComponent implements On
     this.colunas = [
       { field: 'nome', header: 'Nome', sortable: false },
       { field: 'nomeGuerra', header: 'Nome de Guerra', sortable: false },
-      { field: 'telefone', header: 'Telefone', width: '160px', sortable: false },
-      { field: 'cpf', header: 'CPF', width: '140px', sortable: false },
-      {
-        field: 'tipoProfissional',
-        header: 'Tipo',
-        width: '170px',
-        align: 'center',
-        template: 'tipoProfissional'
-      },
+      { field: 'telefone', header: 'Telefone', width: '160px', sortable: false, template: 'telefone' },
+      { field: 'cpf', header: 'CPF', width: '140px', sortable: false, template: 'cpf' },
       {
         field: 'ativo',
         header: 'Status',

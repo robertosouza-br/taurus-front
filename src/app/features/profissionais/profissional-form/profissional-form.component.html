@@ -73,19 +73,10 @@
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
-
-        <div class="col-12 md:col-4 flex align-items-center">
-          <p-checkbox
-            [(ngModel)]="ativo"
-            [binary]="true"
-            inputId="ativoProfissional"
-            label="Profissional ativo">
-          </p-checkbox>
-        </div>
       </div>
     </p-card>
 
-    <p-card header="Vínculos com Imobiliárias" styleClass="mt-3">
+    <p-card *ngIf="modoEdicao" header="Vínculos com Imobiliárias" styleClass="mt-3">
       <div class="grid">
         <div class="col-12 md:col-6">
           <app-multi-select
@@ -95,25 +86,10 @@
             [options]="imobiliariaOptions"
             optionLabel="label"
             optionValue="value"
+            [disabled]="true"
             [showValidation]="tentouSalvar"
-            [filter]="true"
-            (onChange)="onImobiliariasAlteradas()">
+            [filter]="true">
           </app-multi-select>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <app-autocomplete
-            id="imobiliariaPrincipalProfissional"
-            label="Imobiliária Principal"
-            [(ngModel)]="imobiliariaPrincipalId"
-            [suggestions]="imobiliariaPrincipalFiltradas"
-            (completeMethod)="filtrarImobiliariasPrincipais($event)"
-            (onDropdownClick)="carregarTodasImobiliariasPrincipais()"
-            field="label"
-            dataKey="value"
-            placeholder="Selecione"
-            [disabled]="!imobiliariaIds.length">
-          </app-autocomplete>
         </div>
       </div>
 
