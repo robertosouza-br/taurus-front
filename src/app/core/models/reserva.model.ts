@@ -126,6 +126,8 @@ export interface ProfissionalReservaDTO {
   profissionalId?: number | null;
   corretorId?: number | null;
   cpfCorretor?: string | null;
+  telefone?: string | null;
+  whatsapp?: string | null;
   nomeCorretor: string;
   imobiliariaId?: number;
   nomeImobiliaria?: string;

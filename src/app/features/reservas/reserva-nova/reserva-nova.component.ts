@@ -43,6 +43,7 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 /** Estado de um profissional no formulário */
 interface ProfissionalForm {
   tipoProfissional: { label: string; value: TipoProfissional } | null;
+  obrigatorio: boolean;
   profissional: ProfissionalDTO | null;
   profissionalId: number | null;
   profissionalTelefoneBusca: string;
@@ -260,8 +261,8 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     // Define data da reserva como hoje por padrão
     this.dataReserva = new Date();
 
-    // Inicializa com 1 profissional vazio na principal
-    this.adicionarProfissional('principal');
+    // Inicializa com os tipos obrigatórios na principal
+    this.profissionaisPrincipal = this.criarProfissionaisObrigatorios();
   }
 
   ngOnDestroy(): void {
@@ -793,9 +794,21 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
 
   // ─── Profissionais ────────────────────────────────────────────────────────
 
-  adicionarProfissional(tipo: 'principal' | 'secundaria'): void {
-    const novo: ProfissionalForm = {
-      tipoProfissional: null,
+  private getTiposProfissionaisObrigatorios(): TipoProfissional[] {
+    return [
+      TipoProfissional.CORRETOR,
+      TipoProfissional.GERENTE,
+      TipoProfissional.DIRETOR,
+      TipoProfissional.DIRETOR_EQUIPE
+    ];
+  }
+
+  private criarProfissionalForm(tipoProfissional?: TipoProfissional, obrigatorio: boolean = !!tipoProfissional): ProfissionalForm {
+    return {
+      tipoProfissional: tipoProfissional
+        ? this.tiposProfissionalOptions.find(o => o.value === tipoProfissional) || null
+        : null,
+      obrigatorio,
       profissional: null,
       profissionalId: null,
       profissionalTelefoneBusca: '',
@@ -807,6 +820,47 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       ultimoTelefoneBuscado: '',
       corretorNaoEncontrado: false
     };
+  }
+
+  private criarProfissionaisObrigatorios(): ProfissionalForm[] {
+    return this.getTiposProfissionaisObrigatorios().map(tipo => this.criarProfissionalForm(tipo, true));
+  }
+
+  private garantirProfissionaisObrigatorios(profissionais: ProfissionalForm[]): ProfissionalForm[] {
+    const obrigatorios = this.getTiposProfissionaisObrigatorios();
+    const existentes = [...(profissionais || [])].map(prof => ({ ...prof, obrigatorio: false }));
+    const usados = new Set<number>();
+
+    const obrigatoriosOrdenados = obrigatorios.map(tipo => {
+      const indexExistente = existentes.findIndex((prof, index) => !usados.has(index) && prof.tipoProfissional?.value === tipo);
+
+      if (indexExistente >= 0) {
+        usados.add(indexExistente);
+        return { ...existentes[indexExistente], obrigatorio: true };
+      }
+
+      return this.criarProfissionalForm(tipo, true);
+    });
+
+    const extras = existentes
+      .filter((_, index) => !usados.has(index))
+      .map(prof => ({ ...prof, obrigatorio: false }));
+
+    return [...obrigatoriosOrdenados, ...extras];
+  }
+
+  isProfissionalObrigatorio(prof: ProfissionalForm): boolean {
+    return prof.obrigatorio;
+  }
+
+  onImobiliariaSecundariaAlterada(): void {
+    if (this.imobiliariaSecundariaSelecionada && this.profissionaisSecundaria.length === 0) {
+      this.profissionaisSecundaria = [this.criarProfissionalForm()];
+    }
+  }
+
+  adicionarProfissional(tipo: 'principal' | 'secundaria'): void {
+    const novo = this.criarProfissionalForm();
 
     if (tipo === 'principal') {
       this.profissionaisPrincipal.push(novo);
@@ -816,11 +870,14 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   }
 
   removerProfissional(index: number, tipo: 'principal' | 'secundaria'): void {
-    if (tipo === 'principal') {
-      this.profissionaisPrincipal.splice(index, 1);
-    } else {
-      this.profissionaisSecundaria.splice(index, 1);
+    const lista = tipo === 'principal' ? this.profissionaisPrincipal : this.profissionaisSecundaria;
+    const profissional = lista[index];
+
+    if (!profissional || profissional.obrigatorio) {
+      return;
     }
+
+    lista.splice(index, 1);
   }
 
   isCorretor(prof: ProfissionalForm): boolean {
@@ -1196,7 +1253,9 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
   }
 
   private aplicarProfissionalNoFormulario(profForm: ProfissionalForm, profissional: ProfissionalDTO): void {
-    const tipoProfissional = profissional.tipoProfissional || profForm.tipoProfissional?.value || null;
+    const tipoProfissional = profForm.obrigatorio
+      ? profForm.tipoProfissional?.value || null
+      : profissional.tipoProfissional || profForm.tipoProfissional?.value || null;
 
     profForm.profissional = profissional;
     profForm.profissionalId = profissional.id;
@@ -1288,6 +1347,10 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
       return false;
     }
 
+    if (!this.validarTiposProfissionaisObrigatorios(this.profissionaisPrincipal, 'principal')) {
+      return false;
+    }
+
     for (let i = 0; i < this.profissionaisPrincipal.length; i++) {
       if (!this.validarLinhaProfissional(this.profissionaisPrincipal[i], i, 'principal')) {
         return false;
@@ -1312,6 +1375,32 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     }
 
     return true;
+  }
+
+  private validarTiposProfissionaisObrigatorios(
+    profissionais: ProfissionalForm[],
+    tipo: 'principal' | 'secundaria'
+  ): boolean {
+    const faltantes = this.getTiposProfissionaisObrigatorios().filter(tipoObrigatorio =>
+      !profissionais.some(prof => prof.tipoProfissional?.value === tipoObrigatorio)
+    );
+
+    if (!faltantes.length) {
+      return true;
+    }
+
+    const contexto = tipo === 'principal' ? 'Principal' : 'Secundária';
+    const nomes = faltantes
+      .map(tipoObrigatorio => TIPO_PROFISSIONAL_LABELS[tipoObrigatorio])
+      .join(', ');
+
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Profissionais obrigatórios',
+      detail: `Informe todos os profissionais obrigatórios da Imobiliária ${contexto}: ${nomes}.`
+    });
+
+    return false;
   }
 
   consultarClienteTotvs(exibirMensagemSucesso: boolean = true, aoFinalizar?: () => void): void {
@@ -1937,8 +2026,7 @@ export class ReservaNovaComponent extends BaseFormComponent implements OnInit, O
     this.imobiliariaPrincipalSelecionada = null;
     this.tipoContatoPrincipalSelecionado = null;
     this.contatoPrincipal = '';
-    this.profissionaisPrincipal = [];
-    this.adicionarProfissional('principal');
+    this.profissionaisPrincipal = this.criarProfissionaisObrigatorios();
 
     this.exibirSecundaria = false;
     this.imobiliariaSecundariaSelecionada = null;

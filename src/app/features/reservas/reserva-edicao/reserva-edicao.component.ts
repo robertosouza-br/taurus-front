@@ -43,6 +43,7 @@ import { Permissao } from '../../../core/enums/permissao.enum';
 
 interface ProfissionalForm {
   tipoProfissional: { label: string; value: TipoProfissional } | null;
+  obrigatorio: boolean;
   profissional: ProfissionalDTO | null;
   profissionalId: number | null;
   profissionalTelefoneBusca: string;
@@ -343,9 +344,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
     this.profissionaisPrincipal = (r.profissionaisPrincipal || []).map(p => ({
       tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === p.tipoProfissional) || null,
+      obrigatorio: false,
       profissional: null,
       profissionalId: p.profissionalId || null,
-      profissionalTelefoneBusca: '',
+      profissionalTelefoneBusca: this.normalizarTelefone(p.whatsapp || p.telefone || ''),
       corretorId: p.corretorId || null,
       corretorCpfBusca: p.cpfCorretor || '',
       corretorNomeManual: p.nomeCorretor,
@@ -354,10 +356,7 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       ultimoTelefoneBuscado: '',
       corretorNaoEncontrado: false
     }));
-
-    if (this.profissionaisPrincipal.length === 0) {
-      this.adicionarProfissional('principal');
-    }
+    this.profissionaisPrincipal = this.garantirProfissionaisObrigatorios(this.profissionaisPrincipal);
 
     // Imobiliária secundária
     if (r.imobiliariaSecundariaId) {
@@ -378,9 +377,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
       this.profissionaisSecundaria = (r.profissionaisSecundaria || []).map(p => ({
         tipoProfissional: this.tiposProfissionalOptions.find(o => o.value === p.tipoProfissional) || null,
+        obrigatorio: false,
         profissional: null,
         profissionalId: p.profissionalId || null,
-        profissionalTelefoneBusca: '',
+        profissionalTelefoneBusca: this.normalizarTelefone(p.whatsapp || p.telefone || ''),
         corretorId: p.corretorId || null,
         corretorCpfBusca: p.cpfCorretor || '',
         corretorNomeManual: p.nomeCorretor,
@@ -389,6 +389,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
         ultimoTelefoneBuscado: '',
         corretorNaoEncontrado: false
       }));
+
+      if (!this.profissionaisSecundaria.length) {
+        this.profissionaisSecundaria = [this.criarProfissionalForm()];
+      }
     }
 
     this.observacoes = r.observacoes || '';
@@ -802,9 +806,21 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
 
   // ─── Profissionais ────────────────────────────────────────────────────────
 
-  adicionarProfissional(tipo: 'principal' | 'secundaria'): void {
-    const novo: ProfissionalForm = {
-      tipoProfissional: null, // Usuário deve selecionar o tipo
+  private getTiposProfissionaisObrigatorios(): TipoProfissional[] {
+    return [
+      TipoProfissional.CORRETOR,
+      TipoProfissional.GERENTE,
+      TipoProfissional.DIRETOR,
+      TipoProfissional.DIRETOR_EQUIPE
+    ];
+  }
+
+  private criarProfissionalForm(tipoProfissional?: TipoProfissional, obrigatorio: boolean = !!tipoProfissional): ProfissionalForm {
+    return {
+      tipoProfissional: tipoProfissional
+        ? this.tiposProfissionalOptions.find(o => o.value === tipoProfissional) || null
+        : null,
+      obrigatorio,
       profissional: null,
       profissionalId: null,
       profissionalTelefoneBusca: '',
@@ -816,6 +832,43 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       ultimoTelefoneBuscado: '',
       corretorNaoEncontrado: false
     };
+  }
+
+  private garantirProfissionaisObrigatorios(profissionais: ProfissionalForm[]): ProfissionalForm[] {
+    const obrigatorios = this.getTiposProfissionaisObrigatorios();
+    const existentes = [...(profissionais || [])].map(prof => ({ ...prof, obrigatorio: false }));
+    const usados = new Set<number>();
+
+    const obrigatoriosOrdenados = obrigatorios.map(tipo => {
+      const indexExistente = existentes.findIndex((prof, index) => !usados.has(index) && prof.tipoProfissional?.value === tipo);
+
+      if (indexExistente >= 0) {
+        usados.add(indexExistente);
+        return { ...existentes[indexExistente], obrigatorio: true };
+      }
+
+      return this.criarProfissionalForm(tipo, true);
+    });
+
+    const extras = existentes
+      .filter((_, index) => !usados.has(index))
+      .map(prof => ({ ...prof, obrigatorio: false }));
+
+    return [...obrigatoriosOrdenados, ...extras];
+  }
+
+  isProfissionalObrigatorio(prof: ProfissionalForm): boolean {
+    return prof.obrigatorio;
+  }
+
+  onImobiliariaSecundariaAlterada(): void {
+    if (this.imobiliariaSecundariaSelecionada && this.profissionaisSecundaria.length === 0) {
+      this.profissionaisSecundaria = [this.criarProfissionalForm()];
+    }
+  }
+
+  adicionarProfissional(tipo: 'principal' | 'secundaria'): void {
+    const novo = this.criarProfissionalForm();
     if (tipo === 'principal') {
       this.profissionaisPrincipal.push(novo);
     } else {
@@ -824,11 +877,14 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   removerProfissional(index: number, tipo: 'principal' | 'secundaria'): void {
-    if (tipo === 'principal') {
-      this.profissionaisPrincipal.splice(index, 1);
-    } else {
-      this.profissionaisSecundaria.splice(index, 1);
+    const lista = tipo === 'principal' ? this.profissionaisPrincipal : this.profissionaisSecundaria;
+    const profissional = lista[index];
+
+    if (!profissional || profissional.obrigatorio) {
+      return;
     }
+
+    lista.splice(index, 1);
   }
 
   /**
@@ -1211,7 +1267,9 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
   }
 
   private aplicarProfissionalNoFormulario(profForm: ProfissionalForm, profissional: ProfissionalDTO): void {
-    const tipoProfissional = profissional.tipoProfissional || profForm.tipoProfissional?.value || null;
+    const tipoProfissional = profForm.obrigatorio
+      ? profForm.tipoProfissional?.value || null
+      : profissional.tipoProfissional || profForm.tipoProfissional?.value || null;
 
     profForm.profissional = profissional;
     profForm.profissionalId = profissional.id;
@@ -1374,6 +1432,10 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
       return false;
     }
 
+    if (!this.validarTiposProfissionaisObrigatorios(this.profissionaisPrincipal, 'principal')) {
+      return false;
+    }
+
     for (let i = 0; i < this.profissionaisPrincipal.length; i++) {
       if (!this.validarLinhaProfissional(this.profissionaisPrincipal[i], i, 'principal')) {
         return false;
@@ -1398,6 +1460,32 @@ export class ReservaEdicaoComponent extends BaseFormComponent implements OnInit,
     }
 
     return true;
+  }
+
+  private validarTiposProfissionaisObrigatorios(
+    profissionais: ProfissionalForm[],
+    tipo: 'principal' | 'secundaria'
+  ): boolean {
+    const faltantes = this.getTiposProfissionaisObrigatorios().filter(tipoObrigatorio =>
+      !profissionais.some(prof => prof.tipoProfissional?.value === tipoObrigatorio)
+    );
+
+    if (!faltantes.length) {
+      return true;
+    }
+
+    const contexto = tipo === 'principal' ? 'Principal' : 'Secundária';
+    const nomes = faltantes
+      .map(tipoObrigatorio => TIPO_PROFISSIONAL_LABELS[tipoObrigatorio])
+      .join(', ');
+
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Profissionais obrigatórios',
+      detail: `Informe todos os profissionais obrigatórios da Imobiliária ${contexto}: ${nomes}.`
+    });
+
+    return false;
   }
 
   consultarClienteTotvs(exibirMensagemSucesso: boolean = true, aoFinalizar?: () => void): void {

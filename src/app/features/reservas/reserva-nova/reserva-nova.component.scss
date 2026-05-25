@@ -307,7 +307,7 @@
         margin-bottom: 0 !important;
       }
 
-      ::ng-deep .input-text-field {
+      ::ng-deep .input-text-container {
         margin-bottom: 0 !important;
       }
 
@@ -320,11 +320,22 @@
         width: 100%;
       }
 
+      ::ng-deep app-autocomplete,
+      ::ng-deep app-input-text,
+      ::ng-deep app-input-telefone {
+        display: block;
+        width: 100%;
+      }
+
+      ::ng-deep .autocomplete-field,
+      ::ng-deep .autocomplete-field .p-float-label,
+      ::ng-deep .autocomplete-field .p-autocomplete,
+      ::ng-deep .autocomplete-field .p-autocomplete-input,
       ::ng-deep .input-telefone-container .p-float-label,
       ::ng-deep .input-telefone-container input,
-      ::ng-deep .input-text-field,
-      ::ng-deep .input-text-field .p-float-label,
-      ::ng-deep .input-text-field input {
+      ::ng-deep .input-text-container,
+      ::ng-deep .input-text-container .p-float-label,
+      ::ng-deep .input-text-container input {
         width: 100%;
       }
 
@@ -439,7 +450,8 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      align-self: center;
+      align-self: flex-start;
+      margin-top: 0.7rem;
       cursor: pointer;
       transition: all 0.2s ease;
 

@@ -327,7 +327,7 @@
                 type="button"
                 class="btn-novo-corretor-icon"
                 *ngIf="temPermissaoCadastroRapidoCorretor()"
-                pTooltip="Cadastro rápido de corretor"
+                pTooltip="Cadastro rápido de profissional"
                 tooltipPosition="left"
                 [disabled]="camposDesabilitados"
                 (click)="abrirCadastroRapido()">
@@ -342,11 +342,13 @@
                 id="tipoProfissionalPrincipal_{{ i }}"
                 label="Tipo"
                 [(ngModel)]="prof.tipoProfissional"
-                [required]="false"
-                [disabled]="camposDesabilitados"
+                [required]="isProfissionalObrigatorio(prof)"
+                [disabled]="camposDesabilitados || isProfissionalObrigatorio(prof)"
+                [showValidation]="tentouSalvar"
                 [suggestions]="tiposProfissionalSugestoes"
                 field="label"
                 placeholder="Tipo"
+                errorMessage="Tipo do profissional é obrigatório"
                 (completeMethod)="filtrarTiposProfissional($event)"
                 (onDropdownClick)="onDropdownClickTiposProfissional()"
                 (ngModelChange)="onTipoProfissionalAlterado(prof)">
@@ -359,8 +361,10 @@
                     id="telefoneProfissionalPrincipal_{{ i }}"
                     label="WhatsApp do Profissional"
                     [(ngModel)]="prof.profissionalTelefoneBusca"
-                    [required]="false"
+                    [required]="isProfissionalObrigatorio(prof)"
                     [disabled]="camposDesabilitados"
+                    [showValidation]="tentouSalvar"
+                    errorMessage="WhatsApp do profissional é obrigatório"
                     (ngModelChange)="onTelefoneProfissionalAlterado(prof)">
                   </app-input-telefone>
                 </div>
@@ -369,8 +373,10 @@
                     id="nomeProfissionalPrincipal_{{ i }}"
                     label="Nome do Profissional"
                     [(ngModel)]="prof.corretorNomeManual"
-                    [required]="false"
+                    [required]="isProfissionalObrigatorio(prof)"
+                    [showValidation]="tentouSalvar"
                     [disabled]="true"
+                    errorMessage="Nome do profissional é obrigatório"
                     placeholder="Será preenchido pela busca ou cadastro rápido">
                   </app-input-text>
                 </div>
@@ -386,16 +392,13 @@
                   Usar cadastro rápido
                 </button>
               </div>
-              <div class="corretor-encontrado" *ngIf="prof.profissionalId && (prof.profissional?.nome || prof.corretorNomeManual)">
-                <span class="corretor-encontrado-label">Profissional:</span>
-                <span class="corretor-encontrado-valor">{{ prof.profissional?.nome || prof.corretorNomeManual }}</span>
-              </div>
             </div>
             <button
               type="button"
               class="btn-remover-prof-icon"
               pTooltip="Remover profissional"
               tooltipPosition="top"
+              *ngIf="!isProfissionalObrigatorio(prof)"
               [disabled]="camposDesabilitados"
               (click)="removerProfissional(i, 'principal')">
               <i class="pi pi-trash"></i>
@@ -432,6 +435,7 @@
             id="imobiliariaSecundaria"
             label="Imobiliária Parceira"
             [(ngModel)]="imobiliariaSecundariaSelecionada"
+            (ngModelChange)="onImobiliariaSecundariaAlterada()"
             [required]="false"
             [disabled]="camposDesabilitados"
             [suggestions]="imobiliariaSecundariaSugestoes"
@@ -529,7 +533,7 @@
                 type="button"
                 class="btn-novo-corretor-icon"
                 *ngIf="temPermissaoCadastroRapidoCorretor()"
-                pTooltip="Cadastro rápido de corretor"
+                pTooltip="Cadastro rápido de profissional"
                 tooltipPosition="left"
                 [disabled]="camposDesabilitados"
                 (click)="abrirCadastroRapido()">
@@ -543,11 +547,13 @@
                 id="tipoProfissionalSecundaria_{{ i }}"
                 label="Tipo"
                 [(ngModel)]="prof.tipoProfissional"
-                [required]="false"
-                [disabled]="camposDesabilitados"
+                [required]="isProfissionalObrigatorio(prof)"
+                [disabled]="camposDesabilitados || isProfissionalObrigatorio(prof)"
+                [showValidation]="tentouSalvar"
                 [suggestions]="tiposProfissionalSugestoes"
                 field="label"
                 placeholder="Tipo"
+                errorMessage="Tipo do profissional é obrigatório"
                 (completeMethod)="filtrarTiposProfissional($event)"
                 (onDropdownClick)="onDropdownClickTiposProfissional()"
                 (ngModelChange)="onTipoProfissionalAlterado(prof)">
@@ -560,8 +566,10 @@
                     id="telefoneProfissionalSecundaria_{{ i }}"
                     label="WhatsApp do Profissional"
                     [(ngModel)]="prof.profissionalTelefoneBusca"
-                    [required]="false"
+                    [required]="isProfissionalObrigatorio(prof)"
                     [disabled]="camposDesabilitados"
+                    [showValidation]="tentouSalvar"
+                    errorMessage="WhatsApp do profissional é obrigatório"
                     (ngModelChange)="onTelefoneProfissionalAlterado(prof)">
                   </app-input-telefone>
                 </div>
@@ -570,8 +578,10 @@
                     id="nomeProfissionalSecundaria_{{ i }}"
                     label="Nome do Profissional"
                     [(ngModel)]="prof.corretorNomeManual"
-                    [required]="false"
+                    [required]="isProfissionalObrigatorio(prof)"
+                    [showValidation]="tentouSalvar"
                     [disabled]="true"
+                    errorMessage="Nome do profissional é obrigatório"
                     placeholder="Será preenchido pela busca ou cadastro rápido">
                   </app-input-text>
                 </div>
@@ -587,16 +597,13 @@
                   Usar cadastro rápido
                 </button>
               </div>
-              <div class="corretor-encontrado" *ngIf="prof.profissionalId && (prof.profissional?.nome || prof.corretorNomeManual)">
-                <span class="corretor-encontrado-label">Profissional:</span>
-                <span class="corretor-encontrado-valor">{{ prof.profissional?.nome || prof.corretorNomeManual }}</span>
-              </div>
             </div>
             <button
               type="button"
               class="btn-remover-prof-icon"
               pTooltip="Remover profissional"
               tooltipPosition="top"
+              *ngIf="!isProfissionalObrigatorio(prof)"
               [disabled]="camposDesabilitados"
               (click)="removerProfissional(i, 'secundaria')">
               <i class="pi pi-trash"></i>

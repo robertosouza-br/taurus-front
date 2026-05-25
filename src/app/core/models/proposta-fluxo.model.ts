@@ -123,6 +123,8 @@ export interface ProfissionalPropostaDTO {
   tipoProfissional: TipoProfissional;
   corretorId?: number;
   cpfCorretor?: string;
+  telefone?: string | null;
+  whatsapp?: string | null;
   nomeCorretor?: string;
   imobiliariaId?: number;
   nomeImobiliaria?: string;
