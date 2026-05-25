@@ -22,7 +22,8 @@ export enum TipoProfissional {
   CORRETOR = 'CORRETOR',
   GERENTE = 'GERENTE',
   DIRETOR = 'DIRETOR',
-  PARCEIRO = 'PARCEIRO'
+  PARCEIRO = 'PARCEIRO',
+  DIRETOR_EQUIPE = 'DIRETOR_EQUIPE'
 }
 
 /**
@@ -81,7 +82,8 @@ export const TIPO_PROFISSIONAL_LABELS: Record<TipoProfissional, string> = {
   [TipoProfissional.CORRETOR]: 'Corretor',
   [TipoProfissional.GERENTE]: 'Gerente',
   [TipoProfissional.DIRETOR]: 'Diretor',
-  [TipoProfissional.PARCEIRO]: 'Parceiro'
+  [TipoProfissional.PARCEIRO]: 'Parceiro',
+  [TipoProfissional.DIRETOR_EQUIPE]: 'Diretor de Equipe'
 };
 
 /**
@@ -121,8 +123,9 @@ export const TIPO_RELACIONAMENTO_SECUNDARIA_LABELS: Record<TipoRelacionamentoSec
 export interface ProfissionalReservaDTO {
   id?: number;
   tipoProfissional: TipoProfissional;
-  corretorId: number;
-  cpfCorretor?: string;
+  profissionalId?: number | null;
+  corretorId?: number | null;
+  cpfCorretor?: string | null;
   nomeCorretor: string;
   imobiliariaId?: number;
   nomeImobiliaria?: string;

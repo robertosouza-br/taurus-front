@@ -353,47 +353,42 @@
               </app-autocomplete>
             </div>
             <div class="prof-field corretor">
-              <!-- Campo CPF apenas para CORRETOR -->
-              <div class="corretor-busca-row" *ngIf="isCorretor(prof)">
+              <div class="corretor-busca-row profissional-contato-row">
                 <div class="corretor-cpf-field">
-                  <app-input-cpf
-                    id="cpfCorretorPrincipal_{{ i }}"
-                    label="CPF do Corretor"
-                    [(ngModel)]="prof.corretorCpfBusca"
+                  <app-input-telefone
+                    id="telefoneProfissionalPrincipal_{{ i }}"
+                    label="WhatsApp do Profissional"
+                    [(ngModel)]="prof.profissionalTelefoneBusca"
                     [required]="false"
                     [disabled]="camposDesabilitados"
-                    (ngModelChange)="onCpfCorretorAlterado(prof)"
-                    (onBlur)="onCpfCorretorBlur(prof)">
-                  </app-input-cpf>
+                    (ngModelChange)="onTelefoneProfissionalAlterado(prof)">
+                  </app-input-telefone>
                 </div>
-              </div>
-              <div class="corretor-buscando" *ngIf="isCorretor(prof) && prof.corretorBuscando">
-                <i class="pi pi-spin pi-spinner"></i>
-                <span>Buscando corretor...</span>
-              </div>
-              <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
-                <i class="pi pi-exclamation-triangle"></i>
-                <span>Corretor não encontrado para este CPF.</span>
-                <button *ngIf="temPermissaoCadastroRapidoCorretor()" type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
-                  Usar cadastro rápido
-                </button>
-              </div>
-              <div class="corretor-encontrado" *ngIf="isCorretor(prof) && prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
-                <span class="corretor-encontrado-label">Corretor:</span>
-                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome || prof.corretorNomeManual }}</span>
-              </div>
-              <!-- Campo texto livre para GERENTE, DIRETOR e PARCEIRO -->
-              <div class="corretor-busca-row" *ngIf="!isCorretor(prof)">
                 <div class="corretor-cpf-field">
                   <app-input-text
                     id="nomeProfissionalPrincipal_{{ i }}"
                     label="Nome do Profissional"
                     [(ngModel)]="prof.corretorNomeManual"
                     [required]="false"
-                    [disabled]="camposDesabilitados"
-                    placeholder="Digite o nome completo">
+                    [disabled]="true"
+                    placeholder="Será preenchido pela busca ou cadastro rápido">
                   </app-input-text>
                 </div>
+              </div>
+              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Buscando profissional...</span>
+              </div>
+              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>Nenhum profissional interno foi encontrado para este telefone.</span>
+                <button *ngIf="temPermissaoCadastroRapidoCorretor()" type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComTelefone(prof.profissionalTelefoneBusca, prof)">
+                  Usar cadastro rápido
+                </button>
+              </div>
+              <div class="corretor-encontrado" *ngIf="prof.profissionalId && (prof.profissional?.nome || prof.corretorNomeManual)">
+                <span class="corretor-encontrado-label">Profissional:</span>
+                <span class="corretor-encontrado-valor">{{ prof.profissional?.nome || prof.corretorNomeManual }}</span>
               </div>
             </div>
             <button
@@ -559,47 +554,42 @@
               </app-autocomplete>
             </div>
             <div class="prof-field corretor">
-              <!-- Campo CPF apenas para CORRETOR -->
-              <div class="corretor-busca-row" *ngIf="isCorretor(prof)">
+              <div class="corretor-busca-row profissional-contato-row">
                 <div class="corretor-cpf-field">
-                  <app-input-cpf
-                    id="cpfCorretorSecundaria_{{ i }}"
-                    label="CPF do Corretor"
-                    [(ngModel)]="prof.corretorCpfBusca"
+                  <app-input-telefone
+                    id="telefoneProfissionalSecundaria_{{ i }}"
+                    label="WhatsApp do Profissional"
+                    [(ngModel)]="prof.profissionalTelefoneBusca"
                     [required]="false"
                     [disabled]="camposDesabilitados"
-                    (ngModelChange)="onCpfCorretorAlterado(prof)"
-                    (onBlur)="onCpfCorretorBlur(prof)">
-                  </app-input-cpf>
+                    (ngModelChange)="onTelefoneProfissionalAlterado(prof)">
+                  </app-input-telefone>
                 </div>
-              </div>
-              <div class="corretor-buscando" *ngIf="isCorretor(prof) && prof.corretorBuscando">
-                <i class="pi pi-spin pi-spinner"></i>
-                <span>Buscando corretor...</span>
-              </div>
-              <div class="corretor-nao-encontrado" *ngIf="isCorretor(prof) && !prof.corretorBuscando && prof.corretorNaoEncontrado">
-                <i class="pi pi-exclamation-triangle"></i>
-                <span>Corretor não encontrado para este CPF.</span>
-                <button *ngIf="temPermissaoCadastroRapidoCorretor()" type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComCpf(prof.corretorCpfBusca)">
-                  Usar cadastro rápido
-                </button>
-              </div>
-              <div class="corretor-encontrado" *ngIf="isCorretor(prof) && prof.corretorCpfBusca && (prof.corretor?.nome || prof.corretorNomeManual)">
-                <span class="corretor-encontrado-label">Corretor:</span>
-                <span class="corretor-encontrado-valor">{{ prof.corretor?.nome || prof.corretorNomeManual }}</span>
-              </div>
-              <!-- Campo texto livre para GERENTE, DIRETOR e PARCEIRO -->
-              <div class="corretor-busca-row" *ngIf="!isCorretor(prof)">
                 <div class="corretor-cpf-field">
                   <app-input-text
                     id="nomeProfissionalSecundaria_{{ i }}"
                     label="Nome do Profissional"
                     [(ngModel)]="prof.corretorNomeManual"
                     [required]="false"
-                    [disabled]="camposDesabilitados"
-                    placeholder="Digite o nome completo">
+                    [disabled]="true"
+                    placeholder="Será preenchido pela busca ou cadastro rápido">
                   </app-input-text>
                 </div>
+              </div>
+              <div class="corretor-buscando" *ngIf="prof.corretorBuscando">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Buscando profissional...</span>
+              </div>
+              <div class="corretor-nao-encontrado" *ngIf="!prof.corretorBuscando && prof.corretorNaoEncontrado">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>Nenhum profissional interno foi encontrado para este telefone.</span>
+                <button *ngIf="temPermissaoCadastroRapidoCorretor()" type="button" class="link-cadastro-rapido" (click)="abrirCadastroRapidoComTelefone(prof.profissionalTelefoneBusca, prof)">
+                  Usar cadastro rápido
+                </button>
+              </div>
+              <div class="corretor-encontrado" *ngIf="prof.profissionalId && (prof.profissional?.nome || prof.corretorNomeManual)">
+                <span class="corretor-encontrado-label">Profissional:</span>
+                <span class="corretor-encontrado-valor">{{ prof.profissional?.nome || prof.corretorNomeManual }}</span>
               </div>
             </div>
             <button
@@ -750,33 +740,21 @@
     </ng-template>
   </p-dialog>
 
-  <!-- ─── DIALOG: CADASTRO RÁPIDO DE CORRETOR ──────────────────────── -->
+  <!-- ─── DIALOG: CADASTRO RÁPIDO DE PROFISSIONAL ───────────────────── -->
   <p-dialog
     *ngIf="temPermissaoCadastroRapidoCorretor()"
-    header="Cadastro Rápido de Corretor"
+    header="Cadastro Rápido de Profissional"
     [(visible)]="displayCadastroRapido"
     [modal]="true"
     [style]="{'width': '480px'}"
     [breakpoints]="{'960px': '75vw', '640px': '95vw'}"
     [closable]="!salvandoCadastroRapido">
     <div class="grid" *ngIf="displayCadastroRapido">
-      <div class="col-12">
-        <app-input-cpf
-          id="cadastroRapidoCpf"
-          label="CPF do Corretor"
-          [(ngModel)]="cadastroRapidoCpf"
-          (ngModelChange)="onCadastroRapidoCpfChange()"
-          [required]="true"
-          [showValidation]="true">
-        </app-input-cpf>
-        <small *ngIf="validandoCpfCadastroRapido" class="p-text-secondary">
-          Validando CPF...
-        </small>
-        <small
-          *ngIf="mensagemValidacaoCpfCadastroRapido && !validandoCpfCadastroRapido"
-          [class]="cpfCadastroRapidoJaCadastrado || cpfCadastroRapidoInvalido ? 'p-error' : 'p-text-success'">
-          {{ mensagemValidacaoCpfCadastroRapido }}
-        </small>
+      <div class="col-12" *ngIf="cadastroRapidoMensagem">
+        <div class="cadastro-rapido-alerta">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>{{ cadastroRapidoMensagem }}</span>
+        </div>
       </div>
       <div class="col-12">
         <app-input-text
@@ -784,27 +762,15 @@
           label="Nome Completo"
           [(ngModel)]="cadastroRapidoNome"
           [required]="true"
-          [disabled]="!camposCadastroRapidoHabilitados"
           [showValidation]="false"
-          placeholder="Nome completo do corretor">
-        </app-input-text>
-      </div>
-      <div class="col-12 md:col-6">
-        <app-input-text
-          id="cadastroRapidoEmail"
-          label="E-mail"
-          [(ngModel)]="cadastroRapidoEmail"
-          [disabled]="!camposCadastroRapidoHabilitados"
-          [required]="false"
-          placeholder="email@exemplo.com">
+          placeholder="Nome completo do profissional">
         </app-input-text>
       </div>
       <div class="col-12 md:col-6">
         <app-input-telefone
           id="cadastroRapidoTelefone"
-          label="Telefone"
+          label="WhatsApp"
           [(ngModel)]="cadastroRapidoTelefone"
-          [disabled]="!camposCadastroRapidoHabilitados"
           [required]="false">
         </app-input-telefone>
       </div>
@@ -817,21 +783,17 @@
           severity="warning"
           [outlined]="true"
           [disabled]="salvandoCadastroRapido"
-          (onClick)="displayCadastroRapido = false">
+          (onClick)="fecharCadastroRapido()">
         </app-custom-button>
         <app-custom-button
-          label="Cadastrar Corretor"
+          label="Cadastrar Profissional"
           icon="pi pi-save"
           severity="success"
           [loading]="salvandoCadastroRapido"
           [disabled]="
             salvandoCadastroRapido ||
-            validandoCpfCadastroRapido ||
-            !cadastroRapidoCpf ||
             !cadastroRapidoNome ||
-            cpfCadastroRapidoJaCadastrado ||
-            cpfCadastroRapidoInvalido ||
-            !cpfCadastroRapidoPodeCadastrar
+            !cadastroRapidoTelefone
           "
           (onClick)="salvarCadastroRapido()">
         </app-custom-button>

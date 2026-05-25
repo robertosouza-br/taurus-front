@@ -262,15 +262,35 @@
         margin-bottom: 0 !important;
       }
 
+      ::ng-deep .input-telefone-container {
+        margin-bottom: 0 !important;
+        width: 100%;
+      }
+
+      ::ng-deep .input-telefone-container .p-float-label,
+      ::ng-deep .input-telefone-container input,
+      ::ng-deep .input-text-field,
+      ::ng-deep .input-text-field .p-float-label,
+      ::ng-deep .input-text-field input {
+        width: 100%;
+      }
+
       .corretor-busca-row {
         display: flex;
         align-items: flex-end;
         gap: 0.5rem;
       }
 
+      .profissional-contato-row {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1fr);
+        gap: 0.75rem;
+        align-items: start;
+      }
+
       .corretor-cpf-field {
         flex: 1;
-        min-width: 180px;
+        min-width: 0;
       }
 
       .corretor-busca-acao {
@@ -344,6 +364,10 @@
           align-items: stretch;
         }
 
+        .profissional-contato-row {
+          grid-template-columns: 1fr;
+        }
+
         .corretor-busca-acao {
           width: 100%;
           min-width: 0;
@@ -385,6 +409,23 @@
     background: #f9fafb;
     border-radius: 6px;
     border: 1px dashed #e5e7eb;
+  }
+
+  .cadastro-rapido-alerta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 8px;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #9a3412;
+    font-size: 0.875rem;
+
+    i {
+      color: #ea580c;
+      font-size: 0.95rem;
+    }
   }
 
   .prof-nome-existente {
