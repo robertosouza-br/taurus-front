@@ -59,6 +59,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/corretores/corretores.module').then(m => m.CorretoresModule)
       },
       {
+        path: 'cadastros/profissionais',
+        loadChildren: () => import('./features/profissionais/profissionais.module').then(m => m.ProfissionaisModule)
+      },
+      {
         path: 'cadastros/contatos',
         loadChildren: () => import('./features/contatos/contatos.module').then(m => m.ContatosModule)
       },

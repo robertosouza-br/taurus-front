@@ -1,0 +1,19 @@
+.lista-container {
+  padding: 1rem;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+.filtro-card {
+  margin-bottom: 1rem;
+}
+
+.filtro-acoes {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}

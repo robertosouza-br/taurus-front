@@ -1,0 +1,91 @@
+<div class="lista-container">
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <app-page-header
+    title="Profissionais"
+    subtitle="Gerencie o cadastro mestre de profissionais utilizado nas reservas"
+    icon="pi pi-users"
+    [actions]="headerActions">
+  </app-page-header>
+
+  <p-card styleClass="filtro-card">
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <app-input-text
+          id="buscaProfissionais"
+          label="Busca"
+          [(ngModel)]="busca"
+          placeholder="Nome, CPF, telefone ou e-mail">
+        </app-input-text>
+      </div>
+
+      <div class="col-12 md:col-4">
+        <app-autocomplete
+          id="tipoProfissionalFiltro"
+          label="Tipo de Profissional"
+          [(ngModel)]="tipoProfissional"
+          [suggestions]="tipoProfissionalFiltrados"
+          (completeMethod)="filtrarTiposProfissionais($event)"
+          (onDropdownClick)="carregarTodosTiposProfissionais()"
+          field="label"
+          dataKey="value"
+          placeholder="Selecione">
+        </app-autocomplete>
+      </div>
+
+      <div class="col-12 md:col-4">
+        <app-autocomplete
+          id="imobiliariaFiltro"
+          label="Imobiliária"
+          [(ngModel)]="imobiliariaId"
+          [suggestions]="imobiliariaFiltradas"
+          (completeMethod)="filtrarImobiliarias($event)"
+          (onDropdownClick)="carregarTodasImobiliarias()"
+          field="label"
+          dataKey="value"
+          placeholder="Selecione">
+        </app-autocomplete>
+      </div>
+    </div>
+
+    <div class="filtro-acoes">
+      <app-custom-button
+        label="Filtrar"
+        icon="pi pi-filter"
+        (onClick)="aplicarFiltros()"
+        [disabled]="carregando">
+      </app-custom-button>
+
+      <app-custom-button
+        label="Limpar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="limparFiltros()"
+        [disabled]="carregando">
+      </app-custom-button>
+    </div>
+  </p-card>
+
+  <app-data-table
+    [data]="profissionais"
+    [columns]="colunas"
+    [actions]="acoes"
+    [totalRecords]="totalRegistros"
+    [loading]="carregando"
+    [lazy]="true"
+    [rows]="50"
+    (onLazyLoad)="onLazyLoad($event)">
+
+    <ng-template appTableTemplate="tipoProfissional" let-item="rowData">
+      <span>{{ getTipoProfissionalLabel(item.tipoProfissional) }}</span>
+    </ng-template>
+
+    <ng-template appTableTemplate="ativo" let-item="rowData">
+      <p-tag
+        [value]="item.ativo ? 'Ativo' : 'Inativo'"
+        [severity]="getStatusSeverity(item.ativo)">
+      </p-tag>
+    </ng-template>
+  </app-data-table>
+</div>

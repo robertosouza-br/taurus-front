@@ -69,4 +69,8 @@ export class ProfissionalService {
   atualizar(id: number, payload: ProfissionalCreateDTO): Observable<ProfissionalDTO> {
     return this.http.put<ProfissionalDTO>(`${this.baseUrl}/${id}`, payload);
   }
+
+  remover(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

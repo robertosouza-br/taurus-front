@@ -162,6 +162,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
         icon: 'pi pi-database',
         items: [
           {
+            label: 'Profissionais',
+            icon: 'pi pi-users',
+            routerLink: '/cadastros/profissionais',
+            funcionalidade: Funcionalidade.PROFISSIONAL
+          },
+          {
             label: 'Corretores',
             icon: 'pi pi-briefcase',
             routerLink: '/cadastros/corretores',

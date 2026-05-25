@@ -4,13 +4,20 @@ export interface ProfissionalImobiliariaDTO {
   id: number;
   imobiliariaId: number;
   nomeImobiliaria: string;
+  tipoProfissional?: TipoProfissional | null;
   ativo: boolean;
   principal: boolean;
 }
 
+export interface ProfissionalImobiliariaInputDTO {
+  imobiliariaId: number;
+  tipoProfissional?: TipoProfissional | null;
+  principal?: boolean;
+  ativo?: boolean;
+}
+
 export interface ProfissionalDTO {
   id: number;
-  usuarioId?: number | null;
   cpf?: string | null;
   nome: string;
   nomeGuerra?: string | null;
@@ -19,6 +26,7 @@ export interface ProfissionalDTO {
   tipoProfissional?: TipoProfissional | null;
   numeroCreci?: string | null;
   ativo: boolean;
+  imobiliariaPrincipalId?: number | null;
   imobiliarias?: ProfissionalImobiliariaDTO[];
 }
 
@@ -31,10 +39,12 @@ export interface ProfissionalCreateDTO {
   tipoProfissional?: TipoProfissional | null;
   numeroCreci?: string | null;
   ativo?: boolean;
-  usuarioId?: number | null;
   imobiliariaPrincipalId?: number | null;
   imobiliariaIds?: number[];
+  imobiliarias?: ProfissionalImobiliariaInputDTO[];
 }
+
+export type ProfissionalEntradaDTO = ProfissionalCreateDTO;
 
 export interface ProfissionalCadastroRapidoDTO {
   nome: string;
