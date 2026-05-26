@@ -340,15 +340,15 @@
             <div class="prof-field tipo">
               <app-autocomplete
                 id="tipoProfissionalPrincipal_{{ i }}"
-                label="Tipo"
+                label="Papel nesta reserva"
                 [(ngModel)]="prof.tipoProfissional"
                 [required]="isProfissionalObrigatorio(prof)"
                 [disabled]="camposDesabilitados || isProfissionalObrigatorio(prof)"
                 [showValidation]="tentouSalvar"
                 [suggestions]="tiposProfissionalSugestoes"
                 field="label"
-                placeholder="Tipo"
-                errorMessage="Tipo do profissional é obrigatório"
+                placeholder="Selecione o papel na reserva"
+                errorMessage="Papel nesta reserva é obrigatório"
                 (completeMethod)="filtrarTiposProfissional($event)"
                 (onDropdownClick)="onDropdownClickTiposProfissional()"
                 (ngModelChange)="onTipoProfissionalAlterado(prof)">
@@ -545,15 +545,15 @@
             <div class="prof-field tipo">
               <app-autocomplete
                 id="tipoProfissionalSecundaria_{{ i }}"
-                label="Tipo"
+                label="Papel nesta reserva"
                 [(ngModel)]="prof.tipoProfissional"
                 [required]="isProfissionalObrigatorio(prof)"
                 [disabled]="camposDesabilitados || isProfissionalObrigatorio(prof)"
                 [showValidation]="tentouSalvar"
                 [suggestions]="tiposProfissionalSugestoes"
                 field="label"
-                placeholder="Tipo"
-                errorMessage="Tipo do profissional é obrigatório"
+                placeholder="Selecione o papel na reserva"
+                errorMessage="Papel nesta reserva é obrigatório"
                 (completeMethod)="filtrarTiposProfissional($event)"
                 (onDropdownClick)="onDropdownClickTiposProfissional()"
                 (ngModelChange)="onTipoProfissionalAlterado(prof)">

@@ -3,7 +3,7 @@
 
   <app-page-header
     [title]="modoEdicao ? 'Editar Profissional' : 'Novo Profissional'"
-    subtitle="Cadastre os dados mestres do profissional e seus vínculos com imobiliárias"
+    subtitle="Cadastre os dados mestres internos do profissional"
     icon="pi pi-user-edit">
   </app-page-header>
 
@@ -14,6 +14,61 @@
   </app-loading-spinner>
 
   <div class="profissional-form" *ngIf="!carregando">
+    <p-card *ngIf="modoEdicao && profissionalAtual" styleClass="jornada-card">
+      <div class="jornada-header">
+        <div>
+          <h3>Jornada do Profissional</h3>
+          <p>Use o retorno do backend para decidir pendencias e habilitacao de acesso.</p>
+        </div>
+
+        <div class="jornada-tags">
+          <p-tag [value]="jornadaStatusLabel" [severity]="jornadaStatusSeverity"></p-tag>
+          <p-tag [value]="acessoSistemaLabel" [severity]="acessoSistemaSeverity"></p-tag>
+        </div>
+      </div>
+
+      <div class="jornada-grid">
+        <div class="jornada-item">
+          <span class="jornada-label">Cadastro minimo</span>
+          <strong>{{ profissionalAtual.jornada?.cadastroCompleto ? 'Completo' : 'Pendente' }}</strong>
+        </div>
+
+        <div class="jornada-item">
+          <span class="jornada-label">Permite login</span>
+          <strong>{{ profissionalAtual.jornada?.permiteLogin ? 'Sim' : 'Nao' }}</strong>
+        </div>
+
+        <div class="jornada-item jornada-item-full" *ngIf="(profissionalAtual.jornada?.pendenciasCadastro || []).length">
+          <span class="jornada-label">Pendencias</span>
+          <div class="pendencias-lista">
+            <p-tag
+              *ngFor="let pendencia of profissionalAtual.jornada?.pendenciasCadastro"
+              [value]="pendencia"
+              severity="warning">
+            </p-tag>
+          </div>
+        </div>
+      </div>
+
+      <div class="jornada-actions">
+        <app-custom-button
+          *ngIf="podeHabilitarAcesso"
+          label="Habilitar Acesso"
+          icon="pi pi-key"
+          severity="success"
+          (onClick)="abrirModalHabilitarAcesso()">
+        </app-custom-button>
+
+        <span class="jornada-helper" *ngIf="!podeHabilitarAcesso && profissionalAtual.jornada?.status === 'RASCUNHO'">
+          Complete CPF e e-mail para liberar a habilitacao de acesso.
+        </span>
+
+        <span class="jornada-helper" *ngIf="!podeHabilitarAcesso && profissionalAtual.jornada?.status === 'COMPLETO_COM_ACESSO'">
+          Este profissional ja possui usuario vinculado e pode seguir para login conforme o perfil de corretor.
+        </span>
+      </div>
+    </p-card>
+
     <p-card header="Dados do Profissional">
       <div class="grid">
         <div class="col-12 md:col-6">
@@ -22,6 +77,7 @@
             label="Nome"
             [(ngModel)]="nome"
             [required]="true"
+            [disabled]="bloqueiarCamposIdentidade"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -35,11 +91,23 @@
           </app-input-text>
         </div>
 
+        <div class="col-12 md:col-6" *ngIf="modoEdicao && profissionalAtual">
+          <div class="readonly-status-field">
+            <span class="readonly-status-label">Usuario Vinculado</span>
+            <div class="readonly-status-content">
+              <p-tag [value]="usuarioVinculadoLabel" [severity]="profissionalAtual.acesso?.usuarioId ? 'success' : 'contrast'"></p-tag>
+              <small>{{ usuarioVinculadoDescricao }}</small>
+            </div>
+          </div>
+        </div>
+
         <div class="col-12 md:col-4">
           <app-input-cpf
             id="cpfProfissional"
             label="CPF"
             [(ngModel)]="cpf"
+            (ngModelChange)="onCpfChange()"
+            [disabled]="bloqueiarCamposIdentidade || buscandoCpf"
             [showValidation]="tentouSalvar">
           </app-input-cpf>
         </div>
@@ -50,6 +118,7 @@
             label="Telefone"
             [(ngModel)]="telefone"
             [required]="true"
+            [disabled]="bloqueiarCamposIdentidade"
             [showValidation]="tentouSalvar"
             placeholder="(00) 00000-0000">
           </app-input-telefone>
@@ -61,8 +130,21 @@
             label="E-mail"
             type="email"
             [(ngModel)]="email"
+            [disabled]="bloqueiarCamposIdentidade"
             [showValidation]="tentouSalvar">
           </app-input-text>
+        </div>
+
+        <div class="col-12" *ngIf="mostrarMensagemContextoCpf">
+          <div class="cpf-context-message" [ngClass]="severidadeContextoCpf">
+            <i class="pi" [ngClass]="{
+              'pi-spin pi-spinner': buscandoCpf,
+              'pi-check-circle': !buscandoCpf && severidadeContextoCpf === 'success',
+              'pi-exclamation-triangle': !buscandoCpf && severidadeContextoCpf === 'warn',
+              'pi-info-circle': !buscandoCpf && severidadeContextoCpf === 'info'
+            }"></i>
+            <span>{{ mensagemContextoCpf }}</span>
+          </div>
         </div>
 
         <div class="col-12 md:col-4">
@@ -70,6 +152,206 @@
             id="creciProfissional"
             label="CRECI"
             [(ngModel)]="numeroCreci"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-autocomplete
+            id="cargoProfissional"
+            label="Papel principal"
+            [(ngModel)]="cargoSelecionado"
+            [suggestions]="cargosSugestoes"
+            (completeMethod)="filtrarCargos($event)"
+            (onDropdownClick)="mostrarTodosCargos()"
+            field="label"
+            placeholder="Selecione o papel preferencial">
+          </app-autocomplete>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="orgaoCreciProfissional"
+            label="Órgão CRECI"
+            [(ngModel)]="orgaoCreci"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="estadoIdentidadeProfissional"
+            label="Estado da Identidade"
+            [(ngModel)]="estadoIdentidade"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card header="Endereço" styleClass="mt-3">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <app-input-text
+            id="ruaProfissional"
+            label="Rua"
+            [(ngModel)]="rua"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <app-input-text
+            id="numeroEnderecoProfissional"
+            label="Número"
+            [(ngModel)]="numero"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-5">
+          <app-input-text
+            id="complementoProfissional"
+            label="Complemento"
+            [(ngModel)]="complemento"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="bairroProfissional"
+            label="Bairro"
+            [(ngModel)]="bairro"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-3">
+          <app-input-cep
+            id="cepProfissional"
+            label="CEP"
+            [(ngModel)]="cep"
+            [showValidation]="tentouSalvar">
+          </app-input-cep>
+        </div>
+
+        <div class="col-12 md:col-2">
+          <app-autocomplete
+            id="estadoProfissional"
+            label="UF"
+            [(ngModel)]="estado"
+            [suggestions]="ufsSugestoes"
+            (completeMethod)="filtrarUfs($event)"
+            (onDropdownClick)="mostrarTodasUfs()"
+            field="label"
+            dataKey="value"
+            placeholder="Selecione a UF"
+            [showValidation]="tentouSalvar">
+          </app-autocomplete>
+        </div>
+
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="cidadeProfissional"
+            label="Cidade"
+            [(ngModel)]="cidade"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-input-text
+            id="paisProfissional"
+            label="País"
+            [(ngModel)]="pais"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card header="Dados Bancários" styleClass="mt-3">
+      <div class="grid">
+        <div class="col-12 md:col-3">
+          <app-autocomplete
+            id="numeroBancoProfissional"
+            label="Banco"
+            [(ngModel)]="numeroBanco"
+            [suggestions]="bancosSugestoes"
+            (completeMethod)="filtrarBancos($event)"
+            (onDropdownClick)="mostrarTodosBancos()"
+            field="label"
+            dataKey="value"
+            placeholder="Digite o nome ou codigo do banco"
+            emptyMessage="Nenhum banco encontrado"
+            [showValidation]="tentouSalvar">
+          </app-autocomplete>
+        </div>
+
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="numeroAgenciaProfissional"
+            label="Agência"
+            [(ngModel)]="numeroAgencia"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="numeroContaCorrenteProfissional"
+            label="Conta Corrente"
+            [(ngModel)]="numeroContaCorrente"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-3">
+          <app-input-text
+            id="digitoContaProfissional"
+            label="Dígito da Conta"
+            [(ngModel)]="digitoConta"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <app-autocomplete
+            id="tipoContaProfissional"
+            label="Tipo de Conta"
+            [(ngModel)]="tipoContaSelecionado"
+            [suggestions]="tiposContaSugestoes"
+            (completeMethod)="filtrarTiposConta($event)"
+            (onDropdownClick)="mostrarTodosTiposConta()"
+            field="label"
+            placeholder="Selecione">
+          </app-autocomplete>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card header="PIX" styleClass="mt-3">
+      <div class="grid">
+        <div class="col-12 md:col-4">
+          <app-autocomplete
+            id="tipoChavePixProfissional"
+            label="Tipo de Chave PIX"
+            [(ngModel)]="tipoChavePixSelecionado"
+            (ngModelChange)="onTipoChavePixChange($event)"
+            [suggestions]="tiposChavePixSugestoes"
+            (completeMethod)="filtrarTiposChavePix($event)"
+            (onDropdownClick)="mostrarTodosTiposChavePix()"
+            field="label"
+            placeholder="Selecione">
+          </app-autocomplete>
+        </div>
+
+        <div class="col-12 md:col-8">
+          <app-input-text
+            id="chavePixProfissional"
+            label="Chave PIX"
+            [(ngModel)]="chavePix"
             [showValidation]="tentouSalvar">
           </app-input-text>
         </div>
@@ -119,8 +401,75 @@
         severity="success"
         actionType="save"
         (onClick)="salvar()"
-        [loading]="salvando">
+        [loading]="salvando"
+        [disabled]="buscandoCpf">
       </app-custom-button>
     </div>
   </div>
+
+  <p-dialog
+    header="Habilitar acesso do profissional"
+    [(visible)]="exibirModalHabilitarAcesso"
+    [modal]="true"
+    [closable]="!habilitandoAcesso"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '36rem', maxWidth: '95vw' }"
+    [breakpoints]="{'960px': '75vw', '640px': '92vw'}"
+    (onHide)="fecharModalHabilitarAcesso()">
+
+    <div class="grid dialog-form">
+      <div class="col-12">
+        <app-input-text
+          id="emailHabilitarAcesso"
+          label="E-mail de acesso"
+          [(ngModel)]="email"
+          [required]="true"
+          type="email">
+        </app-input-text>
+      </div>
+
+      <div class="col-12">
+        <app-input-date
+          id="dataExpiracaoAcesso"
+          label="Data de Expiracao"
+          [(ngModel)]="dataExpiracaoAcesso">
+        </app-input-date>
+        <div class="field-helper compact">
+          <i class="pi pi-info-circle"></i>
+          <span>Deixe vazio para acesso sem expiracao.</span>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="checkbox-field">
+          <p-checkbox
+            [(ngModel)]="enviarEmailBoasVindas"
+            [binary]="true"
+            inputId="enviarEmailBoasVindasProfissional"
+            label="Enviar e-mail de boas-vindas">
+          </p-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <app-custom-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="fecharModalHabilitarAcesso()"
+        [disabled]="habilitandoAcesso">
+      </app-custom-button>
+
+      <app-custom-button
+        label="Confirmar"
+        icon="pi pi-check"
+        severity="success"
+        (onClick)="habilitarAcesso()"
+        [loading]="habilitandoAcesso">
+      </app-custom-button>
+    </ng-template>
+  </p-dialog>
 </div>

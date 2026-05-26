@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Funcionalidade, Permissao } from '../../../core/enums';
 import { ImobiliariaComboDTO } from '../../../core/models/imobiliaria.model';
-import { ProfissionalDTO } from '../../../core/models/profissional.model';
+import { ProfissionalDTO, StatusJornadaProfissional } from '../../../core/models/profissional.model';
 import { TipoProfissional, TIPO_PROFISSIONAL_LABELS } from '../../../core/models/reserva.model';
 import { ImobiliariaService, PermissaoService, ProfissionalService } from '../../../core/services';
 import { BaseListComponent } from '../../../shared/base/base-list.component';
@@ -26,6 +26,11 @@ interface ProfissionalFiltro {
   styleUrls: ['./profissionais-lista.component.scss']
 })
 export class ProfissionaisListaComponent extends BaseListComponent implements OnInit {
+  readonly jornadaLabels: Record<StatusJornadaProfissional, string> = {
+    [StatusJornadaProfissional.RASCUNHO]: 'Rascunho',
+    [StatusJornadaProfissional.COMPLETO_SEM_ACESSO]: 'Completo sem acesso',
+    [StatusJornadaProfissional.COMPLETO_COM_ACESSO]: 'Completo com acesso'
+  };
   profissionais: ProfissionalDTO[] = [];
   breadcrumbItems: BreadcrumbItem[] = [];
   headerActions: HeaderAction[] = [];
@@ -193,6 +198,35 @@ export class ProfissionaisListaComponent extends BaseListComponent implements On
     return ativo ? 'success' : 'danger';
   }
 
+  getJornadaLabel(profissional: ProfissionalDTO): string {
+    const status = profissional.jornada?.status;
+    return status ? this.jornadaLabels[status] : 'Nao informado';
+  }
+
+  getJornadaSeverity(profissional: ProfissionalDTO): 'success' | 'warning' | 'info' {
+    switch (profissional.jornada?.status) {
+      case StatusJornadaProfissional.COMPLETO_COM_ACESSO:
+        return 'success';
+      case StatusJornadaProfissional.COMPLETO_SEM_ACESSO:
+        return 'warning';
+      default:
+        return 'info';
+    }
+  }
+
+  getResumoPendencias(profissional: ProfissionalDTO): string {
+    const pendencias = profissional.jornada?.pendenciasCadastro || [];
+    return pendencias.length ? pendencias.join(', ') : 'Sem pendencias';
+  }
+
+  getAcessoLabel(profissional: ProfissionalDTO): string {
+    return profissional.acesso?.possuiAcessoSistema ? 'Com acesso' : 'Sem acesso';
+  }
+
+  getAcessoSeverity(profissional: ProfissionalDTO): 'success' | 'contrast' {
+    return profissional.acesso?.possuiAcessoSistema ? 'success' : 'contrast';
+  }
+
   private configurarBreadcrumb(): void {
     this.breadcrumbItems = [
       { label: 'Cadastros', icon: 'pi pi-database' },
@@ -213,8 +247,9 @@ export class ProfissionaisListaComponent extends BaseListComponent implements On
   private configurarTabela(): void {
     this.colunas = [
       { field: 'nome', header: 'Nome', sortable: false },
-      { field: 'nomeGuerra', header: 'Nome de Guerra', sortable: false },
       { field: 'telefone', header: 'Telefone', width: '160px', sortable: false, template: 'telefone' },
+      { field: 'jornada.status', header: 'Jornada', width: '220px', sortable: false, template: 'jornada' },
+      { field: 'acesso.possuiAcessoSistema', header: 'Acesso', width: '150px', sortable: false, template: 'acesso', align: 'center' },
       { field: 'cpf', header: 'CPF', width: '140px', sortable: false, template: 'cpf' },
       {
         field: 'ativo',

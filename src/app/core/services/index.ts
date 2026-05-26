@@ -14,6 +14,7 @@ export * from './corretor-publico.service';
 export * from './auditoria.service';
 export * from './contato.service';
 export * from './dashboard.service';
+export * from './banco.service';
 export * from './imobiliaria.service';
 export * from './reserva.service';
 export * from './profissional.service';

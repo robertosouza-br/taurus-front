@@ -81,6 +81,23 @@
       <span>{{ item.telefone | telefone }}</span>
     </ng-template>
 
+    <ng-template appTableTemplate="jornada" let-item="rowData">
+      <div class="jornada-cell">
+        <p-tag
+          [value]="getJornadaLabel(item)"
+          [severity]="getJornadaSeverity(item)">
+        </p-tag>
+        <small>{{ getResumoPendencias(item) }}</small>
+      </div>
+    </ng-template>
+
+    <ng-template appTableTemplate="acesso" let-item="rowData">
+      <p-tag
+        [value]="getAcessoLabel(item)"
+        [severity]="getAcessoSeverity(item)">
+      </p-tag>
+    </ng-template>
+
     <ng-template appTableTemplate="cpf" let-item="rowData">
       <span>{{ item.cpf | cpf }}</span>
     </ng-template>

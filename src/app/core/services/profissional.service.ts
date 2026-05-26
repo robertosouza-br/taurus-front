@@ -7,7 +7,8 @@ import { Page } from '../models/page.model';
 import {
   ProfissionalCadastroRapidoDTO,
   ProfissionalCreateDTO,
-  ProfissionalDTO
+  ProfissionalDTO,
+  ProfissionalHabilitarAcessoDTO
 } from '../models/profissional.model';
 import { TipoProfissional } from '../models/reserva.model';
 
@@ -50,7 +51,8 @@ export class ProfissionalService {
   }
 
   buscarPorCpf(cpf: string): Observable<ProfissionalDTO> {
-    return this.http.get<ProfissionalDTO>(`${this.baseUrl}/cpf/${cpf}`);
+    const cpfSanitizado = (cpf || '').replace(/\D/g, '');
+    return this.http.get<ProfissionalDTO>(`${this.baseUrl}/cpf/${cpfSanitizado}`);
   }
 
   buscarPorTelefone(telefone: string): Observable<ProfissionalDTO> {
@@ -68,6 +70,10 @@ export class ProfissionalService {
 
   atualizar(id: number, payload: ProfissionalCreateDTO): Observable<ProfissionalDTO> {
     return this.http.put<ProfissionalDTO>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  habilitarAcesso(id: number, payload: ProfissionalHabilitarAcessoDTO): Observable<ProfissionalDTO> {
+    return this.http.post<ProfissionalDTO>(`${this.baseUrl}/${id}/habilitar-acesso`, payload);
   }
 
   remover(id: number): Observable<void> {

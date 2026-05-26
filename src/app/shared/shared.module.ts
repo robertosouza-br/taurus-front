@@ -195,6 +195,7 @@ import { CalendarModule } from 'primeng/calendar';
     CalendarModule,
     SliderModule,
     TooltipModule,
+    DialogModule,
     CardModule,
     TagModule,
     DropdownModule,
