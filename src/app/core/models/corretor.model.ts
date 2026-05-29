@@ -1,3 +1,5 @@
+import { TipoContaBancariaProfissional } from './profissional.model';
+
 /**
  * Enums
  */
@@ -31,7 +33,8 @@ export interface CorretorDTO {
   numeroBanco?: string;
   numeroAgencia?: string;
   numeroContaCorrente?: string;
-  tipoConta?: string;
+  digitoConta?: string;
+  tipoConta?: TipoContaBancariaProfissional;
   tipoChavePix?: TipoChavePix;
   chavePix?: string;
   ativo: boolean; // Obrigatório

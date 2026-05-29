@@ -4,6 +4,10 @@ import { MessageService } from 'primeng/api';
 import { CorretorPublicoService } from '../../../core/services/corretor-publico.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { BancoService } from '../../../core/services/banco.service';
+import {
+  TipoContaBancariaProfissional,
+  TIPO_CONTA_BANCARIA_PROFISSIONAL_LABELS
+} from '../../../core/models/profissional.model';
 import { TelefoneUtilsService } from '../../../shared/services/telefone-utils.service';
 import { ConfirmationService } from '../../../shared/services/confirmation.service';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
@@ -31,7 +35,8 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   bancoSelecionado: { label: string; value: string; banco: Banco } | null = null;
   numeroAgencia = '';
   numeroContaCorrente = '';
-  tipoConta = '';
+  digitoConta = '';
+  tipoContaSelecionado: { label: string; value: TipoContaBancariaProfissional } | null = null;
   tipoChavePix: TipoChavePix = TipoChavePix.CPF;
   tipoChavePixSelecionado: { label: string; value: TipoChavePix } | null = null;
   chavePix = '';
@@ -44,6 +49,8 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
   bancosOptions: { label: string; value: string; banco: Banco }[] = [];
   bancosFiltrados: { label: string; value: string; banco: Banco }[] = [];
+  tiposContaOptions: { label: string; value: TipoContaBancariaProfissional }[] = [];
+  tiposContaFiltrados: { label: string; value: TipoContaBancariaProfissional }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
   
@@ -102,6 +109,13 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
       value: key as TipoChavePix
     }));
     this.tiposChavePixFiltrados = [...this.tiposChavePixOptions];
+
+    // Tipos de Conta
+    this.tiposContaOptions = Object.values(TipoContaBancariaProfissional).map(tipo => ({
+      label: TIPO_CONTA_BANCARIA_PROFISSIONAL_LABELS[tipo],
+      value: tipo
+    }));
+    this.tiposContaFiltrados = [...this.tiposContaOptions];
 
     // Carregar bancos
     this.bancoService.listarTodos().subscribe({
@@ -322,6 +336,17 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     this.bancosFiltrados = [...this.bancosOptions];
   }
 
+  filtrarTiposConta(event: any): void {
+    const query = event.query.toLowerCase();
+    this.tiposContaFiltrados = this.tiposContaOptions.filter(tipo =>
+      tipo.label.toLowerCase().includes(query)
+    );
+  }
+
+  mostrarTodosTiposConta(): void {
+    this.tiposContaFiltrados = [...this.tiposContaOptions];
+  }
+
   filtrarTiposChavePix(event: any): void {
     const query = event.query.toLowerCase();
     this.tiposChavePixFiltrados = this.tiposChavePixOptions.filter(tipo =>
@@ -432,8 +457,12 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
       corretor.numeroContaCorrente = this.numeroContaCorrente;
     }
 
-    if (this.tipoConta) {
-      corretor.tipoConta = this.tipoConta;
+    if (this.digitoConta) {
+      corretor.digitoConta = this.digitoConta;
+    }
+
+    if (this.tipoContaSelecionado) {
+      corretor.tipoConta = this.tipoContaSelecionado.value;
     }
 
     // Dados PIX

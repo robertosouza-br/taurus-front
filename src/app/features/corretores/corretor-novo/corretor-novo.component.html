@@ -198,14 +198,30 @@
 
         <div class="p-field">
           <app-input-text
+            id="digitoConta"
+            label="Dígito da Conta"
+            [(ngModel)]="digitoConta"
+            [required]="false"
+            [disabled]="!camposHabilitados"
+            [showValidation]="tentouSalvar">
+          </app-input-text>
+        </div>
+
+        <div class="p-field">
+          <app-autocomplete
             id="tipoConta"
             label="Tipo de Conta"
-            [(ngModel)]="tipoConta"
+            [(ngModel)]="tipoContaSelecionado"
+            [suggestions]="tiposContaFiltrados"
+            (completeMethod)="filtrarTiposConta($event)"
+            (onDropdownClick)="mostrarTodosTiposConta()"
+            field="label"
             [required]="false"
             [disabled]="!camposHabilitados"
             [showValidation]="tentouSalvar"
-            placeholder="Ex: CORRENTE, POUPANÇA">
-          </app-input-text>
+            emptyMessage="Nenhum tipo de conta encontrado"
+            placeholder="Digite para buscar um tipo de conta">
+          </app-autocomplete>
         </div>
         <br>
       </div>

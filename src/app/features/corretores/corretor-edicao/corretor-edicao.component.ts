@@ -3,6 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { BancoService } from '../../../core/services/banco.service';
+import {
+  TipoContaBancariaProfissional,
+  TIPO_CONTA_BANCARIA_PROFISSIONAL_LABELS
+} from '../../../core/models/profissional.model';
 import { CorretorSaidaDTO, CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -35,7 +39,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
   bancoSelecionado: { label: string; value: string; banco: Banco } | null = null;
   numeroAgencia = '';
   numeroContaCorrente = '';
-  tipoConta = '';
+  digitoConta = '';
+  tipoContaSelecionado: { label: string; value: TipoContaBancariaProfissional } | null = null;
   tipoChavePix: TipoChavePix = TipoChavePix.CPF;
   tipoChavePixSelecionado: { label: string; value: TipoChavePix } | null = null;
   chavePix = '';
@@ -54,6 +59,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
   bancosOptions: { label: string; value: string; banco: Banco }[] = [];
   bancosFiltrados: { label: string; value: string; banco: Banco }[] = [];
+  tiposContaOptions: { label: string; value: TipoContaBancariaProfissional }[] = [];
+  tiposContaFiltrados: { label: string; value: TipoContaBancariaProfissional }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
   breadcrumbItems: BreadcrumbItem[] = [];
@@ -115,6 +122,11 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.tiposChavePixOptions = Object.keys(TipoChavePix).map(key => ({
       label: TIPO_CHAVE_PIX_LABELS[key as TipoChavePix],
       value: key as TipoChavePix
+    }));
+
+    this.tiposContaOptions = Object.values(TipoContaBancariaProfissional).map(tipo => ({
+      label: TIPO_CONTA_BANCARIA_PROFISSIONAL_LABELS[tipo],
+      value: tipo
     }));
 
     // Carregar lista de bancos
@@ -187,7 +199,10 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.numeroBanco = corretor.numeroBanco || '';
     this.numeroAgencia = agencia;
     this.numeroContaCorrente = contaCorrente;
-    this.tipoConta = corretor.tipoConta || '';
+    this.digitoConta = corretor.digitoConta || '';
+    this.tipoContaSelecionado = corretor.tipoConta
+      ? this.tiposContaOptions.find(t => t.value === corretor.tipoConta) || null
+      : null;
 
     // Dados PIX - backend pode enviar tipoChavePix como número
     const tipoChavePixValue = corretor.tipoChavePix;
@@ -254,6 +269,17 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
     this.bancosFiltrados = [...this.bancosOptions];
   }
 
+  filtrarTiposConta(event: any): void {
+    const query = event.query.toLowerCase();
+    this.tiposContaFiltrados = this.tiposContaOptions.filter(tipo =>
+      tipo.label.toLowerCase().includes(query)
+    );
+  }
+
+  mostrarTodosTiposConta(): void {
+    this.tiposContaFiltrados = [...this.tiposContaOptions];
+  }
+
   /**
    * Valida o formulário antes de solicitar confirmação
    * Chamado pelo botão com actionType="none" para controle manual
@@ -290,7 +316,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
       numeroBanco: this.bancoSelecionado ? this.bancoSelecionado.value : '', // Envia string vazia se não selecionado
       numeroAgencia: this.numeroAgencia,
       numeroContaCorrente: this.numeroContaCorrente,
-      tipoConta: this.tipoConta,
+      digitoConta: this.digitoConta,
+      tipoConta: this.tipoContaSelecionado?.value,
       tipoChavePix: tipoChavePixValue,
       chavePix: this.chavePix,
       ativo: this.ativo
@@ -339,7 +366,8 @@ export class CorretorEdicaoComponent extends BaseFormComponent implements OnInit
            (this.bancoSelecionado?.value || this.numeroBanco) !== (this.corretor.numeroBanco || '') ||
            this.numeroAgencia !== (this.corretor.numeroAgencia || '') ||
            this.numeroContaCorrente !== (this.corretor.numeroContaCorrente || '') ||
-           this.tipoConta !== (this.corretor.tipoConta || '') ||
+           this.digitoConta !== (this.corretor.digitoConta || '') ||
+           (this.tipoContaSelecionado?.value || null) !== (this.corretor.tipoConta || null) ||
            (this.tipoChavePixSelecionado?.value || this.tipoChavePix) !== (this.corretor.tipoChavePix || TipoChavePix.CPF) ||
            this.chavePix !== (this.corretor.chavePix || '') ||
            this.ativo !== this.corretor.ativo;

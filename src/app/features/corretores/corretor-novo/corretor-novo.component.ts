@@ -4,6 +4,10 @@ import { MessageService } from 'primeng/api';
 import { CorretorService } from '../../../core/services/corretor.service';
 import { BancoService } from '../../../core/services/banco.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
+import {
+  TipoContaBancariaProfissional,
+  TIPO_CONTA_BANCARIA_PROFISSIONAL_LABELS
+} from '../../../core/models/profissional.model';
 import { CorretorDTO, CorretorCargo, TipoChavePix, CARGO_LABELS, TIPO_CHAVE_PIX_LABELS } from '../../../core/models/corretor.model';
 import { Banco } from '../../../core/models/banco.model';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
@@ -32,7 +36,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   bancoSelecionado: { label: string; value: string; banco: Banco } | null = null;
   numeroAgencia = '';
   numeroContaCorrente = '';
-  tipoConta = '';
+  digitoConta = '';
+  tipoContaSelecionado: { label: string; value: TipoContaBancariaProfissional } | null = null;
   tipoChavePix: TipoChavePix = TipoChavePix.CPF;
   tipoChavePixSelecionado: { label: string; value: TipoChavePix } | null = null;
   chavePix = '';
@@ -57,6 +62,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
   cargosFiltrados: { label: string; value: CorretorCargo }[] = [];
   bancosOptions: { label: string; value: string; banco: Banco }[] = [];
   bancosFiltrados: { label: string; value: string; banco: Banco }[] = [];
+  tiposContaOptions: { label: string; value: TipoContaBancariaProfissional }[] = [];
+  tiposContaFiltrados: { label: string; value: TipoContaBancariaProfissional }[] = [];
   tiposChavePixOptions: { label: string; value: TipoChavePix }[] = [];
   tiposChavePixFiltrados: { label: string; value: TipoChavePix }[] = [];
   breadcrumbItems: BreadcrumbItem[] = [];
@@ -100,6 +107,11 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.tiposChavePixOptions = Object.keys(TipoChavePix).map(key => ({
       label: TIPO_CHAVE_PIX_LABELS[key as TipoChavePix],
       value: key as TipoChavePix
+    }));
+
+    this.tiposContaOptions = Object.values(TipoContaBancariaProfissional).map(tipo => ({
+      label: TIPO_CONTA_BANCARIA_PROFISSIONAL_LABELS[tipo],
+      value: tipo
     }));
 
     // Definir cargo padrão
@@ -368,6 +380,17 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.bancosFiltrados = [...this.bancosOptions];
   }
 
+  filtrarTiposConta(event: any): void {
+    const query = event.query.toLowerCase();
+    this.tiposContaFiltrados = this.tiposContaOptions.filter(tipo =>
+      tipo.label.toLowerCase().includes(query)
+    );
+  }
+
+  mostrarTodosTiposConta(): void {
+    this.tiposContaFiltrados = [...this.tiposContaOptions];
+  }
+
   // Métodos para Autocomplete de Cargo
 
   salvarCorretor(): void {
@@ -410,6 +433,34 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     
     if (this.emails && this.emails.length > 0) {
       corretor.email = this.emails.filter(e => e.trim()).join(';');
+    }
+
+    if (this.bancoSelecionado) {
+      corretor.numeroBanco = this.bancoSelecionado.value;
+    }
+
+    if (this.numeroAgencia) {
+      corretor.numeroAgencia = this.numeroAgencia;
+    }
+
+    if (this.numeroContaCorrente) {
+      corretor.numeroContaCorrente = this.numeroContaCorrente;
+    }
+
+    if (this.digitoConta) {
+      corretor.digitoConta = this.digitoConta;
+    }
+
+    if (this.tipoContaSelecionado) {
+      corretor.tipoConta = this.tipoContaSelecionado.value;
+    }
+
+    if (this.tipoChavePixSelecionado) {
+      corretor.tipoChavePix = this.tipoChavePixSelecionado.value;
+    }
+
+    if (this.chavePix) {
+      corretor.chavePix = this.chavePix;
     }
 
     this.corretorService.cadastrar(corretor).subscribe({
@@ -465,7 +516,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
     this.numeroBanco = '';
     this.numeroAgencia = '';
     this.numeroContaCorrente = '';
-    this.tipoConta = '';
+    this.digitoConta = '';
+    this.tipoContaSelecionado = null;
     this.tipoChavePixSelecionado = null;
     this.chavePix = '';
     this.ativo = true;
@@ -491,7 +543,8 @@ export class CorretorNovoComponent extends BaseFormComponent implements OnInit, 
            this.bancoSelecionado !== null ||
            this.numeroAgencia.trim() !== '' ||
            this.numeroContaCorrente.trim() !== '' ||
-           this.tipoConta.trim() !== '' ||
+           this.digitoConta.trim() !== '' ||
+           this.tipoContaSelecionado !== null ||
            this.tipoChavePixSelecionado !== null ||
            this.chavePix.trim() !== '' ||
            !this.ativo;
