@@ -6,9 +6,11 @@ import { environment } from '../../../environments/environment';
 import { Page } from '../models/page.model';
 import {
   ProfissionalCadastroRapidoDTO,
+  ProfissionalContextoAlteracaoDTO,
   ProfissionalCreateDTO,
   ProfissionalDTO,
-  ProfissionalHabilitarAcessoDTO
+  ProfissionalHabilitarAcessoDTO,
+  ProfissionalPreCadastroDTO
 } from '../models/profissional.model';
 import { TipoProfissional } from '../models/reserva.model';
 
@@ -53,6 +55,16 @@ export class ProfissionalService {
   buscarPorCpf(cpf: string): Observable<ProfissionalDTO> {
     const cpfSanitizado = (cpf || '').replace(/\D/g, '');
     return this.http.get<ProfissionalDTO>(`${this.baseUrl}/cpf/${cpfSanitizado}`);
+  }
+
+  buscarPreCadastroPorCpf(cpf: string): Observable<ProfissionalPreCadastroDTO> {
+    const cpfSanitizado = (cpf || '').replace(/\D/g, '');
+    return this.http.get<ProfissionalPreCadastroDTO>(`${this.baseUrl}/cpf/${cpfSanitizado}/pre-cadastro`);
+  }
+
+  buscarContextoAlteracaoPorCpf(id: number, cpf: string): Observable<ProfissionalContextoAlteracaoDTO> {
+    const cpfSanitizado = (cpf || '').replace(/\D/g, '');
+    return this.http.get<ProfissionalContextoAlteracaoDTO>(`${this.baseUrl}/${id}/cpf/${cpfSanitizado}/contexto-alteracao`);
   }
 
   buscarPorTelefone(telefone: string): Observable<ProfissionalDTO> {

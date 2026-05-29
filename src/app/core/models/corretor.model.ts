@@ -20,7 +20,7 @@ export enum TipoChavePix {
  * Usado tanto para criação/atualização quanto para busca por CPF
  */
 export interface CorretorDTO {
-  id?: string; // ID do sistema RMS (retornado pela API ao buscar por CPF)
+  id?: string | null; // Legado: mantido por compatibilidade de contrato
   nome: string;
   cpf: string; // CPF formatado: 000.000.000-00
   email?: string;
@@ -41,7 +41,13 @@ export interface CorretorDTO {
  * DTO de saída do corretor (retorno da API)
  */
 export interface CorretorSaidaDTO extends CorretorDTO {
-  idExterno: string; // ID do sistema externo RMS
+  codcfo?: string | null;
+  idExterno?: string | null; // Legado: mantido para compatibilidade com fluxos antigos
+  profissionalId?: number;
+  usuarioId?: number;
+  profissionalCriado?: boolean;
+  usuarioCriado?: boolean;
+  acessoHabilitado?: boolean;
 }
 
 export interface CorretorComboDTO {

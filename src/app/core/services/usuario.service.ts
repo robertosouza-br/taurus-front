@@ -13,20 +13,20 @@ import { Page } from '../models/page.model';
 
 /**
  * Interface para resposta de validação de CPF
- * Considera validação dupla: base local + sistema externo
+ * Considera a pré-validação interna do Taurus antes do onboarding público
  */
 export interface ValidacaoCpfDTO {
-  cpfCadastrado: boolean;          // true se existe em ambas as bases (bloqueia cadastro)
-  existeUsuarioLocal: boolean;      // true se existe usuário local
-  existeCorretorExterno: boolean;   // true se existe corretor no sistema externo
-  mensagem: string;                 // Mensagem descritiva do status
-  dadosUsuarioLocal?: {             // Dados do usuário local (se existir)
+  cpfCadastrado: boolean;          // true se o CPF já possui contexto consolidado no Taurus
+  existeUsuarioLocal: boolean;     // true se existe usuário local
+  existeProfissionalLocal?: boolean; // true se existe profissional local vinculado ao CPF
+  mensagem: string;                // Mensagem descritiva do status
+  dadosUsuarioLocal?: {            // Dados do usuário local (se existir)
     nome: string;
     email: string;
     telefone: string;
     cpf: string;
   } | null;
-  dadosCorretorExterno?: {          // Dados do corretor externo (se existir)
+  dadosCorretorExterno?: {         // Legado: mantido por compatibilidade com fluxos antigos
     nome: string;
     email: string;
     telefone: string;
@@ -40,6 +40,7 @@ export interface ValidacaoCpfDTO {
     tipoChavePix?: string;
     chavePix?: string;
   } | null;
+  existeCorretorExterno?: boolean; // Legado: mantido por compatibilidade com fluxos antigos
 }
 
 /**

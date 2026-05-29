@@ -71,68 +71,15 @@
 
     <p-card header="Dados do Profissional">
       <div class="grid">
-        <div class="col-12 md:col-6">
-          <app-input-text
-            id="nomeProfissional"
-            label="Nome"
-            [(ngModel)]="nome"
-            [required]="true"
-            [disabled]="bloqueiarCamposIdentidade"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
-
-        <div class="col-12 md:col-6">
-          <app-input-text
-            id="nomeGuerraProfissional"
-            label="Nome de Guerra"
-            [(ngModel)]="nomeGuerra"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
-
-        <div class="col-12 md:col-6" *ngIf="modoEdicao && profissionalAtual">
-          <div class="readonly-status-field">
-            <span class="readonly-status-label">Usuario Vinculado</span>
-            <div class="readonly-status-content">
-              <p-tag [value]="usuarioVinculadoLabel" [severity]="profissionalAtual.acesso?.usuarioId ? 'success' : 'contrast'"></p-tag>
-              <small>{{ usuarioVinculadoDescricao }}</small>
-            </div>
-          </div>
-        </div>
-
         <div class="col-12 md:col-4">
           <app-input-cpf
             id="cpfProfissional"
             label="CPF"
             [(ngModel)]="cpf"
             (ngModelChange)="onCpfChange()"
-            [disabled]="bloqueiarCamposIdentidade || buscandoCpf"
+            [disabled]="buscandoCpf || !cpfPodeSerEditado"
             [showValidation]="tentouSalvar">
           </app-input-cpf>
-        </div>
-
-        <div class="col-12 md:col-4">
-          <app-input-telefone
-            id="telefoneProfissional"
-            label="Telefone"
-            [(ngModel)]="telefone"
-            [required]="true"
-            [disabled]="bloqueiarCamposIdentidade"
-            [showValidation]="tentouSalvar"
-            placeholder="(00) 00000-0000">
-          </app-input-telefone>
-        </div>
-
-        <div class="col-12 md:col-4">
-          <app-input-text
-            id="emailProfissional"
-            label="E-mail"
-            type="email"
-            [(ngModel)]="email"
-            [disabled]="bloqueiarCamposIdentidade"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
         </div>
 
         <div class="col-12" *ngIf="mostrarMensagemContextoCpf">
@@ -147,49 +94,91 @@
           </div>
         </div>
 
-        <div class="col-12 md:col-4">
-          <app-input-text
-            id="creciProfissional"
-            label="CRECI"
-            [(ngModel)]="numeroCreci"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
+        <ng-container *ngIf="exibirCamposFormulario">
+          <div class="col-12 md:col-6">
+            <app-input-text
+              id="nomeProfissional"
+              label="Nome"
+              [(ngModel)]="nome"
+              [required]="true"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
 
-        <div class="col-12 md:col-4">
-          <app-autocomplete
-            id="cargoProfissional"
-            label="Papel principal"
-            [(ngModel)]="cargoSelecionado"
-            [suggestions]="cargosSugestoes"
-            (completeMethod)="filtrarCargos($event)"
-            (onDropdownClick)="mostrarTodosCargos()"
-            field="label"
-            placeholder="Selecione o papel preferencial">
-          </app-autocomplete>
-        </div>
+          <div class="col-12 md:col-6">
+            <app-input-text
+              id="nomeGuerraProfissional"
+              label="Nome de Guerra"
+              [(ngModel)]="nomeGuerra"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
 
-        <div class="col-12 md:col-4">
-          <app-input-text
-            id="orgaoCreciProfissional"
-            label="Órgão CRECI"
-            [(ngModel)]="orgaoCreci"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
+          <div class="col-12 md:col-4">
+            <app-input-telefone
+              id="telefoneProfissional"
+              label="Telefone"
+              [(ngModel)]="telefone"
+              [required]="true"
+              [showValidation]="tentouSalvar"
+              placeholder="(00) 00000-0000">
+            </app-input-telefone>
+          </div>
 
-        <div class="col-12 md:col-4">
-          <app-input-text
-            id="estadoIdentidadeProfissional"
-            label="Estado da Identidade"
-            [(ngModel)]="estadoIdentidade"
-            [showValidation]="tentouSalvar">
-          </app-input-text>
-        </div>
+          <div class="col-12 md:col-4">
+            <app-input-text
+              id="emailProfissional"
+              label="E-mail"
+              type="email"
+              [(ngModel)]="email"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <app-input-text
+              id="creciProfissional"
+              label="CRECI"
+              [(ngModel)]="numeroCreci"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <app-autocomplete
+              id="cargoProfissional"
+              label="Papel principal"
+              [(ngModel)]="cargoSelecionado"
+              [suggestions]="cargosSugestoes"
+              (completeMethod)="filtrarCargos($event)"
+              (onDropdownClick)="mostrarTodosCargos()"
+              field="label"
+              placeholder="Selecione o papel preferencial">
+            </app-autocomplete>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <app-input-text
+              id="orgaoCreciProfissional"
+              label="Órgão CRECI"
+              [(ngModel)]="orgaoCreci"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
+
+          <div class="col-12 md:col-4">
+            <app-input-text
+              id="estadoIdentidadeProfissional"
+              label="Estado da Identidade"
+              [(ngModel)]="estadoIdentidade"
+              [showValidation]="tentouSalvar">
+            </app-input-text>
+          </div>
+        </ng-container>
       </div>
     </p-card>
 
-    <p-card header="Endereço" styleClass="mt-3">
+    <p-card header="Endereço" styleClass="mt-3" *ngIf="exibirCamposFormulario">
       <div class="grid">
         <div class="col-12 md:col-6">
           <app-input-text
@@ -271,7 +260,7 @@
       </div>
     </p-card>
 
-    <p-card header="Dados Bancários" styleClass="mt-3">
+    <p-card header="Dados Bancários" styleClass="mt-3" *ngIf="exibirCamposFormulario">
       <div class="grid">
         <div class="col-12 md:col-3">
           <app-autocomplete
@@ -331,7 +320,7 @@
       </div>
     </p-card>
 
-    <p-card header="PIX" styleClass="mt-3">
+    <p-card header="PIX" styleClass="mt-3" *ngIf="exibirCamposFormulario">
       <div class="grid">
         <div class="col-12 md:col-4">
           <app-autocomplete
@@ -402,7 +391,7 @@
         actionType="save"
         (onClick)="salvar()"
         [loading]="salvando"
-        [disabled]="buscandoCpf">
+        [disabled]="buscandoCpf || (!modoEdicao && !formularioLiberado)">
       </app-custom-button>
     </div>
   </div>

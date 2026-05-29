@@ -71,6 +71,26 @@ export interface ProfissionalHabilitarAcessoDTO {
   enviarEmailBoasVindas: boolean;
 }
 
+export interface ProfissionalPreCadastroDTO {
+  cpf: string;
+  primeiroCampoFormulario: 'CPF' | string;
+  profissionalEncontrado: boolean;
+  modoFormulario: 'CADASTRO' | 'ALTERACAO' | string;
+  deveRedirecionarParaAlteracao: boolean;
+  mensagem: string;
+  profissional: ProfissionalDTO | null;
+}
+
+export interface ProfissionalContextoAlteracaoDTO {
+  cpf: string;
+  profissionalEncontrado: boolean;
+  pertenceAoRegistroAtual: boolean;
+  deveRedirecionarParaAlteracao: boolean;
+  profissionalDestinoId: number | null;
+  mensagem: string;
+  profissional: ProfissionalDTO | null;
+}
+
 export interface ProfissionalDTO {
   id: number;
   cpf?: string | null;

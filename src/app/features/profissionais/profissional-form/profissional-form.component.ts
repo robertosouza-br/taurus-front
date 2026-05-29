@@ -6,7 +6,9 @@ import { Banco } from '../../../core/models/banco.model';
 import { ImobiliariaComboDTO, UF, UF_OPTIONS } from '../../../core/models/imobiliaria.model';
 import {
   CargoProfissional,
+  ProfissionalContextoAlteracaoDTO,
   ProfissionalHabilitarAcessoDTO,
+  ProfissionalPreCadastroDTO,
   ProfissionalCreateDTO,
   ProfissionalDTO,
   StatusJornadaProfissional,
@@ -18,7 +20,6 @@ import {
 import { TipoProfissional, TIPO_PROFISSIONAL_LABELS } from '../../../core/models/reserva.model';
 import { ImobiliariaService, PermissaoService, ProfissionalService } from '../../../core/services';
 import { BancoService } from '../../../core/services/banco.service';
-import { UsuarioService, ValidacaoCpfDTO } from '../../../core/services/usuario.service';
 import { BaseFormComponent } from '../../../shared/base/base-form.component';
 import { BreadcrumbItem } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
@@ -48,8 +49,7 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   habilitandoAcesso = false;
   exibirModalHabilitarAcesso = false;
   cpfConsultado = '';
-  bloqueiarCamposIdentidade = false;
-  identidadePreenchidaPorUsuario = false;
+  formularioLiberado = false;
   mensagemContextoCpf = '';
   severidadeContextoCpf: 'info' | 'success' | 'warn' = 'info';
   nome = '';
@@ -106,12 +106,12 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
     value: tipo
   }));
   tiposChavePixSugestoes = [...this.tiposChavePixOptions];
+  private cpfOriginalEdicao = '';
 
   constructor(
     private profissionalService: ProfissionalService,
     private bancoService: BancoService,
     private imobiliariaService: ImobiliariaService,
-    private usuarioService: UsuarioService,
     private permissaoService: PermissaoService,
     private messageService: MessageService,
     private router: Router,
@@ -121,20 +121,11 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   }
 
   ngOnInit(): void {
-    this.verificarModo();
-
-    if (!this.temPermissao(this.modoEdicao ? Permissao.ALTERAR : Permissao.INCLUIR)) {
-      this.router.navigate(['/acesso-negado']);
-      return;
-    }
-
-    this.configurarBreadcrumb();
     this.carregarBancos();
     this.carregarImobiliarias();
-
-    if (this.modoEdicao) {
-      this.carregarProfissional();
-    }
+    this.route.paramMap.subscribe(() => {
+      this.aplicarContextoRota();
+    });
   }
 
   salvar(): void {
@@ -212,7 +203,7 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   }
 
   limpar(): void {
-    this.limparContextoCpf(true);
+    this.limparContextoCpf();
     this.nome = '';
     this.nomeGuerra = '';
     this.cpf = '';
@@ -244,15 +235,21 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   }
 
   onCpfChange(): void {
-    if (this.modoEdicao) {
-      return;
-    }
-
     const cpfDigits = this.normalizarTexto(this.cpf, true) || '';
 
     if (!cpfDigits || cpfDigits.length < 11) {
       this.cpfConsultado = '';
-      this.limparContextoCpf(this.identidadePreenchidaPorUsuario);
+
+      if (this.modoEdicao) {
+        this.formularioLiberado = true;
+        this.mensagemContextoCpf = cpfDigits
+          ? 'Conclua os 11 digitos do CPF para validar a continuidade da edicao.'
+          : '';
+        this.severidadeContextoCpf = cpfDigits ? 'warn' : 'info';
+        return;
+      }
+
+      this.limparContextoCpf();
       return;
     }
 
@@ -262,7 +259,7 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
 
     if (!this.validarCPF(cpfDigits)) {
       this.cpfConsultado = cpfDigits;
-      this.limparContextoCpf(false);
+      this.limparContextoCpf();
       this.mensagemContextoCpf = 'CPF invalido. Verifique o numero informado.';
       this.severidadeContextoCpf = 'warn';
       return;
@@ -429,20 +426,16 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
     return this.profissionalAtual?.acesso?.possuiAcessoSistema ? 'success' : 'contrast';
   }
 
-  get usuarioVinculadoLabel(): string {
-    return this.profissionalAtual?.acesso?.usuarioId ? 'Sim' : 'Nao';
-  }
-
-  get usuarioVinculadoDescricao(): string {
-    if (this.profissionalAtual?.acesso?.usuarioId) {
-      return 'O backend ja consolidou o usuario deste profissional.';
-    }
-
-    return 'O usuario sera criado ou reaproveitado pelo backend ao habilitar o acesso.';
-  }
-
   get mostrarMensagemContextoCpf(): boolean {
     return !this.modoEdicao && (!!this.mensagemContextoCpf || this.buscandoCpf);
+  }
+
+  get exibirCamposFormulario(): boolean {
+    return this.modoEdicao || this.formularioLiberado;
+  }
+
+  get cpfPodeSerEditado(): boolean {
+    return !this.modoEdicao || !this.profissionalAtual?.acesso?.possuiAcessoSistema;
   }
 
   protected getCamposObrigatorios(): Array<{ id: string; valor: any; label?: string }> {
@@ -463,10 +456,34 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   private verificarModo(): void {
     const id = this.route.snapshot.paramMap.get('id');
 
+    this.modoEdicao = false;
+    this.profissionalId = null;
+
     if (id) {
       this.modoEdicao = true;
       this.profissionalId = Number(id);
     }
+  }
+
+  private aplicarContextoRota(): void {
+    this.verificarModo();
+
+    if (!this.temPermissao(this.modoEdicao ? Permissao.ALTERAR : Permissao.INCLUIR)) {
+      this.router.navigate(['/acesso-negado']);
+      return;
+    }
+
+    this.configurarBreadcrumb();
+
+    if (this.modoEdicao) {
+      this.formularioLiberado = true;
+      this.profissionalAtual = null;
+      this.carregarProfissional();
+      return;
+    }
+
+    this.profissionalAtual = null;
+    this.aplicarEstadoInicialCadastro();
   }
 
   private configurarBreadcrumb(): void {
@@ -543,8 +560,10 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
   }
 
   private preencherFormulario(profissional: ProfissionalDTO): void {
-    this.limparContextoCpf(false);
+    this.limparContextoCpf();
+    this.formularioLiberado = true;
     this.profissionalAtual = profissional;
+    this.cpfOriginalEdicao = (profissional.cpf || '').replace(/\D/g, '');
     this.nome = profissional.nome || '';
     this.nomeGuerra = profissional.nomeGuerra || '';
     this.cpf = profissional.cpf || '';
@@ -578,66 +597,101 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
     this.ativo = profissional.ativo;
     this.imobiliariaIds = (profissional.imobiliarias || []).map(item => item.imobiliariaId);
     this.imobiliariaPrincipalId = (profissional.imobiliarias || []).find(item => item.principal)?.imobiliariaId || null;
+    this.cpfConsultado = (profissional.cpf || '').replace(/\D/g, '');
   }
 
   private consultarCpf(cpfDigits: string): void {
     this.buscandoCpf = true;
+    this.formularioLiberado = this.modoEdicao;
     this.mensagemContextoCpf = 'Consultando cadastros existentes para este CPF...';
     this.severidadeContextoCpf = 'info';
 
-    this.profissionalService.buscarPorCpf(cpfDigits).subscribe({
-      next: (profissional) => {
-        this.buscandoCpf = false;
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Profissional encontrado',
-          detail: 'Ja existe um profissional cadastrado para este CPF. Os dados existentes foram carregados.'
-        });
-        this.router.navigate(['/cadastros/profissionais', profissional.id, 'editar']);
-      },
-      error: (error) => {
-        if (error.status !== 404) {
+    if (this.modoEdicao && this.profissionalId) {
+      this.profissionalService.buscarContextoAlteracaoPorCpf(this.profissionalId, cpfDigits).subscribe({
+        next: (response: ProfissionalContextoAlteracaoDTO) => {
           this.buscandoCpf = false;
-          this.mensagemContextoCpf = 'Nao foi possivel consultar o CPF informado.';
+          this.aplicarContextoAlteracao(response);
+        },
+        error: (error: any) => {
+          this.buscandoCpf = false;
+          this.formularioLiberado = true;
+          this.mensagemContextoCpf = error.error?.message || 'Nao foi possivel consultar o CPF informado.';
           this.severidadeContextoCpf = 'warn';
-          return;
         }
+      });
+      return;
+    }
 
-        this.consultarUsuarioPorCpf(cpfDigits);
-      }
-    });
-  }
-
-  private consultarUsuarioPorCpf(cpfDigits: string): void {
-    this.usuarioService.validarCpf(this.formatarCpf(cpfDigits)).subscribe({
-      next: (response) => {
+    this.profissionalService.buscarPreCadastroPorCpf(cpfDigits).subscribe({
+      next: (response: ProfissionalPreCadastroDTO) => {
         this.buscandoCpf = false;
-        this.aplicarResultadoConsultaCpf(response, cpfDigits);
+        this.aplicarPreCadastro(response);
       },
-      error: () => {
+      error: (error: any) => {
         this.buscandoCpf = false;
-        this.mensagemContextoCpf = 'Nao foi possivel reaproveitar dados existentes para este CPF.';
+        this.formularioLiberado = false;
+        this.mensagemContextoCpf = error.error?.message || 'Nao foi possivel consultar o CPF informado.';
         this.severidadeContextoCpf = 'warn';
       }
     });
   }
 
-  private aplicarResultadoConsultaCpf(response: ValidacaoCpfDTO, cpfDigits: string): void {
-    this.limparContextoCpf(true);
-    this.cpf = this.formatarCpf(cpfDigits);
-
-    if (response.existeUsuarioLocal && response.dadosUsuarioLocal) {
-      this.identidadePreenchidaPorUsuario = true;
-      this.bloqueiarCamposIdentidade = true;
-      this.nome = response.dadosUsuarioLocal.nome || this.nome;
-      this.email = response.dadosUsuarioLocal.email || this.email;
-      this.telefone = response.dadosUsuarioLocal.telefone || this.telefone;
-      this.mensagemContextoCpf = 'Foi encontrado um usuario com este CPF. Os dados basicos foram reaproveitados para completar o cadastro profissional.';
-      this.severidadeContextoCpf = 'success';
+  private aplicarPreCadastro(response: ProfissionalPreCadastroDTO): void {
+    if (response.profissionalEncontrado && response.profissional?.id) {
+      this.mensagemContextoCpf = response.mensagem;
+      this.severidadeContextoCpf = 'info';
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Profissional encontrado',
+        detail: response.mensagem
+      });
+      this.router.navigate(['/cadastros/profissionais', response.profissional.id, 'editar']);
       return;
     }
 
-    this.mensagemContextoCpf = 'Nenhum cadastro previo foi encontrado para este CPF. Continue o preenchimento normalmente.';
+    this.formularioLiberado = true;
+    this.mensagemContextoCpf = response.mensagem;
+    this.severidadeContextoCpf = 'info';
+  }
+
+  private aplicarContextoAlteracao(response: ProfissionalContextoAlteracaoDTO): void {
+    if (response.deveRedirecionarParaAlteracao && response.profissionalDestinoId) {
+      this.mensagemContextoCpf = response.mensagem;
+      this.severidadeContextoCpf = 'info';
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Profissional encontrado',
+        detail: response.mensagem
+      });
+      this.router.navigate(['/cadastros/profissionais', response.profissionalDestinoId, 'editar']);
+      return;
+    }
+
+    this.formularioLiberado = true;
+    this.mensagemContextoCpf = response.mensagem;
+    this.severidadeContextoCpf = response.pertenceAoRegistroAtual ? 'success' : 'info';
+
+    if (!response.pertenceAoRegistroAtual) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'CPF atualizado',
+        detail: 'Nenhum outro cadastro foi encontrado para este CPF. Continue a alteracao do registro atual.'
+      });
+    }
+  }
+
+  private aplicarEstadoInicialCadastro(): void {
+    const cpf = this.route.snapshot.queryParamMap.get('cpf');
+    const mensagem = this.route.snapshot.queryParamMap.get('mensagem');
+
+    if (!cpf) {
+      return;
+    }
+
+    this.cpf = cpf;
+    this.cpfConsultado = (cpf || '').replace(/\D/g, '');
+    this.formularioLiberado = true;
+    this.mensagemContextoCpf = mensagem || 'CPF nao encontrado. Continue o preenchimento do novo cadastro.';
     this.severidadeContextoCpf = 'info';
   }
 
@@ -690,19 +744,11 @@ export class ProfissionalFormComponent extends BaseFormComponent implements OnIn
     return this.bancosOptions.some(item => item.codigo === this.numeroBanco);
   }
 
-  private limparContextoCpf(limparIdentidade: boolean): void {
+  private limparContextoCpf(): void {
     this.buscandoCpf = false;
-    this.bloqueiarCamposIdentidade = false;
+    this.formularioLiberado = false;
     this.mensagemContextoCpf = '';
     this.severidadeContextoCpf = 'info';
-
-    if (limparIdentidade && this.identidadePreenchidaPorUsuario) {
-      this.nome = '';
-      this.email = '';
-      this.telefone = '';
-    }
-
-    this.identidadePreenchidaPorUsuario = false;
   }
 
   private normalizarImobiliariaIds(): number[] {

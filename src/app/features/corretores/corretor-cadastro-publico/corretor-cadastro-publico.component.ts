@@ -54,7 +54,6 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
   validandoCpf = false;
   camposHabilitados = false;
   camposDoUsuarioLocal = false; // Se os dados vieram do usuário local (campos devem ficar travados)
-  codcfoCorretorExistente: string | null = null; // CODCFO se corretor já existe
   existeUsuarioLocal = false; // Se corretor tem usuário no sistema interno
   
   // Mensagem do loading
@@ -205,39 +204,35 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     this.validandoCpf = true;
     this.mensagemValidacaoCpf = '';
     this.camposHabilitados = false;
+    this.existeUsuarioLocal = false;
 
     this.usuarioService.validarCpf(cpf).subscribe({
       next: (response) => {
         this.validandoCpf = false;
         this.cpfJaCadastrado = response.cpfCadastrado;
+        this.existeUsuarioLocal = response.existeUsuarioLocal;
         this.mensagemValidacaoCpf = response.mensagem;
         
-        // Se CPF já está cadastrado em ambos os sistemas, bloqueia cadastro
+        // Se o CPF já está consolidado internamente, bloqueia novo onboarding.
         if (response.cpfCadastrado) {
           this.camposHabilitados = false;
         } else {
-          // CPF não existe, pode criar - habilitar campos
+          // CPF disponível para onboarding - habilitar campos.
           this.camposHabilitados = true;
           
-          // Se existe apenas no sistema local, preencher os campos com os dados retornados
+          // Se existe usuário local, reaproveitar os dados retornados.
           if (response.existeUsuarioLocal && response.dadosUsuarioLocal) {
             this.preencherCamposComDadosUsuarioLocal(response.dadosUsuarioLocal);
-          }
-          
-          // Se existe apenas no sistema externo, preencher os campos com os dados retornados
-          if (response.existeCorretorExterno && (response as any).dadosCorretorExterno) {
-            this.preencherCamposComDadosCorretorExterno((response as any).dadosCorretorExterno);
           }
         }
         
         console.log('Validação CPF:', {
           cpfCadastrado: response.cpfCadastrado,
           existeUsuarioLocal: response.existeUsuarioLocal,
-          existeCorretorExterno: response.existeCorretorExterno,
+          existeProfissionalLocal: response.existeProfissionalLocal,
           mensagem: response.mensagem,
           camposHabilitados: this.camposHabilitados,
-          dadosUsuarioLocal: !!response.dadosUsuarioLocal,
-          dadosCorretorExterno: !!(response as any).dadosCorretorExterno
+          dadosUsuarioLocal: !!response.dadosUsuarioLocal
         });
       },
       error: (error) => {
@@ -279,65 +274,7 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     this.messageService.add({
       severity: 'info',
       summary: 'Dados Preenchidos',
-      detail: 'Os dados do usuário foram preenchidos automaticamente e não podem ser alterados.',
-      life: 5000
-    });
-  }
-
-  /**
-   * Preenche os campos do formulário com dados do corretor externo
-   */
-  private preencherCamposComDadosCorretorExterno(dados: any): void {
-    this.nome = dados.nome || '';
-    this.email = dados.email || '';
-    // Preencher array de emails
-    this.emails = dados.email ? dados.email.split(';').map((e: string) => e.trim()).filter((e: string) => e) : [];
-    this.telefone = dados.telefone ? this.removerDDI(dados.telefone) : '';
-    this.nomeGuerra = dados.nomeGuerra || '';
-    this.numeroCreci = dados.numeroCreci || '';
-    
-    // Preencher dados bancários se existirem
-    if (dados.banco) {
-      const banco = this.bancosOptions.find(b => b.value === dados.banco);
-      if (banco) {
-        this.bancoSelecionado = banco;
-      }
-    }
-    if (dados.agencia) {
-      this.numeroAgencia = dados.agencia;
-    }
-    if (dados.contaCorrente) {
-      this.numeroContaCorrente = dados.contaCorrente;
-    }
-    if (dados.tipoConta) {
-      this.tipoConta = dados.tipoConta;
-    }
-    
-    // Preencher dados PIX se existirem
-    if (dados.tipoChavePix) {
-      const tipoPix = this.tiposChavePixOptions.find(
-        t => t.label === dados.tipoChavePix || t.value === dados.tipoChavePix
-      );
-      if (tipoPix) {
-        this.tipoChavePixSelecionado = tipoPix;
-      }
-    }
-    if (dados.chavePix) {
-      this.chavePix = dados.chavePix;
-    }
-    
-    console.log('Campos preenchidos com dados do corretor externo:', {
-      nome: this.nome,
-      email: this.email,
-      telefone: this.telefone,
-      numeroCreci: this.numeroCreci,
-      nomeGuerra: this.nomeGuerra
-    });
-    
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Dados Preenchidos',
-      detail: 'Os dados do corretor externo foram preenchidos automaticamente. Você pode alterá-los se necessário.',
+      detail: 'Este CPF já pertence a um usuário do sistema. Se necessário, recupere a senha para realizar o login.',
       life: 5000
     });
   }
@@ -348,7 +285,6 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     this.mensagemValidacaoCpf = '';
     this.validandoCpf = false;
     this.camposHabilitados = false;
-    this.codcfoCorretorExistente = null;
     this.existeUsuarioLocal = false;
     this.camposDoUsuarioLocal = false; // Resetar também os campos do usuário local
   }
@@ -405,7 +341,7 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Este CPF já está cadastrado. Utilize a opção "Recuperar Senha".'
+        detail: 'Este CPF já possui cadastro consolidado no sistema. Se necessário, utilize a opção "Recuperar Senha".'
       });
       return;
     }
@@ -512,14 +448,22 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
     console.log('Enviando corretor:', corretor);
 
     this.corretorPublicoService.cadastrar(corretor).subscribe({
-      next: () => {
+      next: (response) => {
         // Mudar mensagem do loading para sucesso
         this.mensagemLoading = 'Cadastro realizado com sucesso! Redirecionando...';
+
+        const identidadeReaproveitada = response.profissionalCriado === false || response.usuarioCriado === false;
+        const acessoHabilitado = response.acessoHabilitado !== false;
+        const detail = !acessoHabilitado
+          ? 'Cadastro concluído, mas o acesso ainda não foi habilitado. Tente recuperar a senha ou contate o suporte.'
+          : identidadeReaproveitada
+            ? 'Seu cadastro foi consolidado com dados já existentes no sistema. Você já pode acessar a plataforma.'
+            : 'Cadastro realizado com sucesso. Você já pode acessar a plataforma.';
         
         this.messageService.add({
           severity: 'success',
           summary: 'Cadastro Realizado!',
-          detail: 'Em breve você receberá um e-mail com suas credenciais de acesso.',
+          detail,
           life: 4000
         });
         
@@ -541,8 +485,7 @@ export class CorretorCadastroPublicoComponent implements OnInit, OnDestroy {
           mensagem = error.error?.message || 'CPF ou e-mail já cadastrado no sistema';
           severity = 'warn';
         } else if (error.status === 422) {
-          // Erro de validação do sistema externo (Totvs)
-          mensagem = error.error?.message || 'Erro de validação no sistema externo';
+          mensagem = error.error?.message || 'Erro de validação ao concluir o cadastro';
         } else if (error.status >= 500) {
           mensagem = 'Erro no servidor. Tente novamente mais tarde.';
         }
