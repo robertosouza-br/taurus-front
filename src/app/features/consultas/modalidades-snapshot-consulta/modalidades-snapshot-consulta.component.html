@@ -1,0 +1,175 @@
+<div class="snapshot-consulta-page">
+  <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+  <app-page-header
+    title="Modalidade de empreendimentos"
+    subtitle="Consulta administrativa das modalidades persistidas por empreendimento"
+    icon="pi pi-sitemap">
+  </app-page-header>
+
+  <div class="snapshot-consulta-hero">
+    <div class="snapshot-consulta-hero__icon">
+      <i class="pi pi-database"></i>
+    </div>
+
+    <div class="snapshot-consulta-hero__content">
+      <h3>Consulta dedicada de modalidades por empreendimento</h3>
+      <p>
+        Selecione um empreendimento para abrir a visão completa das modalidades sincronizadas e seus componentes.
+      </p>
+    </div>
+
+    <div class="snapshot-consulta-hero__badge">
+      <span>Consulta interna</span>
+      <strong>Por empreendimento</strong>
+    </div>
+  </div>
+
+  <div class="snapshot-consulta-workspace">
+    <section class="snapshot-consulta-card snapshot-consulta-card--form">
+      <div class="snapshot-consulta-card__eyebrow">Consulta guiada</div>
+
+      <div class="snapshot-consulta-card__header">
+        <div>
+          <h3>Escolha o empreendimento</h3>
+          <p>Use a busca para localizar o empreendimento e abrir a visão detalhada das modalidades persistidas.</p>
+        </div>
+
+        <div class="snapshot-consulta-card__pulse">
+          <i class="pi pi-search"></i>
+          <span>Busca rápida</span>
+        </div>
+      </div>
+
+      <div class="snapshot-consulta-form-shell">
+        <div class="snapshot-consulta-form-shell__accent"></div>
+
+        <div class="grid snapshot-consulta-form">
+          <div class="col-12 snapshot-consulta-field">
+            <app-autocomplete
+              id="empreendimentoSnapshot"
+              label="Empreendimento"
+              [(ngModel)]="empreendimentoSelecionado"
+              [suggestions]="empreendimentosSugeridos"
+              field="nome"
+              [required]="true"
+              [itemTemplate]="empreendimentoTemplate"
+              placeholder="Digite o nome do empreendimento"
+              emptyMessage="Nenhum empreendimento encontrado"
+              (completeMethod)="buscarEmpreendimentos($event)"
+              (onDropdownClick)="mostrarTodosEmpreendimentos()">
+            </app-autocomplete>
+
+            <ng-template #empreendimentoTemplate let-empreendimento>
+              <div class="snapshot-consulta-option">
+                <strong>{{ empreendimento.nome }}</strong>
+                <small>Cód. {{ empreendimento.codEmpreendimento }}</small>
+              </div>
+            </ng-template>
+          </div>
+
+          <div class="col-12" *ngIf="empreendimentoSelecionado">
+            <div class="snapshot-consulta-selection-card">
+              <div class="snapshot-consulta-selection-card__icon">
+                <i class="pi pi-building"></i>
+              </div>
+
+              <div class="snapshot-consulta-selection-card__content">
+                <span>Empreendimento selecionado</span>
+                <strong>{{ empreendimentoSelecionado.nome }}</strong>
+                <small>Código {{ empreendimentoSelecionado.codEmpreendimento }}</small>
+              </div>
+
+              <div class="snapshot-consulta-selection-card__status">
+                <i class="pi pi-check-circle"></i>
+                <span>Pronto para consultar</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 snapshot-consulta-actions-wrap">
+            <div class="snapshot-consulta-actions">
+              <div class="snapshot-consulta-actions__content">
+                <span class="snapshot-consulta-actions__eyebrow">Acoes da consulta</span>
+                <strong>Escolha entre reiniciar a busca ou abrir a analise detalhada</strong>
+              </div>
+
+              <div class="snapshot-consulta-actions__buttons">
+              <app-custom-button
+                label="Limpar"
+                icon="pi pi-refresh"
+                severity="secondary"
+                [outlined]="true"
+                size="large"
+                styleClass="snapshot-consulta-btn snapshot-consulta-btn--ghost"
+                actionType="none"
+                (onClick)="limpar()">
+              </app-custom-button>
+
+              <app-custom-button
+                label="Consultar"
+                icon="pi pi-search"
+                size="large"
+                [raised]="true"
+                styleClass="snapshot-consulta-btn snapshot-consulta-btn--primary"
+                actionType="none"
+                [disabled]="!empreendimentoSelecionado"
+                (onClick)="consultar()">
+              </app-custom-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="snapshot-consulta-feedback" *ngIf="carregandoEmpreendimentos">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Buscando empreendimentos...</span>
+      </div>
+    </section>
+
+    <aside class="snapshot-consulta-sidepanel">
+      <div class="snapshot-consulta-sidepanel__card snapshot-consulta-sidepanel__card--highlight">
+        <span class="snapshot-consulta-sidepanel__label">Fluxo</span>
+        <h4>Como a consulta funciona</h4>
+        <p>A pesquisa localiza o empreendimento e abre a mesma visão detalhada usada para análise interna das modalidades sincronizadas.</p>
+
+        <div class="snapshot-consulta-steps">
+          <div class="snapshot-consulta-step">
+            <span>1</span>
+            <div>
+              <strong>Busque o empreendimento</strong>
+              <small>Digite nome ou abra a lista completa.</small>
+            </div>
+          </div>
+
+          <div class="snapshot-consulta-step">
+            <span>2</span>
+            <div>
+              <strong>Confirme a seleção</strong>
+              <small>Visualize o código antes de abrir o detalhe.</small>
+            </div>
+          </div>
+
+          <div class="snapshot-consulta-step">
+            <span>3</span>
+            <div>
+              <strong>Abra a análise completa</strong>
+              <small>Consulte resumo, modalidades e componentes.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="snapshot-consulta-sidepanel__card">
+        <span class="snapshot-consulta-sidepanel__label">Uso ideal</span>
+        <h4>Quando usar esta tela</h4>
+        <ul class="snapshot-consulta-checklist">
+          <li>Validar persistência de modalidades por empreendimento</li>
+          <li>Comparar rapidamente dados sincronizados</li>
+          <li>Navegar direto para o detalhe sem abrir o mapa de unidades</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>

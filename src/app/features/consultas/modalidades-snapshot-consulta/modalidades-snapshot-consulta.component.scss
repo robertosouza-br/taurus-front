@@ -1,0 +1,508 @@
+:host {
+  display: block;
+}
+
+.snapshot-consulta-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.snapshot-consulta-hero,
+.snapshot-consulta-card,
+.snapshot-consulta-sidepanel__card {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
+  border: 1px solid #dbe4ff;
+  border-radius: 1rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.snapshot-consulta-hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.snapshot-consulta-hero__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #1d4ed8 0%, #0f766e 100%);
+  color: #ffffff;
+  font-size: 1.5rem;
+}
+
+.snapshot-consulta-hero__content h3 {
+  margin: 0 0 0.35rem;
+  color: #0f172a;
+}
+
+.snapshot-consulta-hero__content {
+  flex: 1 1 340px;
+}
+
+.snapshot-consulta-hero__content p {
+  margin: 0;
+  color: #475569;
+}
+
+.snapshot-consulta-hero__badge {
+  min-width: 190px;
+  padding: 1rem 1.1rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.08) 0%, rgba(15, 118, 110, 0.12) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+
+  span {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #1d4ed8;
+  }
+
+  strong {
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+}
+
+.snapshot-consulta-card {
+  padding: 1.5rem;
+}
+
+.snapshot-consulta-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.95fr);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.snapshot-consulta-card--form {
+  position: relative;
+  overflow: hidden;
+}
+
+.snapshot-consulta-card__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(29, 78, 216, 0.1);
+  color: #1d4ed8;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.snapshot-consulta-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.18rem;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    line-height: 1.5;
+  }
+}
+
+.snapshot-consulta-card__pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.08) 0%, rgba(29, 78, 216, 0.08) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.12);
+  color: #0f172a;
+  white-space: nowrap;
+
+  i {
+    color: #1d4ed8;
+  }
+
+  span {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+}
+
+.snapshot-consulta-form-shell {
+  position: relative;
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #dbe4ff;
+  padding: 1.25rem;
+  overflow: hidden;
+}
+
+.snapshot-consulta-form-shell__accent {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1d4ed8 0%, #0f766e 100%);
+}
+
+.snapshot-consulta-form {
+  align-items: stretch;
+  margin-top: 0;
+}
+
+.snapshot-consulta-field,
+.snapshot-consulta-actions-wrap {
+  display: flex;
+}
+
+.snapshot-consulta-field {
+  align-items: stretch;
+}
+
+.snapshot-consulta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 1.1rem 1.15rem;
+  border-radius: 1.1rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fbff 55%, #eefbf8 100%);
+  border: 1px solid #cfe0ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 12px 24px rgba(29, 78, 216, 0.08);
+}
+
+.snapshot-consulta-actions__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1 1 240px;
+
+  strong {
+    color: #0f172a;
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+}
+
+.snapshot-consulta-actions__eyebrow {
+  color: #1d4ed8;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.snapshot-consulta-actions__buttons {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+
+  app-custom-button {
+    flex: 1 1 180px;
+    max-width: 240px;
+  }
+}
+
+:host ::ng-deep .snapshot-consulta-btn {
+  width: 100%;
+}
+
+:host ::ng-deep .snapshot-consulta-btn.snapshot-consulta-btn--ghost.p-button {
+  border-radius: 0.9rem !important;
+  border-width: 1px !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+:host ::ng-deep .snapshot-consulta-btn.snapshot-consulta-btn--ghost.p-button:hover:not(:disabled) {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border-color: #94a3b8 !important;
+  box-shadow: 0 10px 20px rgba(148, 163, 184, 0.16) !important;
+}
+
+:host ::ng-deep .snapshot-consulta-btn.snapshot-consulta-btn--primary.p-button {
+  border-radius: 0.95rem !important;
+  background: linear-gradient(135deg, #1d4ed8 0%, #0f766e 100%) !important;
+  border-color: transparent !important;
+  box-shadow: 0 16px 28px rgba(29, 78, 216, 0.28) !important;
+}
+
+:host ::ng-deep .snapshot-consulta-btn.snapshot-consulta-btn--primary.p-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e40af 0%, #0f766e 100%) !important;
+  box-shadow: 0 18px 30px rgba(29, 78, 216, 0.34) !important;
+}
+
+:host ::ng-deep .snapshot-consulta-btn.snapshot-consulta-btn--primary.p-button:disabled {
+  background: linear-gradient(135deg, #94a3b8 0%, #94a3b8 100%) !important;
+  box-shadow: none !important;
+}
+
+.snapshot-consulta-selection-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.08) 0%, rgba(15, 118, 110, 0.08) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.14);
+}
+
+.snapshot-consulta-selection-card__icon {
+  width: 3rem;
+  height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.95rem;
+  background: #ffffff;
+  color: #1d4ed8;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.1);
+}
+
+.snapshot-consulta-selection-card__content {
+  min-width: 0;
+
+  span,
+  small {
+    display: block;
+  }
+
+  span {
+    margin-bottom: 0.2rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: #1d4ed8;
+  }
+
+  strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  small {
+    margin-top: 0.2rem;
+    color: #475569;
+  }
+}
+
+.snapshot-consulta-selection-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #0f766e;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+.snapshot-consulta-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.snapshot-consulta-option small {
+  color: #64748b;
+}
+
+.snapshot-consulta-feedback {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1d4ed8;
+}
+
+.snapshot-consulta-sidepanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.snapshot-consulta-sidepanel__card {
+  padding: 1.25rem;
+}
+
+.snapshot-consulta-sidepanel__card--highlight {
+  background: linear-gradient(180deg, #f8fbff 0%, #eef7ff 100%);
+}
+
+.snapshot-consulta-sidepanel__label {
+  display: inline-flex;
+  margin-bottom: 0.75rem;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.snapshot-consulta-sidepanel__card h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.snapshot-consulta-sidepanel__card p {
+  margin: 0.45rem 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.snapshot-consulta-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.snapshot-consulta-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.snapshot-consulta-step > span {
+  width: 1.9rem;
+  height: 1.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.snapshot-consulta-step strong,
+.snapshot-consulta-step small {
+  display: block;
+}
+
+.snapshot-consulta-step strong {
+  color: #0f172a;
+}
+
+.snapshot-consulta-step small {
+  margin-top: 0.2rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.snapshot-consulta-checklist {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.snapshot-consulta-checklist li {
+  position: relative;
+  padding-left: 1.55rem;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.snapshot-consulta-checklist li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.48rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #0f766e 100%);
+  box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.1);
+}
+
+@media (max-width: 991px) {
+  .snapshot-consulta-page {
+    max-width: none;
+  }
+
+  .snapshot-consulta-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .snapshot-consulta-card__header {
+    flex-direction: column;
+  }
+
+  .snapshot-consulta-actions {
+    align-items: stretch;
+  }
+
+  .snapshot-consulta-actions__buttons {
+    justify-content: stretch;
+  }
+
+  .snapshot-consulta-actions__buttons app-custom-button {
+    max-width: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .snapshot-consulta-hero,
+  .snapshot-consulta-card {
+    padding: 1rem;
+  }
+
+  .snapshot-consulta-hero__badge {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .snapshot-consulta-form-shell,
+  .snapshot-consulta-sidepanel__card {
+    padding: 1rem;
+  }
+
+  .snapshot-consulta-selection-card {
+    grid-template-columns: 1fr;
+  }
+
+  .snapshot-consulta-selection-card__status {
+    justify-content: flex-start;
+  }
+}

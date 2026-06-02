@@ -79,6 +79,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/empreendimentos/empreendimentos.module').then(m => m.EmpreendimentosModule)
       },
       {
+        path: 'consultas',
+        loadChildren: () => import('./features/consultas/consultas.module').then(m => m.ConsultasModule)
+      },
+      {
         path: 'meu-perfil',
         loadChildren: () => import('./features/meu-perfil/meu-perfil.module').then(m => m.MeuPerfilModule)
       },

@@ -208,6 +208,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
         ]
       },
       {
+        label: 'Consultas',
+        icon: 'pi pi-search',
+        items: [
+          {
+            label: 'Modalidade de empreendimentos',
+            icon: 'pi pi-sitemap',
+            routerLink: '/consultas/modalidades-snapshot',
+            funcionalidade: Funcionalidade.PROPOSTA,
+            permissoes: [Permissao.CONSULTAR]
+          }
+        ]
+      },
+      {
         label: 'Meu Perfil',
         icon: 'pi pi-user',
         items: [

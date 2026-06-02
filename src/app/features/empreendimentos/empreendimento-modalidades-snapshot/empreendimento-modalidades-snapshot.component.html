@@ -118,97 +118,111 @@
     <span class="snapshot-toolbar__hint">Use este filtro para auditoria e diagnóstico interno.</span>
   </div>
 
-  <div class="grid snapshot-content-grid">
-    <div class="col-12 xl:col-7">
-      <div class="snapshot-section snapshot-section--table">
-        <div class="snapshot-section__header">
+  <div class="snapshot-results-layout">
+    <div class="snapshot-section snapshot-section--table">
+      <div class="snapshot-section__header snapshot-section__header--split">
+        <div>
           <h3>Modalidades sincronizadas</h3>
           <p>Lista ordenada pelo código da modalidade conforme retornado pela API.</p>
         </div>
 
-        <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoLista">
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>Carregando modalidades do snapshot...</span>
+        <div class="snapshot-section__summary" *ngIf="!carregandoLista && modalidades.length > 0">
+          <span>{{ modalidades.length }} modalidade(s)</span>
+          <strong>{{ modalidadeSelecionada?.codigoModalidade ? ('Selecionada: ' + modalidadeSelecionada?.codigoModalidade) : 'Nenhuma selecionada' }}</strong>
         </div>
-
-        <div class="snapshot-empty" *ngIf="!carregandoLista && modalidades.length === 0">
-          <i class="pi pi-inbox"></i>
-          <strong>Nenhuma modalidade encontrada</strong>
-          <p>Não há snapshots de modalidades para o empreendimento com o filtro atual.</p>
-        </div>
-
-        <p-table
-          *ngIf="!carregandoLista && modalidades.length > 0"
-          [value]="modalidades"
-          responsiveLayout="scroll"
-          styleClass="p-datatable-sm snapshot-table">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Modalidade</th>
-              <th>Descrição</th>
-              <th>Status</th>
-              <th>Tabela Padrão</th>
-              <th>Componentes</th>
-              <th>Última sincronização</th>
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="body" let-modalidade>
-            <tr
-              [class.snapshot-table__row--selected]="getLinhaSelecionada(modalidade.codigoModalidade)"
-              (click)="onSelecionarModalidade(modalidade)">
-              <td>
-                <strong>{{ modalidade.codigoModalidade }}</strong>
-              </td>
-              <td>
-                <div class="snapshot-table__primary">{{ modalidade.descricao || modalidade.modalidade || '-' }}</div>
-                <div class="snapshot-table__secondary">Valor salvo: {{ modalidade.modalidade || '-' }}</div>
-              </td>
-              <td>
-                <p-tag
-                  [value]="modalidade.ativo ? 'Ativa' : 'Inativa'"
-                  [severity]="getAtivoSeverity(modalidade.ativo)">
-                </p-tag>
-              </td>
-              <td>
-                <p-tag
-                  [value]="modalidade.tabelaPadrao || '-'"
-                  [severity]="getTabelaPadraoSeverity(modalidade.tabelaPadrao)">
-                </p-tag>
-              </td>
-              <td>
-                <div class="snapshot-table__primary">{{ modalidade.quantidadeComponentes }}</div>
-                <div class="snapshot-table__secondary">
-                  {{ modalidade.quantidadeComponentesTabelaPadrao }} padrão / {{ modalidade.quantidadeComponentesExtras }} extra(s)
-                </div>
-              </td>
-              <td>{{ formatarDataHora(modalidade.dataUltimaSincronizacao) }}</td>
-            </tr>
-          </ng-template>
-        </p-table>
       </div>
+
+      <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoLista">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Carregando modalidades do snapshot...</span>
+      </div>
+
+      <div class="snapshot-empty" *ngIf="!carregandoLista && modalidades.length === 0">
+        <i class="pi pi-inbox"></i>
+        <strong>Nenhuma modalidade encontrada</strong>
+        <p>Não há snapshots de modalidades para o empreendimento com o filtro atual.</p>
+      </div>
+
+      <p-table
+        *ngIf="!carregandoLista && modalidades.length > 0"
+        [value]="modalidades"
+        responsiveLayout="scroll"
+        styleClass="p-datatable-sm snapshot-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Modalidade</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Tabela Padrão</th>
+            <th>Componentes</th>
+            <th>Última sincronização</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-modalidade>
+          <tr
+            [class.snapshot-table__row--selected]="getLinhaSelecionada(modalidade.codigoModalidade)"
+            (click)="onSelecionarModalidade(modalidade)">
+            <td>
+              <strong>{{ modalidade.codigoModalidade }}</strong>
+            </td>
+            <td>
+              <div class="snapshot-table__primary">{{ modalidade.descricao || modalidade.modalidade || '-' }}</div>
+              <div class="snapshot-table__secondary">Valor salvo: {{ modalidade.modalidade || '-' }}</div>
+            </td>
+            <td>
+              <p-tag
+                [value]="modalidade.ativo ? 'Ativa' : 'Inativa'"
+                [severity]="getAtivoSeverity(modalidade.ativo)">
+              </p-tag>
+            </td>
+            <td>
+              <p-tag
+                [value]="modalidade.tabelaPadrao || '-'"
+                [severity]="getTabelaPadraoSeverity(modalidade.tabelaPadrao)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="snapshot-table__primary">{{ modalidade.quantidadeComponentes }}</div>
+              <div class="snapshot-table__secondary">
+                {{ modalidade.quantidadeComponentesTabelaPadrao }} padrão / {{ modalidade.quantidadeComponentesExtras }} extra(s)
+              </div>
+            </td>
+            <td>{{ formatarDataHora(modalidade.dataUltimaSincronizacao) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
     </div>
 
-    <div class="col-12 xl:col-5">
-      <div class="snapshot-section snapshot-section--detail">
-        <div class="snapshot-section__header">
+    <div class="snapshot-section snapshot-section--detail">
+      <div class="snapshot-section__header snapshot-section__header--split">
+        <div>
           <h3>Detalhe da modalidade</h3>
           <p>Consulta dedicada com componentes ordenados por ordem e código.</p>
         </div>
 
-        <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoDetalhe">
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>Carregando detalhe da modalidade...</span>
+        <div class="snapshot-detail__selection-hint" *ngIf="modalidadeSelecionada && !carregandoDetalhe">
+          <i class="pi pi-eye"></i>
+          <span>{{ modalidadeSelecionada.codigoModalidade }}</span>
         </div>
+      </div>
 
-        <div class="snapshot-empty" *ngIf="!carregandoDetalhe && !detalheModalidade && modalidades.length > 0">
-          <i class="pi pi-arrow-left"></i>
+      <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoDetalhe">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Carregando detalhe da modalidade...</span>
+      </div>
+
+      <div class="snapshot-empty" *ngIf="!carregandoDetalhe && !detalheModalidade && modalidades.length > 0">
+        <i class="pi pi-arrow-up"></i>
+        <div>
           <strong>Selecione uma modalidade</strong>
-          <p>Escolha um item da lista para visualizar o snapshot completo e seus componentes.</p>
+          <p>Escolha um item da tabela acima para abrir a análise completa do snapshot e seus componentes.</p>
         </div>
+      </div>
 
-        <div *ngIf="!carregandoDetalhe && detalheModalidade" class="snapshot-detail">
-          <div class="snapshot-detail__header">
+      <div *ngIf="!carregandoDetalhe && detalheModalidade" class="snapshot-detail">
+        <div class="snapshot-detail__hero">
+          <div class="snapshot-detail__hero-main">
             <div>
               <span class="snapshot-detail__eyebrow">Modalidade {{ detalheModalidade.codigoModalidade }}</span>
               <h4>{{ detalheModalidade.descricao || detalheModalidade.modalidade || 'Sem descrição' }}</h4>
@@ -225,26 +239,7 @@
             </div>
           </div>
 
-          <div class="snapshot-detail__meta">
-            <div>
-              <span>Origem</span>
-              <strong>{{ detalheModalidade.origemUltimaAtualizacao || '-' }}</strong>
-            </div>
-            <div>
-              <span>Última sincronização</span>
-              <strong>{{ formatarDataHora(detalheModalidade.dataUltimaSincronizacao) }}</strong>
-            </div>
-            <div>
-              <span>Criado em</span>
-              <strong>{{ formatarDataHora(detalheModalidade.dataCriacao) }}</strong>
-            </div>
-            <div>
-              <span>Atualizado em</span>
-              <strong>{{ formatarDataHora(detalheModalidade.dataAtualizacao) }}</strong>
-            </div>
-          </div>
-
-          <div class="snapshot-detail__counters">
+          <div class="snapshot-detail__counters snapshot-detail__counters--hero">
             <div class="snapshot-counter-card">
               <span>Total de componentes</span>
               <strong>{{ detalheModalidade.quantidadeComponentes }}</strong>
@@ -256,6 +251,37 @@
             <div class="snapshot-counter-card">
               <span>Extras</span>
               <strong>{{ detalheModalidade.quantidadeComponentesExtras }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="snapshot-detail__meta">
+          <div>
+            <span>Origem</span>
+            <strong>{{ detalheModalidade.origemUltimaAtualizacao || '-' }}</strong>
+          </div>
+          <div>
+            <span>Última sincronização</span>
+            <strong>{{ formatarDataHora(detalheModalidade.dataUltimaSincronizacao) }}</strong>
+          </div>
+          <div>
+            <span>Criado em</span>
+            <strong>{{ formatarDataHora(detalheModalidade.dataCriacao) }}</strong>
+          </div>
+          <div>
+            <span>Atualizado em</span>
+            <strong>{{ formatarDataHora(detalheModalidade.dataAtualizacao) }}</strong>
+          </div>
+        </div>
+
+        <div class="snapshot-detail__components-block">
+          <div class="snapshot-detail__components-header">
+            <div>
+              <h5>Componentes da modalidade</h5>
+              <p>Estrutura detalhada da composição sincronizada para esta modalidade.</p>
+            </div>
+            <div class="snapshot-detail__components-total" *ngIf="detalheModalidade.componentes.length > 0">
+              {{ detalheModalidade.componentes.length }} item(ns)
             </div>
           </div>
 

@@ -23,6 +23,7 @@ export class EmpreendimentoModalidadesSnapshotComponent implements OnInit {
   codigoEmpreendimento = '';
   nomeEmpreendimento = '';
   incluirInativos = false;
+  origemConsulta = false;
 
   carregandoResumo = false;
   carregandoLista = false;
@@ -50,6 +51,8 @@ export class EmpreendimentoModalidadesSnapshotComponent implements OnInit {
       return;
     }
 
+    this.origemConsulta = this.route.snapshot.queryParamMap.get('origem') === 'consulta';
+
     this.codigoEmpreendimento = this.route.snapshot.paramMap.get('codigo') || '';
 
     if (!this.codigoEmpreendimento) {
@@ -58,7 +61,7 @@ export class EmpreendimentoModalidadesSnapshotComponent implements OnInit {
         summary: 'Erro',
         detail: 'Código do empreendimento não informado.'
       });
-      this.router.navigate(['/empreendimentos']);
+      this.router.navigate([this.origemConsulta ? '/consultas/modalidades-snapshot' : '/empreendimentos']);
       return;
     }
 
@@ -76,21 +79,30 @@ export class EmpreendimentoModalidadesSnapshotComponent implements OnInit {
   }
 
   private configurarBreadcrumb(): void {
+    if (this.origemConsulta) {
+      this.breadcrumbItems = [
+        { label: 'Consultas', icon: 'pi pi-search' },
+        { label: 'Modalidade de empreendimentos', url: '/consultas/modalidades-snapshot' },
+        { label: this.nomeEmpreendimento || `Cód. ${this.codigoEmpreendimento}` }
+      ];
+      return;
+    }
+
     this.breadcrumbItems = [
       { label: 'Imóveis', icon: 'pi pi-building' },
       { label: 'Empreendimentos', url: '/empreendimentos' },
       { label: this.nomeEmpreendimento || `Cód. ${this.codigoEmpreendimento}` },
-      { label: 'Snapshot de Modalidades' }
+      { label: 'Modalidade de empreendimentos' }
     ];
   }
 
   private configurarHeader(): void {
     this.headerActions = [
       {
-        label: 'Mapa de Unidades',
-        icon: 'pi pi-th-large',
+        label: this.origemConsulta ? 'Nova Consulta' : 'Mapa de Unidades',
+        icon: this.origemConsulta ? 'pi pi-search' : 'pi pi-th-large',
         outlined: true,
-        action: () => this.voltarParaMapaUnidades()
+        action: () => this.voltarParaOrigem()
       }
     ];
   }
@@ -211,7 +223,12 @@ export class EmpreendimentoModalidadesSnapshotComponent implements OnInit {
       });
   }
 
-  voltarParaMapaUnidades(): void {
+  voltarParaOrigem(): void {
+    if (this.origemConsulta) {
+      this.router.navigate(['/consultas/modalidades-snapshot']);
+      return;
+    }
+
     this.router.navigate(['/empreendimentos', this.codigoEmpreendimento, 'unidades'], {
       state: { nomeEmpreendimento: this.nomeEmpreendimento }
     });

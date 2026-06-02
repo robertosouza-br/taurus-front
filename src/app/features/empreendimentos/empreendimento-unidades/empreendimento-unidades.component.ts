@@ -950,7 +950,7 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Acesso Negado',
-        detail: 'Você não tem permissão para consultar o snapshot de modalidades.'
+        detail: 'Você não tem permissão para consultar Modalidade de empreendimentos.'
       });
       return;
     }
