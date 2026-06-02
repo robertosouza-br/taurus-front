@@ -941,6 +941,28 @@ export class EmpreendimentoUnidadesComponent implements OnInit, OnDestroy {
     });
   }
 
+  temPermissaoConsultarSnapshotModalidades(): boolean {
+    return this.permissaoService.temPermissao(Funcionalidade.PROPOSTA, Permissao.CONSULTAR);
+  }
+
+  abrirSnapshotModalidades(): void {
+    if (!this.temPermissaoConsultarSnapshotModalidades()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Acesso Negado',
+        detail: 'Você não tem permissão para consultar o snapshot de modalidades.'
+      });
+      return;
+    }
+
+    this.router.navigate(['/empreendimentos', this.codigoEmpreendimento, 'modalidades-tabela-padrao-snapshot'], {
+      state: {
+        nomeEmpreendimento: this.nomeEmpreendimento,
+        codColigada: this.codColigadaEmpreendimento
+      }
+    });
+  }
+
   onUnidadeClick(unidade: Unidade): void {
     if (this.modoPainel) {
       return;

@@ -7,6 +7,7 @@ import { EmpreendimentosListaComponent } from './empreendimentos-lista/empreendi
 import { EmpreendimentoImagensComponent } from './empreendimento-imagens/empreendimento-imagens.component';
 import { EmpreendimentoLinksPublicosComponent } from './empreendimento-links-publicos/empreendimento-links-publicos.component';
 import { EmpreendimentoUnidadesComponent } from './empreendimento-unidades/empreendimento-unidades.component';
+import { EmpreendimentoModalidadesSnapshotComponent } from './empreendimento-modalidades-snapshot/empreendimento-modalidades-snapshot.component';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -35,7 +36,8 @@ import { SpeedDialModule } from 'primeng/speeddial';
     EmpreendimentosListaComponent,
     EmpreendimentoImagensComponent,
     EmpreendimentoLinksPublicosComponent,
-    EmpreendimentoUnidadesComponent
+    EmpreendimentoUnidadesComponent,
+    EmpreendimentoModalidadesSnapshotComponent
   ],
   imports: [
     CommonModule,

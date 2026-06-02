@@ -16,3 +16,4 @@ export * from './proposta-fluxo.model';
 export * from './proposta-simplificada.model';
 export * from './analise-proposta.model';
 export * from './sincronizacao.model';
+export * from './modalidade-tabela-padrao-snapshot.model';

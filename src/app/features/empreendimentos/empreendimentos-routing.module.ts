@@ -8,6 +8,7 @@ import { EmpreendimentosListaComponent } from './empreendimentos-lista/empreendi
 import { EmpreendimentoImagensComponent } from './empreendimento-imagens/empreendimento-imagens.component';
 import { EmpreendimentoLinksPublicosComponent } from './empreendimento-links-publicos/empreendimento-links-publicos.component';
 import { EmpreendimentoUnidadesComponent } from './empreendimento-unidades/empreendimento-unidades.component';
+import { EmpreendimentoModalidadesSnapshotComponent } from './empreendimento-modalidades-snapshot/empreendimento-modalidades-snapshot.component';
 
 const routes: Routes = [
   {
@@ -43,6 +44,15 @@ const routes: Routes = [
     canActivate: [AuthGuard, PermissaoGuard],
     data: {
       funcionalidade: Funcionalidade.EMPREENDIMENTO,
+      permissoes: [Permissao.CONSULTAR]
+    }
+  },
+  {
+    path: ':codigo/modalidades-tabela-padrao-snapshot',
+    component: EmpreendimentoModalidadesSnapshotComponent,
+    canActivate: [AuthGuard, PermissaoGuard],
+    data: {
+      funcionalidade: Funcionalidade.PROPOSTA,
       permissoes: [Permissao.CONSULTAR]
     }
   },

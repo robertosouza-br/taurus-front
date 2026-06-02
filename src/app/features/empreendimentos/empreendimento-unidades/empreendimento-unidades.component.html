@@ -25,6 +25,13 @@
       styleClass="p-button-outlined"
       (onClick)="abrirLinksPublicos()">
     </app-custom-button>
+    <app-custom-button
+      *ngIf="temPermissaoConsultarSnapshotModalidades()"
+      label="Snapshot Modalidades"
+      icon="pi pi-sitemap"
+      styleClass="p-button-outlined"
+      (onClick)="abrirSnapshotModalidades()">
+    </app-custom-button>
    </div>
 
   <div *ngIf="modoPainel" class="painel-info-bar painel-info-bar--painel">
