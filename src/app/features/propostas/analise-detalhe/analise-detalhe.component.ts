@@ -78,7 +78,7 @@ export class AnaliseDetalheComponent implements OnInit {
           label: (context: any) => {
             const label = context.dataset?.label || '';
             const valor = Number(context.parsed?.y || 0);
-            return `${label}: ${this.formatarMoeda(valor)}`;
+            return `${label}: ${this.formatarPercentualGrafico(valor)}`;
           },
           afterBody: (items: any[]) => {
             const dataIndex = items?.[0]?.dataIndex;
@@ -92,8 +92,8 @@ export class AnaliseDetalheComponent implements OnInit {
               return [];
             }
 
-            const direcao = diferenca > 0 ? 'simulação acima' : 'tabela padrão acima';
-            return [`Diferença: ${this.formatarMoeda(Math.abs(diferenca))} (${direcao})`];
+            const direcao = diferenca > 0 ? 'simulação acima' : 'base acima';
+            return [`Diferença: ${this.formatarPercentualGrafico(Math.abs(diferenca))} (${direcao})`];
           }
         }
       },
@@ -101,8 +101,9 @@ export class AnaliseDetalheComponent implements OnInit {
     scales: {
       y: {
         beginAtZero: true,
+        suggestedMax: 100,
         ticks: {
-          callback: (value: number | string) => this.formatarMoeda(Number(value))
+          callback: (value: number | string) => this.formatarPercentualGrafico(Number(value))
         }
       }
     }
@@ -1382,16 +1383,21 @@ export class AnaliseDetalheComponent implements OnInit {
     const parcelasSimulacao = this.extrairParcelas(this.componentesSimulacao);
     const intervaloProposta = this.obterIntervaloMesesProposta(parcelasSimulacao, parcelasTabelaPadrao);
     const chaves = this.gerarChavesMeses(intervaloProposta);
-    const serieTabelaPadrao = this.construirSerieMensal(parcelasTabelaPadrao, chaves, intervaloProposta);
-    const serieSimulacao = this.construirSerieMensal(parcelasSimulacao, chaves, intervaloProposta);
-    const marcadoresDiferenca = this.construirMarcadoresDiferenca(serieTabelaPadrao, serieSimulacao);
+    const serieTabelaPadraoValores = this.construirSerieMensal(parcelasTabelaPadrao, chaves, intervaloProposta);
+    const serieSimulacaoValores = this.construirSerieMensal(parcelasSimulacao, chaves, intervaloProposta);
+    const valorUnidade = Number(this.proposta?.empreendimento?.valorUnidade ?? 0);
+    const serieTabelaPadraoAcumuladaValores = this.calcularSerieAcumulada(serieTabelaPadraoValores);
+    const serieSimulacaoAcumuladaValores = this.calcularSerieAcumulada(serieSimulacaoValores);
+    const serieTabelaPadraoAcumulada = this.converterValoresParaPercentual(serieTabelaPadraoAcumuladaValores, valorUnidade);
+    const serieSimulacaoAcumulada = this.converterValoresParaPercentual(serieSimulacaoAcumuladaValores, valorUnidade);
+    const marcadoresDiferenca = this.construirMarcadoresDiferenca(serieTabelaPadraoAcumulada, serieSimulacaoAcumulada);
 
     return {
       labels: this.gerarLabelsAcumulados(chaves),
       datasets: [
         {
-          label: 'Tabela Padrão',
-          data: serieTabelaPadrao,
+          label: 'Base Acumulada (%)',
+          data: serieTabelaPadraoAcumulada,
           borderColor: '#2563eb',
           backgroundColor: 'rgba(37, 99, 235, 0.12)',
           borderDash: [5, 5],
@@ -1401,11 +1407,11 @@ export class AnaliseDetalheComponent implements OnInit {
           tension: 0.25
         },
         {
-          label: 'Simulação',
-          data: serieSimulacao,
-          borderColor: '#16a34a',
-          backgroundColor: 'rgba(22, 163, 74, 0.16)',
-          fill: true,
+          label: 'Proposta Acumulada (%)',
+          data: serieSimulacaoAcumulada,
+          borderColor: '#b91c1c',
+          backgroundColor: 'rgba(185, 28, 28, 0.14)',
+          fill: false,
           pointRadius: 3,
           pointHoverRadius: 5,
           tension: 0.25
@@ -1413,9 +1419,9 @@ export class AnaliseDetalheComponent implements OnInit {
         {
           label: 'Divergência',
           data: marcadoresDiferenca,
-          borderColor: '#dc2626',
-          backgroundColor: '#dc2626',
-          pointBackgroundColor: '#dc2626',
+          borderColor: '#f59e0b',
+          backgroundColor: '#f59e0b',
+          pointBackgroundColor: '#f59e0b',
           pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 5,
@@ -1425,6 +1431,23 @@ export class AnaliseDetalheComponent implements OnInit {
         }
       ]
     };
+  }
+
+  private converterValoresParaPercentual(valoresMensais: number[], valorUnidade: number): number[] {
+    if (!valorUnidade || valorUnidade <= 0) {
+      return valoresMensais.map(() => 0);
+    }
+
+    return valoresMensais.map((valorMes) => Number((((valorMes || 0) / valorUnidade) * 100).toFixed(2)));
+  }
+
+  private calcularSerieAcumulada(valoresMensais: number[]): number[] {
+    let acumulado = 0;
+
+    return valoresMensais.map((valorMes) => {
+      acumulado += valorMes || 0;
+      return Number(acumulado.toFixed(2));
+    });
   }
 
   private extrairParcelas(componentes: ComponenteAnaliseDTO[]): Array<{ data: Date; valor: number }> {
@@ -1637,10 +1660,17 @@ export class AnaliseDetalheComponent implements OnInit {
     parcelasSimulacao: Array<{ data: Date; valor: number }>,
     parcelasTabelaPadrao: Array<{ data: Date; valor: number }>
   ): { inicio: Date; fim: Date } | null {
-    const base = parcelasSimulacao.length ? parcelasSimulacao : parcelasTabelaPadrao;
-    const parcelasOrdenadas = base
+    const parcelasSimulacaoValidas = parcelasSimulacao
       .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
       .sort((a, b) => a.data.getTime() - b.data.getTime());
+
+    const parcelasTabelaValidas = parcelasTabelaPadrao
+      .filter(parcela => parcela.data instanceof Date && !Number.isNaN(parcela.data.getTime()))
+      .sort((a, b) => a.data.getTime() - b.data.getTime());
+
+    const parcelasOrdenadas = parcelasSimulacaoValidas.length
+      ? parcelasSimulacaoValidas
+      : parcelasTabelaValidas;
 
     if (!parcelasOrdenadas.length) {
       return null;
@@ -1658,5 +1688,9 @@ export class AnaliseDetalheComponent implements OnInit {
   private estaDentroDoIntervaloMensal(data: Date, intervalo: { inicio: Date; fim: Date }): boolean {
     const dataMes = new Date(data.getFullYear(), data.getMonth(), 1);
     return dataMes >= intervalo.inicio && dataMes <= intervalo.fim;
+  }
+
+  private formatarPercentualGrafico(valor: number): string {
+    return `${Number(valor || 0).toFixed(2).replace('.', ',')}%`;
   }
 }
