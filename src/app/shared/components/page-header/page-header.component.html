@@ -23,10 +23,16 @@
           [icon]="action.icon"
           [severity]="action.severity || 'primary'"
           [outlined]="action.outlined || false"
-          [disabled]="action.disabled || false"
-          [raised]="true"
-          size="normal"
-          [style.display]="action.visible === false ? 'none' : 'inline-flex'"
+          [rounded]="action.rounded || false"
+          [text]="action.text || false"
+          [disabled]="isActionDisabled(action)"
+          [loading]="isActionLoading(action)"
+          [raised]="action.raised ?? true"
+          [size]="action.size || 'normal'"
+          [tooltip]="action.tooltip || ''"
+          [tooltipPosition]="action.tooltipPosition || 'top'"
+          [styleClass]="action.styleClass || ''"
+          [style.display]="isActionVisible(action) ? 'inline-flex' : 'none'"
           (onClick)="executeAction(action)">
         </app-custom-button>
       </div>

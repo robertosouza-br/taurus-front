@@ -89,6 +89,25 @@
   }
 }
 
+:host ::ng-deep .page-header.gradient .actions-section button.p-button {
+  background: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.88) !important;
+  color: var(--primary-color) !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18) !important;
+}
+
+:host ::ng-deep .page-header.gradient .actions-section button.p-button:hover:not(:disabled) {
+  background: var(--primary-50) !important;
+  border-color: #ffffff !important;
+  color: var(--primary-700, var(--primary-color)) !important;
+}
+
+:host ::ng-deep .page-header.gradient .actions-section button.p-button:disabled {
+  background: rgba(255, 255, 255, 0.76) !important;
+  border-color: rgba(255, 255, 255, 0.58) !important;
+  color: var(--primary-color) !important;
+}
+
 @media (max-width: 1024px) {
   .page-header .header-content {
     flex-direction: column;
@@ -100,11 +119,17 @@
 
     .actions-section {
       width: 100%;
-      
-      button {
+
+      app-custom-button {
         flex: 1;
       }
     }
+  }
+}
+
+@media (max-width: 1024px) {
+  :host ::ng-deep .page-header .actions-section app-custom-button button.p-button {
+    width: 100%;
   }
 }
 

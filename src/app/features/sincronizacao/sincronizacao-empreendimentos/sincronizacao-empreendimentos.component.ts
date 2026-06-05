@@ -120,6 +120,9 @@ export class SincronizacaoEmpreendimentosComponent implements OnInit {
         label: 'Sincronizar Registros',
         icon: 'pi pi-refresh',
         severity: 'primary',
+        loading: () => this.sincronizando,
+        disabled: () => this.sincronizando,
+        tooltip: 'Sincronizar empreendimentos, blocos e unidades',
         command: () => this.sincronizar()
       }
     ];
