@@ -3,36 +3,22 @@
 
   <app-page-header
     [title]="nomeEmpreendimento || ('Empreendimento ' + codigoEmpreendimento)"
-    subtitle="Snapshot interno de modalidades de tabela padrão"
+    subtitle="Modalidades de tabela padrão na base interna"
     icon="pi pi-sitemap"
     [actions]="headerActions">
   </app-page-header>
 
-  <div class="snapshot-intro-card">
-    <div class="snapshot-intro-card__icon">
-      <i class="pi pi-database"></i>
-    </div>
-    <div class="snapshot-intro-card__content">
-      <h3>Consulta administrativa do snapshot persistido</h3>
-      <p>
-        Esta tela consulta o estado interno sincronizado na base da API. Os dados abaixo não representam uma consulta em tempo real da TOTVS.
-      </p>
-      <span class="snapshot-intro-card__meta" *ngIf="resumo?.origemUltimaAtualizacaoModalidades">
-        <i class="pi pi-tag"></i>
-        Origem atual: {{ resumo?.origemUltimaAtualizacaoModalidades }}
-      </span>
-    </div>
-  </div>
-
   <div class="snapshot-section snapshot-section--summary">
-    <div class="snapshot-section__header">
-      <h3>Resumo do empreendimento</h3>
-      <p>Contadores consolidados do snapshot interno sincronizado.</p>
+    <div class="snapshot-section__header snapshot-section__header--split">
+      <div>
+        <h3>Visão geral</h3>
+        <p>Dados gravados na base interna para este empreendimento.</p>
+      </div>
     </div>
 
     <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoResumo">
       <i class="pi pi-spin pi-spinner"></i>
-      <span>Carregando resumo do snapshot...</span>
+      <span>Carregando resumo...</span>
     </div>
 
     <div class="snapshot-feedback snapshot-feedback--warning" *ngIf="!carregandoResumo && !resumo">
@@ -43,19 +29,27 @@
       </div>
     </div>
 
-    <div class="grid snapshot-metrics-grid" *ngIf="!carregandoResumo && resumo">
-      <div class="col-12 md:col-6 xl:col-3">
-        <div class="snapshot-metric-card snapshot-metric-card--blue">
-          <div class="snapshot-metric-card__header">
-            <span>Modalidades</span>
-            <i class="pi pi-list"></i>
-          </div>
-          <strong class="snapshot-metric-card__value">{{ resumo.quantidadeModalidades }}</strong>
-          <span class="snapshot-metric-card__meta">{{ resumo.quantidadeModalidadesAtivas }} ativa(s)</span>
-        </div>
-      </div>
+    <div class="snapshot-status-strip" *ngIf="!carregandoResumo && resumo">
+      <span>
+        <i class="pi pi-building"></i>
+        {{ resumo.empreendimentoAtivo ? 'Empreendimento ativo' : 'Empreendimento inativo' }}
+      </span>
+      <span *ngIf="resumo.origemUltimaAtualizacaoModalidades">
+        <i class="pi pi-tag"></i>
+        {{ resumo.origemUltimaAtualizacaoModalidades }}
+      </span>
+      <span>
+        <i class="pi pi-clock"></i>
+        Modalidades: {{ formatarDataHora(resumo.dataUltimaSincronizacaoModalidades) }}
+      </span>
+      <span>
+        <i class="pi pi-calendar"></i>
+        Empreendimento: {{ formatarDataHora(resumo.dataUltimaSincronizacaoEmpreendimento) }}
+      </span>
+    </div>
 
-      <div class="col-12 md:col-6 xl:col-3">
+    <div class="grid snapshot-metrics-grid" *ngIf="!carregandoResumo && resumo">
+      <div class="col-12 md:col-6 xl:col-4">
         <div class="snapshot-metric-card snapshot-metric-card--indigo">
           <div class="snapshot-metric-card__header">
             <span>Componentes</span>
@@ -66,139 +60,35 @@
         </div>
       </div>
 
-      <div class="col-12 md:col-6 xl:col-3">
+      <div class="col-12 md:col-6 xl:col-4">
         <div class="snapshot-metric-card snapshot-metric-card--green">
           <div class="snapshot-metric-card__header">
             <span>Tabela padrão</span>
             <i class="pi pi-check-square"></i>
           </div>
           <strong class="snapshot-metric-card__value">{{ resumo.quantidadeComponentesTabelaPadrao }}</strong>
-          <span class="snapshot-metric-card__meta">Componentes marcados como padrão</span>
+          <span class="snapshot-metric-card__meta">Marcados como padrão</span>
         </div>
       </div>
 
-      <div class="col-12 md:col-6 xl:col-3">
+      <div class="col-12 md:col-6 xl:col-4">
         <div class="snapshot-metric-card snapshot-metric-card--orange">
           <div class="snapshot-metric-card__header">
             <span>Extras</span>
             <i class="pi pi-plus-circle"></i>
           </div>
           <strong class="snapshot-metric-card__value">{{ resumo.quantidadeComponentesExtras }}</strong>
-          <span class="snapshot-metric-card__meta">Componentes fora da tabela padrão</span>
+          <span class="snapshot-metric-card__meta">Fora da tabela padrão</span>
         </div>
       </div>
     </div>
-
-    <div class="snapshot-summary-meta" *ngIf="!carregandoResumo && resumo">
-      <span>
-        <i class="pi pi-building"></i>
-        Empreendimento {{ resumo.empreendimentoAtivo ? 'ativo' : 'inativo' }} na base interna
-      </span>
-      <span>
-        <i class="pi pi-clock"></i>
-        Última sincronização das modalidades: {{ formatarDataHora(resumo.dataUltimaSincronizacaoModalidades) }}
-      </span>
-      <span>
-        <i class="pi pi-calendar"></i>
-        Sincronização geral do empreendimento: {{ formatarDataHora(resumo.dataUltimaSincronizacaoEmpreendimento) }}
-      </span>
-    </div>
-  </div>
-
-  <div class="snapshot-toolbar">
-    <div class="snapshot-toolbar__toggle">
-      <p-checkbox
-        inputId="incluirInativos"
-        [binary]="true"
-        [(ngModel)]="incluirInativos"
-        (onChange)="aoAlterarIncluirInativos()">
-      </p-checkbox>
-      <label for="incluirInativos">Incluir inativos</label>
-    </div>
-    <span class="snapshot-toolbar__hint">Use este filtro para auditoria e diagnóstico interno.</span>
   </div>
 
   <div class="snapshot-results-layout">
-    <div class="snapshot-section snapshot-section--table">
-      <div class="snapshot-section__header snapshot-section__header--split">
-        <div>
-          <h3>Modalidades sincronizadas</h3>
-          <p>Lista ordenada pelo código da modalidade conforme retornado pela API.</p>
-        </div>
-
-        <div class="snapshot-section__summary" *ngIf="!carregandoLista && modalidades.length > 0">
-          <span>{{ modalidades.length }} modalidade(s)</span>
-          <strong>{{ modalidadeSelecionada?.codigoModalidade ? ('Selecionada: ' + modalidadeSelecionada?.codigoModalidade) : 'Nenhuma selecionada' }}</strong>
-        </div>
-      </div>
-
-      <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoLista">
-        <i class="pi pi-spin pi-spinner"></i>
-        <span>Carregando modalidades do snapshot...</span>
-      </div>
-
-      <div class="snapshot-empty" *ngIf="!carregandoLista && modalidades.length === 0">
-        <i class="pi pi-inbox"></i>
-        <strong>Nenhuma modalidade encontrada</strong>
-        <p>Não há snapshots de modalidades para o empreendimento com o filtro atual.</p>
-      </div>
-
-      <p-table
-        *ngIf="!carregandoLista && modalidades.length > 0"
-        [value]="modalidades"
-        responsiveLayout="scroll"
-        styleClass="p-datatable-sm snapshot-table">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Modalidade</th>
-            <th>Descrição</th>
-            <th>Status</th>
-            <th>Tabela Padrão</th>
-            <th>Componentes</th>
-            <th>Última sincronização</th>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="body" let-modalidade>
-          <tr
-            [class.snapshot-table__row--selected]="getLinhaSelecionada(modalidade.codigoModalidade)"
-            (click)="onSelecionarModalidade(modalidade)">
-            <td>
-              <strong>{{ modalidade.codigoModalidade }}</strong>
-            </td>
-            <td>
-              <div class="snapshot-table__primary">{{ modalidade.descricao || modalidade.modalidade || '-' }}</div>
-              <div class="snapshot-table__secondary">Valor salvo: {{ modalidade.modalidade || '-' }}</div>
-            </td>
-            <td>
-              <p-tag
-                [value]="modalidade.ativo ? 'Ativa' : 'Inativa'"
-                [severity]="getAtivoSeverity(modalidade.ativo)">
-              </p-tag>
-            </td>
-            <td>
-              <p-tag
-                [value]="modalidade.tabelaPadrao || '-'"
-                [severity]="getTabelaPadraoSeverity(modalidade.tabelaPadrao)">
-              </p-tag>
-            </td>
-            <td>
-              <div class="snapshot-table__primary">{{ modalidade.quantidadeComponentes }}</div>
-              <div class="snapshot-table__secondary">
-                {{ modalidade.quantidadeComponentesTabelaPadrao }} padrão / {{ modalidade.quantidadeComponentesExtras }} extra(s)
-              </div>
-            </td>
-            <td>{{ formatarDataHora(modalidade.dataUltimaSincronizacao) }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-
     <div class="snapshot-section snapshot-section--detail">
       <div class="snapshot-section__header snapshot-section__header--split">
         <div>
           <h3>Detalhe da modalidade</h3>
-          <p>Consulta dedicada com componentes ordenados por ordem e código.</p>
         </div>
 
         <div class="snapshot-detail__selection-hint" *ngIf="modalidadeSelecionada && !carregandoDetalhe">
@@ -209,14 +99,14 @@
 
       <div class="snapshot-feedback snapshot-feedback--loading" *ngIf="carregandoDetalhe">
         <i class="pi pi-spin pi-spinner"></i>
-        <span>Carregando detalhe da modalidade...</span>
+        <span>Carregando modalidade...</span>
       </div>
 
-      <div class="snapshot-empty" *ngIf="!carregandoDetalhe && !detalheModalidade && modalidades.length > 0">
-        <i class="pi pi-arrow-up"></i>
+      <div class="snapshot-empty" *ngIf="!carregandoDetalhe && !detalheModalidade">
+        <i class="pi pi-inbox"></i>
         <div>
-          <strong>Selecione uma modalidade</strong>
-          <p>Escolha um item da tabela acima para abrir a análise completa do snapshot e seus componentes.</p>
+          <strong>Nenhuma modalidade para exibir</strong>
+          <p>Não há detalhe disponível para o filtro atual.</p>
         </div>
       </div>
 
@@ -236,21 +126,6 @@
                 [value]="detalheModalidade.tabelaPadrao || '-'"
                 [severity]="getTabelaPadraoSeverity(detalheModalidade.tabelaPadrao)">
               </p-tag>
-            </div>
-          </div>
-
-          <div class="snapshot-detail__counters snapshot-detail__counters--hero">
-            <div class="snapshot-counter-card">
-              <span>Total de componentes</span>
-              <strong>{{ detalheModalidade.quantidadeComponentes }}</strong>
-            </div>
-            <div class="snapshot-counter-card">
-              <span>Tabela padrão</span>
-              <strong>{{ detalheModalidade.quantidadeComponentesTabelaPadrao }}</strong>
-            </div>
-            <div class="snapshot-counter-card">
-              <span>Extras</span>
-              <strong>{{ detalheModalidade.quantidadeComponentesExtras }}</strong>
             </div>
           </div>
         </div>
@@ -277,8 +152,7 @@
         <div class="snapshot-detail__components-block">
           <div class="snapshot-detail__components-header">
             <div>
-              <h5>Componentes da modalidade</h5>
-              <p>Estrutura detalhada da composição sincronizada para esta modalidade.</p>
+              <h5>Componentes</h5>
             </div>
             <div class="snapshot-detail__components-total" *ngIf="detalheModalidade.componentes.length > 0">
               {{ detalheModalidade.componentes.length }} item(ns)
@@ -297,13 +171,48 @@
             styleClass="p-datatable-sm snapshot-components-table">
             <ng-template pTemplate="header">
               <tr>
-                <th>Ordem</th>
-                <th>Componente</th>
-                <th>Tipo</th>
-                <th>Qtd.</th>
-                <th>%</th>
-                <th>Prazo</th>
-                <th>Status</th>
+                <th>
+                  <span class="snapshot-components-table__header-cell snapshot-components-table__header-cell--center">
+                    <i class="pi pi-sort-numeric-down"></i>
+                    Ordem
+                  </span>
+                </th>
+                <th>
+                  <span class="snapshot-components-table__header-cell">
+                    <i class="pi pi-box"></i>
+                    Componente
+                  </span>
+                </th>
+                <th>
+                  <span class="snapshot-components-table__header-cell">
+                    <i class="pi pi-tags"></i>
+                    Tipo / Grupo
+                  </span>
+                </th>
+                <th>
+                  <span class="snapshot-components-table__header-cell snapshot-components-table__header-cell--center">
+                    <i class="pi pi-hashtag"></i>
+                    Quantidade
+                  </span>
+                </th>
+                <th>
+                  <span class="snapshot-components-table__header-cell snapshot-components-table__header-cell--center">
+                    <i class="pi pi-percentage"></i>
+                    Percentual
+                  </span>
+                </th>
+                <th>
+                  <span class="snapshot-components-table__header-cell snapshot-components-table__header-cell--center">
+                    <i class="pi pi-calendar"></i>
+                    Prazo
+                  </span>
+                </th>
+                <th>
+                  <span class="snapshot-components-table__header-cell snapshot-components-table__header-cell--center">
+                    <i class="pi pi-check-circle"></i>
+                    Status
+                  </span>
+                </th>
               </tr>
             </ng-template>
 
